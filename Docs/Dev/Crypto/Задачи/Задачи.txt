@@ -1,0 +1,12 @@
+﻿Выполнить задачи из списка TODO
+
+Попробовать начертить схему криптографических преобразований и, главное, преобразования пароля
+Схема VinKekFish
+
+Сделать keccak duplex
+
+
+Проверить, что там в /Arcs/Repos/Crypto/VinKekFish/Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/ и в записках в этой директории
+
+Проверить, что не допущено ошибок, описанных в https://github.com/VinCryptoOS/vincryptoos.github.io
+

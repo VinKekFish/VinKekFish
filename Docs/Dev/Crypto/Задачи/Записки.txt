@@ -1,0 +1,53 @@
+﻿Составить общее описание того, что я буду делать, как это будет выглядеть
+
+Xml-документация
+	https://docs.microsoft.com/ru-ru/dotnet/csharp/codedoc
+	https://docs.microsoft.com/ru-ru/dotnet/csharp/programming-guide/xmldoc/recommended-tags-for-documentation-comments
+
+Какая у меня модель угроз?
+Программа работает на незаражённом компьютере
+	Но какие меры осложнения выделения ключа надо предпринять?
+		Например, компьютер могут заразить прямо сейчас (после окончания работы программы шифрования) или получить к нему физический доступ
+Защита от заражения: постараться держать все данные только в оперативной памяти
+В идеале, работать только unsafe
+
+
+Сценарий использования HiJzofkF19z0sGnGmD:
+1. Программа открывается автоматически или вручную
+2. Получает вручную пароль в защищённом виде
+3. Получает имя файла ключа
+4. Расшифровывает ключ и хранит его некоторое время
+5. Предоставляет другой программе возможность отдавать команды на шифровку файлов этим ключом
+
+Реализация ThreeFish
+https://github.com/nitrocaster/SkeinFish
+https://www.schneier.com/academic/skein/threefish/
+
+https://docs.microsoft.com/ru-ru/dotnet/api/system.buffers?view=netcore-3.1
+Span<T> ReadonlySpan<T>
+GCHandle.Alloc
+GC.KeepAlive(Object)
+	GetTotalMemory(Boolean)
+
+Подумать насчёт использования GC.TryStartNoGCRegion https://docs.microsoft.com/ru-ru/dotnet/api/system.gc.trystartnogcregion?view=netcore-3.1
+
+https://docs.microsoft.com/ru-ru/dotnet/architecture/microservices/secure-net-microservices-web-applications/developer-app-secrets-storage
+
+https://docs.microsoft.com/ru-ru/dotnet/api/system.security.securestring?view=netcore-3.1
+	SecureString
+		https://github.com/dotnet/platform-compat/blob/master/docs/DE0001.md
+		Не рекомендуется к использованию, замена - средства аутентификации Windows :)
+
+https://docs.microsoft.com/ru-ru/dotnet/csharp/language-reference/operators/stackalloc
+	Span<int> numbers = stackalloc int[length]; (выделяет память в стеке)
+	int* numbers = stackalloc int[length];
+https://docs.microsoft.com/ru-ru/dotnet/csharp/language-reference/operators/pointer-related-operators
+	Это операторы для указателей
+
+https://docs.microsoft.com/ru-ru/dotnet/api/system.runtime.interopservices.marshal.allochglobal?view=netcore-3.1
+	System.Runtime.InteropServices
+		Marshal.AllocHGlobal
+			Выделение неуправляемой памяти. Может не заполняться нулями
+
+https://docs.microsoft.com/ru-ru/dotnet/core/diagnostics/debug-memory-leak
+	Поиск утечек управляемой памяти
