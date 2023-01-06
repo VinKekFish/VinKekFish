@@ -2,9 +2,8 @@
 Документы по разработке криптографических алгоритмов
 
 
-# [Crypto/Задачи/](Crypto/VinKekFish/)
+# [Crypto/Задачи/](Crypto/Задачи/)
     Планы и записки на память
-[Основные планы](Crypto/VinKekFish/Description/VinKekFish.md)
 
 # [CodeReview/КонтрольныйСписок/](Crypto/CodeReview/КонтрольныйСписок/)
     Контрольные списки по ручному анализу кода
@@ -17,14 +16,14 @@
 
 ## [Crypto/VinKekFish/Description](Crypto/VinKekFish/Description/)
     Описание VinKekFish и связанные с описанием документы
-[Description/VinKekFish.md](VinKekFish.md)   Описание VinKekFish
+[Основные планы](Crypto/VinKekFish/Description/VinKekFish.md)   Описание VinKekFish
 
 ### [tables](Crypto/VinKekFish/Description/tables)
     Статические таблицы перестановок для VinKekFish
 
 ### [GeneralOfDetails/](Crypto/VinKekFish/Description/GeneralOfDetails)
     Папка для описаний реализаций GeneralOfDetails.md
-[GeneralOfDetails.md](Description/GeneralOfDetails/GeneralOfDetails.md) - Перечень конкретных реализаций в данном репозитории
+[GeneralOfDetails.md](VinKekFish/Description/GeneralOfDetails/GeneralOfDetails.md) - Перечень конкретных реализаций в данном репозитории
     
 ### [Старое-2021](Crypto/VinKekFish/Description/)
     Старые оценки некоторых внутренних криптографических параметров
