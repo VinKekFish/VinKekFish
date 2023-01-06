@@ -2,11 +2,11 @@
 
 # Каталоги
 
-## /Docs
+## [/Docs](Docs)
 
 Каталог с документацией.
 
-### /Docs/External
+### [/Docs/External](Docs/External)
 
 Каталог с внешними документами, использованными в проекте, и сторонней реализацией ThreeFish.
 
@@ -27,12 +27,14 @@
     Keccak-reference-3.0.pdf - описание алгоритма keccak в авторской форме
 
 
-### /Docs/Dev
+### [/Docs/Dev](Docs/Dev)
     
 	Документы, касающиеся разработки (описание алгоритма VinKekFish, контрольные списки, планы, задачи)
 
 	Содержание: [README.md](./Docs/Dev/README.md)
 
-## /src/
+## [/src/](src)
 
-### /src/builder/
+### [/src/builder/](src/builder/)
+
+
