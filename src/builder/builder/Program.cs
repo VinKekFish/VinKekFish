@@ -5,53 +5,19 @@ namespace builder;
 
 partial class Program
 {
+    static string   configuration = "Release";
+    static string   output        = "./build";
+    static DateTime now           = DateTime.Now;
     static int Main(string[] args)
     {
-        var builder_config_file_name = args.Length > 0 ? args[0] : "builder.conf";
-        var builder_config_fi        = new FileInfo(builder_config_file_name);
-
-        // Если файл с опциями не создан, создаём его
-        if (!builder_config_fi.Exists)
+        if (args.Length > 0)
         {
-            File.WriteAllText
-            (
-                builder_config_fi.FullName,
-                """
-                configuration: Debug
-                output: build
-
-                [projects]
-                """
-            );
-
-            using (var _ = new ErrorConsoleOptions())
-                Console.Error.WriteLine($"Configuration file is not exists: '{builder_config_fi.FullName}'");
-
-            return (int) ErrorCode.InvalidConfigFile;
+            configuration = args[0];
         }
-
-        var configFileLines = File.ReadAllLines(builder_config_fi.FullName);
-        ParseConfigFile(configFileLines);
 
         using (var _ = new NotImportantConsoleOptions())
         {            
             Console.WriteLine($"Builder started at {getTimeString(DateTime.Now)}");
-            Console.WriteLine($"Config file: '{builder_config_fi.FullName}");
-            Console.WriteLine($"Projects count to build: {configuration["projects"].Values.Count}");
-
-            var output_for_configuration = new string[] {"configuration", "output"};
-            foreach (var confOptName in output_for_configuration)
-            {
-                if (!configuration.ContainsKey(confOptName))
-                {
-                    using (var _2 = new ErrorConsoleOptions())
-                        Console.Error.WriteLine($"Is not specified required option: {confOptName}");
-
-                    return (int) ErrorCode.InvalidConfigFile;
-                }
-
-                Console.Write($"{confOptName}: '{configuration[confOptName]}'; ");
-            }
         }
 
         // ---------------- Устанавливаем обработчики ошибок ----------------
@@ -64,7 +30,7 @@ partial class Program
         if (ec.resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
-                Console.Error.WriteLine($"{getTimeString(DateTime.Now)}. Error during build");
+                Console.Error.Write($"{getTimeString(DateTime.Now)}. Error during build");
 
             return (int) ec.resultCode;
         }
@@ -125,10 +91,11 @@ partial class Program
     {
         using (var bg = new ErrorConsoleOptions())
         {
-            Console.Error.Write("builder.lock file exists. ");
+            // Console.Error.Write("builder.lock file exists. ");
+            Console.Error.Write("builder was changed. Lets execute build.sh");
         }
 
-        Console.Error.Write("The build was run twice or got a code error during building");
+        // Console.Error.Write("The build was run twice or got a code error during building");
     }
 
     public static void Updated_File_Found_Handler(FileInfo updatedFile)

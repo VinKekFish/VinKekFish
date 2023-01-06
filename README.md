@@ -1,6 +1,8 @@
 # VinKekFish
 
 [Руководство по построению][./build.md]
+[Общее описание проекта](https://github.com/VinKekFish)
+
 
 # Каталоги
 

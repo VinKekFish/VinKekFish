@@ -21,14 +21,16 @@ partial class Program
     /// <returns>true - если билдер актуален; иначе false</returns>
     public static bool checkVersionOfBuildProgramm()
     {
-        var pathToFile = typeof(Program).Assembly.Location;
+        // var pathToFile = typeof(Program).Assembly.Location;
+        // var pathToFile = System.AppContext.BaseDirectory;
         // Console.WriteLine(pathToFile);
 
-        var builderPath = Directory.GetCurrentDirectory();
-            builderPath = Path.Combine(builderPath, "builder");
+        // Запуск должен происходить из директории VinKekFish (корневая папка репозитория)
+        var cd          = Directory.GetCurrentDirectory();
+        var builderPath = Path.Combine(cd, "src/builder/");
 
-        var di    = new DirectoryInfo(builderPath);
-        var fi    = new FileInfo(pathToFile);
+        var di    = new DirectoryInfo(builderPath);                          // Исходники builder
+        var fi    = new FileInfo(Path.Combine(cd, "build/builder/builder")); // Файл для запуска
         var last  = fi.LastWriteTimeUtc;
         var files = di.GetFiles("*.cs", SearchOption.AllDirectories);
 
@@ -57,6 +59,9 @@ partial class Program
 
     public static ErrorCode ExecuteFullBuild()
     {
+        builder_lock_event?.Invoke(new FileInfo("builder.lock"));
+        return ErrorCode.Builder_Lock;
+        /*
         var fi = new FileInfo("builder.lock");
         if (fi.Exists)
         {
@@ -71,7 +76,7 @@ partial class Program
         {
             using var fh = File.Open("builder.lock", FileMode.CreateNew, FileAccess.Write, FileShare.None);
 
-            var psi = Process.Start("bash", "build.sh");
+            var psi = Process.Start("bash", "./b/build.sh");
             psi.WaitForExit();
 
             return (ErrorCode) psi.ExitCode;
@@ -79,6 +84,6 @@ partial class Program
         finally
         {
             File.Delete("builder.lock");
-        }
+        }*/
     }
 }
