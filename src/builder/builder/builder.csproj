@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\libs\utils\utils.csproj" />
     <ProjectReference Include="..\..\..\..\..\Compiler\tree-lang-main\libs\utils\utils.csproj" />
   </ItemGroup>
 
