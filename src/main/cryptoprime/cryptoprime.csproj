@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\DriverForTests\DriverForTestsLib\DriverForTestsLib.csproj" />
+  </ItemGroup>
+    
+  <Target Name="Release">
+    <PropertyGroup>
+      <Optimize>true</Optimize>
+    </PropertyGroup>
+  </Target>
+
+  <PropertyGroup>
+
+
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>crypto_primitives</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Это предупреждения, сгенерированные по директиве #warning в исходных кодах -->
+    <WarningsNotAsErrors>CS1030</WarningsNotAsErrors>
+    
+  </PropertyGroup>
+
+</Project>

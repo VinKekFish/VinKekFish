@@ -6,7 +6,7 @@ namespace builder;
 
 partial class Program
 {
-    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath)
+    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true)
     {
         var configurationForDotNet = Program.configuration;
         var output                 = Program.output;
@@ -17,20 +17,24 @@ partial class Program
         var di  = new DirectoryInfo(pd);
 
         var csProjects  = di.GetFiles("*.csproj");
+        if (csProjects.Length <= 0)
+            throw new Exception($"*.csproj not found in {di.FullName}");
+
         var dllPatterns = new List<string>();
         foreach (var dll in csProjects)
         {
             var dllName = dll.Name.Substring(0, dll.Name.Length - ".csproj".Length);
-            dllName += ".dll";
+            dllPatterns.Add(dllName);
 
+            dllName += ".dll";
             dllPatterns.Add(dllName);
         }
 
-        var isActual  = isActualVersion(output_di, di,dllPatterns, null);
+        var isActual  = isActualVersion(output_di, di, dllPatterns, null);
 
         if (isActual)
         {
-            updated_project_found_event?.Invoke(di);
+            // updated_project_found_event?.Invoke(di);
             return (ErrorCode.SuccessActual, di);
         }
         else
@@ -39,7 +43,8 @@ partial class Program
         }
 
         var buildVersion = getDateVersionString(Program.now);
-        var args = $"publish --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false /p:PublishSingleFile=true";
+        var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
+        var args = $"publish --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;
 
@@ -50,7 +55,8 @@ partial class Program
             return (ErrorCode.DotnetError, di);
 
         ps.WaitForExit();
-
+        if (ps.ExitCode != 0)
+            return (ErrorCode.ProjectBuildError, di);
 
         return (ErrorCode.Success, di);
     }
@@ -61,12 +67,12 @@ partial class Program
     /// <param name="output_di">Директория, где мы ищем dll</param>
     /// <param name="sources_di">Директория проекта, которую мы хотим проверить</param>
     /// <param name="sourcePattern">Шаблон для поиска исходников. Если null, то шаблон будет "*.cs"</param>
-    /// <param name="patterForProjectFile">Шаблон для поиска dll-файлов, дата создания которых проверяется</param>
+    /// <param name="patternForProjectFile">Шаблон для поиска dll-файлов, дата создания которых проверяется</param>
     /// <returns>true - если версия актуальна и перестроение не требуется; false - если требуется перестроение</returns>
-    public static bool isActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patterForProjectFile, string[]? sourcePattern = null)
+    public static bool isActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patternForProjectFile, string[]? sourcePattern = null)
     {
-        if (patterForProjectFile.Count <= 0)
-            throw new ArgumentException("patterForProjectFile must be contain at least one string");
+        if (patternForProjectFile.Count <= 0)
+            throw new ArgumentException($"patterForProjectFile must be contain at least one string ({sources_di.FullName})");
 
         sourcePattern ??= isActualVersion_sourcePattern_cs;
 
@@ -74,13 +80,16 @@ partial class Program
         var bins  = new List<FileInfo>(4);
 
         GetFilesForPatterns(sources_di, sourcePattern,        files);
-        GetFilesForPatterns(output_di,  patterForProjectFile, bins);
+        GetFilesForPatterns(output_di,  patternForProjectFile, bins);
 
         if (files.Count <= 0)
             throw new ArgumentException($"isActualVersion: source pattern '{String.Join(", ", sourcePattern)}' is incorrect: 0 source files found");
 
         if (bins.Count <= 0)
+        {
+            Console.WriteLine($"No binaries in {output_di.FullName} for {sources_di.FullName}");
             return false;
+        }
 
         var first = bins[0].LastWriteTimeUtc;
 
@@ -97,7 +106,7 @@ partial class Program
             // Если хотя бы один из файлов-исходников новее, то версия бинарных файлов не актуальна
             if (file.LastWriteTimeUtc >= first)
             {
-                // Console.WriteLine($"Updated file found: {file.FullName}");
+                Console.WriteLine($"Updated file found: {file.FullName}");
                 return false;
             }
         }

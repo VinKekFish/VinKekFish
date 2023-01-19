@@ -1,0 +1,89 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		from №0001		.enumerableObject
+		[values:]		Byte[]
+			0000: 			
+			{object number 0002}
+			byte[0]:
+			0001: 			
+			{object number 0003}
+			byte[0]:
+			0002: 			
+			{object number 0004}
+			byte[107]:
+				D09D D0B5 D0BA D0BE   D182 D0BE D180 D0B0
+				D18F 20D1 81D1 82D1   80D0 BED0 BAD0 B0D0
+				94D1 80D1 83D0 B3D0   BED0 B920 D0BC D0B0
+				D181 D181 D0B8 D0B2   20D1 81D1 82D1 80D0
+				BED0 BAD0 A2D1 80D0   B5D1 82D1 8CD1 8F20
+				D0BD D0B5 D0B8 D0B7   D0B2 D0B5 D181 D182   D0BD D0BE 20D1 87D1   82D0 BE
+			0003: 			
+			{object number 0005}
+			byte[0]:
+			0004: 			
+			{object number 0006}
+			byte[1]:
+				D0
+			0005: 			
+			{object number 0007}
+			byte[2]:
+				9DD0
+			0006: 			
+			{object number 0008}
+			byte[3]:
+				B5D0 BA
+			0007: 			
+			{object number 0009}
+			byte[4]:
+				D0BE D182
+			0008: 			
+			{object number 0010}
+			byte[5]:
+				D0BE D180 D0
+			0009: 			
+			{object number 0011}
+			byte[6]:
+				B0D1 8F20 D181
+			0010: 			
+			{object number 0012}
+			byte[7]:
+				D182 D180 D0BE D0
+			0011: 			
+			{object number 0013}
+			byte[8]:
+				BAD0 B0D0 94D1 80D1
+			0012: 			
+			{object number 0014}
+			byte[9]:
+				83D0 B3D0 BED0 B920   D0
+			0013: 			
+			{object number 0015}
+			byte[10]:
+				BCD0 B0D1 81D1 81D0   B8D0
+			0014: 			
+			{object number 0016}
+			byte[11]:
+				B220 D181 D182 D180   D0BE D0
+			0015: 			
+			{object number 0017}
+			byte[12]:
+				BAD0 A2D1 80D0 B5D1   82D1 8CD1
+			0016: 			
+			{object number 0018}
+			byte[13]:
+				8F20 D0BD D0B5 D0B8   D0B7 D0B2 D0
+			0017: 			
+			{object number 0019}
+			byte[14]:
+				B5D1 81D1 82D0 BDD0   BE20 D187 D182
+			0018: 			
+			{object number 0020}
+			byte[1]:
+				D0
+			0019: 			
+			{object number 0021}
+			byte[1]:
+				BE
+		[end values]
+

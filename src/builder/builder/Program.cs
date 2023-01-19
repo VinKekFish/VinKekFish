@@ -3,9 +3,10 @@ using utils.console;
 
 namespace builder;
 
-partial class Program
+public partial class Program
 {
     static string   configuration = "Release";
+    static string   testTags      = "";     // example: "fast mandatory -slow" (можно также разделять запятыми)
     static string   output        = "./build";
     static DateTime now           = DateTime.Now;
     static int Main(string[] args)
@@ -13,6 +14,11 @@ partial class Program
         if (args.Length > 0)
         {
             configuration = args[0];
+        }
+
+        if (args.Length > 1)
+        {
+            testTags = args[1];
         }
 
         using (var _ = new NotImportantConsoleOptions())
@@ -43,7 +49,7 @@ partial class Program
             Console.Write($"Tests started at {getTimeString(DateTime.Now)}");
 
         // ---------------- Тесты ----------------
-        ec.resultCode = MainTests();
+        ec.resultCode = MainTests(testTags);
         if (ec.resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
@@ -69,14 +75,20 @@ partial class Program
         /// <summary>Наличие файла builder.lock - это означает, что билд был неуспешным</summary>
         Builder_Lock = 1,
 
-        /// <summary>Не удалось собрать какой-то из проектов</summary>
+        /// <summary>Не удалось собрать какой-то из проектов по неизвестной ошибке (не ошибка компиляции)</summary>
         DotnetError = 2,
 
         /// <summary>Неверный файл конфигурации builder.conf</summary>
         InvalidConfigFile = 3,
 
-        /// <summary>Сборка пропущена, т.к. нет изменений</summary>
-        SuccessActual = 4
+        /// <summary>Сборка пропущена, т.к. нет изменений (успешный)</summary>
+        SuccessActual = 4,
+
+        /// <summary>Во время сборки проекта dotnet publish выдал ошибку</summary>
+        ProjectBuildError = 5,
+
+        /// <summary>Тесты не прошли успешно</summary>
+        TestError = 6
     };
 
     public static void SetErrorHandlers()
@@ -126,5 +138,25 @@ partial class Program
         else
             using (var opt = new ErrorConsoleOptions())
                 Console.Error.Write($"Error '{code}' occured during build for project: '{ProjectName}'");
+    }
+}
+
+
+public static class ErrorCode_helper
+{
+    public static bool isErrorCode(this Program.ErrorCode code)
+    {
+        if (code == Program.ErrorCode.Success)
+            return false;
+
+        if (code == Program.ErrorCode.SuccessActual)
+            return false;
+
+        return true;
+    }
+
+    public static bool isSuccessCode(this Program.ErrorCode code)
+    {
+        return !isErrorCode(code);
     }
 }

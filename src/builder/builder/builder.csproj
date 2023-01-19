@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Compiler\tree-lang-main\libs\utils\utils.csproj" />
+    <ProjectReference Include="../../../../../Compiler/tree-lang-main/libs/utils/utils.csproj" />
+    <ProjectReference Include="../../../../DriverForTests/DriverForTestsLib/DriverForTestsLib.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -9,6 +10,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
 </Project>

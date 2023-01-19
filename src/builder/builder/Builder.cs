@@ -6,6 +6,12 @@ partial class Program
 {
     public static (ErrorCode resultCode, bool WillTests) MainBuild()
     {
+        end_build_for_project_event += (ErrorCode code, DirectoryInfo updatedDir) =>
+        {
+            if (code.isErrorCode())
+                Console.Error.WriteLine($"Error during the build process for '{updatedDir.FullName}' with error code {code}");
+        };
+
         if (!checkVersionOfBuildProgramm())
         {
             return (ExecuteFullBuild(), false);
