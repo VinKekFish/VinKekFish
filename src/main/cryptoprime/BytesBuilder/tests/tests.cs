@@ -174,7 +174,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
 }
 
 
-[TestTagAttribute("medium")]
+[TestTagAttribute("fast_level2")]
 [TestTagAttribute("BytesBuilder")]
 public class BytesBuilder_test2: BytesBuilder_test_parent
 {
@@ -326,6 +326,36 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
             lst.Add(bb2.getBytes());
 
+
+            a1 = createByteArray(1 << 11, 0, 1, 0, 0);
+            a2 = new byte[a1.LongLength];
+            BytesBuilder.CopyTo(a1, a2);
+            if (!BytesBuilder.UnsecureCompare(a1, a2))
+                throw new Exception("BytesBuilder_test2: 010-1");
+
+            BytesBuilder.ToNull(a2);
+            foreach (var a in a2)
+                if (a != 0)
+                    throw new Exception("BytesBuilder_test2: 010-2");
+
+            for (int i = 1; i < a2.Length - 1; i++)
+            {
+                BytesBuilder.CopyTo(a1, a2, i);
+                if (!BytesBuilder.UnsecureCompare(a2, a1, a2.Length - i, i))
+                    throw new Exception($"BytesBuilder_test2: 010-3 (i={i})");
+            }
+
+            for (int k = 1; k < a2.Length - 2; k += 11)
+            for (int i = 1; i < a2.Length - 1; i++)
+            {
+                BytesBuilder.ToNull(a2);                // Чтобы a2 был заполнен нулями: уменьшает вероятность случайного совпадения
+                BytesBuilder.CopyTo(a1, a2, k, -1, i);
+                for (int j = 0; j+k < a2.Length && j+i < a2.Length; j++)
+                    if (a1[j+i] != a2[j+k])
+                        throw new Exception($"BytesBuilder_test2: 010-4 (i={i})");
+            }
+
+
             return lst;
         }
     }
@@ -342,7 +372,6 @@ public class BytesBuilder_test3: BytesBuilder_test_parent
 
     protected class Saver: SaverParent
     {
-
         public override object ExecuteTest(AutoSaveTestTask task)
         {
             List<byte[]> lst = new List<byte[]>();
