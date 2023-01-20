@@ -226,6 +226,79 @@ namespace cryptoprime
 
             return result;
         }
+
+        public class BytesBuilderAlgorithmicError: Exception
+        {
+            public BytesBuilderAlgorithmicError(string functionName, string message):
+                        base("BytesBuilder." + functionName + " algorithmic error: " + message)
+            {}
+        }
+
+        /// <summary>Получить resultCount начиная с индекса index</summary>
+        /// <param name="resultCount">Количество байтов для получения. -1 - сформировать массив с байта index до конца байтов источника</param>
+        /// <param name="dIndex">Стартовый индекс байта источника</param>
+        /// <param name="forResult">Массив для хранения результата</param>
+        /// <param name="startIndex">Индекс, с которого заполняется массив forResult (индекс приёмника)</param>
+        /// <returns>Массив результата длиной resultCount</returns>
+        public byte[] getBytes(long resultCount, long dIndex, byte[]? forResult = null, int startIndex = 0)
+        {
+            if (resultCount - startIndex > count - dIndex)
+                throw new ArgumentOutOfRangeException($"BytesBuilder.getBytes: resultCount - startIndex > count - index. resultCount: {resultCount}; index: {dIndex}; startIndex: {startIndex}");
+            if (resultCount <= 0)
+                throw new ArgumentOutOfRangeException($"BytesBuilder.getBytes: resultCount <= 0. resultCount: {resultCount}; index: {dIndex}; startIndex: {startIndex}");
+            if (startIndex < 0)
+                throw new ArgumentOutOfRangeException($"BytesBuilder.getBytes: startIndex < 0. resultCount: {resultCount}; index: {dIndex}; startIndex: {startIndex}");
+
+            if (forResult is not null)
+            if (resultCount + startIndex > forResult.Length)
+                throw new ArgumentOutOfRangeException("BytesBuilder.getBytes: resultCount > forResult.Length");
+
+            if (resultCount == -1)
+                resultCount = count - dIndex;
+
+            byte[] result = forResult ?? new byte[resultCount + startIndex];
+
+            long cursor = startIndex;                   // Позиция в массиве-результате
+            long bIndex = 0;                            // Позиция в воображаемом массиве-источнике. Всегда указывает на начало нового блока внутри списка блоков BytesBuilder
+
+            // Проходим dindex до тех пор, пока не найдём нужный стартовый байт
+            int i = 0;
+            for (; i < bytes.Count; i++)
+            {
+                if (bIndex + bytes[i].LongLength > dIndex)
+                {
+                    break;
+                }
+
+                bIndex += bytes[i].LongLength;
+            }
+
+            for (; i < bytes.Count; i++)                            // Копируем
+            {
+                if (cursor == resultCount - startIndex)
+                    break;
+
+                if (cursor >= result.Length)
+                    throw new BytesBuilderAlgorithmicError("getBytes", "cursor > result.Length");
+
+                var copied =
+                    CopyTo
+                    (
+                        source:         bytes[i],
+                        target:         result,
+                        targetIndex:    cursor,
+                        count:          resultCount - (cursor - startIndex),
+                        index:          dIndex - bIndex
+                    );
+
+                cursor += copied;
+                dIndex += copied;
+                bIndex += bytes[i].LongLength;
+            }
+
+            return result;
+        }
+
         
         /// <summary>Удаляет блок из объекта с позиции position, блок очищается нулями</summary>
         /// <returns>Возвращает длину удалённого блока</returns>
@@ -309,36 +382,6 @@ namespace cryptoprime
             return result;
         }
 
-        /*
-        public byte[] getBytes(long resultCount, long index)
-        {
-            if (resultCount == -1 || resultCount > count)
-                resultCount = count;
-
-            byte[] result = new byte[resultCount];
-
-            long cursor = 0;
-            long tindex = 0;
-            for (int i = 0; i < bytes.Count; i++)
-            {
-                if (cursor >= result.Length)
-                    break;
-
-                if (tindex + bytes[i].LongLength < index)
-                {
-                    tindex += bytes[i].LongLength;
-                    continue;
-                }
-
-                CopyTo(bytes[i], result, cursor, resultCount - cursor, index - tindex);
-                cursor += bytes[i].LongLength;
-                tindex += bytes[i].LongLength;
-            }
-
-            return result;
-        }
-        */
-
         /// <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая)</summary><param name="B">Массив для копирования</param>
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования. -1 - до конца</param>
@@ -376,7 +419,7 @@ namespace cryptoprime
         /// <param name="source">Источник копирования</param>
         /// <param name="target">Приёмник</param>
         /// <param name="targetIndex">Начальный индекс копирования в приёмник</param>
-        /// <param name="count">Максимальное количество байт для копирования (-1 - все доступные)</param>
+        /// <param name="count">Максимальное количество байт для копирования (если столько нет, копирует столько, сколько возможно) (-1 - все доступные)</param>
         /// <param name="index">Начальный индекс копирования из источника</param>
         public unsafe static long CopyTo(byte[] source, byte[] target, long targetIndex = 0, long count = -1, long index = 0)
         {
@@ -392,7 +435,7 @@ namespace cryptoprime
         /// <param name="sourceLength">Длина массива s</param><param name="targetLength">Длина массива t</param>
         /// <param name="s">Источник для копирования</param><param name="t">Приёмник для копирования</param>
         /// <param name="targetIndex">Начальный индекс, с которого будет происходить запись в t</param>
-        /// <param name="count">Количество байтов для записи в t. Count = -1 - копирует столько, сколько возможно, учитывая размеры источника и приёмника. count не может быть 0</param>
+        /// <param name="count">Количество байтов для записи в t (если столько нет, копирует столько, сколько возможно). Count = -1 - копирует столько, сколько возможно, учитывая размеры источника и приёмника. count не может быть 0</param>
         /// <param name="index">Начальный индекс копирования из источника s</param>
         /// <returns>Количество скопированных байтов</returns>
         unsafe public static long CopyTo(long sourceLength, long targetLength, byte* s, byte* t, long targetIndex = 0, long count = -1, long index = 0)
@@ -401,13 +444,17 @@ namespace cryptoprime
             byte* se = s + sourceLength;
             byte* te = t + targetLength;
 
+            var maxCout = Math.Min(sourceLength - index, targetLength - targetIndex);
             if (count == -1)
             {
-                count = Math.Min(sourceLength - index, targetLength - targetIndex);
+                count = maxCout;
             }
 
             if (count <= 0)
                 throw new ArgumentOutOfRangeException("count <= 0");
+            if (count > maxCout)
+                count = maxCout;
+
 
             // Вычисляем значения, указывающие на недостижимый элемент (после копируемых)
             byte* sec = s + index + count;

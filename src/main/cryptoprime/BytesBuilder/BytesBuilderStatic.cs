@@ -237,6 +237,7 @@ namespace cryptoprime
         /// <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
         /// <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
+        /// <param name="allocator">Аллокатор, который позволяет функции выделять память, если resultA == null. Если null, используется this.allocator</param>
         /// <returns></returns>
         public Record getBytes(long resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
         {
