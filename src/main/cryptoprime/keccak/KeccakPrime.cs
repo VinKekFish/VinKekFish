@@ -526,10 +526,15 @@ namespace cryptoprime
 
         /// <summary>Вычисляет хеш SHA-3 с длиной 512 битов</summary>
         /// <param name="message">Сообщение для хеширования</param>
-        /// <returns>Хеш SHA-3 512, размер 64 байта</returns>
-        public static unsafe byte[] getSHA3_512(byte[] message)
+        /// <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
+        /// <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
+        public static unsafe byte[] getSHA3_512(byte[] message, byte[]? forHash = null)
         {
-            var hash  = new byte[64];
+            forHash ??= new byte[64];
+            if (forHash.Length < 64)
+                throw new ArgumentOutOfRangeException("KeccakPrime.getSHA3_512.forHash must be a 64 bytes long at least");
+
+            var hash  = forHash;
             var bc_b  = new ulong[KeccakPrime.b_size/8 + KeccakPrime.c_size/8];
             var Slong = new ulong[KeccakPrime.S_len2];
             fixed (byte  * bt0 = message)
@@ -562,7 +567,7 @@ namespace cryptoprime
                 KeccakPrime.Keccak_Output_512(ap, 64, S);
             }
 
-            return hash;
+            return forHash;
         }
     }
 }
