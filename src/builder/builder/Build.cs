@@ -6,7 +6,7 @@ namespace builder;
 
 partial class Program
 {
-    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true)
+    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true)
     {
         var configurationForDotNet = Program.configuration;
         var output                 = Program.output;
@@ -30,7 +30,7 @@ partial class Program
             dllPatterns.Add(dllName);
         }
 
-        var isActual  = isActualVersion(output_di, di, dllPatterns, null);
+        var isActual  = isActualCheck ? isActualVersion(output_di, di, dllPatterns, null) : false;
 
         if (isActual)
         {

@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_BytesBuilder
+// #define CAN_CREATEFILE_FOR_BytesBuilder
 
 namespace cryptoprime_tests;
 
@@ -38,6 +38,8 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 
 [TestTagAttribute("fast")]
 [TestTagAttribute("fast_level2")]
+
+[TestTagAttribute("mandatory")]
 public class BytesBuilder_test1: BytesBuilder_test_parent
 {
     public BytesBuilder_test1(TestConstructor constructor):

@@ -296,6 +296,72 @@ namespace cryptoprime
             }
         }
 
+        /// <summary>Ввод данных в состояние keccak для SHA-3 512</summary>
+        /// <param name="message">Указатель на очередную порцию данных</param>
+        /// <param name="len">Количество байтов для записи (не более 72-х; константа r_512b)</param>
+        /// <param name="S">Внутреннее состояние S</param>
+        /// <param name="setPaddings">Если <see langword="true"/> - ввести padding в массив (при вычислении хеша делать на последнем блоке <![CDATA[<=]]> 71 байта)</param>
+        // НИЖЕ КОПИЯ Keccak_InputOverwrite_512 (небольшая разница, но методы, в целом, идентичны)
+        public static unsafe void Keccak_Input_SHA512(byte * message, byte len, byte * S, bool setPaddings = false)
+        {
+            if (len > r_512b || len < 0)
+            {
+                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: len > r_512b || len < 0");
+            }
+
+            // В конце 72-хбайтового блока нужно поставить оконечный padding
+            // Матрица S размера 5x5*ulong
+            // Вычисление адреса конца 72-хбайтового блока (последнего байта блока):
+            // Мы пропустили 8 ulong (64-ре байта), пишем в последний, 9-ый, ulong
+            // то есть 8-5=3 сейчас индекс у нас 3, но т.к. матрица транспонирована, то нам нужен не индекс [1, 3], а индекс [3, 1]
+            // В индекс [3, 1] мы должны в старший байт записать 0x80. Значит, 3*5*8 + 1*8 + 7 = 135
+            byte * es    = S + 135;
+            byte * lastS = S;           // Если len = 0, то записываем в первый байт
+            // Общий смысл инициализации
+            // Массив информации в размере 72 байта записывается в начало состояния из 25-ти 8-мибайтовых слов; однако матрица S при этом имеет транспонированные индексы для повышения криптостойкости. То есть запись идёт не в начало матрицы S, а в начало транспонированной матрицы S
+            int i1 = 0, i2 = 0, i3 = 0, ss = c_size;
+            for (int i = 0; i < len; i++)
+            {
+                lastS = S + (i1 << 3) + i2*ss + i3;   // i2*ss - не ошибка, т.к. индексы в матрице транспонированны
+                *lastS ^= *message;
+                message++;
+
+                // Выполняем приращения индексов в матрице
+                i3++;
+                if (i3 >= 8)
+                {
+                    i3 = 0;
+                    i2++;   // Приращаем следующий индекс
+                }
+                if (i2 >= S_len)
+                {
+                    i2 = 0;
+                    i1++;
+                }
+
+                if (i1 > 1)
+                {
+                    throw new Exception("cryptoprime.keccak.Keccak_Input_512: Fatal algorithmic error");
+                }
+
+                // Это вычисление нужно для того, чтобы потом записать верно padding
+                // Для len = 71 значение lastS должно совпасть с es
+                lastS = S + (i1 << 3) + i2*ss + i3;
+            }
+
+            if (setPaddings)
+            {
+                var SE = S + b_size;
+
+                // На всякий случай, проверка на выход за пределы массива
+                if (lastS >= SE || es >= SE)
+                    throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: lastS >= SE || es >= SE");
+
+                 *lastS ^= 0x06;
+                 *es    ^= 0x80;
+            }
+        }
+
         
         /// <summary>
         /// Эта конструкция разработана по мотивам keccak Overwrite, но немного от неё отличается. Здесь нет padding, нет framebit. Длина вводится xor с внутренним состоянием.
@@ -456,6 +522,47 @@ namespace cryptoprime
             }
 
             End: ;
+        }
+
+        /// <summary>Вычисляет хеш SHA-3 с длиной 512 битов</summary>
+        /// <param name="message">Сообщение для хеширования</param>
+        /// <returns>Хеш SHA-3 512, размер 64 байта</returns>
+        public static unsafe byte[] getSHA3_512(byte[] message)
+        {
+            var hash  = new byte[64];
+            var bc_b  = new ulong[KeccakPrime.b_size/8 + KeccakPrime.c_size/8];
+            var Slong = new ulong[KeccakPrime.S_len2];
+            fixed (byte  * bt0 = message)
+            fixed (ulong * SL  = Slong)
+            fixed (ulong * bc  = bc_b)
+            fixed (byte  * ap  = hash)
+            {
+                bool PaddingWasSetted = false;
+                byte * S = (byte *) SL;
+
+                for (int i = 0; i < message.Length; i += 72)
+                {
+                    int  len        = message.Length - i;
+                    bool doPaddings = len < 72;
+                    if (len > 72)
+                        len = 72;
+
+                    PaddingWasSetted = doPaddings;
+                    KeccakPrime.Keccak_Input_SHA512(bt0 + i, (byte) len, S, doPaddings);
+                    KeccakPrime.Keccackf(a: SL, c: bc, b : bc + KeccakPrime.c_size/8);
+                }
+
+                // Если введена пустая строка
+                if (!PaddingWasSetted)
+                {
+                    KeccakPrime.Keccak_Input_SHA512(bt0, 0, S, true);
+                    KeccakPrime.Keccackf(a: SL, c: bc, b : bc + KeccakPrime.c_size/8);
+                }
+
+                KeccakPrime.Keccak_Output_512(ap, 64, S);
+            }
+
+            return hash;
         }
     }
 }

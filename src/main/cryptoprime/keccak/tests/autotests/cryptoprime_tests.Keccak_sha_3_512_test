@@ -1,0 +1,86 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			16
+		
+		Count:		System.Int32		.enumerableObject.Count
+			11
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     		[:Byte[]]				
+				{object number 0003}
+				byte[64]:
+					A69F 73CC A23A 9AC5   C8B5 67DC 185A 756E
+					97C9 8216 4FE2 5859   E0D1 DCC1 475C 80A6
+					15B2 123A F1F5 F94C   11E3 E940 2C3A C558   F500 199D 95B6 D3E3   0175 8586 281D CD26
+				01:     				
+				{object number 0004}
+				byte[64]:
+					01DE DD5D E4EF 1464   2445 BA5F 5B97 C15E
+					47B9 AD93 1326 E4B0   727C D94C EFC4 4FFF
+					23F0 7BF5 4313 9939   B491 28CA F436 DC1B   DEE5 4FCB 2402 3A08   D940 3F9B 4BF0 D450
+				02:     				
+				{object number 0005}
+				byte[64]:
+					18F4 F4BD 4196 03F9   5538 8370 03D9 D254
+					C26C 2376 5565 1622   4748 3F65 C503 0359
+					7BC9 CE4D 289F 21D1   C2F1 F458 828E 33DC   4421 0033 1B35 E7EB   031B 5D38 BA64 60F8
+				03:     				
+				{object number 0006}
+				byte[64]:
+					FB78 15C2 42D9 8A79   91C0 9D71 7C54 20AF
+					CB69 DDA7 0F08 FAD4   5575 9004 E1DA A8C6
+					2424 771A 1F28 6482   0EA8 11C6 072C DC04   804C CCB6 3076 8578   3005 7604 67CC 2656
+				04:     				
+				{object number 0007}
+				byte[64]:
+					8BDC B85E 6B52 C29F   AFAC 0D3D AF65 492F
+					2E34 99E0 66DA 1A09   5A65 EB11 4484 9A26
+					B279 0A8B 39C2 A7FB   7474 56F7 4939 1D95   3841 A61C B132 89F9   806F 0498 1C18 0A86
+				05:     				
+				{object number 0008}
+				byte[64]:
+					BCE9 DA5B 4088 46ED   D5BE C9F2 6C2D EE9B
+					D835 215C 3F2B 3876   1970 67D8 7BC4 D1AF
+					0CD9 7F94 FDA5 9761   A0D8 04FE 8238 3BE2   C6C4 886F BB82 E005   FCF8 9944 9029 F221
+				06:     				
+				{object number 0009}
+				byte[64]:
+					F058 6F85 ED23 79FA   489D 34DD F8F3 4D12
+					E8D6 9711 A094 9928   EB47 3774 699F 5444
+					0103 92CB 807D AB76   CAD5 24E8 8080 EE9A   4C10 DE9F 4CFA 8ACE   2483 71C9 48F6 A364
+				07:     				
+				{object number 0010}
+				byte[64]:
+					027D E595 A1C7 CBC5   02D7 12C6 8A60 9D82
+					BE68 8541 CC51 FF39   625F 1BE6 F4D7 56D2
+					7FA3 1E9E 5FD1 231E   9464 D70B 01B0 F7B9   D0D2 0240 2342 661F   CF79 4EE4 7B5F 6AE1
+				08:     				
+				{object number 0011}
+				byte[64]:
+					1400 B324 DFF5 42F3   8C9C 0793 79DD A55A
+					C8D2 A61F CDCF 5D8B   A0B7 4917 278B A3AF
+					2A05 5885 4731 7185   CF0C 932D 0044 EE23   3167 1046 FD97 EE5A   8E54 3BAF DC3D 11DC
+				09:     				
+				{object number 0012}
+				byte[64]:
+					12EF 68DD FC4E A201   BBAD 0201 058B 4912
+					86D5 F8DD 005A EF1C   D862 0BAF 3A85 FB8C
+					2D38 DB84 6671 9B46   85F3 53FC B0E1 8304   A5FA 5C4B 86F2 F357   2539 8F58 118D E6C6
+				10:     				
+				{object number 0013}
+				byte[64]:
+					E067 43CD 083C 0FD2   14C0 51F5 7393 B54E
+					3CC6 8253 080A 3D5E   1898 D341 CD59 6252
+					8524 5564 2DF9 079F   B6FB B54F 68AF D61A   402F 871D 3FB8 94D1   8130 5FC9 0BDF 10BB
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 

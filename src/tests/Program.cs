@@ -21,7 +21,8 @@ class Program
             new TestConstructor[] { tc },
             new DriverForTests.ExecuteTestsOptions
             {
-                sleepInMs_ForFirstOutput = 10*1000
+                sleepInMs_ForFirstOutput = 10*1000,
+                doKeepLogFile            = false
             }
         );
     }
@@ -35,7 +36,7 @@ class MainTestConstructor : TestConstructor
     public override void CreateTasksLists(ConcurrentQueue<TestTask> tasks)
     {
         // Вызываем, чтобы загрузилась сборка
-        if (Keccak_sha512_test.canCreateFile) {}
+        if (Keccak_sha_3_512_test.canCreateFile) {}
         /*
         var PTT = new ParallelTasks_Tests(this, canCreateFile: canCreateFile);
         TestConstructor.addTasksForQueue
