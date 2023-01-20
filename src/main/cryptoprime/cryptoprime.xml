@@ -161,7 +161,7 @@
             <param name="start">Начальный элемент, по которому расположено число</param>
         </member>
         <member name="M:cryptoprime.BytesBuilder.BytesToVariableULong(System.UInt64@,System.Byte[],System.Int64)">
-            <summary>Считывает из массива специальную сжатую кодировку числа</summary>
+            <summary>Считывает из массива специальную сжатую кодировку числа. Младший байт по младшему индексу</summary>
             <param name="data">Считанне число</param>
             <param name="target">Массив</param>
             <param name="start">Стартовый индекс, по которому расположено число</param>
@@ -189,7 +189,7 @@
             <returns><see langword="true"/> - если массивы совпадают</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilder.ClearString(System.String)">
-            <summary>Попытка обнулить UTF-8 строку</summary>
+            <summary>Попытка обнулить char-строку</summary>
             <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>
         </member>
         <member name="T:cryptoprime.BytesBuilderForPointers">

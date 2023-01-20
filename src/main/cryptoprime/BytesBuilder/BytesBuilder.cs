@@ -616,7 +616,7 @@ namespace cryptoprime
         /// <param name="data">4-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
         /// <param name="target">Массив для записи, может быть null</param>
         /// <param name="start">Начальный индекс для записи числа</param>
-        public unsafe static void UIntToBytes(uint data, ref byte[] target, long start = 0)
+        public unsafe static void UIntToBytes(uint data, ref byte[]? target, long start = 0)
         {
             if (target == null)
                 target = new byte[4];
@@ -638,7 +638,7 @@ namespace cryptoprime
         /// <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
         /// <param name="target">Массив для записи, может быть null</param>
         /// <param name="start">Начальный индекс для записи числа</param>
-        public unsafe static void ULongToBytes(ulong data, ref byte[] target, long start = 0)
+        public unsafe static void ULongToBytes(ulong data, ref byte[]? target, long start = 0)
         {
             if (target == null)
                 target = new byte[8];
@@ -696,7 +696,7 @@ namespace cryptoprime
             }
         }
 
-        /// <summary>Считывает из массива специальную сжатую кодировку числа</summary>
+        /// <summary>Считывает из массива специальную сжатую кодировку числа. Младший байт по младшему индексу</summary>
         /// <param name="data">Считанне число</param>
         /// <param name="target">Массив</param>
         /// <param name="start">Стартовый индекс, по которому расположено число</param>
@@ -718,7 +718,7 @@ namespace cryptoprime
             // Сейчас в j размер числа -1
 
             if ((target[start + j] & 0x80) > 0)
-                throw new IndexOutOfRangeException();
+                throw new FormatException();
 
             for (long i = start + j; i >= start; i--)
             {
@@ -726,10 +726,9 @@ namespace cryptoprime
                 int  c = b & 0x7F;
 
                 data <<= 7;
-                data += (byte) c;
+                data |= (byte) c;
             }
 
-            data = 0;
             // Возвращаем полный размер числа
             return j + 1;
         }
@@ -843,7 +842,8 @@ namespace cryptoprime
             return true;
         }
 
-        /// <summary>Попытка обнулить UTF-8 строку</summary>
+
+        /// <summary>Попытка обнулить char-строку</summary>
         /// <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>
         unsafe public static void ClearString(string resultText)
         {

@@ -41,7 +41,7 @@ public class ParentAutoSaveTask: AutoSaveTestTask
     }
 }
 
-[TestTagAttribute("fast")]
+[TestTagAttribute("time", duration: 25d)]
 [TestTagAttribute("mandatory")]
 public class Keccak_sha_3_512_test: ParentAutoSaveTask
 {

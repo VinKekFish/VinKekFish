@@ -9,7 +9,7 @@ fi
 
 if [ -z "$testTags" ]
 then
-    testTags="fast fast_level2 +mandatory"
+    testTags="+mandatory +inWork <2e3 ?"
 fi
 
 

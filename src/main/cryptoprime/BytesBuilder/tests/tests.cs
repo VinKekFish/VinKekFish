@@ -47,8 +47,8 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 }
 
 
-[TestTagAttribute("fast")]
-[TestTagAttribute("BytesBuilder")]
+
+[TestTagAttribute("BytesBuilder", duration: 40)]
 
 [TestTagAttribute("mandatory")]
 public class BytesBuilder_test1: BytesBuilder_test_parent
@@ -173,9 +173,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
     }
 }
 
-
-[TestTagAttribute("fast_level2")]
-[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("BytesBuilder", duration: 9e3)]
 public class BytesBuilder_test2: BytesBuilder_test_parent
 {
     public BytesBuilder_test2(TestConstructor constructor):
@@ -355,6 +353,92 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
                         throw new Exception($"BytesBuilder_test2: 010-4 (i={i})");
             }
 
+            a1 = null;
+            a2 = new byte[4];
+            var @int = 0xEE7755AA;
+            BytesBuilder.UIntToBytes(@int, ref a1, 0);
+
+            a2[3] = (byte) (@int >> 24);
+            a2[2] = (byte) (@int >> 16);
+            a2[1] = (byte) (@int >> 8);
+            a2[0] = (byte) (@int     );
+            if (!BytesBuilder.UnsecureCompare(a2, a1 ?? throw new Exception()))
+                throw new Exception($"BytesBuilder_test2: 010-5");
+
+            BytesBuilder.BytesToUInt(out uint data, a2, 0);
+            if (data != @int)
+                throw new Exception($"BytesBuilder_test2: 010-5b");
+
+            a1 = null;
+            a2 = new byte[8];
+            var @long = 0xFF8833CCEE7755AA;
+            BytesBuilder.ULongToBytes(@long, ref a1);
+
+            a2[7] = (byte) (@long >> 56);
+            a2[6] = (byte) (@long >> 48);
+            a2[5] = (byte) (@long >> 40);
+            a2[4] = (byte) (@long >> 32);
+            a2[3] = (byte) (@long >> 24);
+            a2[2] = (byte) (@long >> 16);
+            a2[1] = (byte) (@long >> 8);
+            a2[0] = (byte) (@long     );
+            if (!BytesBuilder.UnsecureCompare(a2, a1 ?? throw new Exception()))
+                throw new Exception($"BytesBuilder_test2: 010-6");
+
+            BytesBuilder.BytesToULong(out ulong datal, a2, 0);
+            if (datal != @long)
+                throw new Exception($"BytesBuilder_test2: 010-6b");
+
+            ulong step = 1;
+            a2 = new byte[12];
+            // i > 0 - здесь переполнение
+            for (ulong i = 0; i < long.MaxValue; i += step)
+            {
+                BytesBuilder.VariableULongToBytes(i, ref a2, 0);
+                if (a2 == null) throw new Exception();
+                BytesBuilder.BytesToVariableULong(out ulong datall, a2, 0);
+
+                if (datall != (ulong) i)
+                    throw new Exception($"BytesBuilder_test2: 010-7; i = {i}; {datall} == {(ulong)i}");
+
+                for (int thr = 56; thr >= 8; thr -= 8)
+                    if (i > (1UL << (thr+1)))
+                    {
+                        step = (1UL << thr) + 1UL;
+                        break;
+                    }
+            }
+
+
+
+            // UnsecureCompare - тестируем другую версию
+            a1 = createByteArray(1 << 15, 1, 1, 3, 5);
+            if (!BytesBuilder.UnsecureCompare(a1, a1, out int index10))
+                throw new Exception("BytesBuilder_test2: 011-0");
+            
+            a2 = BytesBuilder.CloneBytes(a1);
+            if (!BytesBuilder.UnsecureCompare(a1, a2, out index10))
+                throw new Exception("BytesBuilder_test2: 011-1");
+
+            a2[^1] = 0xFF;
+            if (BytesBuilder.UnsecureCompare(a1, a2, out index10) || index10 != a2.Length-1)
+                throw new Exception("BytesBuilder_test2: 011-2");
+            
+            for (int i = a2.Length - 2; i >= 0; i--)
+            {
+                if (a2[i] != 0)
+                    a2[i] = 0;
+                else
+                    a2[i] = 0xFF;
+
+                if (BytesBuilder.UnsecureCompare(a1, a2, out index10) || index10 != i)
+                    throw new Exception($"BytesBuilder_test2: 011-2 i = {i}");
+            }
+
+            var estr = "01234567890";
+            BytesBuilder.ClearString(estr);
+            if (estr != "           ")
+                throw new Exception("BytesBuilder_test2: 012");
 
             return lst;
         }
@@ -362,8 +446,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 }
 
 
-[TestTagAttribute("medium")]
-[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("BytesBuilder", duration: 12e3)]
 public class BytesBuilder_test3: BytesBuilder_test_parent
 {
     public BytesBuilder_test3(TestConstructor constructor):
@@ -411,9 +494,7 @@ public class BytesBuilder_test3: BytesBuilder_test_parent
 }
 
 
-
-[TestTagAttribute("medium")]
-[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("BytesBuilder", duration: 20e3)]
 public class BytesBuilder_test4: BytesBuilder_test_parent
 {
     public BytesBuilder_test4(TestConstructor constructor):

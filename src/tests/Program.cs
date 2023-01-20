@@ -22,6 +22,7 @@ class Program
             new DriverForTests.ExecuteTestsOptions
             {
                 sleepInMs_ForFirstOutput = 10*1000,
+                logNamesOfTests          = 3,
                 doKeepLogFile            = false // || true
             }
         );
