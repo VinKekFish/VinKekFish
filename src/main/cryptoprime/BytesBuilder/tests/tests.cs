@@ -74,6 +74,16 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             bb.add(Encoding.UTF8.GetBytes(Str2));
             bb.add(Encoding.UTF8.GetBytes(Str3));
 
+            if (bb.countOfBlocks != 3)
+                throw new Exception("bb.countOfBlocks != 3");
+            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))  )
+                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))");
+            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))  )
+                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))");
+            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))  )
+                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))");
+
+
             var bb2 = new BytesBuilder();
             var strBytes = Encoding.UTF8.GetBytes(Str1 + Str2 + Str3);
             bb2.add(strBytes);
@@ -116,10 +126,15 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
                     if (counter_a < 1)
                         counter_a = 1;
 
+                    var cnt = bb.Count;
+
                     var a = bb .getBytesAndRemoveIt(new byte[counter_a]);
                     var b = bb2.getBytesAndRemoveIt(new byte[counter_a]);
 
                     bbt.add(a);
+
+                    if (cnt - bb.Count != counter_a)
+                        throw new Exception("cnt - bb.Count != counter_a");
 
                     var c     = strBytesT[0 .. counter_a];
                     strBytesT = strBytesT[counter_a .. ^0];
@@ -136,8 +151,31 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             catch (BytesBuilder.ResultCountIsTooLarge)
             {}
 
-            if (  !BytesBuilder.UnsecureCompare(strBytes, bbt.getBytes())  )
-                throw new Exception("!BytesBuilder.UnsecureCompare(strBytes, bbt.getBytes()): KMLk442ywd");
+            var bbt_bytes = BytesBuilder.CloneBytes(  bbt.getBytes()  );
+            if (  !BytesBuilder.UnsecureCompare(strBytes, bbt_bytes)  )
+                throw new Exception("!BytesBuilder.UnsecureCompare(strBytes, bbt_bytes): KMLk442ywd");
+
+            return lst;
+        }
+    }
+}
+
+[TestTagAttribute("fast")]
+[TestTagAttribute("fast_level2")]
+public class BytesBuilder_test2: BytesBuilder_test_parent
+{
+    public BytesBuilder_test2(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            var bb = new BytesBuilder();
+            // bb.add(BytesBuilder.);
 
             return lst;
         }

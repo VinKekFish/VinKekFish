@@ -38,14 +38,14 @@ namespace cryptoprime
             if (MakeCopy)
             {
                 var b = new byte[bytesToAdded.LongLength];
-                BytesBuilder.CopyTo(bytesToAdded, b);
+                BytesBuilder.CopyTo(source: bytesToAdded, b);
                 bytesToAdded = b;
             }
 
             if (index == -1)
                 bytes.Add(bytesToAdded);
             else
-                bytes.Insert((int) index, bytesToAdded);
+                bytes.Insert(index, bytesToAdded);
 
             count += bytesToAdded.LongLength;
         }
