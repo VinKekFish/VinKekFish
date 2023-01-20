@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_BytesBuilder
+#define CAN_CREATEFILE_FOR_BytesBuilder
 
 namespace cryptoprime_tests;
 
@@ -172,12 +172,106 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
     protected class Saver: SaverParent
     {
+        public byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
+        {
+            var r = new byte[len];
+            for (int i = 0; i < r.Length; i++)
+            {
+                r[i] = (byte) (f + c*i + c2*(i * f2));
+            }
+
+            return r;
+        }
+
         public override object ExecuteTest(AutoSaveTestTask task)
         {
             List<byte[]> lst = new List<byte[]>();
 
-            var bb = new BytesBuilder();
-            // bb.add(BytesBuilder.);
+            var bb1 = new BytesBuilder();
+            var bb2 = new BytesBuilder();
+            var bb3 = new BytesBuilder();
+
+            // Тестируем addCopy и CloneBytes
+            var a1 = createByteArray(64, 0);
+            var a2 = BytesBuilder.CloneBytes(a1);
+            // Меняем исходный массив - это ни на что уже не должно повлиять
+            BytesBuilder.ToNull(a1);
+            a1[0] = unchecked( (byte) -2 );
+
+            bb1.addCopy(a2);
+            bb1.add(a2);
+            bb2.addCopy(a2);
+            bb2.addCopy(a2);
+
+            a2[0] = unchecked( (byte) -1 );
+
+            // В массиве r1 теперь 64-ый байт должен быть равен -1, т.к. a2 в начале bb1 - это оригинальный массив и все изменения в нём отражаются на изменениях в bb1
+            var r1 = bb1.getBytes();
+            var r2 = bb2.getBytes();
+            r2[64] = unchecked( (byte) -1 );
+
+            if (r2[0] != 0)
+                throw new Exception("BytesBuilder_test2: 000");
+
+            if (!BytesBuilder.UnsecureCompare(r1, r2))
+                throw new Exception("BytesBuilder_test2: 001");
+
+
+            a2[1] = 0xFE;
+            r1 = bb1.getBytes();
+            r2[65] = 0xFE;
+
+            if (!BytesBuilder.UnsecureCompare(r1, r2))
+                throw new Exception("BytesBuilder_test2: 002");
+
+            lst.Add(r1);
+
+            bb2.Clear();
+            lst.Add(bb2.getBytes());
+            if (a2[0] != 0xFF)
+                throw new Exception("BytesBuilder_test2: 002a");
+
+            bb1.Clear();
+            // После Clear a2 должно быть очищено, т.к. добавлялось по ссылке
+            BytesBuilder.ToNull(a1);
+            if (a2[0] != 0 || !BytesBuilder.UnsecureCompare(a1, a2))
+                throw new Exception("BytesBuilder_test2: 002b");
+
+
+            // Тестируем CloneBytes
+            a1 = createByteArray(64, 1, 1);
+            try
+            {
+                // При верной работе должен выдать ArgumentOutOfRangeException
+                bb1.add(new byte[0]);
+                throw new Exception("BytesBuilder_test2: ex01");
+            }
+            catch (ArgumentOutOfRangeException)
+            {}
+
+            try
+            {
+                // При верной работе должен выдать ArgumentOutOfRangeException
+                bb1.add(BytesBuilder.CloneBytes(a1, 0, 0));
+                throw new Exception("BytesBuilder_test2: ex02");
+            }
+            catch (ArgumentOutOfRangeException)
+            {}
+
+            bb1.add(BytesBuilder.CloneBytes(a1, 0, 32));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes(), 32))
+                throw new Exception("BytesBuilder_test2: 003");
+
+            bb1.add(BytesBuilder.CloneBytes(a1, 32, 63));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes(), 63))
+                throw new Exception("BytesBuilder_test2: 004");
+
+            bb1.add(BytesBuilder.CloneBytes(a1, 63, 64));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes()))
+                throw new Exception("BytesBuilder_test2: 005");
+
+            lst.Add(bb1.getBytes());
+
 
             return lst;
         }

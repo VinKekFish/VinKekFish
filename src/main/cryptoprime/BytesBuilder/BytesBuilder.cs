@@ -35,6 +35,9 @@ namespace cryptoprime
         // При добавлении блока важно проверить, верно выставлен параметр MakeCopy и если MakeCopy = false, то блок не должен изменяться
         public void add(byte[] bytesToAdded, int index = -1, bool MakeCopy = false)
         {
+            if (bytesToAdded.Length <= 0)
+                throw new ArgumentOutOfRangeException("bytesToAdded.Length <= 0");
+
             if (MakeCopy)
             {
                 var b = new byte[bytesToAdded.LongLength];

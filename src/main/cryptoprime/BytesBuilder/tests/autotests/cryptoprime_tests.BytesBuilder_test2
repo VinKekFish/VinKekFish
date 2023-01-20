@@ -5,13 +5,32 @@
 	{object number 0002}
 		
 		Capacity:		System.Int32		.enumerableObject.Capacity
-			0
+			4
 		
 		Count:		System.Int32		.enumerableObject.Count
-			0
+			3
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
+				00:     		[:Byte[]]				
+				{object number 0003}
+				byte[128]:
+					0000 0000 0000 0000   0000 0000 0000 0000
+					0000 0000 0000 0000   0000 0000 0000 0000
+					0000 0000 0000 0000   0000 0000 0000 0000
+					0000 0000 0000 0000   0000 0000 0000 0000
+					FFFE 0000 0000 0000   0000 0000 0000 0000
+					0000 0000 0000 0000   0000 0000 0000 0000
+					0000 0000 0000 0000   0000 0000 0000 0000   0000 0000 0000 0000   0000 0000 0000 0000
+				01:     				
+				{object number 0004}
+				byte[0]:
+				02:     				
+				{object number 0005}
+				byte[64]:
+					0102 0304 0506 0708   090A 0B0C 0D0E 0F10
+					1112 1314 1516 1718   191A 1B1C 1D1E 1F20
+					2122 2324 2526 2728   292A 2B2C 2D2E 2F30   3132 3334 3536 3738   393A 3B3C 3D3E 3F40
 			[end values]
 
 

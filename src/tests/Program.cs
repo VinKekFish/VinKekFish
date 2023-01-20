@@ -22,7 +22,7 @@ class Program
             new DriverForTests.ExecuteTestsOptions
             {
                 sleepInMs_ForFirstOutput = 10*1000,
-                doKeepLogFile            = false
+                doKeepLogFile            = false // || true
             }
         );
     }
