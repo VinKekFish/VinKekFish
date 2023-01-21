@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_BytesBuilder
+// #define CAN_CREATEFILE_FOR_BytesBuilder
 
 namespace cryptoprime_tests;
 
