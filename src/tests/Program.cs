@@ -23,7 +23,7 @@ class Program
             {
                 sleepInMs_ForFirstOutput = 10*1000,
                 logNamesOfTests          = 3,
-                doKeepLogFile            = false // || true
+                doKeepLogFile            = false || true
             }
         );
     }

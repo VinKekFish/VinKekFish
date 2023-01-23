@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-#pragma warning disable CA1034 // Nested types should not be visible
+// #pragma warning disable CA1034 // Nested types should not be visible
 namespace cryptoprime
 {
     public unsafe partial class BytesBuilderForPointers
@@ -13,21 +13,23 @@ namespace cryptoprime
         public unsafe class Record: IDisposable, ICloneable
         {                                                               /// <summary>Массив с данными</summary>
             public          byte *   array = null;                      /// <summary>Длина массива с данными</summary>
-            public          long     len   = 0;
+            public          nint     len   = 0;
                                                                         /// <summary>Данные для удаления, если этот массив выделен с помощью Fixed_AllocatorForUnsafeMemory</summary>
             public GCHandle handle = default;                           /// <summary>Данные для удаления, если этот массив выделен с помощью AllocHGlobal_AllocatorForUnsafeMemory</summary>
             public IntPtr   ptr    = default;
                                                                         /// <summary>Аллокатор, используемый для освобождения памяти в Dispose</summary>
             public AllocatorForUnsafeMemoryInterface? allocator = null;
 
+            // Отладочный код
             #if RECORD_DEBUG
             /// <summary>Имя записи для отладки</summary>
             public        string DebugName = null;
                                                                 /// <summary>Номер записи для отладки</summary>
-            public        long   DebugNum  = 0;                 /// <summary>Следующий номер записи для отладки</summary>
-            public static long   CurrentDebugNum = 0;
+            public        nint   DebugNum  = 0;                 /// <summary>Следующий номер записи для отладки</summary>
+            public static nint   CurrentDebugNum = 0;
             #endif
 
+            // Конструктор. Не вызывается напрямую
             /// <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
             public Record()
             {
@@ -101,7 +103,7 @@ namespace cryptoprime
             /// <param name="PostEnd">Первый элемент, который не надо копировать</param>
             /// <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
             /// <returns></returns>
-            public Record Clone(long start = 0, long PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null)
+            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null)
             {
                 if (allocator == null && this.allocator == null)
                     throw new ArgumentNullException("BytesBuilderForPointers.Record.Clone: allocator == null && this.allocator == null");
@@ -113,7 +115,7 @@ namespace cryptoprime
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
             /// <param name="len">Длина массива либо -1, если длина массива такая же, как копируемой записи</param>
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
-            public Record NoCopyClone(long len = -1)
+            public Record NoCopyClone(nint len = -1)
             {
                 if (len < 0)
                     len = this.len;
@@ -202,7 +204,7 @@ namespace cryptoprime
 
                 return (ushort *) t.array;
             }
-                                                                                    /// <summary>Возвращает ссылку на массив, преобразованную в тип ulong * </summary>
+                                                                                    /// <summary>Возвращает ссылку на массив, преобразованную в тип unint * </summary>
             public static implicit operator ulong * (Record t)
             {
                 if (t == null)
@@ -210,8 +212,8 @@ namespace cryptoprime
 
                 return (ulong *) t.array;
             }
-                                                                                    /// <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи r. То есть r.array = a.array + a.len, r.len = Len</summary>
-            public static Record operator +(Record a, long len)
+                                                                                    /// <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
+            public static Record operator +(Record a, nint len)
             {
                 return new Record
                 {
@@ -220,7 +222,8 @@ namespace cryptoprime
                     len       = len
                 };
             }
-            /*                                                                    /// <summary>Возвращает длину данных</summary>
+            /* Это преобразование типов входит в конфликт с удобством и другими преобразованиями
+                                                                                /// <summary>Возвращает длину данных</summary>
             public static implicit operator long (Record t)
             {
                 if (t == null)
@@ -236,13 +239,13 @@ namespace cryptoprime
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Размер выделяемого блока памяти</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
-            public Record AllocMemory(long len);
+            public Record AllocMemory(nint len);
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями). Должен вызываться автоматически в Record</summary>
             /// <param name="recordToFree">Память к освобождению</param>
             public void   FreeMemory (Record recordToFree);
 
-            /// <summary>Производит фиксацию в памяти массива (интерфейс должен реализовывать либо AllocMemory(long), либо этот метод, либо оба)</summary>
+            /// <summary>Производит фиксацию в памяти массива (интерфейс должен реализовывать либо AllocMemory(nint), либо этот метод, либо оба)</summary>
             /// <param name="array">Исходный массив</param>
             /// <returns>Зафиксированный массив</returns>
             public Record FixMemory(byte[] array);
@@ -251,7 +254,7 @@ namespace cryptoprime
             /// <param name="array">Закрепляемый объект</param>
             /// <param name="length">Длина объекта в байтах. Длины массивов необходимо домножать на размер элемента массива</param>
             /// <returns></returns>
-            public Record FixMemory(object array, long length);
+            public Record FixMemory(object array, nint length);
         }
 
         /// <summary>Выделяет память с помощью Marshal.AllocHGlobal</summary>
@@ -260,14 +263,12 @@ namespace cryptoprime
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Длина выделяемого участка памяти</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
-            public Record AllocMemory(long len)
+            public Record AllocMemory(nint len)
             {
-                if (len > int.MaxValue)
-                    throw new ArgumentOutOfRangeException("BytesBuilderForPointers.AllocatorForUnsafeMemory.AllocatorForUnsafeMemory: len > int.MaxValue");
-
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
-                var ptr = Marshal.AllocHGlobal(  (int) len  );
-                return new Record() { len = len, array = (byte *) ptr.ToPointer(), ptr = ptr, allocator = this };
+                var ptr = Marshal.AllocHGlobal(len);
+                var rec = new Record() { len = len, array = (byte *) ptr.ToPointer(), ptr = ptr, allocator = this };
+                return rec;
             }
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями)</summary>
@@ -284,7 +285,7 @@ namespace cryptoprime
             }
 
             /// <summary>Не реализовано</summary>
-            public Record FixMemory(object array, long length)
+            public Record FixMemory(object array, nint length)
             {
                 throw new NotImplementedException();
             }
@@ -294,7 +295,7 @@ namespace cryptoprime
         public class Fixed_AllocatorForUnsafeMemory : AllocatorForUnsafeMemoryInterface
         {
             /// <summary>Выделяет память с помощью сборщика мусора, а потом фиксирует её. Это работает медленнее раза в 3, чем AllocHGlobal_AllocatorForUnsafeMemory</summary>
-            public Record AllocMemory(long len)
+            public Record AllocMemory(nint len)
             {
                 var b = new byte[len];
                 return FixMemory(b);
@@ -312,7 +313,7 @@ namespace cryptoprime
             /// <returns>Зафиксированный массив</returns>
             public Record FixMemory(byte[] array)
             {
-                return FixMemory(array, array.LongLength);
+                return FixMemory(array, checked((nint) array.LongLength));
             }
 
             /// <summary>Производит фиксацию в памяти массива</summary>
@@ -320,14 +321,15 @@ namespace cryptoprime
             /// <returns>Зафиксированный массив</returns>
             public Record FixMemory(ushort[] array)
             {
-                return FixMemory(array, array.LongLength * sizeof(ushort));
+                nint l = checked(  (nint) array.LongLength * sizeof(ushort)  );
+                return FixMemory(array, l);
             }
 
             /// <summary>Производит фиксацию в памяти массива</summary>
             /// <param name="array">Исходный массив</param>
             /// <param name="length">Длина массива</param>
             /// <returns>Зафиксированный массив</returns>
-            public Record FixMemory(object array, long length)
+            public Record FixMemory(object array, nint length)
             {
                 var h = GCHandle.Alloc(array, GCHandleType.Pinned);
                 var p = h.AddrOfPinnedObject();

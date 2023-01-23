@@ -15,10 +15,10 @@ namespace cryptoprime
         public readonly List<byte[]> bytes = new List<byte[]>();
 
         /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
-        public long Count  => count;
+        public nint Count  => count;
 
         /// <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
-        public long countOfBlocks => bytes.Count;
+        public nint countOfBlocks => bytes.Count;
 
         /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
         public byte[] getBlock(int number)
@@ -27,7 +27,7 @@ namespace cryptoprime
         }
 
         /// <summary>Количество сохранённых байтов</summary>
-        long count = 0;
+        nint count = 0;
 
         /// <summary>Добавляет блок в объект</summary><param name="bytesToAdded">Добавляемый блок данных</param>
         /// <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
@@ -50,7 +50,7 @@ namespace cryptoprime
             else
                 bytes.Insert(index, bytesToAdded);
 
-            count += bytesToAdded.LongLength;
+            count += checked((nint) bytesToAdded.LongLength );
         }
 
         /// <summary>Копирует данные блока и добавляет его в объект</summary><param name="bytesToAdded">Добавляемый блок</param><param name="index">Индекс для добавления.  index = -1 - добавление в конец</param>
@@ -136,7 +136,7 @@ namespace cryptoprime
         /*
         /// <summary>Удаляет последний блок из объекта, блок очищается нулями</summary>
         /// <returns>Возвращает длину последнего блока</returns>
-        public long RemoveLastBlock()
+        public nint RemoveLastBlock()
         {
             if (bytes.Count <= 0)
                 return 0;
@@ -147,7 +147,7 @@ namespace cryptoprime
         /// <summary>Удаляет несколько блоков с позиции position до позиции endPosition включительно</summary>
         /// <param name="position">Индекс первого удаляемого блока</param><param name="endPosition">Индекс последнего удаляемого блока</param>
         /// <returns>Количество удалённых байтов</returns>
-        public long RemoveBlocks(int position, int endPosition)
+        public nint RemoveBlocks(int position, int endPosition)
         {
             if (position < 0)
                 throw new ArgumentException("position must be >= 0");
@@ -161,7 +161,7 @@ namespace cryptoprime
             if (endPosition >= bytes.Count)
                 throw new ArgumentException("endPosition must be endPosition < bytes.Count");
 
-            long removedLength = 0;
+            nint removedLength = 0;
 
             for (int i = position; i <= endPosition; i++)
             {
@@ -175,7 +175,7 @@ namespace cryptoprime
 
         public class ResultCountIsTooLarge: System.ArgumentOutOfRangeException
         {
-            public ResultCountIsTooLarge(long resultCount, long count):
+            public ResultCountIsTooLarge(nint resultCount, nint count):
                                         base
                                         (
                                             "resultCount",
@@ -186,7 +186,7 @@ namespace cryptoprime
 
         public class ResultAIsTooSmall: System.ArgumentOutOfRangeException
         {
-            public ResultAIsTooSmall(byte[] resultA, long resultCount):
+            public ResultAIsTooSmall(byte[] resultA, nint resultCount):
                                         base
                                         (
                                             "resultA",
@@ -199,32 +199,35 @@ namespace cryptoprime
         /// <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <returns></returns>
-        public byte[] getBytes(long resultCount = -1, byte[]? resultA = null)
+        public byte[] getBytes(nint resultCount = -1, byte[]? resultA = null)
         {
-            if (resultCount == -1)
-                resultCount = count;
-
-            if (resultCount > count)
+            checked
             {
-                throw new ResultCountIsTooLarge(resultCount: resultCount, count: count);
+                if (resultCount == -1)
+                    resultCount = count;
+
+                if (resultCount > count)
+                {
+                    throw new ResultCountIsTooLarge(resultCount: resultCount, count: count);
+                }
+
+                if (resultA != null && resultA.Length < resultCount)
+                    throw new ResultAIsTooSmall(resultA, resultCount);
+
+                byte[] result = resultA ?? new byte[resultCount];
+
+                nint cursor = 0;
+                for (int i = 0; i < bytes.Count; i++)
+                {
+                    if (cursor >= (nint) result.LongLength)
+                        break;
+
+                    CopyTo(bytes[i], result, cursor);
+                    cursor += (nint) bytes[i].LongLength;
+                }
+
+                return result;
             }
-
-            if (resultA != null && resultA.Length < resultCount)
-                throw new ResultAIsTooSmall(resultA, resultCount);
-
-            byte[] result = resultA ?? new byte[resultCount];
-
-            long cursor = 0;
-            for (int i = 0; i < bytes.Count; i++)
-            {
-                if (cursor >= result.LongLength)
-                    break;
-
-                CopyTo(bytes[i], result, cursor);
-                cursor += bytes[i].LongLength;
-            }
-
-            return result;
         }
 
         public class BytesBuilderAlgorithmicError: Exception
@@ -240,7 +243,7 @@ namespace cryptoprime
         /// <param name="forResult">Массив для хранения результата</param>
         /// <param name="startIndex">Индекс, с которого заполняется массив forResult (индекс приёмника)</param>
         /// <returns>Массив результата длиной resultCount</returns>
-        public byte[] getBytes(long resultCount, long dIndex, byte[]? forResult = null, int startIndex = 0)
+        public byte[] getBytes(nint resultCount, nint dIndex, byte[]? forResult = null, int startIndex = 0)
         {
             if (resultCount - startIndex > count - dIndex)
                 throw new ArgumentOutOfRangeException($"BytesBuilder.getBytes: resultCount - startIndex > count - index. resultCount: {resultCount}; index: {dIndex}; startIndex: {startIndex}");
@@ -258,8 +261,8 @@ namespace cryptoprime
 
             byte[] result = forResult ?? new byte[resultCount + startIndex];
 
-            long cursor = startIndex;                   // Позиция в массиве-результате
-            long bIndex = 0;                            // Позиция в воображаемом массиве-источнике. Всегда указывает на начало нового блока внутри списка блоков BytesBuilder
+            nint cursor = startIndex;                   // Позиция в массиве-результате
+            nint bIndex = 0;                            // Позиция в воображаемом массиве-источнике. Всегда указывает на начало нового блока внутри списка блоков BytesBuilder
 
             // Проходим dindex до тех пор, пока не найдём нужный стартовый байт
             int i = 0;
@@ -270,7 +273,7 @@ namespace cryptoprime
                     break;
                 }
 
-                bIndex += bytes[i].LongLength;
+                bIndex += checked((nint) bytes[i].LongLength );
             }
 
             for (; i < bytes.Count; i++)                            // Копируем
@@ -293,7 +296,7 @@ namespace cryptoprime
 
                 cursor += copied;
                 dIndex += copied;
-                bIndex += bytes[i].LongLength;
+                bIndex += checked((nint)   bytes[i].LongLength   );
             }
 
             return result;
@@ -302,7 +305,7 @@ namespace cryptoprime
         
         /// <summary>Удаляет блок из объекта с позиции position, блок очищается нулями</summary>
         /// <returns>Возвращает длину удалённого блока</returns>
-        public long RemoveBlockAt(int position, bool doClear = true)
+        public nint RemoveBlockAt(int position, bool doClear = true)
         {
             if (position < 0)
                 throw new ArgumentException("position must be >= 0");
@@ -312,7 +315,7 @@ namespace cryptoprime
 
             var tmp = bytes[position];
 
-            long removedLength = tmp.LongLength;
+            nint removedLength = checked((nint) tmp.LongLength );
             bytes.RemoveAt(position);
 
             if (doClear)
@@ -327,14 +330,14 @@ namespace cryptoprime
         /// <param name="resultCount">Размер массива-результата</param>
         /// <returns>Запрошенный результат (первые resultCount байтов)</returns>
         // Эта функция может неожиданно обнулить часть массива или массив, сохранённый без копирования (если он где-то используется в другом месте)
-        public byte[] getBytesAndRemoveIt(byte[]? resultA = null, long resultCount = -1)
+        public byte[] getBytesAndRemoveIt(byte[]? resultA = null, nint resultCount = -1)
         {
             if (resultCount == -1)
             {
                 if (resultA == null)
                     resultCount = count;
                 else
-                    resultCount = resultA.LongLength;
+                    resultCount = checked((nint) resultA.LongLength );
             }
 
             if (resultCount > count)
@@ -347,7 +350,7 @@ namespace cryptoprime
 
             byte[] result = resultA ?? new byte[resultCount];
 
-            long cursor = 0;
+            nint cursor = 0;
             for (int i = 0; i < bytes.Count; )
             {
                 if (cursor == resultCount)
@@ -370,11 +373,11 @@ namespace cryptoprime
                     bytes.Insert(0, bLeft );
                     bytes.Insert(1, bRight);
 
-                    count += left + right;
+                    count += checked((nint) (left + right) );
                 }
 
                 CopyTo(bytes[i], result, cursor);
-                cursor += bytes[i].LongLength;
+                cursor += checked((nint) bytes[i].LongLength );
 
                 RemoveBlockAt(i);
             }
@@ -386,25 +389,28 @@ namespace cryptoprime
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования. -1 - до конца</param>
         /// <returns>Новый массив</returns>
-        public static unsafe byte[] CloneBytes(byte[] B, long start = 0, long PostEnd = -1)
+        public static unsafe byte[] CloneBytes(byte[] B, nint start = 0, nint PostEnd = -1)
         {
-            if (PostEnd < 0)
-                PostEnd = B.LongLength;
+            checked
+            {
+                if (PostEnd < 0)
+                    PostEnd = (nint) B.LongLength;
 
-            var result = new byte[PostEnd - start];
+                var result = new byte[PostEnd - start];
 
-            if (result.LongLength > 0)
-            fixed (byte * r = result, b = B)
-                BytesBuilder.CopyTo(PostEnd, PostEnd - start, b, r, 0, -1, start);
+                if (result.LongLength > 0)
+                fixed (byte * r = result, b = B)
+                    BytesBuilder.CopyTo(PostEnd, PostEnd - start, b, r, 0, -1, start);
 
-            return result;
+                return result;
+            }
         }
 
         /// <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая)</summary><param name="b">Массив для копирования</param>
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <returns>Новый массив</returns>
-        public static unsafe byte[] CloneBytes(byte * b, long start, long PostEnd)
+        public static unsafe byte[] CloneBytes(byte * b, nint start, nint PostEnd)
         {
             var result = new byte[PostEnd - start];
             fixed (byte * r = result)
@@ -421,13 +427,13 @@ namespace cryptoprime
         /// <param name="targetIndex">Начальный индекс копирования в приёмник</param>
         /// <param name="count">Максимальное количество байт для копирования (если столько нет, копирует столько, сколько возможно) (-1 - все доступные)</param>
         /// <param name="index">Начальный индекс копирования из источника</param>
-        public unsafe static long CopyTo(byte[] source, byte[] target, long targetIndex = 0, long count = -1, long index = 0)
+        public unsafe static nint CopyTo(byte[] source, byte[] target, nint targetIndex = 0, nint count = -1, nint index = 0)
         {
-            long sl = source.LongLength;
+            nint sl = checked((int) source.LongLength );
 
             fixed (byte * s = source, t = target)
             {
-                return CopyTo(sl, target.LongLength, s, t, targetIndex, count, index);
+                return CopyTo(sl, checked((nint) target.LongLength), s, t, targetIndex, count, index);
             }
         }
 
@@ -438,7 +444,7 @@ namespace cryptoprime
         /// <param name="count">Количество байтов для записи в t (если столько нет, копирует столько, сколько возможно). Count = -1 - копирует столько, сколько возможно, учитывая размеры источника и приёмника. count не может быть 0</param>
         /// <param name="index">Начальный индекс копирования из источника s</param>
         /// <returns>Количество скопированных байтов</returns>
-        unsafe public static long CopyTo(long sourceLength, long targetLength, byte* s, byte* t, long targetIndex = 0, long count = -1, long index = 0)
+        unsafe public static nint CopyTo(nint sourceLength, nint targetLength, byte* s, byte* t, nint targetIndex = 0, nint count = -1, nint index = 0)
         {
             // Вычисляем указатели за концы элементов массивов (это недостижимые указатели)
             byte* se = s + sourceLength;
@@ -505,19 +511,19 @@ namespace cryptoprime
                 *tbcb = *sbcb;
 
 
-            return sec - sbc;
+            return checked( (nint) (sec - sbc) );
         }
 
         /// <summary>Заполняет массив t байтами со значением value</summary><param name="value">Значение для заполнения</param>
         /// <param name="t">Массив для заполнения</param><param name="index">Индекс первого элемента, с которого будет начато заполнение</param>
         /// <param name="count">Количество элементов для заполнения. count = -1 - заполнять до конца</param>
-        public static void FillByBytes(byte value, byte[] t, long index = 0, long count = -1)
+        public static void FillByBytes(byte value, byte[] t, nint index = 0, nint count = -1)
         {
             if (count < 0)
-                count = t.LongLength - index;
+                count = checked( (nint) t.LongLength - index );
 
             var ic = index + count;
-            for (long i = index; i < ic; i++)
+            for (nint i = index; i < ic; i++)
                 t[i] = value;
         }
 
@@ -529,11 +535,11 @@ namespace cryptoprime
         /// <param name="index">Индекс начального элемента для обнуления</param>
         /// <param name="count">Количество элементов для обнуления, -1 - обнулять до конца</param>
         /// <returns>Количество обнулённых байтов</returns>
-        unsafe public static long ToNull(byte[] t, ulong val = 0, long index = 0, long count = -1)
+        unsafe public static nint ToNull(byte[] t, ulong val = 0, nint index = 0, nint count = -1)
         {
             fixed (byte* tb = t)
             {
-                return ToNull(t.LongLength, tb, val, index, count);
+                return ToNull(  checked( (nint) t.LongLength ), tb, val, index, count  );
             }
         }
 
@@ -545,7 +551,7 @@ namespace cryptoprime
         /// <param name="index">Индекс начального элемента для обнуления</param>
         /// <param name="count">Количество элементов для обнуления, -1 - обнулять до конца</param>
         /// <returns>Количество обнулённых байтов</returns>
-        unsafe public static long ToNull(long targetLength, byte* t, ulong val = 0, long index = 0, long count = -1)
+        unsafe public static nint ToNull(nint targetLength, byte* t, ulong val = 0, nint index = 0, nint count = -1)
         {
             if (count < 0)
                 count = targetLength - index;
@@ -581,10 +587,10 @@ namespace cryptoprime
                 *tbcb = bval;
 
 
-            return tec - tbc;
+            return checked((nint) (tec - tbc) );
         }
         /*
-        public unsafe static void BytesToNull(byte[] bytes, long firstNotNull = long.MaxValue, long start = 0)
+        public unsafe static void BytesToNull(byte[] bytes, nint firstNotNull = nint.MaxValue, nint start = 0)
         {
             if (firstNotNull > bytes.LongLength)
                 firstNotNull = bytes.LongLength;
@@ -594,9 +600,9 @@ namespace cryptoprime
 
             fixed (byte * b = bytes)
             {
-                ulong * lb = (ulong *) (b + start);
+                unint * lb = (unint *) (b + start);
 
-                ulong * le = lb + ((firstNotNull - start) >> 3);
+                unint * le = lb + ((firstNotNull - start) >> 3);
 
                 for (; lb < le; lb++)
                     *lb = 0;
@@ -616,7 +622,7 @@ namespace cryptoprime
         /// <param name="data">4-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
         /// <param name="target">Массив для записи, может быть null</param>
         /// <param name="start">Начальный индекс для записи числа</param>
-        public unsafe static void UIntToBytes(uint data, ref byte[]? target, long start = 0)
+        public unsafe static void UIntToBytes(uint data, ref byte[]? target, nint start = 0)
         {
             if (target == null)
                 target = new byte[4];
@@ -626,7 +632,7 @@ namespace cryptoprime
 
             fixed (byte * t = target)
             {
-                for (long i = start; i < start + 4; i++)
+                for (nint i = start; i < start + 4; i++)
                 {
                     *(t + i) = (byte) data;
                     data >>= 8;
@@ -638,7 +644,7 @@ namespace cryptoprime
         /// <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
         /// <param name="target">Массив для записи, может быть null</param>
         /// <param name="start">Начальный индекс для записи числа</param>
-        public unsafe static void ULongToBytes(ulong data, ref byte[]? target, long start = 0)
+        public unsafe static void ULongToBytes(ulong data, ref byte[]? target, nint start = 0)
         {
             if (target == null)
                 target = new byte[8];
@@ -648,7 +654,7 @@ namespace cryptoprime
 
             fixed (byte * t = target)
             {
-                for (long i = start; i < start + 8; i++)
+                for (nint i = start; i < start + 8; i++)
                 {
                     *(t + i) = (byte) data;
                     data >>= 8;
@@ -660,7 +666,7 @@ namespace cryptoprime
         /// <param name="data">Полученное число</param>
         /// <param name="target">Массив с числом</param>
         /// <param name="start">Начальный элемент, по которому расположено число</param>
-        public unsafe static void BytesToULong(out ulong data, byte[] target, long start)
+        public unsafe static void BytesToULong(out ulong data, byte[] target, nint start)
         {
             data = 0;
             if (start < 0 || start + 8 > target.LongLength)
@@ -668,7 +674,7 @@ namespace cryptoprime
 
             fixed (byte * t = target)
             {
-                for (long i = start + 8 - 1; i >= start; i--)
+                for (nint i = start + 8 - 1; i >= start; i--)
                 {
                     data <<= 8;
                     data += *(t + i);
@@ -680,7 +686,7 @@ namespace cryptoprime
         /// <param name="data">Полученное число</param>
         /// <param name="target">Массив с числом</param>
         /// <param name="start">Начальный элемент, по которому расположено число</param>
-        public unsafe static void BytesToUInt(out uint data, byte[] target, long start)
+        public unsafe static void BytesToUInt(out uint data, byte[] target, nint start)
         {
             data = 0;
             if (start < 0 || start + 4 > target.LongLength)
@@ -688,7 +694,7 @@ namespace cryptoprime
 
             fixed (byte * t = target)
             {
-                for (long i = start + 4 - 1; i >= start; i--)
+                for (nint i = start + 4 - 1; i >= start; i--)
                 {
                     data <<= 8;
                     data += *(t + i);
@@ -701,7 +707,7 @@ namespace cryptoprime
         /// <param name="target">Массив</param>
         /// <param name="start">Стартовый индекс, по которому расположено число</param>
         /// <returns>Количество байтов, которое было считано (размер кодированного числа)</returns>
-        public unsafe static int BytesToVariableULong(out ulong data, byte[] target, long start)
+        public unsafe static int BytesToVariableULong(out ulong data, byte[] target, nint start)
         {
             data = 0;
             if (start < 0 || start >= target.Length)
@@ -709,7 +715,7 @@ namespace cryptoprime
 
             // Вычисляем, сколько именно байтов занимает данное число
             int j = 0;
-            for (long i = start; i < target.LongLength; i++, j++)
+            for (nint i = start; i < target.LongLength; i++, j++)
             {
                 int b = target[i] & 0x80;
                 if (b == 0)
@@ -720,7 +726,7 @@ namespace cryptoprime
             if ((target[start + j] & 0x80) > 0)
                 throw new FormatException();
 
-            for (long i = start + j; i >= start; i--)
+            for (nint i = start + j; i >= start; i--)
             {
                 byte b = target[i];
                 int  c = b & 0x7F;
@@ -737,13 +743,13 @@ namespace cryptoprime
         /// <param name="data">Число для записи</param>
         /// <param name="target">Массив для записи</param>
         /// <param name="start">Индекс в массиве для записи туда числа</param>
-        public unsafe static void VariableULongToBytes(ulong data, ref byte[]? target, long start = 0)
+        public unsafe static void VariableULongToBytes(ulong data, ref byte[]? target, nint start = 0)
         {
             if (start < 0)
                 throw new IndexOutOfRangeException();
 
             BytesBuilder bb = new BytesBuilder();
-            for (long i = start; ; i++)
+            for (nint i = start; ; i++)
             {
                 byte b = (byte) (data & 0x7F);
 
@@ -821,7 +827,7 @@ namespace cryptoprime
         /// <param name="hash">Второй массив для сравнения</param>
         /// <param name="i">Индекс эленемта, который не совпадает</param>
         /// <returns><see langword="true"/> - если массивы совпадают</returns>
-        public unsafe static bool UnsecureCompare(byte[] wellHash, byte[] hash, out int i)
+        public unsafe static bool UnsecureCompare(byte[] wellHash, byte[] hash, out nint i)
         {
             i = -1;
             if (wellHash.LongLength != hash.LongLength || wellHash.LongLength < 0)

@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_BytesBuilder
+#define CAN_CREATEFILE_FOR_BytesBuilder
 
 namespace cryptoprime_tests;
 
@@ -43,6 +43,94 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 
             return r;
         }
+    }
+/*
+    public static nint getMaxMemory_ByOutOfMemory(nint maxPortionForAllocate = (1 << 32), bool gcTotalMemory = true)
+    {
+        nint result = 0;
+        nint pfa    = maxPortionForAllocate;        // Порция для выделения памяти
+        var  list   = new List<byte[]>(65536);
+
+        do
+        {
+            try
+            {
+                list.Add(new byte[pfa]);
+                result += pfa;
+            }
+            catch (OutOfMemoryException)
+            {
+                pfa >>= 1;
+            }
+        }
+        while (pfa >= 65536);
+
+        if (gcTotalMemory)
+        {
+            var a = (nint) GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+            if (result < a)
+                result = a;
+        }
+
+        return result;
+    }
+    */
+
+    /// <summary>Работает только под Linux (требуется "/proc/meminfo")</summary>
+    /// <returns></returns>
+    public static nint getMaxMemory()
+    {
+        try
+        {
+            var mi = File.ReadAllLines("/proc/meminfo");
+            var a1 = getMaxMemory_getValueOfRecord(mi, "MemTotal:");
+            var a2 = getMaxMemory_getValueOfRecord(mi, "SwapTotal:");
+
+            return a1 + a2;
+        }
+        catch
+        {
+            try
+            {
+                var mi = File.ReadAllLines(".debug.getMaxMemory");
+                return nint.Parse(  mi[0].Trim()  );
+            }
+            catch (Exception e)
+            {
+                // entry::onlylinux.sOq1JvFKRxQyw7FQ
+                throw new Exception("getMaxMemory is not work properly. See the getMaxMemory code and let's create a '.debug.getMaxMemory' file", innerException: e);
+            }
+        }
+
+        throw new Exception();
+    }
+
+    public static nint getMaxMemory_getValueOfRecord(string[] records, string recordName)
+    {
+        foreach (var m in records)
+        {
+            if (m.StartsWith(recordName))
+                continue;
+
+            var ent   = m  .Split(':', StringSplitOptions.TrimEntries)[1];
+            var rec   = ent.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var ratio = 1;
+
+            if (rec.Length != 2)
+                throw new FormatException("getMaxMemory_getValueOfRecord: Unknown (1) format in " + recordName);
+
+            if (rec[1] == "kB")
+                ratio = 1024;
+            else
+            if (rec[1] == "MB")
+                ratio = 1024 * 1024;
+            else
+                throw new FormatException("getMaxMemory_getValueOfRecord: Unknown (2) format in " + recordName);
+
+            return nint.Parse(rec[0]) * ratio;
+        }
+
+        throw new Exception();
     }
 }
 
@@ -412,7 +500,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
             // UnsecureCompare - тестируем другую версию
             a1 = createByteArray(1 << 15, 1, 1, 3, 5);
-            if (!BytesBuilder.UnsecureCompare(a1, a1, out int index10))
+            if (!BytesBuilder.UnsecureCompare(a1, a1, out nint index10))
                 throw new Exception("BytesBuilder_test2: 011-0");
             
             a2 = BytesBuilder.CloneBytes(a1);

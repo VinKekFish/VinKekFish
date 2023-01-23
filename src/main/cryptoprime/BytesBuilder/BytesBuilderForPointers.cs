@@ -17,10 +17,10 @@ namespace cryptoprime
 
 
         /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
-        public long Count => count;
+        public nint Count => count;
 
         /// <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
-        public long countOfBlocks => bytes.Count;
+        public nint countOfBlocks => bytes.Count;
 
         /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
         public Record getBlock(int number)
@@ -29,13 +29,13 @@ namespace cryptoprime
         }
 
         /// <summary>Количество сохранённых байтов</summary>
-        protected long count = 0;
+        protected nint count = 0;
 
         /// <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
         /// <param name="len">Длина добавляемого массива</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
         /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
-        public void addWithCopy(byte * bytesToAdded, long len, AllocatorForUnsafeMemoryInterface allocator, int index = -1)
+        public void addWithCopy(byte * bytesToAdded, nint len, AllocatorForUnsafeMemoryInterface allocator, int index = -1)
         {
             var rec = CloneBytes(bytesToAdded, 0, len, allocator);
 
@@ -46,7 +46,7 @@ namespace cryptoprime
         /// <param name="len">Длина добавляемого массива</param>
         /// <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         /// <remarks>Обратите внимание, массив bytesToAdded лучше после этого нигде не использовать. Так как после удаления его из буфера, он будет автоматически перезаписан нулями. Необходима доп. проверка на то, что вызывающая функция нигде не использует данный объект</remarks>
-        public void addWithoutCopy(ref byte * bytesToAdded, long len, int index = -1)
+        public void addWithoutCopy(ref byte * bytesToAdded, nint len, int index = -1)
         {
             var rec = new Record() { len = len, array = bytesToAdded };
 
@@ -88,7 +88,7 @@ namespace cryptoprime
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
         /// <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
-        public Record getBytes(long resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
         {
             if (resultCount == -1)
                 resultCount = count;
@@ -103,7 +103,7 @@ namespace cryptoprime
 
             var result = resultA ?? allocator?.AllocMemory(resultCount) ?? bytes[0]?.allocator?.AllocMemory(resultCount) ?? throw new ArgumentNullException("BytesBuilderForPointers.getBytes");
 
-            long cursor = 0;
+            nint cursor = 0;
             for (int i = 0; i < bytes.Count; i++)
             {
                 if (cursor >= resultCount)
@@ -124,7 +124,7 @@ namespace cryptoprime
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte * b, long start, long PostEnd, AllocatorForUnsafeMemoryInterface allocator)
+        public static unsafe Record CloneBytes(byte * b, nint start, nint PostEnd, AllocatorForUnsafeMemoryInterface allocator)
         {
             var result = allocator.AllocMemory(PostEnd - start);
             BytesBuilder.CopyTo(PostEnd, PostEnd - start, b, result.array, 0, -1, start);
@@ -138,7 +138,7 @@ namespace cryptoprime
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <returns>Новый массив, являющийся копией массива rec[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(Record rec, AllocatorForUnsafeMemoryInterface? allocator = null, long start = 0, long PostEnd = -1)
+        public static unsafe Record CloneBytes(Record rec, AllocatorForUnsafeMemoryInterface? allocator = null, nint start = 0, nint PostEnd = -1)
         {
             if (PostEnd < 0)
                 PostEnd = rec.len;
@@ -156,10 +156,10 @@ namespace cryptoprime
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte[] b, AllocatorForUnsafeMemoryInterface allocator, long start = 0, long PostEnd = -1)
+        public static unsafe Record CloneBytes(byte[] b, AllocatorForUnsafeMemoryInterface allocator, nint start = 0, nint PostEnd = -1)
         {
             if (PostEnd < 0)
-                PostEnd = b.LongLength;
+                PostEnd = checked((nint) b.LongLength );
 
             fixed (byte * bb = b)
             {
@@ -172,7 +172,7 @@ namespace cryptoprime
         /// <returns>Возвращает длину удалённого блока</returns>
         /// <param name="position">Индекс удаляемого блока</param>
         /// <param name="doClear">Если true, то удалённый блок очищается нулями и память, выделенная под него, освобождается ( всё это делается вызовом Record.Dispose() )</param>
-        public long RemoveBlockAt(int position, bool doClear = true)
+        public nint RemoveBlockAt(int position, bool doClear = true)
         {
             if (position < 0)
                 throw new ArgumentException("position must be >= 0");
@@ -182,7 +182,7 @@ namespace cryptoprime
 
             var tmp = bytes[position];
 
-            long removedLength = tmp.len;
+            nint removedLength = tmp.len;
             bytes.RemoveAt(position);
 
             if (doClear)
@@ -198,7 +198,7 @@ namespace cryptoprime
         /// <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте)</remarks>
         public Record getBytesAndRemoveIt(Record result)
         {
-            long   cursor  = 0;
+            nint   cursor  = 0;
             Record current;
             for (int i = 0; i < bytes.Count; )
             {
@@ -215,8 +215,8 @@ namespace cryptoprime
                 if (cursor + current.len > result.len)
                 {
                     // Делим массив на две части. Левая уходит наружу, правая остаётся в массиве
-                    var left  = result.len - cursor;
-                    var right = current.len - left;
+                    nint left  = (nint) result.len - cursor;
+                    nint right = (nint) current.len - left;
 
                     var bLeft  = current.Clone(0, left, allocator: current.allocator ?? result.allocator);
                     var bRight = current.Clone(left,    allocator: current.allocator ?? result.allocator);
@@ -252,13 +252,13 @@ namespace cryptoprime
         /// <param name="target">Массив с числом</param>
         /// <param name="start">Начальный элемент, по которому расположено число</param>
         /// <param name="length">Полная длина массива, до конца должно оставаться не менее 8-ми байтов</param>
-        public unsafe static void BytesToULong(out ulong data, byte * target, long start, long length)
+        public unsafe static void BytesToULong(out ulong data, byte * target, nint start, nint length)
         {
             data = 0;
             if (start < 0 || start + 8 > length)
                 throw new IndexOutOfRangeException();
 
-            for (long i = start + 8 - 1; i >= start; i--)
+            for (nint i = start + 8 - 1; i >= start; i--)
             {
                 data <<= 8;
                 data += *(target + i);
@@ -282,7 +282,7 @@ namespace cryptoprime
         /// <param name="len1">Длина подмассива для сравнивания</param>
         /// <param name="len2">Длина подмассива для сравнивания</param>
         /// <returns><see langword="true"/>, если массивы совпадают.</returns>
-        public unsafe static bool isArrayEqual_Secure(Record r1, Record r2, long start1, long start2, long len1, long len2)
+        public unsafe static bool isArrayEqual_Secure(Record r1, Record r2, nint start1, nint start2, nint len1, nint len2)
         {
             var len = len1;
             if (len > len2)

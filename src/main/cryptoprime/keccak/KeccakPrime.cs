@@ -535,13 +535,18 @@ namespace cryptoprime
                 throw new ArgumentOutOfRangeException("KeccakPrime.getSHA3_512.forHash must be a 64 bytes long at least");
 
             var hash  = forHash;
-            var bc_b  = new ulong[KeccakPrime.b_size/8 + KeccakPrime.c_size/8];
-            var Slong = new ulong[KeccakPrime.S_len2];
+            var all   = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
+            // var bc_b  = new ulong[KeccakPrime.b_size/8 + KeccakPrime.c_size/8];
+            // var Slong = new ulong[KeccakPrime.S_len2];
+            using var bc_b  = all.AllocMemory(KeccakPrime.b_size + KeccakPrime.c_size); bc_b .Clear();
+            using var Slong = all.AllocMemory(sizeof(ulong) * KeccakPrime.S_len2);      Slong.Clear();
+
             fixed (byte  * bt0 = message)
-            fixed (ulong * SL  = Slong)
-            fixed (ulong * bc  = bc_b)
             fixed (byte  * ap  = hash)
             {
+                ulong * bc  = (ulong *) bc_b.array;
+                ulong * SL  = (ulong *) Slong.array;
+
                 bool PaddingWasSetted = false;
                 byte * S = (byte *) SL;
 

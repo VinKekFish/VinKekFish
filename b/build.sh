@@ -12,6 +12,7 @@ then
     testTags="+mandatory +inWork <2e3 ?"
 fi
 
+rm -f tests-*.log
 
 rootDir=`pwd`
 

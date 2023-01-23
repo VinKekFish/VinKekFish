@@ -5,6 +5,8 @@
 
 .vscode
 build/
+.debug.getMaxMemory
+
 
 # User-specific files
 *.rsuser

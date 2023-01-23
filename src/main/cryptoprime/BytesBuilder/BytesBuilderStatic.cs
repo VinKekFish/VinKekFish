@@ -15,11 +15,11 @@ namespace cryptoprime
     /// </summary>
     public unsafe partial class BytesBuilderStatic: IDisposable
     {                                                                           /// <summary>Размер циклического буфера. Это максимальный размер хранимых данных. Изменяется функцией Resize</summary>
-        public long size;                                                       /// <summary>Аллокатор для выделения памяти</summary>
+        public nint size;                                                       /// <summary>Аллокатор для выделения памяти</summary>
         public readonly AllocatorForUnsafeMemoryInterface? allocator = null;
                                                                                 /// <summary>Минимально возможный размер циклического буфера</summary>
         public const int MIN_SIZE = 2;
-        public BytesBuilderStatic(long Size, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public BytesBuilderStatic(nint Size, AllocatorForUnsafeMemoryInterface? allocator = null)
         {
             if (Size < MIN_SIZE)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.BytesBuilderStatic: Size < MIN_SIZE");
@@ -31,7 +31,7 @@ namespace cryptoprime
 
         /// <summary>Изменяет размер циклического буфера без потери данных.<para>Ничего не блокируется, при многопоточных вызовах синхронизация остаётся на пользователе.</para></summary>
         /// <param name="Size">Новый размер</param>
-        public void Resize(long Size)
+        public void Resize(nint Size)
         {
             if (Size < MIN_SIZE)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.Resize: Size < MIN_SIZE");
@@ -59,7 +59,7 @@ namespace cryptoprime
         /// <summary>Прочитать count байтов из циклического буфера в массив target</summary>
         /// <param name="target">Целевой массив, куда копируются значения</param>
         /// <param name="count">Количество байтов для копирования. Если меньше нуля, то копируются все байты</param>
-        public void ReadBytesTo(byte* target, long count = -1)
+        public void ReadBytesTo(byte* target, nint count = -1)
         {
             if (count < 0)
                 count = Count;
@@ -86,7 +86,7 @@ namespace cryptoprime
         /// <summary>Записывает байты в циклический буфер (добавляет байты в конец)</summary>
         /// <param name="source">Источник, из которого берутся данные</param>
         /// <param name="countToWrite">Количество байтов для добавления</param>
-        public void WriteBytes(byte* source, long countToWrite)
+        public void WriteBytes(byte* source, nint countToWrite)
         {
             if (count + countToWrite > size)
                 throw new ArgumentOutOfRangeException("WriteBytes: count + countToWrite > size");
@@ -96,7 +96,7 @@ namespace cryptoprime
             if (End >= Start)
             {
                 var s1 = bytes + End;
-                var l1 = after - s1;
+                var l1 = (nint) (after - s1);
 
                 var A  = l1 > 0 ? BytesBuilder.CopyTo(countToWrite, l1, source, s1) : 0;
                 count += A;
@@ -121,7 +121,7 @@ namespace cryptoprime
             else    // End < Start, запись во вторую половину циклического буфера
             {
                 var s1 = bytes + End;
-                var l1 = (bytes + Start) - s1;
+                var l1 = (nint)(   (bytes + Start) - s1   );
 
                 var A  = BytesBuilder.CopyTo(countToWrite, l1, source, s1);
                 count += A;
@@ -140,15 +140,15 @@ namespace cryptoprime
         protected byte *  after  = null;                                        /// <summary>Обёртка для циклического буфера</summary>
         protected Record? region = null;
                                                                                 /// <summary>Количество всех сохранённых байтов в этом объекте - сырое поле для корректировки значений</summary>
-        protected long count = 0;                                               /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
-        public long Count => count;
+        protected nint count = 0;                                               /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
+        public nint Count => count;
                                                                                 /// <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count)</summary>
-        protected long Start = 0, End = 0;
+        protected nint Start = 0, End = 0;
 
         /// <summary>Получает адрес элемента с индексом index</summary>
         /// <param name="index">Индекс получаемого элемента</param>
         /// <returns>Адрес элемента массива</returns>
-        public byte * this[long index]
+        public byte * this[nint index]
         {
             get
             {
@@ -174,28 +174,31 @@ namespace cryptoprime
         }
 
         /// <summary>Длина данных, приходящихся на правый (первый) сегмент данных</summary>
-        public long len1
+        public nint len1
         {
             get
             {
-                if (End > Start)
+                checked
                 {
-                    return End - Start;
-                }
-                else
-                {
-                    var r = (after - (bytes + Start));
+                    if (End > Start)
+                    {
+                        return End - Start;
+                    }
+                    else
+                    {
+                        var r = (nint) (after - (bytes + Start));
 
-                    if (count == 0)
-                        return 0;
+                        if (count == 0)
+                            return 0;
 
-                    return r;
+                        return r;
+                    }
                 }
             }
         }
 
         /// <summary>Длина данных, приходящихся на левый сегмент данных</summary>
-        public long len2
+        public nint len2
         {
             get
             {
@@ -207,7 +210,7 @@ namespace cryptoprime
         }
 
         /// <summary>Добавляет блок в объект</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
-        public void add(byte * bytesToAdded, long len)
+        public void add(byte * bytesToAdded, nint len)
         {
             if (count + len > size)
                 throw new IndexOutOfRangeException("BytesBuilderStatic.add: count + len > size: many bytes to add");
@@ -239,7 +242,7 @@ namespace cryptoprime
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <param name="allocator">Аллокатор, который позволяет функции выделять память, если resultA == null. Если null, используется this.allocator</param>
         /// <returns></returns>
-        public Record getBytes(long resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
         {
             if (resultCount <= -1)
                 resultCount = count;
@@ -268,14 +271,14 @@ namespace cryptoprime
 
         /// <summary>Удаляет байты из начала массива</summary>
         /// <param name="len">Количество байтов к удалению</param>
-        public void RemoveBytes(long len)
+        public void RemoveBytes(nint len)
         {
             if (len > count)
                 throw new ArgumentOutOfRangeException();
 
             // Обнуление удаляемых байтов
             // Не сказать, что это очень эффективно
-            for (long i = 0; i < len; i++)
+            for (nint i = 0; i < len; i++)
             {
                 *this[i] = 0;
             }
