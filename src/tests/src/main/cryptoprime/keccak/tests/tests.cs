@@ -194,7 +194,7 @@ public class Keccak_sha_3_512_test_performance: TestTask
             const int blocksCount = 1024;
             const int iterCount   = 1024;
 
-            var msg = new byte[KeccakPrime.r_512b * blocksCount];  // blocksCount блока keccak
+            var msg = new byte[KeccakPrime.r_512b * blocksCount];  // blocksCount вхождений блока keccak
 
             var countBlocksForOneSecond = 0d;
             var st        = new DriverForTestsLib.SimpleTimeMeter();
@@ -228,9 +228,9 @@ public class Keccak_sha_3_512_test_performance: TestTask
             // Console.WriteLine($"{k}");
             Console.WriteLine($"keccak: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
 
-            // Нормальная производительность блока keccak составляет порядка 400-500 тысяч блоков в минуту на больших объёмах блоков.
-            // Сравниваем с эталоном: операции сложения примерно в 
-            var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond} (normal 400-500 thousands per second on 2.8 GHz)";
+            // Нормальная производительность блока keccak составляет порядка 400-500 тысяч блоков в секунду на больших объёмах блоков.
+            // Сравниваем с эталоном: операции сложения примерно в 0.8+
+            var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 400-500 thousands per second on 2.8 GHz)";
             if (k < 0.74)
                 throw new Exception($"Keccak_sha_3_512_test_performance: k < 0.74; k = {k}; {errStr}");
             if (countBlocksForOneSecond < 400_000)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+[assembly: System.Reflection.AssemblyCopyright("Copyright © Sergey Vinogradov 2022-*")]
 namespace cryptoprime
 {
     /// <summary>

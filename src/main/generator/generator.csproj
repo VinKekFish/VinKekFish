@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../../../VinKekFish/src/main/cryptoprime/cryptoprime.csproj" />
+    <ProjectReference Include="../../../../DriverForTests/DriverForTestsLib/DriverForTestsLib.csproj" />
+  </ItemGroup>
+  <PropertyGroup>
+    <Optimize>true</Optimize>
+
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -88,7 +88,10 @@ public partial class Program
         ProjectBuildError = 5,
 
         /// <summary>Тесты не прошли успешно</summary>
-        TestError = 6
+        TestError = 6,
+
+        /// <summary>Билдер не выполнил какие-либо специфические для проекта правила</summary>
+        SpecificForProjectError = 7
     };
 
     public static void SetErrorHandlers()

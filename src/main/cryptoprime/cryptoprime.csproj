@@ -6,7 +6,7 @@
     
   <Target Name="Release">
     <PropertyGroup>
-      <Optimize>true</Optimize>
+      <Optimize>Optimize+</Optimize>
     </PropertyGroup>
   </Target>
 
