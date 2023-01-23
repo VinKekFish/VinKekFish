@@ -8,7 +8,7 @@ using DriverForTestsLib;
 
 using static cryptoprime.BytesBuilderForPointers;
 
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 10e3, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
 public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
 {
     public BytesBuilder_ForPointers_test1(TestConstructor constructor):
@@ -60,8 +60,60 @@ public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
 }
 
 
-[TestTagAttribute("BytesBuilder_ForPointers", duration: -1d)]
-[TestTagAttribute("mandatory")]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 8500d)]
+public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
+{
+    public BytesBuilder_ForPointers_test2(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected unsafe class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            var bb = new BytesBuilder();
+
+            // Проверяем на то, что аллокатор умеет удалять память (работает IDisposable)
+            var allocator  = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
+            nint maxMemory = getMaxMemory() << 2;
+
+            nint maxMemoryToAllocateBySingleAllocate = maxMemory >> 12;     // Иначе процесс будет длиться слишком долго, т.к. большие блоки долго выделяются
+            nint memoryToAllocate = 1;
+            for (nint i = 4096; i < maxMemory;)
+            {
+                for (int thr = 56; thr >= 16; thr -= 8)
+                {
+                    nint one = 1;
+                    if (i > (one << thr))
+                    {
+                        memoryToAllocate = one << thr;
+                        // Это не даёт запросить слишком большие блоки и даже ускоряет выделение памяти, т.к. большие непрерывные блоки выделять тяжелее
+                        if (memoryToAllocate > maxMemoryToAllocateBySingleAllocate)
+                            memoryToAllocate = maxMemoryToAllocateBySingleAllocate;
+
+                        // Console.WriteLine(memoryToAllocate + "\t\t" + i.ToString("N"));
+                        break;
+                    }
+                }
+
+                byte * a = null;
+                using (var r = allocator.AllocMemory(memoryToAllocate))
+                {
+                    i += memoryToAllocate;
+                    a = r.array;
+                }
+            }
+
+            return lst;
+        }
+    }
+}
+
+
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 40d)]
+[TestTagAttribute("mandatory", duration: 40d)]
 public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 {
     public BytesBuilder_ForPointers_test(TestConstructor constructor):

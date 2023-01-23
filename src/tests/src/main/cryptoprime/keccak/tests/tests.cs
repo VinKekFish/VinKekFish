@@ -41,6 +41,7 @@ public class ParentAutoSaveTask: AutoSaveTestTask
     }
 }
 
+[TestTagAttribute("keccak")]
 [TestTagAttribute("mandatory", duration: 25d)]
 public class Keccak_sha_3_512_test: ParentAutoSaveTask
 {
@@ -63,7 +64,7 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
 
     public override DirectoryInfo setDirForFiles()
     {
-        return getDirectoryPath("src/main/cryptoprime/keccak/tests/");
+        return getDirectoryPath("src/tests/src/main/cryptoprime/keccak/tests/");
     }
 
     unsafe protected class Saver: TaskResultSaver
@@ -167,5 +168,73 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
 
             return lst;
         }
+    }
+}
+
+
+/// <summary>Этот тест проверяет производительность алгоритма keccak (на случай, если она ухудшилась)</summary>
+[TestTagAttribute("keccak")]
+[TestTagAttribute("performance", duration: 2500d, singleThread: true)]
+public class Keccak_sha_3_512_test_performance: TestTask
+{
+    #if CAN_CREATEFILE_FOR_KECCAK
+    public static readonly bool canCreateFile = true;
+    #warning CAN_CREATEFILE_FOR_KECCAK
+    #else
+    public static readonly bool canCreateFile = false;
+    #endif
+
+    public Keccak_sha_3_512_test_performance(TestConstructor constructor):
+                                        base(nameof(Keccak_sha_3_512_test_performance), constructor: constructor)
+    {
+        // Console.WriteLine("Keccak_sha_3_512_test test task created");
+
+        taskFunc = () =>
+        {
+            const int blocksCount = 1024;
+            const int iterCount   = 1024;
+
+            var msg = new byte[KeccakPrime.r_512b * blocksCount];  // blocksCount блока keccak
+
+            var countBlocksForOneSecond = 0d;
+            var st        = new DriverForTestsLib.SimpleTimeMeter();
+            var st_etalon = new DriverForTestsLib.SimpleTimeMeter();
+            Parallel.Invoke
+            (
+                () =>
+                {
+                    using (st)
+                    for (int i = 0; i < iterCount; i++)
+                    {
+                        KeccakPrime.getSHA3_512(msg);
+                    }
+
+                    countBlocksForOneSecond = blocksCount * iterCount * 1000 / st.TotalMilliseconds;
+                },
+                () =>
+                {
+                    long a = 0, b = 1;
+                    using (st_etalon)
+                    for (int i = 0; i < 256*1024*1024; i++)
+                    {
+                        a -= b;
+                        b += i;
+                        a += b;
+                    }
+                }
+            );
+
+            var k = st_etalon.TotalMilliseconds / st.TotalMilliseconds;
+            // Console.WriteLine($"{k}");
+            Console.WriteLine($"keccak: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
+
+            // Нормальная производительность блока keccak составляет порядка 400-500 тысяч блоков в минуту на больших объёмах блоков.
+            // Сравниваем с эталоном: операции сложения примерно в 
+            var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond} (normal 400-500 thousands per second on 2.8 GHz)";
+            if (k < 0.74)
+                throw new Exception($"Keccak_sha_3_512_test_performance: k < 0.74; k = {k}; {errStr}");
+            if (countBlocksForOneSecond < 400_000)
+                throw new Exception($"Keccak_sha_3_512_test_performance: countBlocksForOneSecond < 400_000; {errStr}");
+        };
     }
 }

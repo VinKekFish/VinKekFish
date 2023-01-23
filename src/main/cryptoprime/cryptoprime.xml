@@ -644,12 +644,5 @@
             <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
             <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
         </member>
-        <member name="M:cryptoprime_tests.BytesBuilder_test_parent.getMaxMemory">
-            <summary>Работает только под Linux (требуется "/proc/meminfo")</summary>
-            <returns></returns>
-        </member>
-        <member name="T:cryptoprime_tests.ParentAutoSaveTask">
-            <summary>Общий класс для задач-наследников AutoSaveTestTask</summary>
-        </member>
     </members>
 </doc>

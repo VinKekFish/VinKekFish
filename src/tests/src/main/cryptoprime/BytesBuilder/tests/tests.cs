@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_BytesBuilder
+// #define CAN_CREATEFILE_FOR_BytesBuilder
 
 namespace cryptoprime_tests;
 
@@ -27,7 +27,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 
     public override DirectoryInfo setDirForFiles()
     {
-        return getDirectoryPath("src/main/cryptoprime/BytesBuilder/tests/");
+        return getDirectoryPath("src/tests/src/main/cryptoprime/BytesBuilder/tests/");
     }
 
     protected SaverParent parentSaver;
