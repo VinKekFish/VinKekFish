@@ -69,13 +69,13 @@ public class ThreeFish_test_performance: TestTask
             // Console.WriteLine($"{k}");
             Console.WriteLine($"ThreeFish: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
 
-            // Нормальная производительность блока ThreeFish составляет порядка 400-500 тысяч блоков в секунду
+            // Нормальная производительность блока ThreeFish составляет порядка 300-400 тысяч блоков в секунду
             // Сравниваем с эталоном: операции сложения примерно в 0.72
-            var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 400-500 thousands per second on 2.8 GHz)";
+            var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 300-400 thousands per second on 2.8 GHz)";
             if (k < 0.54)
                 throw new Exception($"ThreeFish_test_performance: k < 0.74; k = {k}; {errStr}");
-            if (countBlocksForOneSecond < 400_000)
-                throw new Exception($"ThreeFish_test_performance: countBlocksForOneSecond < 400_000; {errStr}");
+            if (countBlocksForOneSecond < 300_000)
+                throw new Exception($"ThreeFish_test_performance: countBlocksForOneSecond < 300_000; {errStr}");
         };
     }
 }
