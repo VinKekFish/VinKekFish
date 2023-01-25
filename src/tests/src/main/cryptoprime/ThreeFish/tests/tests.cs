@@ -8,7 +8,7 @@ using DriverForTestsLib;
 using CodeGenerated.Cryptoprimes;
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 /// <summary>Этот тест проверяет производительность алгоритма ThreeFish (на случай, если она ухудшилась)</summary>
 [TestTagAttribute("ThreeFish")]
 [TestTagAttribute("performance", duration: 2500d, singleThread: true)]

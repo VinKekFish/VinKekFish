@@ -10,7 +10,9 @@
     <Optimize>false</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-
+    <DebugSymbols>true</DebugSymbols>
+    <!-- DebugType>full embedded pdbonly</DebugType -->
+    <DebugType>embedded</DebugType>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

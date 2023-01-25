@@ -1,6 +1,6 @@
 using System;
 // Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)
-// Vinogradov S.V. Generated at 2023.01.25 12:25:55.752
+// Vinogradov S.V. Generated at 2023.01.25 16:53:33.766
 namespace CodeGenerated.Cryptoprimes
 {
 	public static unsafe class Threefish_Static_Generated2 

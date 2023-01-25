@@ -172,7 +172,7 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
 }
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 /// <summary>Этот тест проверяет производительность алгоритма keccak (на случай, если она ухудшилась)</summary>
 [TestTagAttribute("keccak")]
 [TestTagAttribute("performance", duration: 2500d, singleThread: true)]
