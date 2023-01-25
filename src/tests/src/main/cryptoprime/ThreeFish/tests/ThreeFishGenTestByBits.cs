@@ -56,8 +56,8 @@ namespace main_tests
                         BytesBuilder.ToNull(b2);
                         BitToBytes.setBit(b2, valt);
 
-                        yield return new SourceTask() {Key = "Threfish with valk = " + valk, Value = new byte[][] {bk1, b1}};
-                        yield return new SourceTask() {Key = "Threfish with valk = " + valk, Value = new byte[][] {bk2, b2}};
+                        yield return new SourceTask() {Key = $"Threfish with (0x00) valk = {valk}; valt = {valt}", Value = new byte[][] {bk2, b2}};
+                        yield return new SourceTask() {Key = $"Threfish with (0xFF) valk = {valk}; valt = {valt}", Value = new byte[][] {bk1, b1}};
                     }
                 }
 
@@ -71,11 +71,23 @@ namespace main_tests
         {
             if (sources == null) throw new NullReferenceException();
 
-            foreach (var ts in sources)
-            {
-                TestForKeyAndText (ts);
-                TestForKeyAndTweak(ts);
-            }
+            // foreach (var ts in sources)
+            Parallel.ForEach<SourceTask>
+            (
+                sources,
+                (task, state, _) =>
+                {
+                    try
+                    {
+                        TestForKeyAndText (task);
+                        TestForKeyAndTweak(task);
+                    }
+                    catch
+                    {
+                        state.Break();
+                    }
+                }
+            );
         }
 
         private unsafe void TestForKeyAndText(SourceTask ts)
@@ -106,13 +118,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a-gen): " + ts.Key });
+                this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a-gen): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (1a-gen): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (1b-gen): " + ts.Key });
+                this.error.Add(new TestError() { Message = "Hashes are not equal for test array (1b-gen): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (1b-gen): " + ts.Key);
             }
         }
@@ -141,16 +153,18 @@ namespace main_tests
             var input = new ulong[16];
                    h2 = new byte[128];
             tw = new ulong[3];
-            var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
+            // var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
             // var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);
             tw[0] = b [0] ^ b [1];
             tw[1] = b [2] ^ b [3];
             tw[2] = tw[0] ^ tw[1];
-            fixed (ulong * b0p = b0)
+            // fixed (ulong * b0p = b0)
+            fixed (byte  * b0a = ts.Value[0])
             fixed (ulong * twp = tw)
             fixed (ulong * inp = input)
             fixed (byte  * h2p = h2)
             {
+                ulong * b0p = (ulong *) b0a;
                 Threefish_Static_Generated.Threefish1024_step(b0p, twp, (ulong *) h2p);
                 //Threefish_Static_Generated.UlongToBytes_128b(inp, h2p);
             }
@@ -160,13 +174,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a-gen): " + ts.Key });
+                this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a-gen): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (2a-gen): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (2b-gen): " + ts.Key });
+                this.error.Add(new TestError() { Message = "Hashes are not equal for test array (2b-gen): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (2b-gen): " + ts.Key);
             }
         }

@@ -70,11 +70,22 @@ namespace main_tests
         {
             if (sources == null) throw new NullReferenceException();
 
-            foreach (var ts in sources)
-            {
-                TestForKeyAndText (ts);
-                TestForKeyAndTweak(ts);
-            }
+            Parallel.ForEach<SourceTask>
+            (
+                sources,
+                (task, state, _) =>
+                {
+                    try
+                    {
+                        TestForKeyAndText (task);
+                        TestForKeyAndTweak(task);
+                    }
+                    catch
+                    {
+                        state.Break();
+                    }
+                }
+            );
         }
 
         private unsafe void TestForKeyAndText(SourceTask ts)
@@ -101,13 +112,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // task.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a): " + ts.Key });
+                error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (1a): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // task.error.Add(new TestError() { Message = "Hashes are not equal for test array (1b): " + ts.Key });
+                error.Add(new TestError() { Message = "Hashes are not equal for test array (1b): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (1b): " + ts.Key);
             }
         }
@@ -145,13 +156,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // task.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a): " + ts.Key });
+                error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (2a): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // task.error.Add(new TestError() { Message = "Hashes are not equal for test array (2b): " + ts.Key });
+                error.Add(new TestError() { Message = "Hashes are not equal for test array (2b): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (2b): " + ts.Key);
             }
         }
