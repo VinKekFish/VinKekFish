@@ -16,7 +16,6 @@ namespace main_tests
     [TestTagAttribute("ThreeFish", duration: 70e3)]
     class ThreeFishTestByBits: TestTask
     {
-        readonly TestTask task;
         public ThreeFishTestByBits(TestConstructor constructor):
                                         base(nameof(ThreeFishTestByBits), constructor: constructor)
         {

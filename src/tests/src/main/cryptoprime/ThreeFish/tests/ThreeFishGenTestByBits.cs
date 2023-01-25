@@ -106,13 +106,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array: " + ts.Key });
+                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a-gen): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (1a-gen): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (1): " + ts.Key });
+                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (1b-gen): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (1b-gen): " + ts.Key);
             }
         }
@@ -151,8 +151,8 @@ namespace main_tests
             fixed (ulong * inp = input)
             fixed (byte  * h2p = h2)
             {
-                Threefish_Static_Generated.Threefish1024_step(b0p, twp, inp);
-                Threefish_Static_Generated.UlongToBytes_128b(inp, h2p);
+                Threefish_Static_Generated.Threefish1024_step(b0p, twp, (ulong *) h2p);
+                //Threefish_Static_Generated.UlongToBytes_128b(inp, h2p);
             }
 
 
@@ -160,13 +160,13 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array: " + ts.Key });
+                // this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a-gen): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (2a-gen): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (2): " + ts.Key });
+                // this.error.Add(new TestError() { Message = "Hashes are not equal for test array (2b-gen): " + ts.Key });
                 throw new Exception("Hashes are not equal for test array (2b-gen): " + ts.Key);
             }
         }
