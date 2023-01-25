@@ -8,18 +8,18 @@ using DriverForTestsLib;
 
 namespace CodeGenerator
 {
-    class ThreeFish_Gen: BaseCSharpCodeGenerator
+    class ThreeFish_Gen2: BaseCSharpCodeGenerator
     {
-        public ThreeFish_Gen(string FileName = "./Threefish_Static_Generated.cs"): base(FileName, "", "System")
+        public ThreeFish_Gen2(string FileName = "./Threefish_Static_Generated2.cs"): base(FileName, "", "System")
         {
             Add("// Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)");
             Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
             Add("namespace CodeGenerated.Cryptoprimes");
             addBlock();
 
-            this.addClassHeader("public static unsafe", "Threefish_Static_Generated");
+            this.addClassHeader("public static unsafe", "Threefish_Static_Generated2");
 
-            AddBytesToULongConvertFunctions();
+            // AddBytesToULongConvertFunctions();
             AddFuncThreefish1024_step();
 
             this.endBlock();
@@ -29,12 +29,21 @@ namespace CodeGenerator
 
         private void AddFuncThreefish1024_step()
         {
+            /*string gText(int index) =>  $"*((ulong *)(text  + {index*8}))";
+            string gKey (int index) =>  $"*((ulong *)(key   + {index*8}))";
+            string gTw  (int index) =>  $"*((ulong *)(tweak + {index*8}))";*/
+
+            string gText(int index) =>  $"text{index:D2}";
+            string gKey (int index) =>  $"key{index:D2}";
+            string gTw  (int index) =>  $"tweak{index:D2}";
+
+
             Add("/// <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>");
             Add("/// <param name=\"key\">Key for cipher (128 bytes)</param>");
             Add("/// <param name=\"tweak\">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>");
             Add("/// <param name=\"text\">Open text for cipher</param>");
 
-            addFuncHeader("public static", "void", "Threefish1024_step", "ulong * key, ulong * tweak, ulong * text");
+            addFuncHeader("public static", "void", "Threefish1024_step", "byte * key, byte * tweak, byte * text");
 
             var correspondenceTable = new byte[threefish_slowly.Nw];
             for (byte i = 0; i < correspondenceTable.Length; i++)
@@ -47,10 +56,10 @@ namespace CodeGenerator
             Add("// Aliases");
             for (int i = 0; i <= threefish_slowly.Nw; i++)
             {
-                Add($"ref ulong key{i:D2}   = ref key  [{i:D2}];");
-                Add($"ref ulong text{i:D2}  = ref text [{i:D2}];");
+                Add($"ref ulong key{i:D2}   = ref ((ulong *)key)  [{i:D2}];");
+                Add($"ref ulong text{i:D2}  = ref ((ulong *)text) [{i:D2}];");
                 if (i <= 2)
-                    Add($"ref ulong tweak{i:D2} = ref tweak[{i:D2}];");
+                    Add($"ref ulong tweak{i:D2} = ref ((ulong *)tweak)[{i:D2}];");
             }
 
             // round = d
@@ -84,11 +93,11 @@ namespace CodeGenerator
 
                         var sk2 = index;
 
-                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, j].ToString("D2"), $"key{sk1:D2}", $"key{sk2:D2}");
+                        AddMixTemplate(gText(i1), gText(i2), threefish_slowly.RC[round & 0x07, j].ToString("D2"), gKey(sk1), gKey(sk2));
                     }
                     else
                     {
-                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, j].ToString("D2"));
+                        AddMixTemplate(gText(i1), gText(i2), threefish_slowly.RC[round & 0x07, j].ToString("D2"));
                     }
                 }
 
@@ -101,7 +110,7 @@ namespace CodeGenerator
                     while (index > threefish_slowly.Nw)
                         index -= threefish_slowly.Nw + 1;
 
-                    var subkeyL = $"key{index:D2}";
+                    var subkeyL = gKey(index);
 
                     i = (threefish_slowly.Nw - 3);
                     index = s + i;
@@ -110,13 +119,13 @@ namespace CodeGenerator
                     while (index > threefish_slowly.Nw)
                         index -= threefish_slowly.Nw + 1;
 
-                    var subkey = $"key{index:D2}";
+                    var subkey = gKey(index);
                     int s3 = s % 3;
-                    var sb2 = $"tweak{s3:D2}";
+                    var sb2 = gTw(s3);
 
                     var i1 = correspondenceTable[i - 1];
                     var i2 = correspondenceTable[i + 0];
-                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, subkey);
+                    AddMixTemplate(gText(i1), gText(i2), threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, subkey);
 
                     i = (threefish_slowly.Nw - 2);
                     index = s + i;
@@ -124,7 +133,7 @@ namespace CodeGenerator
                     while (index > threefish_slowly.Nw)
                         index -= threefish_slowly.Nw + 1;
 
-                    subkeyL = $"key{index:D2}";
+                    subkeyL = gKey(index);
 
                     i = (threefish_slowly.Nw - 1);
                     index = s + i;
@@ -133,13 +142,13 @@ namespace CodeGenerator
                     while (index > threefish_slowly.Nw)
                         index -= threefish_slowly.Nw + 1;
 
-                    subkey = $"key{index:D2}";
+                    subkey = gKey(index);
                     s3 = (s + 1) % 3;
-                    sb2 = $"tweak{s3:D2}";
+                    sb2 = gTw(s3);
 
                     i1 = correspondenceTable[i - 1];
                     i2 = correspondenceTable[i + 0];
-                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), $"{subkeyL:D2} + {sb2:D2}", $"{subkey:D2} + {s:D2}");
+                    AddMixTemplate(gText(i1), gText(i2), threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), $"{subkeyL:D2} + {sb2:D2}", $"{subkey:D2} + {s:D2}");
                 }
 
                 for (byte i = 0; i < correspondenceTable.Length; i++)
@@ -152,12 +161,15 @@ namespace CodeGenerator
             Add("// Final");
             for (int i = 0; i <= 12; i++)
             {
-                Add($"text{i:D2} += key{(i + 3):D2};");
+                Add($"{gText(i)} += {gKey(i + 3)};");
             }
-
+/*
             Add($"text13 += key16 + tweak02;");
             Add($"text14 += key00 + tweak00;");
-            Add($"text15 += key01 + 20;");
+            Add($"text15 += key01 + 20;");*/
+            Add($"{gText(13)} += {gKey(16)} + {gTw(2)};");
+            Add($"{gText(14)} += {gKey(0)}  + {gTw(0)};");
+            Add($"{gText(15)} += {gKey(1)} + 20;");
 
 
             endBlock();
@@ -187,7 +199,7 @@ namespace CodeGenerator
                 Add($"{b} ^= {a};");
             }
         }
-
+/*
         private void AddBytesToULongConvertFunctions()
         {
             addFuncHeader("public static", "void", "BytesToUlong_128b", "byte * b, ulong * result");
@@ -201,6 +213,6 @@ namespace CodeGenerator
             for (int i = 0; i < cryptoprime.threefish_slowly.Nw; i++)
                 Add($"r[{i}] = u[{i}];");
             endBlock();
-        }
+        }*/
     }
 }

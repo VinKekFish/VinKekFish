@@ -6,7 +6,7 @@ namespace builder;
 
 partial class Program
 {
-    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true)
+    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true, DateTime lastModified = default)
     {
         var configurationForDotNet = Program.configuration;
         var output                 = Program.output;
@@ -30,7 +30,7 @@ partial class Program
             dllPatterns.Add(dllName);
         }
 
-        var isActual  = isActualCheck ? isActualVersion(output_di, di, dllPatterns, null) : false;
+        var isActual  = isActualCheck ? isActualVersion(output_di, di, dllPatterns, null, lastModified) : false;
 
         if (isActual)
         {
@@ -69,7 +69,7 @@ partial class Program
     /// <param name="sourcePattern">Шаблон для поиска исходников. Если null, то шаблон будет "*.cs"</param>
     /// <param name="patternForProjectFile">Шаблон для поиска dll-файлов, дата создания которых проверяется</param>
     /// <returns>true - если версия актуальна и перестроение не требуется; false - если требуется перестроение</returns>
-    public static bool isActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patternForProjectFile, string[]? sourcePattern = null)
+    public static bool isActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patternForProjectFile, string[]? sourcePattern = null, DateTime lastModified = default)
     {
         if (patternForProjectFile.Count <= 0)
             throw new ArgumentException($"patterForProjectFile must be contain at least one string ({sources_di.FullName})");
@@ -92,6 +92,8 @@ partial class Program
         }
 
         var first = bins[0].LastWriteTimeUtc;
+        if (lastModified > first)
+            first = lastModified;
 
         // Ищем самый старый исполняемый файл
         foreach (var bin in bins)

@@ -1,10 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="../../../../VinKekFish/src/main/cryptoprime/cryptoprime.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/BytesBuilder/bytesbuilder.csproj" />
     <ProjectReference Include="../../../../DriverForTests/DriverForTestsLib/DriverForTestsLib.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <Optimize>true</Optimize>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>

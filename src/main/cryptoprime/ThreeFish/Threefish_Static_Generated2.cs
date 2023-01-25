@@ -1,96 +1,54 @@
 using System;
 // Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)
-// Vinogradov S.V. Generated at 2023.01.25 12:25:55.698
+// Vinogradov S.V. Generated at 2023.01.25 12:25:55.752
 namespace CodeGenerated.Cryptoprimes
 {
-	public static unsafe class Threefish_Static_Generated 
+	public static unsafe class Threefish_Static_Generated2 
 	{
-		public static void BytesToUlong_128b(byte * b, ulong * result)
-		{
-			ulong * br = (ulong *) b;
-			result[0] = br[0];
-			result[1] = br[1];
-			result[2] = br[2];
-			result[3] = br[3];
-			result[4] = br[4];
-			result[5] = br[5];
-			result[6] = br[6];
-			result[7] = br[7];
-			result[8] = br[8];
-			result[9] = br[9];
-			result[10] = br[10];
-			result[11] = br[11];
-			result[12] = br[12];
-			result[13] = br[13];
-			result[14] = br[14];
-			result[15] = br[15];
-		}
-		
-		public static void UlongToBytes_128b(ulong * u, byte * result)
-		{
-			ulong * r = (ulong *) result;
-			r[0] = u[0];
-			r[1] = u[1];
-			r[2] = u[2];
-			r[3] = u[3];
-			r[4] = u[4];
-			r[5] = u[5];
-			r[6] = u[6];
-			r[7] = u[7];
-			r[8] = u[8];
-			r[9] = u[9];
-			r[10] = u[10];
-			r[11] = u[11];
-			r[12] = u[12];
-			r[13] = u[13];
-			r[14] = u[14];
-			r[15] = u[15];
-		}
-		
 		/// <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>
 		/// <param name="key">Key for cipher (128 bytes)</param>
 		/// <param name="tweak">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>
 		/// <param name="text">Open text for cipher</param>
-		public static void Threefish1024_step(ulong * key, ulong * tweak, ulong * text)
+		public static void Threefish1024_step(byte * key, byte * tweak, byte * text)
 		{
 			// Aliases
-			ref ulong key00   = ref key  [00];
-			ref ulong text00  = ref text [00];
-			ref ulong tweak00 = ref tweak[00];
-			ref ulong key01   = ref key  [01];
-			ref ulong text01  = ref text [01];
-			ref ulong tweak01 = ref tweak[01];
-			ref ulong key02   = ref key  [02];
-			ref ulong text02  = ref text [02];
-			ref ulong tweak02 = ref tweak[02];
-			ref ulong key03   = ref key  [03];
-			ref ulong text03  = ref text [03];
-			ref ulong key04   = ref key  [04];
-			ref ulong text04  = ref text [04];
-			ref ulong key05   = ref key  [05];
-			ref ulong text05  = ref text [05];
-			ref ulong key06   = ref key  [06];
-			ref ulong text06  = ref text [06];
-			ref ulong key07   = ref key  [07];
-			ref ulong text07  = ref text [07];
-			ref ulong key08   = ref key  [08];
-			ref ulong text08  = ref text [08];
-			ref ulong key09   = ref key  [09];
-			ref ulong text09  = ref text [09];
-			ref ulong key10   = ref key  [10];
-			ref ulong text10  = ref text [10];
-			ref ulong key11   = ref key  [11];
-			ref ulong text11  = ref text [11];
-			ref ulong key12   = ref key  [12];
-			ref ulong text12  = ref text [12];
-			ref ulong key13   = ref key  [13];
-			ref ulong text13  = ref text [13];
-			ref ulong key14   = ref key  [14];
-			ref ulong text14  = ref text [14];
-			ref ulong key15   = ref key  [15];
-			ref ulong text15  = ref text [15];
-			ref ulong key16   = ref key  [16];
-			ref ulong text16  = ref text [16];
+			ref ulong key00   = ref ((ulong *)key)  [00];
+			ref ulong text00  = ref ((ulong *)text) [00];
+			ref ulong tweak00 = ref ((ulong *)tweak)[00];
+			ref ulong key01   = ref ((ulong *)key)  [01];
+			ref ulong text01  = ref ((ulong *)text) [01];
+			ref ulong tweak01 = ref ((ulong *)tweak)[01];
+			ref ulong key02   = ref ((ulong *)key)  [02];
+			ref ulong text02  = ref ((ulong *)text) [02];
+			ref ulong tweak02 = ref ((ulong *)tweak)[02];
+			ref ulong key03   = ref ((ulong *)key)  [03];
+			ref ulong text03  = ref ((ulong *)text) [03];
+			ref ulong key04   = ref ((ulong *)key)  [04];
+			ref ulong text04  = ref ((ulong *)text) [04];
+			ref ulong key05   = ref ((ulong *)key)  [05];
+			ref ulong text05  = ref ((ulong *)text) [05];
+			ref ulong key06   = ref ((ulong *)key)  [06];
+			ref ulong text06  = ref ((ulong *)text) [06];
+			ref ulong key07   = ref ((ulong *)key)  [07];
+			ref ulong text07  = ref ((ulong *)text) [07];
+			ref ulong key08   = ref ((ulong *)key)  [08];
+			ref ulong text08  = ref ((ulong *)text) [08];
+			ref ulong key09   = ref ((ulong *)key)  [09];
+			ref ulong text09  = ref ((ulong *)text) [09];
+			ref ulong key10   = ref ((ulong *)key)  [10];
+			ref ulong text10  = ref ((ulong *)text) [10];
+			ref ulong key11   = ref ((ulong *)key)  [11];
+			ref ulong text11  = ref ((ulong *)text) [11];
+			ref ulong key12   = ref ((ulong *)key)  [12];
+			ref ulong text12  = ref ((ulong *)text) [12];
+			ref ulong key13   = ref ((ulong *)key)  [13];
+			ref ulong text13  = ref ((ulong *)text) [13];
+			ref ulong key14   = ref ((ulong *)key)  [14];
+			ref ulong text14  = ref ((ulong *)text) [14];
+			ref ulong key15   = ref ((ulong *)key)  [15];
+			ref ulong text15  = ref ((ulong *)text) [15];
+			ref ulong key16   = ref ((ulong *)key)  [16];
+			ref ulong text16  = ref ((ulong *)text) [16];
 			
 			// round 00
 			// Mix text00 text01 24
@@ -2987,7 +2945,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 += key14;
 			text12 += key15;
 			text13 += key16 + tweak02;
-			text14 += key00 + tweak00;
+			text14 += key00  + tweak00;
 			text15 += key01 + 20;
 		}
 		

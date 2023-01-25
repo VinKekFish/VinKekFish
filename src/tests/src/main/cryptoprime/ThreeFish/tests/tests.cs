@@ -36,7 +36,7 @@ public class ThreeFish_test_performance: TestTask
             using var tweak = allocator.AllocMemory(3*8);
 
             var countBlocksForOneSecond = 0d;
-            
+
             var st        = new DriverForTestsLib.SimpleTimeMeter();
             var st_etalon = new DriverForTestsLib.SimpleTimeMeter();
             Parallel.Invoke
@@ -46,8 +46,13 @@ public class ThreeFish_test_performance: TestTask
                     using (st)
                     for (int i = 0; i < iterCount; i++)
                     {
+
                         Threefish_Static_Generated.Threefish1024_step
                                 ((ulong *) key.array, (ulong *) tweak.array, (ulong *) (text.array + (i << 7)));
+/*
+                        Threefish_Static_Generated2.Threefish1024_step
+                                (key.array, tweak.array, (text.array + (i << 7)));
+*/
                     }
 
                     countBlocksForOneSecond = iterCount * 1000 / st.TotalMilliseconds;
@@ -56,11 +61,18 @@ public class ThreeFish_test_performance: TestTask
                 {
                     long a = 0, b = 1;
                     using (st_etalon)
-                    for (int i = 0; i < 256*1024*1024; i++)
+                    for (int i = 0; i < 128*1024*1024; i++)
+                    {
+                        a = f(a, b, i);
+                    }
+
+                    static long f(long a, long b, int i)
                     {
                         a -= b;
                         b += i;
                         a += b;
+
+                        return a;
                     }
                 }
             );
@@ -70,10 +82,10 @@ public class ThreeFish_test_performance: TestTask
             Console.WriteLine($"ThreeFish: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
 
             // Нормальная производительность блока ThreeFish составляет порядка 300-400 тысяч блоков в секунду
-            // Сравниваем с эталоном: операции сложения примерно в 0.72
+            // Сравниваем с эталоном: операции сложения примерно в 0.97
             var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 300-400 thousands per second on 2.8 GHz)";
-            if (k < 0.54)
-                throw new Exception($"ThreeFish_test_performance: k < 0.74; k = {k}; {errStr}");
+            if (k < 0.90)
+                throw new Exception($"ThreeFish_test_performance: k < 0.90; k = {k}; {errStr}");
             if (countBlocksForOneSecond < 300_000)
                 throw new Exception($"ThreeFish_test_performance: countBlocksForOneSecond < 300_000; {errStr}");
         };
