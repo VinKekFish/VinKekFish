@@ -136,8 +136,9 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 
 
 
-[TestTagAttribute("BytesBuilder", duration: 40)]
+[TestTagAttribute("UP_BytesBuilder")]
 [TestTagAttribute("mandatory")]
+[TestTagAttribute("BytesBuilder", duration: 40)]
 public class BytesBuilder_test1: BytesBuilder_test_parent
 {
     public BytesBuilder_test1(TestConstructor constructor):
@@ -260,6 +261,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
     }
 }
 
+[TestTagAttribute("UP_BytesBuilder")]
 [TestTagAttribute("BytesBuilder", duration: 9e3)]
 public class BytesBuilder_test2: BytesBuilder_test_parent
 {
@@ -533,6 +535,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 }
 
 
+[TestTagAttribute("UP_BytesBuilder")]
 [TestTagAttribute("BytesBuilder", duration: 12e3)]
 public class BytesBuilder_test3: BytesBuilder_test_parent
 {
@@ -581,6 +584,7 @@ public class BytesBuilder_test3: BytesBuilder_test_parent
 }
 
 
+[TestTagAttribute("UP_BytesBuilder")]
 [TestTagAttribute("BytesBuilder", duration: 20e3)]
 public class BytesBuilder_test4: BytesBuilder_test_parent
 {

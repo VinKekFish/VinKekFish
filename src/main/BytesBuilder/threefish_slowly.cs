@@ -36,7 +36,7 @@ namespace cryptoprime
             fixed (byte  * R = result)
             {
                 byte * B = (byte *) b;
-                var    l = checked( (nint) bt.LongLength );
+                var    l = checked( (nint) bt.LongLength << 3 );
                 BytesBuilder.CopyTo(l, l, B, R);
             }
 

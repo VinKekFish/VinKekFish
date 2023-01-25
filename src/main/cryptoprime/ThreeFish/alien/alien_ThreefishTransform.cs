@@ -1538,7 +1538,7 @@ namespace alien_SkeinFish
         private readonly byte[] depadBuffer;
         private bool depadBufferFilled = false;
 
-        internal ThreefishTransform(byte[] key, byte[] iv, ThreefishTransformMode transformMode)
+        public ThreefishTransform(byte[] key, byte[] iv, ThreefishTransformMode transformMode)
         {
             this.transformMode = transformMode;
             cipherBytes = key.Length;

@@ -1,34 +1,36 @@
-﻿/*
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using vinkekfish;
-using keccak;   // keccak взят отсюда https://github.com/fdsc/old/releases
 using BytesBuilder = cryptoprime.BytesBuilder;
 using System.Runtime.CompilerServices;
 using alien_SkeinFish;
 using cryptoprime;
+using DriverForTestsLib;
 
 namespace main_tests
 {
-    class ThreeFishTestByBits
+//     [TestTagAttribute("inWork")]
+    [TestTagAttribute("ThreeFish", duration: 70e3)]
+    class ThreeFishTestByBits: TestTask
     {
         readonly TestTask task;
-        public ThreeFishTestByBits(ConcurrentQueue<TestTask> tasks)
+        public ThreeFishTestByBits(TestConstructor constructor):
+                                        base(nameof(ThreeFishTestByBits), constructor: constructor)
         {
-            task = new TestTask("ThreeFishTestByBits", StartTests);
-            tasks.Enqueue(task);
-
             sources = SourceTask.getIterator();
+            taskFunc = () =>
+            {
+                StartTests();
+            };
         }
 
         class SourceTask
         {
-            public string Key;
-            public byte[][] Value;
+            public string?   Key;
+            public byte[][]? Value;
 
             public static IEnumerable<SourceTask> getIterator()
             {
@@ -63,10 +65,12 @@ namespace main_tests
             }
         }
 
-        readonly IEnumerable<SourceTask> sources = null;
+        readonly IEnumerable<SourceTask>? sources = null;
 
         public unsafe void StartTests()
         {
+            if (sources == null) throw new NullReferenceException();
+
             foreach (var ts in sources)
             {
                 TestForKeyAndText (ts);
@@ -76,8 +80,10 @@ namespace main_tests
 
         private unsafe void TestForKeyAndText(SourceTask ts)
         {
-            var s0 = BytesBuilder.CloneBytes(ts.Value[0]);
-            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);
+            if (ts.Value == null) throw new NullReferenceException();
+
+            var s0 = BytesBuilder.CloneBytes(ts.Value[0]);      // Ключ
+            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Текст
             var bn = new byte[128];
 
             byte[] h1 = new byte[128], h2;
@@ -88,30 +94,36 @@ namespace main_tests
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
             tw = new ulong[2];
-            var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
-            var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);
+            var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);      // Ключ
+            var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);      // Текст
             h2 = threefish_slowly.UlongToBytes(threefish_slowly.Encrypt(b0, tw, b1), null);
 
             // h2 = new SHA3(1024).getHash512(s);
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                task.error.Add(new Error() { Message = "Sources arrays has been changed for test array: " + ts.Key });
+                // task.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (1a): " + ts.Key });
+                throw new Exception("Sources arrays has been changed for test array (1a): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                task.error.Add(new Error() { Message = "Hashes are not equal for test array: " + ts.Key });
+                // task.error.Add(new TestError() { Message = "Hashes are not equal for test array (1b): " + ts.Key });
+                throw new Exception("Hashes are not equal for test array (1b): " + ts.Key);
             }
         }
 
         private unsafe void TestForKeyAndTweak(SourceTask ts)
         {
-            var s0 = BytesBuilder.CloneBytes(ts.Value[0]);
-            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);
+            if (ts.Value == null) throw new NullReferenceException();
+
+            var s0 = BytesBuilder.CloneBytes(ts.Value[0]);      // Ключ
+            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Твик
             var bn = new byte[128];
 
-            byte[] h1 = new byte[128], h2;
+            byte[] h1 = new byte[128], h2;          // Шифротекст оставляем нулём
+            // BytesBuilder.CopyTo(s0, bn);
+            // BytesBuilder.CopyTo(s1, bn, s0.Length);
             var tft = new ThreefishTransform(ts.Value[0], bn, ThreefishTransformMode.Encrypt);
             var tw = new ulong[2];
 
@@ -134,14 +146,15 @@ namespace main_tests
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
             {
-                task.error.Add(new Error() { Message = "Sources arrays has been changed for test array: " + ts.Key });
+                // task.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a): " + ts.Key });
+                throw new Exception("Sources arrays has been changed for test array (2a): " + ts.Key);
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))
             {
-                task.error.Add(new Error() { Message = "Hashes are not equal for test array: " + ts.Key });
+                // task.error.Add(new TestError() { Message = "Hashes are not equal for test array (2b): " + ts.Key });
+                throw new Exception("Hashes are not equal for test array (2b): " + ts.Key);
             }
         }
     }
 }
-*/
