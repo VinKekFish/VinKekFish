@@ -97,7 +97,7 @@
             <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
         </member>
         <member name="M:CodeGenerated.Cryptoprimes.Threefish_Static_Generated.Threefish1024_step(System.UInt64*,System.UInt64*,System.UInt64*)">
-            <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>
+            <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>
             <param name="key">Key for cipher (128 bytes)</param>
             <param name="tweak">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>
             <param name="text">Open text for cipher</param>

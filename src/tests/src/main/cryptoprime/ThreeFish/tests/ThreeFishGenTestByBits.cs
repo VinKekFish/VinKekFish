@@ -90,6 +90,8 @@ namespace main_tests
             );
         }
 
+        ulong[] tw_null  = new ulong[2];
+        byte[]  twb_null = new byte[16];
         private unsafe void TestForKeyAndText(SourceTask ts)
         {
             if (ts.Value == null) throw new NullReferenceException();
@@ -99,14 +101,12 @@ namespace main_tests
             var bn = new byte[128];
 
             byte[] h1 = new byte[128], h2;
-            var tft = new ThreefishTransform(ts.Value[0], bn, ThreefishTransformMode.Encrypt);
-            var tw = new ulong[2];
-            tft.SetTweak(tw);
+            var tft = new ThreefishTransform(ts.Value[0], ThreefishTransformMode.Encrypt);
+            tft.SetTweak(tw_null);
             h1 = (byte[])ts.Value[1].Clone();
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
-            var twg = new byte[16];
-            var tfg = new cryptoprime.Threefish1024(ts.Value[0], twg);
+            var tfg = new cryptoprime.Threefish1024(ts.Value[0], twb_null);
             h2 = (byte[])ts.Value[1].Clone();
             fixed (ulong * key = tfg.key, tweak = tfg.tweak)
             fixed (byte * h1b = h2)
@@ -134,45 +134,38 @@ namespace main_tests
             if (ts == null || ts.Value == null) throw new NullReferenceException();
 
             var s0 = BytesBuilder.CloneBytes(ts.Value[0]);
-            // var s1 = BytesBuilder.CloneBytes(ts.Value[1]);
-            var bn = new byte[128];
+            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);
 
             byte[] h1 = new byte[128], h2;
             // BytesBuilder.CopyTo(s0, bn);
             // BytesBuilder.CopyTo(s1, bn, s0.Length);
-            var tft = new ThreefishTransform(ts.Value[0], bn, ThreefishTransformMode.Encrypt);
+            // Ключ ts.Value[0]
+            // Твик ts.Value[1]
+            // Для шифрования используется массив из 128-ми нулевых байтов
+            var tft = new ThreefishTransform(ts.Value[0], ThreefishTransformMode.Encrypt);
             var tw = new ulong[2];
 
             var b = threefish_slowly.BytesToUlong(ts.Value[1]);
-            tw[0] = b[0] ^ b[1];
-            tw[1] = b[2] ^ b[3];
+            tw[0] = b[0];
+            tw[1] = b[1];
             tft.SetTweak(tw);
 
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
-            var input = new ulong[16];
-                   h2 = new byte[128];
-            tw = new ulong[3];
-            // var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
-            // var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);
-            tw[0] = b [0] ^ b [1];
-            tw[1] = b [2] ^ b [3];
-            tw[2] = tw[0] ^ tw[1];
-            // fixed (ulong * b0p = b0)
-            fixed (byte  * b0a = ts.Value[0])
-            fixed (ulong * twp = tw)
-            fixed (ulong * inp = input)
+                 h2 = new byte[128];
+            var tfg = new cryptoprime.Threefish1024(ts.Value[0], ts.Value[1]);
+
+            fixed (ulong * b0p = tfg.key)
+            fixed (ulong * twp = tfg.tweak)
             fixed (byte  * h2p = h2)
             {
-                ulong * b0p = (ulong *) b0a;
                 Threefish_Static_Generated.Threefish1024_step(b0p, twp, (ulong *) h2p);
-                //Threefish_Static_Generated.UlongToBytes_128b(inp, h2p);
             }
 
 
             // h2 = new SHA3(1024).getHash512(s);
 
-            if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
+            if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]) || !BytesBuilder.UnsecureCompare(s1, ts.Value[1]))
             {
                 this.error.Add(new TestError() { Message = "Sources arrays has been changed for test array (2a-gen): " + ts.Key });
                 throw new Exception("Sources arrays has been changed for test array (2a-gen): " + ts.Key);

@@ -1534,11 +1534,11 @@ namespace alien_SkeinFish
         private readonly int cipherBytes;
         private readonly int cipherWords;
         private readonly ulong[] block;
-        private readonly ulong[] iv;
+        // private readonly ulong[] iv;
         private readonly byte[] depadBuffer;
         private bool depadBufferFilled = false;
 
-        public ThreefishTransform(byte[] key, byte[] iv, ThreefishTransformMode transformMode)
+        public ThreefishTransform(byte[] key/*, byte[] iv*/, ThreefishTransformMode transformMode)
         {
             this.transformMode = transformMode;
             cipherBytes = key.Length;
@@ -1549,8 +1549,8 @@ namespace alien_SkeinFish
             // tempBlock = new ulong[cipherWords];
             // streamBytes = new byte[cipherBytes];
             depadBuffer = new byte[cipherBytes];
-            this.iv = new ulong[cipherWords];
-            GetBytes(iv, 0, this.iv, cipherBytes);
+            //this.iv = new ulong[cipherWords];
+            //GetBytes(iv, 0, this.iv, cipherBytes);
             switch (OutputBlockSize)
             {
             case 1024/8: cipher = new Threefish1024(); break;

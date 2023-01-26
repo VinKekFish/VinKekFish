@@ -13,7 +13,8 @@ namespace CodeGenerator
         public ThreeFish_Gen2(string FileName = "./Threefish_Static_Generated2.cs"): base(FileName, "", "System")
         {
             Add("// Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)");
-            Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
+            // Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
+            Add("// Vinogradov S.V. Generated at " + DateTime.Now.Year.ToString("D4") + " year");
             Add("namespace CodeGenerated.Cryptoprimes");
             addBlock();
 

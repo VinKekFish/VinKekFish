@@ -1,6 +1,6 @@
 using System;
 // Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)
-// Vinogradov S.V. Generated at 2023.01.25 20:28:18.017
+// Vinogradov S.V. Generated at 2023 year
 namespace CodeGenerated.Cryptoprimes
 {
 	public static unsafe class Threefish_Static_Generated 
@@ -47,7 +47,7 @@ namespace CodeGenerated.Cryptoprimes
 			r[15] = u[15];
 		}
 		
-		/// <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>
+		/// <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>
 		/// <param name="key">Key for cipher (128 bytes)</param>
 		/// <param name="tweak">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>
 		/// <param name="text">Open text for cipher</param>

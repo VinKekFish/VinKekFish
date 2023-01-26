@@ -13,7 +13,8 @@ namespace CodeGenerator
         public ThreeFish_Gen(string FileName = "./Threefish_Static_Generated.cs"): base(FileName, "", "System")
         {
             Add("// Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)");
-            Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
+            // Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
+            Add("// Vinogradov S.V. Generated at " + DateTime.Now.Year.ToString("D4") + " year");
             Add("namespace CodeGenerated.Cryptoprimes");
             addBlock();
 
@@ -29,7 +30,7 @@ namespace CodeGenerator
 
         private void AddFuncThreefish1024_step()
         {
-            Add("/// <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>");
+            Add("/// <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>");
             Add("/// <param name=\"key\">Key for cipher (128 bytes)</param>");
             Add("/// <param name=\"tweak\">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>");
             Add("/// <param name=\"text\">Open text for cipher</param>");
