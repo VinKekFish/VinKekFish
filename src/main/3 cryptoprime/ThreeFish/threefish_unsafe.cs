@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using static cryptoprime.threefish_slowly;
+
 /*
  * Реализация Trheefish 1024 бита. Реализовано только шифрование
  * */
@@ -17,11 +19,15 @@ namespace cryptoprime
         public readonly ulong[] key   = new ulong[threefish_slowly.Nw + 1];
         public Threefish1024(byte[] Key, byte[] Tweak)
         {
+            if (Key  .Length < keyLen) throw new ArgumentException();
+            if (Tweak.Length < keyLen) throw new ArgumentException();
+
             fixed (byte  * k  = Key,      t  = Tweak)
             fixed (ulong * tk = this.key, tt = this.tweak)
             {
-                BytesBuilder.CopyTo(Key  .Length, Key  .Length, k, (byte *) tk);
-                BytesBuilder.CopyTo(Tweak.Length, Tweak.Length, t, (byte *) tt);
+                // На случай, если передадут массивы большей длины, мы берём ровно столько, сколько надо
+                BytesBuilder.CopyTo(keyLen, keyLen, k, (byte *) tk);
+                BytesBuilder.CopyTo( twLen,  twLen, t, (byte *) tt);
 //                Prepare((ulong *) k, (ulong *) t, tk, tt);
 
                 // Вычисление расширения ключа и tweak

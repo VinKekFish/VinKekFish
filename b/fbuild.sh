@@ -1,4 +1,7 @@
 # Файл нужно запускать из корневой директории репозитория VinKekFish
+# Можно запускать без параметров
+# Пример запуска с параметрами:
+# ./b/fbuild.sh Release 'inWork'
 configuration=$1
 testTags=$2
 
@@ -9,7 +12,7 @@ fi
 
 if [ -z "$testTags" ]
 then
-    testTags="+mandatory +inWork <800 ?"
+    testTags="+mandatory +inWork <200 ?"
 fi
 
 

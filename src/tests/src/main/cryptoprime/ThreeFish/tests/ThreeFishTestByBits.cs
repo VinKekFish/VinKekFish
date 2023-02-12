@@ -12,14 +12,14 @@ using DriverForTestsLib;
 
 namespace main_tests
 {
-//     [TestTagAttribute("inWork")]
+    // [TestTagAttribute("inWork")]
     [TestTagAttribute("ThreeFish", duration: 70e3)]
     class ThreeFishTestByBits: TestTask
     {
         public ThreeFishTestByBits(TestConstructor constructor):
                                         base(nameof(ThreeFishTestByBits), constructor: constructor)
         {
-            sources = SourceTask.getIterator();
+            sources   = SourceTask.getIterator();
             taskFunc = () =>
             {
                 StartTests();
@@ -83,6 +83,7 @@ namespace main_tests
                     catch
                     {
                         state.Break();
+                        throw;
                     }
                 }
             );
@@ -136,8 +137,8 @@ namespace main_tests
             var tw = new ulong[2];
 
             var b = threefish_slowly.BytesToUlong(ts.Value[1]);
-            tw[0] = b[0] ^ b[1];
-            tw[1] = b[2] ^ b[3];
+            tw[0] = b[0];
+            tw[1] = b[2];
             tft.SetTweak(tw);
 
             tft.TransformBlock(h1, 0, 128, h1, 0);
@@ -146,8 +147,8 @@ namespace main_tests
             tw = new ulong[2];
             var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
             var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);
-            tw[0] = b[0] ^ b[1];
-            tw[1] = b[2] ^ b[3];
+            tw[0] = b[0];
+            tw[1] = b[2];
             h2 = threefish_slowly.UlongToBytes(threefish_slowly.Encrypt(b0, tw, input), null);
 
             // h2 = new SHA3(1024).getHash512(s);

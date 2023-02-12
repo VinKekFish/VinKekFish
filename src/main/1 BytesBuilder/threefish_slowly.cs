@@ -56,6 +56,8 @@ namespace cryptoprime
         }
 
         public const int Nw     = 16;
+        public const int keyLen = 128;  // В байтах
+        public const int  twLen = 16;   // В байтах
         // Функция перестановок
         public static readonly byte[] Pi = {0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1};
         // Rotation constants

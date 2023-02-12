@@ -35,9 +35,11 @@ namespace main_tests
             public static IEnumerable<SourceTask> getIterator()
             {
                 // 128 - это размер одного блока
-                long size = 128;
-                for (ulong valk = 0; valk < (ulong) (size << 3); valk++)
+                const long size = 128;
+                const long sb   = size << 3;    // Размер одного блока в битах
+                for (ulong valk = 0; valk < (ulong) sb; valk++)
                 {
+                    // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     var bk1 = new byte[size];
                     BytesBuilder.ToNull(bk1, 0xFFFF_FFFF__FFFF_FFFF);
                     BitToBytes.resetBit(bk1, valk);
@@ -46,7 +48,7 @@ namespace main_tests
                     BytesBuilder.ToNull(bk2);
                     BitToBytes.setBit(bk2, valk);
 
-                    for (ulong valt = 0; valt < (ulong) (size << 3); valt++)
+                    for (ulong valt = 0; valt < (ulong) sb; valt++)
                     {
                         var b1 = new byte[size];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);
@@ -55,12 +57,12 @@ namespace main_tests
                         var b2 = new byte[size];
                         BytesBuilder.ToNull(b2);
                         BitToBytes.setBit(b2, valt);
-
+Console.WriteLine("AA");
                         yield return new SourceTask() {Key = $"Threfish with (0x00) valk = {valk}; valt = {valt}", Value = new byte[][] {bk2, b2}};
                         yield return new SourceTask() {Key = $"Threfish with (0xFF) valk = {valk}; valt = {valt}", Value = new byte[][] {bk1, b1}};
                     }
                 }
-
+Console.WriteLine("BB");
                 yield break;
             }
         }
@@ -79,12 +81,14 @@ namespace main_tests
                 {
                     try
                     {
+                        Console.WriteLine(_);
                         TestForKeyAndText (task);
                         TestForKeyAndTweak(task);
                     }
                     catch
                     {
                         state.Break();
+                        throw;
                     }
                 }
             );
@@ -113,7 +117,6 @@ namespace main_tests
             {
                 ulong * h1u = (ulong *) h1b;
                 Threefish_Static_Generated.Threefish1024_step(key, tweak, h1u);
-                //threefish_slowly.UlongToBytes(threefish_slowly.Encrypt(b0, tw, b1), null);
             }
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
@@ -137,8 +140,6 @@ namespace main_tests
             var s1 = BytesBuilder.CloneBytes(ts.Value[1]);
 
             byte[] h1 = new byte[128], h2;
-            // BytesBuilder.CopyTo(s0, bn);
-            // BytesBuilder.CopyTo(s1, bn, s0.Length);
             // Ключ ts.Value[0]
             // Твик ts.Value[1]
             // Для шифрования используется массив из 128-ми нулевых байтов

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-  <ProjectReference Include="../../../../VinKekFish/src/main/BytesBuilder/bytesbuilder.csproj" />
+  <ProjectReference Include="../../../../VinKekFish/src/main/1 BytesBuilder/bytesbuilder.csproj" />
     <!-- ProjectReference Include="..\..\..\..\DriverForTests\DriverForTestsLib\DriverForTestsLib.csproj" / -->
   </ItemGroup>
 

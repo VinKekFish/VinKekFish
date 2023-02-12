@@ -12,7 +12,7 @@ partial class Program
 
 
         // ----------------  BytesBuilder and ThreeFish slowly for ThreeFish generator  ----------------
-        var (result, dir) = ExecuteBuildForProject(cd, "src/main/BytesBuilder/", inSingleFile: false);
+        var (result, dir) = ExecuteBuildForProject(cd, "src/main/1 BytesBuilder/", inSingleFile: false);
         end_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
@@ -25,15 +25,15 @@ partial class Program
         // ----------------  generator for crypto primes  ----------------
         var threefish_generated_FileName1 = "./build/Threefish_Static_Generated.cs";
         var threefish_generated_FileName2 = "./build/Threefish_Static_Generated2.cs";
-        var threefish_generated_FileName1_copy = "src/main/cryptoprime/ThreeFish/Threefish_Static_Generated.cs";
-        var threefish_generated_FileName2_copy = "src/main/cryptoprime/ThreeFish/Threefish_Static_Generated2.cs";
+        var threefish_generated_FileName1_copy = "src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated.cs";
+        var threefish_generated_FileName2_copy = "src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated2.cs";
 
         var dt_threefish1 = new FileInfo(threefish_generated_FileName1).LastWriteTime;
         var dt_threefish2 = new FileInfo(threefish_generated_FileName2).LastWriteTime;
         if (dt_threefish1 < dt_threefish2)
             dt_threefish1 = dt_threefish2;
 
-        (result, dir) = ExecuteBuildForProject(cd, "src/main/generator/", inSingleFile: true, lastModified: dt_threefish1);
+        (result, dir) = ExecuteBuildForProject(cd, "src/main/2 generator/", inSingleFile: true, lastModified: dt_threefish1);
         end_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
@@ -66,7 +66,7 @@ partial class Program
         }
 
         // ----------------  crypto primes  ----------------
-        (result, dir) = ExecuteBuildForProject(cd, "src/main/cryptoprime/", inSingleFile: false);
+        (result, dir) = ExecuteBuildForProject(cd, "src/main/3 cryptoprime/", inSingleFile: false);
         end_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
