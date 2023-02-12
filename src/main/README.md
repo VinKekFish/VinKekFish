@@ -9,4 +9,4 @@
 
 # [cryptoprime](3 cryptoprime)
 
-Основные примитивы шифрования: ThreeFish (генерированный) и keccak
+Основные примитивы шифрования: ThreeFish (генерированный из [generator](2 generator) ) и keccak
