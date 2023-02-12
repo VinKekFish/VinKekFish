@@ -124,7 +124,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key13;
+			text13 += key13 + tweak00;
 			text12 += text13 + key12;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -268,7 +268,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key14;
+			text13 += key14 + tweak01;
 			text12 += text13 + key13;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -412,7 +412,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key15;
+			text13 += key15 + tweak02;
 			text12 += text13 + key14;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -556,7 +556,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key16;
+			text13 += key16 + tweak00;
 			text12 += text13 + key15;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -700,7 +700,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key00;
+			text13 += key00 + tweak01;
 			text12 += text13 + key16;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -844,7 +844,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key01;
+			text13 += key01 + tweak02;
 			text12 += text13 + key00;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -988,7 +988,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key02;
+			text13 += key02 + tweak00;
 			text12 += text13 + key01;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -1132,7 +1132,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key03;
+			text13 += key03 + tweak01;
 			text12 += text13 + key02;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -1276,7 +1276,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key04;
+			text13 += key04 + tweak02;
 			text12 += text13 + key03;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -1420,7 +1420,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key05;
+			text13 += key05 + tweak00;
 			text12 += text13 + key04;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -1564,7 +1564,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key06;
+			text13 += key06 + tweak01;
 			text12 += text13 + key05;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -1708,7 +1708,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key07;
+			text13 += key07 + tweak02;
 			text12 += text13 + key06;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -1852,7 +1852,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key08;
+			text13 += key08 + tweak00;
 			text12 += text13 + key07;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -1996,7 +1996,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key09;
+			text13 += key09 + tweak01;
 			text12 += text13 + key08;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -2140,7 +2140,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key10;
+			text13 += key10 + tweak02;
 			text12 += text13 + key09;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -2284,7 +2284,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key11;
+			text13 += key11 + tweak00;
 			text12 += text13 + key10;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -2428,7 +2428,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key12;
+			text13 += key12 + tweak01;
 			text12 += text13 + key11;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -2572,7 +2572,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key13;
+			text13 += key13 + tweak02;
 			text12 += text13 + key12;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;
@@ -2716,7 +2716,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 17 | text11 >> (64-17);
 			text11 ^= text10;
 			// Mix text12 text13 22
-			text13 += key14;
+			text13 += key14 + tweak00;
 			text12 += text13 + key13;
 			text13 = text13 << 22 | text13 >> (64-22);
 			text13 ^= text12;
@@ -2860,7 +2860,7 @@ namespace CodeGenerated.Cryptoprimes
 			text11 = text11 << 47 | text11 >> (64-47);
 			text11 ^= text10;
 			// Mix text12 text13 44
-			text13 += key15;
+			text13 += key15 + tweak01;
 			text12 += text13 + key14;
 			text13 = text13 << 44 | text13 >> (64-44);
 			text13 ^= text12;

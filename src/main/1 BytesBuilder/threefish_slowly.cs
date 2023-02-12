@@ -54,10 +54,10 @@ namespace cryptoprime
             b = b << r | b >> (64-r);   // rol b, r
             b ^= a;
         }
-
-        public const int Nw     = 16;
-        public const int keyLen = 128;  // В байтах
-        public const int  twLen = 16;   // В байтах
+                                        /// <summary>Длина ключа в словах по 8-мь байтов</summary>
+        public const int Nw     = 16;   /// <summary>Длина ключа в байтах</summary>
+        public const int keyLen = 128;  /// <summary>Длина tweak в байтах</summary>
+        public const int  twLen = 16;
         // Функция перестановок
         public static readonly byte[] Pi = {0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1};
         // Rotation constants

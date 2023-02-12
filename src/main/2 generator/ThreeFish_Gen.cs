@@ -95,6 +95,7 @@ namespace CodeGenerator
 
                 if (max == 6)
                 {
+                    // Каждые 4 раунда мы суммируем v[d,i] с key[d/4,i], где d/4 - это номер раунда, а i - номер слова (стр. 10; пункт 3.3)
                     var i = (threefish_slowly.Nw - 4);
                     var index = s + i;
 
@@ -117,7 +118,7 @@ namespace CodeGenerator
 
                     var i1 = correspondenceTable[i - 1];
                     var i2 = correspondenceTable[i + 0];
-                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, subkey);
+                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, $"{subkey:D2} + {sb2:D2}");
 
                     i = (threefish_slowly.Nw - 2);
                     index = s + i;
@@ -164,6 +165,8 @@ namespace CodeGenerator
             endBlock();
         }
 
+        // Пункт 3.3.1, сочетаемый с дополнительным суммированием по ключевому расписанию
+        // k1 суммируется с a; k2 суммируется с b
         private void AddMixTemplate(string a, string b, string r, string? k1 = null, string? k2 = null)
         {
             Add($"// Mix {a} {b} {r}");
@@ -175,7 +178,7 @@ namespace CodeGenerator
             }
             else
             {
-                // Здесь кроме mix добавляются подключи
+                // Здесь кроме mix добавляются подключи (для каждого 4-ого раунда, как указано в 3.3 на странице 10 спецификации)
                 if (k2 != null)
                     Add($"{b} += {k2};");
 

@@ -4,6 +4,18 @@
         <name>bytesbuilder</name>
     </assembly>
     <members>
+        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte[],System.UInt64)">
+            <summary>Получить бит из битово массива</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
+        </member>
+        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte[],System.UInt64)">
+            <summary>Установить бит в битовом массиве</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        </member>
+        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte[],System.UInt64)">
+            <summary>Сбросить бит в битовом массиве</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        </member>
         <member name="T:cryptoprime.BytesBuilder">
             <summary>
             BytesBuilder
@@ -551,6 +563,15 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Finalize">
             <summary>Деструктор</summary>
+        </member>
+        <member name="F:cryptoprime.threefish_slowly.Nw">
+            <summary>Длина ключа в словах по 8-мь байтов</summary>
+        </member>
+        <member name="F:cryptoprime.threefish_slowly.keyLen">
+            <summary>Длина ключа в байтах</summary>
+        </member>
+        <member name="F:cryptoprime.threefish_slowly.twLen">
+            <summary>Длина tweak в байтах</summary>
         </member>
     </members>
 </doc>

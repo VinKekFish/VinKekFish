@@ -19,8 +19,8 @@ namespace cryptoprime
         public readonly ulong[] key   = new ulong[threefish_slowly.Nw + 1];
         public Threefish1024(byte[] Key, byte[] Tweak)
         {
-            if (Key  .Length < keyLen) throw new ArgumentException();
-            if (Tweak.Length < keyLen) throw new ArgumentException();
+            if (Key  .Length < keyLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: Key  .Length < keyLen");
+            if (Tweak.Length <  twLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: Tweak.Length <  twLen");
 
             fixed (byte  * k  = Key,      t  = Tweak)
             fixed (ulong * tk = this.key, tt = this.tweak)
