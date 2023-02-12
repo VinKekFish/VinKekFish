@@ -87,7 +87,7 @@ public class ThreeFish_test_performance: TestTask
             var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 300-400 thousands per second on 2.8 GHz)";
             if (k < 0.90)
                 throw new Exception($"ThreeFish_test_performance: k < 0.90; k = {k}; {errStr}");
-            if (countBlocksForOneSecond < 300_000)
+            if (countBlocksForOneSecond < 350_000)
                 throw new Exception($"ThreeFish_test_performance: countBlocksForOneSecond < 300_000; {errStr}");
         };
     }
