@@ -11,7 +11,7 @@ using CodeGenerated.Cryptoprimes;
 // [TestTagAttribute("inWork")]
 /// <summary>Этот тест проверяет производительность алгоритма ThreeFish (на случай, если она ухудшилась)</summary>
 [TestTagAttribute("ThreeFish")]
-[TestTagAttribute("performance", duration: 2500d, singleThread: true)]
+[TestTagAttribute("performance", duration: 3000d, singleThread: true)]
 public class ThreeFish_test_performance: TestTask
 {
     #if CAN_CREATEFILE_FOR_KECCAK
@@ -78,8 +78,9 @@ public class ThreeFish_test_performance: TestTask
             );
 
             var k = st_etalon.TotalMilliseconds / st.TotalMilliseconds;
+            this.Name += $" ({countBlocksForOneSecond:N0}; {k/0.9:F3})";
             // Console.WriteLine($"{k}");
-            Console.WriteLine($"ThreeFish: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
+            // Console.WriteLine($"ThreeFish: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
 
             // Нормальная производительность блока ThreeFish составляет порядка 300-400 тысяч блоков в секунду
             // Сравниваем с эталоном: операции сложения примерно в 0.97

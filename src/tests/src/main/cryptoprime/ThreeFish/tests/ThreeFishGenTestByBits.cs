@@ -14,7 +14,7 @@ using DriverForTestsLib;
 namespace main_tests
 {
     [TestTagAttribute("inWork")]
-    [TestTagAttribute("ThreeFish", duration: 192e3d)]
+    [TestTagAttribute("ThreeFish", duration: 9500)]
     class ThreeFishGenTestByBits: TestTask
     {
         public unsafe ThreeFishGenTestByBits(TestConstructor constructor):

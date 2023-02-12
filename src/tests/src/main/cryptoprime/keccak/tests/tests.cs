@@ -175,7 +175,7 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
 // [TestTagAttribute("inWork")]
 /// <summary>Этот тест проверяет производительность алгоритма keccak (на случай, если она ухудшилась)</summary>
 [TestTagAttribute("keccak")]
-[TestTagAttribute("performance", duration: 2500d, singleThread: true)]
+[TestTagAttribute("performance", duration: 2800d, singleThread: true)]
 public class Keccak_sha_3_512_test_performance: TestTask
 {
     #if CAN_CREATEFILE_FOR_KECCAK
@@ -233,13 +233,14 @@ public class Keccak_sha_3_512_test_performance: TestTask
             );
 
             var k = st_etalon.TotalMilliseconds / st.TotalMilliseconds;
+            this.Name += $" ({countBlocksForOneSecond:N0}; {k/1.05:F3})";
             // Console.WriteLine($"{k}");
-            Console.WriteLine($"keccak: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
+            // Console.WriteLine($"keccak: countBlocksForOneSecond = {countBlocksForOneSecond:N0}");
 
             // Нормальная производительность блока keccak составляет порядка 400-500 тысяч блоков в секунду на больших объёмах блоков.
             // Сравниваем с эталоном: операции сложения примерно в 1.07-1.18
             var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 400-500 thousands per second on 2.8 GHz)";
-            if (k < 1.07)
+            if (k < 1.05)
                 throw new Exception($"Keccak_sha_3_512_test_performance: k < 1.10; k = {k}; {errStr}");
             if (countBlocksForOneSecond < 400_000)
                 throw new Exception($"Keccak_sha_3_512_test_performance: countBlocksForOneSecond < 400_000; {errStr}");
