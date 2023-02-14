@@ -4,6 +4,7 @@
 # ./b/fbuild.sh Release 'inWork'
 configuration=$1
 testTags=$2
+flags=$3
 
 if [ -z "$configuration" ]
 then
@@ -16,4 +17,5 @@ then
 fi
 
 
-./build/builder/builder "$configuration" "$testTags"
+
+./build/builder/builder "$configuration" "$testTags" "$flags"

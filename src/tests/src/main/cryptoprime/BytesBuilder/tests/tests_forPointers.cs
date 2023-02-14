@@ -122,9 +122,9 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
     protected class Saver: SaverParent
     {
-        public readonly static string Str1 = "Некоторая строка";
-        public readonly static string Str2 = "Другой массив строк";
-        public readonly static string Str3 = "Третья неизвестно что";
+        public readonly static byte[] Str1 = Encoding.UTF8.GetBytes("Некоторая строка");
+        public readonly static byte[] Str2 = Encoding.UTF8.GetBytes("Другой массив строк");
+        public readonly static byte[] Str3 = Encoding.UTF8.GetBytes("Третья неизвестно что");
 
         public override object ExecuteTest(AutoSaveTestTask task)
         {

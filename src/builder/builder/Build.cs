@@ -42,9 +42,13 @@ partial class Program
             updated_project_found_event?.Invoke(di);
         }
 
+        var no_restore_string = "";
+        if (Program.no_restore)
+            no_restore_string = "--no-restore";
+
         var buildVersion = getDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
-        var args = $"publish --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
+        var args = $"publish ${no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;
 

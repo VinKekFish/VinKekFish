@@ -9,6 +9,7 @@ public partial class Program
     static string   testTags      = "";     // example: "fast mandatory -slow" (можно также разделять запятыми)
     static string   output        = "./build";
     static DateTime now           = DateTime.Now;
+    static bool     no_restore    = true;
     static int Main(string[] args)
     {
         if (args.Length > 0)
@@ -19,6 +20,20 @@ public partial class Program
         if (args.Length > 1)
         {
             testTags = args[1];
+        }
+
+        if (args.Length > 2)
+        {
+            var flags = args[2].Trim().ToLowerInvariant().Split(new string[] {" ", ",", ", "}, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            for (int i = 2; i < args.Length; i++)
+            {
+                var flag = args[i];
+                if (flag.StartsWith("-"))
+                    flag = flag[1 ..];
+
+                if (flag == "restore")
+                    no_restore = false;
+            }
         }
 
         using (var _ = new NotImportantConsoleOptions())

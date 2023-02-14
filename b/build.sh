@@ -1,4 +1,4 @@
-# Файл нужно запускать из корневой директории репозитория VinKekFish
+# Файл нужно запускать из корневой директории репозитория VinKekFish (Crypto/VinKekFish)
 configuration=$1
 testTags=$2
 
@@ -20,4 +20,4 @@ mkdir -p ./build/builder
 
 dotnet publish src/builder/builder/ --output ./build/builder -c $configuration --self-contained false --use-current-runtime true /p:PublishSingleFile=false
 
-bash ./b/fbuild.sh "$configuration" "$testTags"
+bash ./b/fbuild.sh "$configuration" "$testTags" "restore"
