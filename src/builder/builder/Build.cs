@@ -48,7 +48,8 @@ partial class Program
 
         var buildVersion = getDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
-        var args = $"publish ${no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
+        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
+
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;
 
@@ -91,7 +92,7 @@ partial class Program
 
         if (bins.Count <= 0)
         {
-            Console.WriteLine($"No binaries in {output_di.FullName} for {sources_di.FullName}");
+            Console.WriteLine($"No binaries in {output_di.FullName} for {sources_di.FullName} [need to build]");
             return false;
         }
 

@@ -7,6 +7,7 @@ using cryptoprime;
 using DriverForTestsLib;
 
 using static cryptoprime.BytesBuilderForPointers;
+using static cryptoprime.BytesBuilderForPointers.Record;
 
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
 public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
@@ -20,8 +21,6 @@ public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
         public override object ExecuteTest(AutoSaveTestTask task)
         {
             List<byte[]> lst = new List<byte[]>();
-
-            var bb = new BytesBuilder();
 
             // Проверяем на то, что аллокатор умеет удалять память (работает IDisposable)
             var allocator  = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
@@ -73,10 +72,8 @@ public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
         {
             List<byte[]> lst = new List<byte[]>();
 
-            var bb = new BytesBuilder();
-
             // Проверяем на то, что аллокатор умеет удалять память (работает IDisposable)
-            var allocator  = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
+            var allocator  = new AllocHGlobal_AllocatorForUnsafeMemory();
             nint maxMemory = getMaxMemory() << 2;
 
             nint maxMemoryToAllocateBySingleAllocate = maxMemory >> 12;     // Иначе процесс будет длиться слишком долго, т.к. большие блоки долго выделяются
@@ -122,114 +119,186 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
     protected class Saver: SaverParent
     {
-        public readonly static byte[] Str1 = Encoding.UTF8.GetBytes("Некоторая строка");
-        public readonly static byte[] Str2 = Encoding.UTF8.GetBytes("Другой массив строк");
-        public readonly static byte[] Str3 = Encoding.UTF8.GetBytes("Третья неизвестно что");
+        public readonly static string Str1 = "Некоторая строка";
+        public readonly static string Str2 = "Другой массив строк";
+        public readonly static string Str3 = "Третья неизвестно что";
+
+        public readonly static byte[] bStr1 = Encoding.UTF8.GetBytes(Str1);
+        public readonly static byte[] bStr2 = Encoding.UTF8.GetBytes(Str2);
+        public readonly static byte[] bStr3 = Encoding.UTF8.GetBytes(Str3);
 
         public override object ExecuteTest(AutoSaveTestTask task)
         {
             List<byte[]> lst = new List<byte[]>();
 
-            var bb = new BytesBuilder();
-
-            // Тестируем пустой массив
-            lst.Add(bb.getBytes());
-
-            // Пытаемся взять больше, чем есть
-            try
+            // Для удобства использования using
+            var allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
             {
-                lst.Add(bb.getBytes(1));
-            }
-            catch (BytesBuilder.ResultCountIsTooLarge)
-            {
-                lst.Add(new byte[0]);
-            }
+                using var bb = new BytesBuilderForPointers();
 
-            // Тестируем конкатенацию массивов
-            bb.add(Encoding.UTF8.GetBytes(Str1));
-            bb.add(Encoding.UTF8.GetBytes(Str2));
-            bb.add(Encoding.UTF8.GetBytes(Str3));
-
-            if (bb.countOfBlocks != 3)
-                throw new Exception("bb.countOfBlocks != 3");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))  )
-                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))  )
-                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))  )
-                throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))");
-
-
-            var bb2 = new BytesBuilder();
-            var strBytes = Encoding.UTF8.GetBytes(Str1 + Str2 + Str3);
-            bb2.add(strBytes);
-
-            lst.Add(bb.getBytes());
-
-            // Проверяем, что эти две строки равны
-            for (int i = 0; i < 2; i++)
-            if (  !BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() )  )
-                throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): kePOaxC8Iz");
-
-            // Проверяем, что getBytes правильно возвращает частичные вхождения
-            for (int i = 0; i < strBytes.Length; i++)
-            if (  !BytesBuilder.UnsecureCompare( bb.getBytes(i), bb2.getBytes(i) )  )
-                throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): qo3ZIsRLpQ");
-
-
-            // Проверяем, что при маленьком ra будет выдано исключение
-            var ra = new byte[1];
-            try
-            {
-                bb.getBytes(2, ra);
-            }
-            catch (BytesBuilder.ResultAIsTooSmall)
-            {
-                lst.Add(new byte[0]);
-            }
-
-
-            var bbt  = new BytesBuilder();
-            strBytes = Encoding.UTF8.GetBytes(Str1 + Str2 + Str3);
-            try
-            {
-                var strBytesT = strBytes;
-                int counter_a = 1;
-                while (true)
+                
+                try
                 {
-                    if (counter_a >= bb.Count)
-                        counter_a = (int) bb.Count - 3;
-                    if (counter_a < 1)
-                        counter_a = 1;
+                    // Тестируем пустой массив
+                    lst.Add(  bb.getBytes().CloneToSafeBytes(destroyRecord: true)  );
+                }
+                catch (BytesBuilder.NotFoundAllocator)
+                {
+                    lst.Add(new byte[0]);
+                }
 
-                    var cnt = bb.Count;
+                try
+                {
+                    lst.Add(  bb.getBytes(allocator: allocator).CloneToSafeBytes(destroyRecord: true)  );
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    lst.Add(new byte[0]);
+                }
 
-                    var a = bb .getBytesAndRemoveIt(new byte[counter_a]);
-                    var b = bb2.getBytesAndRemoveIt(new byte[counter_a]);
+                // Пытаемся взять больше, чем есть
+                try
+                {
+                    lst.Add(bb.getBytes(1).CloneToSafeBytes(destroyRecord: true));
+                }
+                catch (BytesBuilder.ResultCountIsTooLarge)
+                {
+                    lst.Add(new byte[0]);
+                }
 
-                    bbt.add(a);
+                var str1a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr1);
+                var str2a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr2);
+                var str3a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr3);
 
-                    if (cnt - bb.Count != counter_a)
-                        throw new Exception("cnt - bb.Count != counter_a");
 
-                    var c     = strBytesT[0 .. counter_a];
-                    strBytesT = strBytesT[counter_a .. ^0];
-                    counter_a++;
+                // Тестируем конкатенацию массивов
+                bb.add(str1a);
+                bb.add(str2a);
+                bb.add(str3a);
 
-                    if (  !BytesBuilder.UnsecureCompare(a, b)  )
-                        throw new Exception("!BytesBuilder.UnsecureCompare(a, b): KMLk440ywd");
-                    if (  !BytesBuilder.UnsecureCompare(a, c)  )
-                        throw new Exception("!BytesBuilder.UnsecureCompare(a, c): KMLk441ywd");
+                if (bb.countOfBlocks != 3)
+                    throw new Exception("bb.countOfBlocks != 3");
+                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(0).CloneToSafeBytes(destroyRecord: false), bStr1)  )
+                    throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))");
+                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(1).CloneToSafeBytes(destroyRecord: false), bStr2)  )
+                    throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))");
+                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(2).CloneToSafeBytes(destroyRecord: false), bStr3)  )
+                    throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))");
 
-                    lst.Add(a);
-                }                
+
+                using var bb2 = new BytesBuilderForPointers();
+                var strBytes = getRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
+                bb2.add(strBytes);
+
+                lst.Add(  bb.getBytes().CloneToSafeBytes(destroyRecord: true)  );
+
+                // Проверяем, что эти две строки равны
+                for (int i = 0; i < 2; i++)
+                if (  !BytesBuilder.UnsecureCompare( bb.getBytes().CloneToSafeBytes(destroyRecord: true), bb2.getBytes().CloneToSafeBytes(destroyRecord: true) )  )
+                    throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): ke5POaxC8Iz");
+
+                // Проверяем, что getBytes правильно возвращает частичные вхождения
+                for (nint i = 1; i < strBytes.len; i++)
+                if (  !BytesBuilder.UnsecureCompare( bb.getBytes(i).CloneToSafeBytes(destroyRecord: true), bb2.getBytes(i).CloneToSafeBytes(destroyRecord: true) )  )
+                    throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): qo53ZIsRLpQ");
+
+
+                // Проверяем, что при маленьком ra будет выдано исключение
+                using var ra = getRecordFromBytesArray(   new byte[1]   );
+                try
+                {
+                    bb.getBytes(2, ra);
+                }
+                catch (BytesBuilder.ResultAIsTooSmall)
+                {
+                    lst.Add(new byte[0]);
+                }
+
+
+                using var bbt  = new BytesBuilderForPointers();
+                strBytes = getRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
+                var strBytesT = strBytes.Clone(0);
+                try
+                {
+                    int counter_a = 1;
+                    while (true)
+                    {
+                        if (counter_a >= bb.Count)
+                            counter_a = (int) bb.Count - 3;
+                        if (counter_a < 1)
+                            counter_a = 1;
+
+                        var cnt = bb.Count;
+
+                              var tmpR1 = allocator.AllocMemory(counter_a);
+                        using var tmpR2 = allocator.AllocMemory(counter_a);
+
+                        // Этот блок нужен для того, чтобы удалить tmpR1 в том случае, если getBytesAndRemoveIt выдаст исключение (он это должен делать в конце цикла)
+                        try
+                        {
+                            var a = bb .getBytesAndRemoveIt(tmpR1);
+                            var b = bb2.getBytesAndRemoveIt(tmpR2);
+
+                            if (a != tmpR1 || b != tmpR2)
+                                throw new Exception("a != tmpR1 || b != tmpR2");
+
+                            bbt.add(a);
+                        }
+                        catch
+                        {
+                            tmpR1.Dispose();
+                            throw;
+                        }
+
+                                        // Console.WriteLine($"bbt={bbt.Count}; a.len={a.len}; bb.Count={bb.Count}");
+                        if (cnt - bb.Count != counter_a)
+                            throw new Exception($"cnt - bb.Count != counter_a [cnt={cnt}; bb.Count={bb.Count}; counter_a={counter_a}; bbt.Count={bbt.Count}; strBytes.len={strBytes.len}]");
+
+                        using var c = strBytesT!.Clone(0, counter_a);
+                        if (counter_a != strBytesT!.len)
+                        {
+                            strBytesT = strBytesT.Clone(counter_a, strBytesT.len, destroyRecord: true);
+                        }
+                        else
+                        {
+                            strBytesT.Dispose();
+                            strBytesT = null;
+                        }
+
+                        counter_a++;
+
+                        if (  !tmpR1.UnsecureCompare(tmpR2)  )
+                            throw new Exception("!a.UnsecureCompare(b): KMLk540ywd");
+                        if (  !tmpR1.UnsecureCompare(c)  )
+                            throw new Exception("!a.UnsecureCompare(c): KMLk541ywd");
+
+                        lst.Add(tmpR1.CloneToSafeBytes(destroyRecord: false));
+                    }                
+                }
+                catch (BytesBuilder.ResultCountIsTooLarge)
+                {
+                    strBytesT?.Dispose();
+                }
+
+                using var bbt_bytes = bbt.getBytes();
+                if (  !strBytes.UnsecureCompare(bbt_bytes)  )
+                    throw new Exception("!BytesBuilder_ForPointers_test: strBytes.UnsecureCompare(bbt_bytes): KMLk542ywd");
+
+                strBytes.Dispose();
             }
-            catch (BytesBuilder.ResultCountIsTooLarge)
-            {}
 
-            var bbt_bytes = BytesBuilder.CloneBytes(  bbt.getBytes()  );
-            if (  !BytesBuilder.UnsecureCompare(strBytes, bbt_bytes)  )
-                throw new Exception("!BytesBuilder.UnsecureCompare(strBytes, bbt_bytes): KMLk442ywd");
+            if (allocator.memAllocated != 0)
+            {
+                #if RECORD_DEBUG
+                foreach (var rec in allocator.allocatedRecords)
+                {
+                    var e = new TestError();
+                    e.Message = "record not disposed: " + rec.DebugName;
+                    task.error.Add(e);
+                }
+                #endif
+                throw new Exception($"BytesBuilder_ForPointers_test: allocator.memAllocated != 0 {allocator.memAllocated}");
+            }
 
             return lst;
         }

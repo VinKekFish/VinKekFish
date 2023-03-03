@@ -10,7 +10,7 @@ namespace cryptoprime
     /// Класс позволяет собирать большой блок байтов из более мелких
     /// Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную)
     /// </summary>
-    public unsafe partial class BytesBuilderForPointers
+    public unsafe partial class BytesBuilderForPointers: IDisposable
     {
         /// <summary>Добавленные блоки байтов</summary>
         public readonly List<Record> bytes = new List<Record>();
@@ -22,7 +22,7 @@ namespace cryptoprime
         /// <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
         public nint countOfBlocks => bytes.Count;
 
-        /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
+        /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник!). Изменение блока повлияет на содержимое данного объекта</returns>
         public Record getBlock(int number)
         {
             return bytes[number];
@@ -70,7 +70,7 @@ namespace cryptoprime
         }
 
         /// <summary>Обнуляет объект</summary>
-        /// <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве</param>
+        /// <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве и очищает память, выделенную под эти объекты</param>
         public void Clear(bool fast = false)
         {
             if (!fast)
@@ -95,13 +95,20 @@ namespace cryptoprime
 
             if (resultCount > count)
             {
-                throw new System.ArgumentOutOfRangeException(nameof(resultCount), "BytesBuilderForPointers.getBytes: resultCount is too large: resultCount > count");
+                throw new BytesBuilder.ResultCountIsTooLarge(resultCount: resultCount, count: count);
             }
 
             if (resultA != null && resultA.len < resultCount)
-                throw new System.ArgumentOutOfRangeException(nameof(resultCount), "BytesBuilderForPointers.getBytes: resultA is too small");
+                throw new BytesBuilder.ResultAIsTooSmall(resultA.len, resultCount);
 
-            var result = resultA ?? allocator?.AllocMemory(resultCount) ?? bytes[0]?.allocator?.AllocMemory(resultCount) ?? throw new ArgumentNullException("BytesBuilderForPointers.getBytes");
+            var result = resultA ?? allocator?.AllocMemory(resultCount);
+            if (result == null)
+            {
+                if (count > 0)
+                    result = bytes[0]?.allocator?.AllocMemory(resultCount) ?? throw new ArgumentNullException("BytesBuilderForPointers.getBytes");
+                else
+                    throw new BytesBuilder.NotFoundAllocator();
+            }
 
             nint cursor = 0;
             for (int i = 0; i < bytes.Count; i++)
@@ -198,6 +205,9 @@ namespace cryptoprime
         /// <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте)</remarks>
         public Record getBytesAndRemoveIt(Record result)
         {
+            if (result.len > count)
+                throw new BytesBuilder.ResultCountIsTooLarge(resultCount: result.len, count: count);
+
             nint   cursor  = 0;
             Record current;
             for (int i = 0; i < bytes.Count; )
@@ -264,7 +274,8 @@ namespace cryptoprime
                 data += *(target + i);
             }
         }
-
+/*
+Эта функция хуже, чем Record.SecureCompare
         /// <summary>Безопасно сравнивает два массива</summary>
         /// <param name="r1">Первый массив</param>
         /// <param name="r2">Второй массив</param>
@@ -273,6 +284,7 @@ namespace cryptoprime
         {
             return isArrayEqual_Secure(r1, r2, 0, 0, r1.len, r2.len);
         }
+
 
         /// <summary>Безопасно сравнивает два массива</summary>
         /// <param name="r1">Первый массив</param>
@@ -298,8 +310,13 @@ namespace cryptoprime
 
             return V == 0 && len1 == len2;
         }
+*/
+        /// <summary>Удаляет объект, вызывая Clear</summary>
+        void IDisposable.Dispose()
+        {
+            Clear();
+        }
 
-        /// <summary></summary>
         ~BytesBuilderForPointers()
         {
             if (bytes.Count > 0)

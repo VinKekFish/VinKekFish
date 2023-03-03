@@ -8,7 +8,7 @@
 			32
 		
 		Count:		System.Int32		.enumerableObject.Count
-			20
+			21
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
@@ -20,6 +20,9 @@
 				byte[0]:
 				02:     				
 				{object number 0005}
+				byte[0]:
+				03:     				
+				{object number 0006}
 				byte[107]:
 					D09D D0B5 D0BA D0BE   D182 D0BE D180 D0B0
 					D18F 20D1 81D1 82D1   80D0 BED0 BAD0 B0D0
@@ -27,71 +30,71 @@
 					D181 D181 D0B8 D0B2   20D1 81D1 82D1 80D0
 					BED0 BAD0 A2D1 80D0   B5D1 82D1 8CD1 8F20
 					D0BD D0B5 D0B8 D0B7   D0B2 D0B5 D181 D182   D0BD D0BE 20D1 87D1   82D0 BE
-				03:     				
-				{object number 0006}
-				byte[0]:
 				04:     				
 				{object number 0007}
-				byte[1]:
-					D0
+				byte[0]:
 				05:     				
 				{object number 0008}
-				byte[2]:
-					9DD0
-				06:     				
-				{object number 0009}
-				byte[3]:
-					B5D0 BA
-				07:     				
-				{object number 0010}
-				byte[4]:
-					D0BE D182
-				08:     				
-				{object number 0011}
-				byte[5]:
-					D0BE D180 D0
-				09:     				
-				{object number 0012}
-				byte[6]:
-					B0D1 8F20 D181
-				10:     				
-				{object number 0013}
-				byte[7]:
-					D182 D180 D0BE D0
-				11:     				
-				{object number 0014}
-				byte[8]:
-					BAD0 B0D0 94D1 80D1
-				12:     				
-				{object number 0015}
-				byte[9]:
-					83D0 B3D0 BED0 B920   D0
-				13:     				
-				{object number 0016}
-				byte[10]:
-					BCD0 B0D1 81D1 81D0   B8D0
-				14:     				
-				{object number 0017}
-				byte[11]:
-					B220 D181 D182 D180   D0BE D0
-				15:     				
-				{object number 0018}
-				byte[12]:
-					BAD0 A2D1 80D0 B5D1   82D1 8CD1
-				16:     				
-				{object number 0019}
-				byte[13]:
-					8F20 D0BD D0B5 D0B8   D0B7 D0B2 D0
-				17:     				
-				{object number 0020}
-				byte[14]:
-					B5D1 81D1 82D0 BDD0   BE20 D187 D182
-				18:     				
-				{object number 0021}
 				byte[1]:
 					D0
+				06:     				
+				{object number 0009}
+				byte[2]:
+					9DD0
+				07:     				
+				{object number 0010}
+				byte[3]:
+					B5D0 BA
+				08:     				
+				{object number 0011}
+				byte[4]:
+					D0BE D182
+				09:     				
+				{object number 0012}
+				byte[5]:
+					D0BE D180 D0
+				10:     				
+				{object number 0013}
+				byte[6]:
+					B0D1 8F20 D181
+				11:     				
+				{object number 0014}
+				byte[7]:
+					D182 D180 D0BE D0
+				12:     				
+				{object number 0015}
+				byte[8]:
+					BAD0 B0D0 94D1 80D1
+				13:     				
+				{object number 0016}
+				byte[9]:
+					83D0 B3D0 BED0 B920   D0
+				14:     				
+				{object number 0017}
+				byte[10]:
+					BCD0 B0D1 81D1 81D0   B8D0
+				15:     				
+				{object number 0018}
+				byte[11]:
+					B220 D181 D182 D180   D0BE D0
+				16:     				
+				{object number 0019}
+				byte[12]:
+					BAD0 A2D1 80D0 B5D1   82D1 8CD1
+				17:     				
+				{object number 0020}
+				byte[13]:
+					8F20 D0BD D0B5 D0B8   D0B7 D0B2 D0
+				18:     				
+				{object number 0021}
+				byte[14]:
+					B5D1 81D1 82D0 BDD0   BE20 D187 D182
 				19:     				
 				{object number 0022}
+				byte[1]:
+					D0
+				20:     				
+				{object number 0023}
 				byte[1]:
 					BE
 			[end values]

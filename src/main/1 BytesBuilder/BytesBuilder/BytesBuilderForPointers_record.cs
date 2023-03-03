@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #define RECORD_DEBUG
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -23,7 +25,7 @@ namespace cryptoprime
             // Отладочный код
             #if RECORD_DEBUG
             /// <summary>Имя записи для отладки</summary>
-            public        string DebugName = null;
+            public        string? DebugName = null;
                                                                 /// <summary>Номер записи для отладки</summary>
             public        nint   DebugNum  = 0;                 /// <summary>Следующий номер записи для отладки</summary>
             public static nint   CurrentDebugNum = 0;
@@ -40,9 +42,32 @@ namespace cryptoprime
                 #endif
             }
 
+            /// <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
+            /// <param name="allocator">Аллокатор памяти, который будет предоставит выделение памяти посредством вызова AllocMemory</param>
+            /// <param name="sourceArray"></param>
+            /// <returns></returns>
+            public static Record getRecordFromBytesArray(byte[] sourceArray, AllocatorForUnsafeMemoryInterface? allocator = null)
+            {
+                if (allocator == null)
+                    allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+
+                var r = allocator.AllocMemory((nint) sourceArray.LongLength);
+
+                fixed (byte * s = sourceArray)
+                {
+                    var len = r.len;
+                    BytesBuilder.CopyTo(len, len, s, r);
+                }
+
+                return r;
+            }
+
             /// <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
             public override string ToString()
             {
+                if (isDisposed)
+                    throw new ObjectDisposedException("Record.ToString");
+
                 var sb = new StringBuilder();
 
                 sb.AppendLine($"length = {len}; ");
@@ -64,6 +89,9 @@ namespace cryptoprime
             /// <param name="maxStrLen">Максимальная длина строки для вывода результата</param>
             public string ToString(int maxLen = int.MaxValue, int maxStrLen = int.MaxValue)
             {
+                if (isDisposed)
+                    throw new ObjectDisposedException("Record.ToString");
+
                 var sb = new StringBuilder();
 
                 sb.AppendLine($"length = {len}");
@@ -102,14 +130,23 @@ namespace cryptoprime
             /// <param name="start">Начальный элемент для копирования</param>
             /// <param name="PostEnd">Первый элемент, который не надо копировать</param>
             /// <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
+            /// <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
             /// <returns></returns>
-            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null)
+            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false)
             {
+                if (isDisposed)
+                    throw new ObjectDisposedException("Record.Clone");
+
                 if (allocator == null && this.allocator == null)
                     throw new ArgumentNullException("BytesBuilderForPointers.Record.Clone: allocator == null && this.allocator == null");
 
                 // allocator будет взят из this, если он null
-                return CloneBytes(this, allocator, start, PostEnd);
+                var r = CloneBytes(this, allocator, start, PostEnd);
+
+                if (destroyRecord)
+                    this.Dispose();
+
+                return r;
             }
 
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
@@ -117,6 +154,9 @@ namespace cryptoprime
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
             public Record NoCopyClone(nint len = -1)
             {
+                if (isDisposed)
+                    throw new ObjectDisposedException("Record.NoCopyClone");
+
                 if (len < 0)
                     len = this.len;
 
@@ -126,6 +166,36 @@ namespace cryptoprime
                     array     = this.array,
                     allocator = null
                 };
+            }
+
+            /// <summary>Копирует содержимое объекта в безопасный массив байтов</summary>
+            /// <param name="start">Начальный индекс источника, с которого нужно копировать байты</param>
+            /// <param name="PostEnd">Индекс первого байта, который уже не нужно копировать</param>
+            /// <param name="destroyRecord">Если true, то this будет уничтожена после этого метода</param>
+            /// <returns>Результирующий массив байтов</returns>
+            public byte[] CloneToSafeBytes(nint start = 0, nint PostEnd = -1, bool destroyRecord = false)
+            {
+                if (isDisposed)
+                    throw new ObjectDisposedException("Record.CloneToSafeBytes");
+
+                if (PostEnd < 0)
+                    PostEnd = this.len;
+                if (PostEnd > this.len)
+                    throw new ArgumentOutOfRangeException("PostEnd", "BytesBuilderForPointers.Record.CloneToSafeBytes: PostEnd out of range");
+
+                var result = new byte[PostEnd - start];
+                fixed (byte * r = result)
+                {
+                    var len = (nint) result.LongLength;
+                    BytesBuilder.CopyTo(this.len, len, this.array, r, 0, len, start);
+                }
+
+                if (destroyRecord)
+                {
+                    this.Dispose();
+                }
+
+                return result;
             }
 
             /// <summary>Очищает выделенную область памяти (пригодно для последующего использования). Для освобождения памяти используйте Dispose()</summary>
@@ -169,7 +239,7 @@ namespace cryptoprime
                 Clear();
                 allocator?.FreeMemory(this);
 
-                len        = 0;
+                len       = 0;
                 array     = null;
                 ptr       = default;
                 handle    = default;
@@ -231,7 +301,50 @@ namespace cryptoprime
 
                 return t.len;
             }*/
+
+            /// <summary>Сравнивает две записи</summary>
+            /// <param name="b">Вторая запись для сравнения</param>
+            /// <returns>true, если значения массивов в записях равны</returns>
+            public bool UnsecureCompare(Record b)
+            {
+                if (this.len != b.len)
+                    return false;
+
+                var aa = this.array;
+                var ba = b   .array;
+
+                for (nint i = 0; i < len; i++)
+                {
+                    if (aa[i] != ba[i])
+                        return false;
+                }
+
+                return true;
+            }
+// TODO: Это нужно перенести отсюда, т.к. эта функция не подлежит оптимизации
+            /// <summary>Сравнивает две записи: this - эталонная запись, подлежит защите</summary>
+            /// <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
+            /// <returns>true, если значения массивов в записях равны</returns>
+            public bool SecureCompare(Record devil)
+            {if (devil.len != 0) throw new NotImplementedException();
+                var aa = this .array;
+                var ba = devil.array;
+
+                nint r = 0;
+                for (nint i = 0; i < devil.len; i++)
+                {
+                    r |= aa[i % this.len] ^ ba[i];                        
+                }
+
+                r |= this.len ^ devil.len;
+
+                if (r != 0)
+                    return false;
+
+                return true;
+            }
         }
+
 
         /// <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>
         public interface AllocatorForUnsafeMemoryInterface
@@ -260,14 +373,64 @@ namespace cryptoprime
         /// <summary>Выделяет память с помощью Marshal.AllocHGlobal</summary>
         public class AllocHGlobal_AllocatorForUnsafeMemory : AllocatorForUnsafeMemoryInterface
         {
+            protected volatile nint _memAllocated = 0;
+            public nint memAllocated { get => _memAllocated; }
+
+            #if RECORD_DEBUG
+                public List<Record> allocatedRecords = new List<Record>(1024);
+            #endif
+
+            /// <summary>Аналог Interlocked.Increment для nint (в классе Interlocked его нет). Выполняет приращение val на единицу</summary>
+            /// <returns>Оригинальное (не изменённое) значение переменной</returns>
+            protected nint InterlockedIncrement_memAllocated()
+            {
+                nint a, b;
+
+                do
+                {
+                    a = _memAllocated;
+                    b = a + 1;                    
+                }
+                while (Interlocked.CompareExchange(ref _memAllocated, b, a) != a);
+
+                return a;
+            }
+
+            /// <summary>Аналог Interlocked.Increment для nint (в классе Interlocked его нет). Выполняет приращение val на единицу</summary>
+            /// <returns>Оригинальное (не изменённое) значение переменной</returns>
+            protected nint InterlockedDecrement_memAllocated()
+            {
+                nint a, b;
+
+                do
+                {
+                    a = _memAllocated;
+                    b = a - 1;                    
+                }
+                while (Interlocked.CompareExchange(ref _memAllocated, b, a) != a);
+
+                return a;
+            }
+
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Длина выделяемого участка памяти</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
             public Record AllocMemory(nint len)
             {
+                if (len < 1)
+                    throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory.ArgumentOutOfRangeException: len must be > 0");
+
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
                 var ptr = Marshal.AllocHGlobal(len);
                 var rec = new Record() { len = len, array = (byte *) ptr.ToPointer(), ptr = ptr, allocator = this };
+
+                InterlockedIncrement_memAllocated();
+
+                #if RECORD_DEBUG
+                lock (allocatedRecords)
+                    allocatedRecords.Add(rec);
+                #endif
+
                 return rec;
             }
 
@@ -276,6 +439,12 @@ namespace cryptoprime
             public void FreeMemory(Record recordToFree)
             {
                 Marshal.FreeHGlobal(recordToFree.ptr);
+                InterlockedDecrement_memAllocated();
+
+                #if RECORD_DEBUG
+                lock (allocatedRecords)
+                    allocatedRecords.Remove(recordToFree);
+                #endif
             }
 
             /// <summary>Не реализовано</summary>

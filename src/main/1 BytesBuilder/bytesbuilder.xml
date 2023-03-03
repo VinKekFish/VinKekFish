@@ -204,6 +204,9 @@
             <summary>Попытка обнулить char-строку</summary>
             <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.System#IDisposable#Dispose">
+            <summary>Удаляет объект, вызывая Clear</summary>
+        </member>
         <member name="T:cryptoprime.BytesBuilderForPointers">
             <summary>
             BytesBuilderForPointers
@@ -221,7 +224,7 @@
             <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.getBlock(System.Int32)">
-            <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
+            <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник!). Изменение блока повлияет на содержимое данного объекта</returns>
         </member>
         <member name="F:cryptoprime.BytesBuilderForPointers.count">
             <summary>Количество сохранённых байтов</summary>
@@ -245,7 +248,7 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Clear(System.Boolean)">
             <summary>Обнуляет объект</summary>
-            <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве</param>
+            <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве и очищает память, выделенную под эти объекты</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы. Ничего не удаляет и не очищает</summary>
@@ -296,24 +299,8 @@
             <param name="start">Начальный элемент, по которому расположено число</param>
             <param name="length">Полная длина массива, до конца должно оставаться не менее 8-ми байтов</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.isArrayEqual_Secure(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record)">
-            <summary>Безопасно сравнивает два массива</summary>
-            <param name="r1">Первый массив</param>
-            <param name="r2">Второй массив</param>
-            <returns><see langword="true"/>, если массивы совпадают.</returns>
-        </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.isArrayEqual_Secure(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)">
-            <summary>Безопасно сравнивает два массива</summary>
-            <param name="r1">Первый массив</param>
-            <param name="r2">Второй массив</param>
-            <param name="start1">Начальный индекс для сравнения в первом массиве</param>
-            <param name="start2">Начальный индекс для сравнения во втором массиве</param>
-            <param name="len1">Длина подмассива для сравнивания</param>
-            <param name="len2">Длина подмассива для сравнивания</param>
-            <returns><see langword="true"/>, если массивы совпадают.</returns>
-        </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Finalize">
-            <summary></summary>
+        <member name="M:cryptoprime.BytesBuilderForPointers.System#IDisposable#Dispose">
+            <summary>Удаляет объект, вызывая Clear</summary>
         </member>
         <member name="T:cryptoprime.BytesBuilderForPointers.Record">
             <summary>Класс-обёртка для массивов, доступных по указателю</summary>
@@ -336,6 +323,12 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor">
             <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+            <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
+            <param name="allocator">Аллокатор памяти, который будет предоставит выделение памяти посредством вызова AllocMemory</param>
+            <param name="sourceArray"></param>
+            <returns></returns>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.ToString">
             <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
         </member>
@@ -348,17 +341,25 @@
             <summary>Клонирует запись. Данные внутри записи копируются</summary>
             <returns>Возвращает полностью скопированный массив, независимый от исходного</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Boolean)">
             <summary>Клонирует запись. Данные внутри записи копируются из диапазона [start .. PostEnd - 1]</summary>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Первый элемент, который не надо копировать</param>
             <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
+            <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
             <returns></returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.NoCopyClone(System.IntPtr)">
             <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
             <param name="len">Длина массива либо -1, если длина массива такая же, как копируемой записи</param>
             <returns>Новая запись, указывающая на тот же самый массив</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.CloneToSafeBytes(System.IntPtr,System.IntPtr,System.Boolean)">
+            <summary>Копирует содержимое объекта в безопасный массив байтов</summary>
+            <param name="start">Начальный индекс источника, с которого нужно копировать байты</param>
+            <param name="PostEnd">Индекс первого байта, который уже не нужно копировать</param>
+            <param name="destroyRecord">Если true, то this будет уничтожена после этого метода</param>
+            <returns>Результирующий массив байтов</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clear">
             <summary>Очищает выделенную область памяти (пригодно для последующего использования). Для освобождения памяти используйте Dispose()</summary>
@@ -391,6 +392,16 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Addition(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.UnsecureCompare(cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Сравнивает две записи</summary>
+            <param name="b">Вторая запись для сравнения</param>
+            <returns>true, если значения массивов в записях равны</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.SecureCompare(cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Сравнивает две записи: this - эталонная запись, подлежит защите</summary>
+            <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
+            <returns>true, если значения массивов в записях равны</returns>
+        </member>
         <member name="T:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface">
             <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>
         </member>
@@ -416,6 +427,14 @@
         </member>
         <member name="T:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory">
             <summary>Выделяет память с помощью Marshal.AllocHGlobal</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.InterlockedIncrement_memAllocated">
+            <summary>Аналог Interlocked.Increment для nint (в классе Interlocked его нет). Выполняет приращение val на единицу</summary>
+            <returns>Оригинальное (не изменённое) значение переменной</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.InterlockedDecrement_memAllocated">
+            <summary>Аналог Interlocked.Increment для nint (в классе Interlocked его нет). Выполняет приращение val на единицу</summary>
+            <returns>Оригинальное (не изменённое) значение переменной</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>

@@ -10,7 +10,7 @@ namespace cryptoprime
     /// Класс позволяет собирать большой блок байтов из более мелких
     /// Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную)
     /// </summary>
-    public partial class BytesBuilder
+    public partial class BytesBuilder: IDisposable
     {
         /// <summary>Добавленные блоки байтов</summary>
         public readonly List<byte[]> bytes = new List<byte[]>();
@@ -192,6 +192,25 @@ namespace cryptoprime
                                         (
                                             "resultA",
                                             $"resultA is too small: ({resultA.LongLength} < {resultCount})"
+                                        )
+            {}
+
+            public ResultAIsTooSmall(nint resultA_len, nint resultCount):
+                                        base
+                                        (
+                                            "resultA",
+                                            $"resultA is too small: ({resultA_len} < {resultCount})"
+                                        )
+            {}
+        }
+
+        public class NotFoundAllocator: System.ArgumentNullException
+        {
+            public NotFoundAllocator():
+                                        base
+                                        (
+                                            "allocator",
+                                            "resultA == null; allocator == null; bytes.length == 0; not found allocator"
                                         )
             {}
         }
@@ -866,6 +885,12 @@ namespace cryptoprime
                     *(b + i) = ' ';
                 }
             }
+        }
+
+        /// <summary>Удаляет объект, вызывая Clear</summary>
+        void IDisposable.Dispose()
+        {
+            Clear();
         }
     }
 }
