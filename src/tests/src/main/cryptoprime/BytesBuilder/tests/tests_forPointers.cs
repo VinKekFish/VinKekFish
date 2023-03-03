@@ -108,7 +108,7 @@ public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
     }
 }
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 40d)]
 [TestTagAttribute("mandatory", duration: 40d)]
 public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
