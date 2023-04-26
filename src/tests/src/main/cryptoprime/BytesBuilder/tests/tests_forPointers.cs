@@ -10,6 +10,8 @@ using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+/// <summary>Тест для BytesBuilderForPointers.Record
+/// Проверяет, работает ли IDisposable - удаляется ли выделенная память</summary>
 public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
 {
     public BytesBuilder_ForPointers_test1(TestConstructor constructor):
@@ -59,7 +61,10 @@ public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
 }
 
 
+[TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 8500d)]
+/// <summary>Тест для BytesBuilderForPointers.Record
+/// Проверяет некоторые функции (создание, клонирование)</summary>
 public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
 {
     public BytesBuilder_ForPointers_test2(TestConstructor constructor):
@@ -72,38 +77,72 @@ public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
         {
             List<byte[]> lst = new List<byte[]>();
 
-            // Проверяем на то, что аллокатор умеет удалять память (работает IDisposable)
-            var allocator  = new AllocHGlobal_AllocatorForUnsafeMemory();
-            nint maxMemory = getMaxMemory() << 2;
+            var b = new byte[256];
+            for (int i = 0; i < 256; i++)
+                b[i] = (byte)i;
 
-            nint maxMemoryToAllocateBySingleAllocate = maxMemory >> 12;     // Иначе процесс будет длиться слишком долго, т.к. большие блоки долго выделяются
-            nint memoryToAllocate = 1;
-            for (nint i = 4096; i < maxMemory;)
+            using (var R = getRecordFromBytesArray(b))
             {
-                for (int thr = 56; thr >= 16; thr -= 8)
-                {
-                    nint one = 1;
-                    if (i > (one << thr))
-                    {
-                        memoryToAllocate = one << thr;
-                        // Это не даёт запросить слишком большие блоки и даже ускоряет выделение памяти, т.к. большие непрерывные блоки выделять тяжелее
-                        if (memoryToAllocate > maxMemoryToAllocateBySingleAllocate)
-                            memoryToAllocate = maxMemoryToAllocateBySingleAllocate;
+                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.1a");
 
-                        // Console.WriteLine(memoryToAllocate + "\t\t" + i.ToString("N"));
-                        break;
-                    }
-                }
+                lst.Add(R.CloneToSafeBytes());
+                for (int i = 0; i < 256; i++)
+                    if (b[i] != i)
+                        throw new Exception("Error 1.1an");
 
-                byte * a = null;
-                using (var r = allocator.AllocMemory(memoryToAllocate))
-                {
-                    i += memoryToAllocate;
-                    a = r.array;
-                }
+                b[0] = 255;
+                if (BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.1b");
+
+                R.array[0] = 255;
+                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.1c");
             }
 
+            Check32Array(256*1024);           lst.Add(b);
+            Check32Array(1024 * 1024 * 1024);
+
             return lst;
+
+            static void Check32Array(int size)
+            {
+                var b = new byte[size];
+                fixed (byte* bp = b)
+                {
+                    var up = (Int32*)bp;
+                    var ul = b.Length / sizeof(Int32);
+
+                    for (int i = 0; i < ul; i++)
+                        up[i] = i;
+                }
+
+                using var R = getRecordFromBytesArray(b);
+
+                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.2a");
+
+                GC.Collect();
+                fixed (byte* bp = R.CloneToSafeBytes())
+                {
+                    var up = (Int32*)bp;
+                    var ul = b.Length / sizeof(Int32);
+
+                    for (int i = 0; i < ul; i++)
+                        if (up[i] != i)
+                            throw new Exception("Error 1.2an");
+                }
+
+                GC.Collect();
+                b[0] = 255;
+                if (BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.2b");
+
+                GC.Collect();
+                R.array[0] = 255;
+                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                    throw new Exception("Error 1.2c");
+            }
         }
     }
 }

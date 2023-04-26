@@ -251,8 +251,8 @@ namespace cryptoprime
 
                 RemoveBlockAt(i);
             }
-                                
-            
+
+
             return result;
         }
 
@@ -275,7 +275,7 @@ namespace cryptoprime
             }
         }
 /*
-Эта функция хуже, чем Record.SecureCompare
+Эта функция хуже, чем Record.SecureCompare; плюс, здесь не отключена оптимизация
         /// <summary>Безопасно сравнивает два массива</summary>
         /// <param name="r1">Первый массив</param>
         /// <param name="r2">Второй массив</param>

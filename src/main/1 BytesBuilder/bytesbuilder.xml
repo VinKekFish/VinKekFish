@@ -325,7 +325,7 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
             <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
-            <param name="allocator">Аллокатор памяти, который будет предоставит выделение памяти посредством вызова AllocMemory</param>
+            <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             <param name="sourceArray"></param>
             <returns></returns>
         </member>
@@ -378,7 +378,7 @@
             <param name="disposing"></param>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Finalize">
-            <summary></summary>
+            <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.Byte*">
             <summary>Возвращает ссылку на массив</summary>

@@ -14,7 +14,7 @@ using DriverForTestsLib;
 namespace main_tests
 {
     // [TestTagAttribute("inWork")]
-    [TestTagAttribute("ThreeFish", duration: 150)]
+    [TestTagAttribute("ThreeFish", duration: 120)]
     [TestTagAttribute("mandatory")]
     /// <summary>Быстрый текст для оптимизированного сгенерированного ThreeFish.
     /// Тест тестирует оптимизированный сгенерированный ThreeFish, просто устанавливая биты по одному</summary>

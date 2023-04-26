@@ -43,7 +43,7 @@ namespace cryptoprime
             }
 
             /// <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
-            /// <param name="allocator">Аллокатор памяти, который будет предоставит выделение памяти посредством вызова AllocMemory</param>
+            /// <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             /// <param name="sourceArray"></param>
             /// <returns></returns>
             public static Record getRecordFromBytesArray(byte[] sourceArray, AllocatorForUnsafeMemoryInterface? allocator = null)
@@ -250,10 +250,10 @@ namespace cryptoprime
                 // TODO: Проверить, что это исключение действительно работает, то есть оно будет залогировано при окончании программы
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
-                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed");
+                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed with the not disposed Record");
             }
 
-            /// <summary></summary>
+            /// <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
             ~Record()
             {
                 Dispose(false);
