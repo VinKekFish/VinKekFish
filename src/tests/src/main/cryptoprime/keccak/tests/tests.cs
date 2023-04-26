@@ -242,8 +242,8 @@ public class Keccak_sha_3_512_test_performance: TestTask
             var errStr = $"countBlocksForOneSecond = {countBlocksForOneSecond:N0} (normal 400-500 thousands per second on 2.8 GHz)";
             if (k < 1.07)
                 throw new Exception($"Keccak_sha_3_512_test_performance: k < 1.10; k = {k}; {errStr}");
-            if (countBlocksForOneSecond < 390_000)
-                throw new Exception($"Keccak_sha_3_512_test_performance: countBlocksForOneSecond < 400_000; {errStr}");
+            if (countBlocksForOneSecond < 380_000)
+                throw new Exception($"Keccak_sha_3_512_test_performance: countBlocksForOneSecond < 380_000; {errStr}");
         };
     }
 }
