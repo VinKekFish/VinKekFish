@@ -131,7 +131,7 @@ namespace cryptoprime
             /// <param name="PostEnd">Первый элемент, который не надо копировать</param>
             /// <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
             /// <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
-            /// <returns></returns>
+            /// <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
             public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false)
             {
                 if (isDisposed)

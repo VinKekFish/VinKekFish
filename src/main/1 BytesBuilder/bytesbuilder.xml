@@ -347,7 +347,7 @@
             <param name="PostEnd">Первый элемент, который не надо копировать</param>
             <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
             <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
-            <returns></returns>
+            <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.NoCopyClone(System.IntPtr)">
             <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>

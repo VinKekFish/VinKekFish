@@ -12,9 +12,9 @@ using static cryptoprime.BytesBuilderForPointers.Record;
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет, работает ли IDisposable - удаляется ли выделенная память</summary>
-public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
+public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_parent
 {
-    public BytesBuilder_ForPointers_test1(TestConstructor constructor):
+    public BytesBuilder_ForPointers_Record_test1(TestConstructor constructor):
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {}
 
@@ -61,13 +61,13 @@ public unsafe class BytesBuilder_ForPointers_test1: BytesBuilder_test_parent
 }
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 8500d)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет некоторые функции (создание, клонирование)</summary>
-public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
+public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_parent
 {
-    public BytesBuilder_ForPointers_test2(TestConstructor constructor):
+    public BytesBuilder_ForPointers_Record_test2(TestConstructor constructor):
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {}
 
@@ -118,34 +118,137 @@ public unsafe class BytesBuilder_ForPointers_test2: BytesBuilder_test_parent
                 }
 
                 using var R = getRecordFromBytesArray(b);
+                // Чтобы сборщик мусора работал эффективнее, проверки вынесены в отдельные функции
+                // Без явного вызова сборщика мусора - он не собирает нормально память
+                Check1(b, R); GC.Collect();
+                Check2(b, R); GC.Collect();
+                Check3(b, R); GC.Collect();
+                Check4(b, R); GC.Collect();
 
-                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
-                    throw new Exception("Error 1.2a");
-
-                GC.Collect();
-                fixed (byte* bp = R.CloneToSafeBytes())
+                static void Check1(byte[] b, Record R)
                 {
-                    var up = (Int32*)bp;
-                    var ul = b.Length / sizeof(Int32);
-
-                    for (int i = 0; i < ul; i++)
-                        if (up[i] != i)
-                            throw new Exception("Error 1.2an");
+                    if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                        throw new Exception("Error 1.2a");
                 }
 
-                GC.Collect();
-                b[0] = 255;
-                if (BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
-                    throw new Exception("Error 1.2b");
+                static void Check2(byte[] b, Record R)
+                {
+                    fixed (byte* bp = R.CloneToSafeBytes())
+                    {
+                        var up = (Int32*)bp;
+                        var ul = b.Length / sizeof(Int32);
 
-                GC.Collect();
-                R.array[0] = 255;
-                if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
-                    throw new Exception("Error 1.2c");
+                        for (int i = 0; i < ul; i++)
+                            if (up[i] != i)
+                                throw new Exception("Error 1.2an");
+                    }
+                }
+
+                static void Check3(byte[] b, Record R)
+                {
+                    b[0] = 255;
+                    if (BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                        throw new Exception("Error 1.2b");
+                }
+
+                static void Check4(byte[] b, Record R)
+                {
+                    R.array[0] = 255;
+                    if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
+                        throw new Exception("Error 1.2c");
+                }
             }
         }
     }
 }
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 40)]
+/// <summary>Тест для BytesBuilderForPointers.Record
+/// Проверяет функции клонирования</summary>
+public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_parent
+{
+    public BytesBuilder_ForPointers_Record_test3(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected unsafe class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            var b = new byte[256];
+            for (int i = 0; i < 256; i++)
+                b[i] = (byte) i;
+
+            using var R1 = getRecordFromBytesArray(b);
+            using var R2 = (Record) R1.Clone();
+            using var R3 =          R1.Clone(0, -1);
+
+            if (!R1.UnsecureCompare(R2))
+                throw new Exception("Error 3.1");
+            if (!R1.UnsecureCompare(R3))
+                throw new Exception("Error 3.2");
+
+            lst.Add(R1.CloneToSafeBytes());
+            for (int i = 0; i < 256; i++)
+                if (b[i] != i)
+                    throw new Exception("Error 3.3");
+
+            R1.array[0] = 255;
+            if (R2.array[0] != 0 || R3.array[0] != 0)
+                throw new Exception("Error 3.4");
+
+            R1.Clear();
+            if (!R3.UnsecureCompare(R2))
+                throw new Exception("Error 3.5");
+
+            for (int i = 0; i < R1.len; i++)
+            {
+                if (R1.array[i] != 0)
+                    throw new Exception("Error 3.5a");
+
+                if (R2.array[i] != i)
+                    throw new Exception("Error 3.5a");
+
+                if (R3.array[i] != i)
+                    throw new Exception("Error 3.5a");
+            }
+
+            R2.array[0] = 128;
+            if (R3.array[0] != 0)
+                throw new Exception("Error 3.6");
+
+            return lst;
+        }
+    }
+}
+
+
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+/// <summary>Тест для BytesBuilderForPointers.Record
+/// </summary>
+public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_parent
+{
+    public BytesBuilder_ForPointers_Record_test4(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected unsafe class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            
+
+            return lst;
+        }
+    }
+}
+
+
 
 // [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 40d)]
