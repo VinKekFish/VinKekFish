@@ -231,9 +231,19 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             if (R4.array[0] != 253 || R5.array[0] != 254 || R7.array[0] != 255)
                 throw new Exception("Error 3.4+1");
 
+            R7.Clear();
+            if (R4.array[0] != 253 || R5.array[0] != 254 || R7.array[0] != 0)
+                throw new Exception("Error 3.4+1+1");
+            if (R4.array[R4.len-2] != 254 || R5.array[R5.len-2] != 254 || R5.array[253] != 254)
+                throw new Exception($"Error 3.4+1+2 ({R4.array[R4.len-2]}==254; {R5.array[R5.len-2]}==253)");
+            if (R4.array[R4.len-1] != 0 || R5.array[R5.len-1] != 0 || R7.array[R7.len-1] != 0)
+                throw new Exception("Error 3.4+1+3");
+
             R4.Clear();
             if (!R1.UnsecureCompare(R4))
                 throw new Exception("Error 3.2+1+1");
+            if (R5.array[0] != 0 || R7.array[0] != 0)
+                throw new Exception("Error 3.2+1+2");
 
             if (!R3.UnsecureCompare(R2))
                 throw new Exception("Error 3.5");
