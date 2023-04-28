@@ -196,15 +196,16 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
         private static void Calc(byte[] b)
         {
             using var R1 = getRecordFromBytesArray(b);
-            using var R2 = (Record)R1.Clone();
+            using var R2 = (Record) R1.Clone();
             using var R3 = R1.Clone(0, -1);
             using var R4 = R1.NoCopyClone();
-            using var R5 = R1.NoCopyClone(-1, 1);
+            using var R5 = R1.NoCopyClone(0, 1);
             using var R7 = R1.NoCopyClone(1, R1.len - 1);
             try
             {
                 var R6 = R1.NoCopyClone(0);
-                R6.Dispose();
+                R6.isDisposed = true;
+                R6.array      = null;
                 R6.NoCopyClone();
                 throw new Exception("R1.NoCopyClone(0)");
             }
@@ -281,20 +282,26 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             {
                 using var R10 = getRecordFromBytesArray(b);
                 using var R11 = R10.NoCopyClone(0,  i);
-                using var R12 = R10.NoCopyClone(-i, i);
                 using var R13 = R10.NoCopyClone(-i, 0);
-                using var R14 = R10.NoCopyClone(-i, 3);
 
-                if (b.Length - i != R11.len || b.Length - i != R12.len || b.Length - i != R13.len)
-                    throw new Exception("Error 3.7.1");
-                if (!R10.UnsecureCompare(R11, i))
-                    throw new Exception("Error 3.7.2");
-                if (!R10.UnsecureCompare(R12, i))
-                    throw new Exception("Error 3.7.3");
-                if (!R10.UnsecureCompare(R13, 0))
-                    throw new Exception("Error 3.7.4");
-                if (!R10.UnsecureCompare(R14, 3))
-                    throw new Exception("Error 3.7.5");
+                for (int j = 0; j + i < b.Length; j++)
+                {
+                    using var R12 = R10.NoCopyClone(-j, i);
+                    using var R14 = R10.NoCopyClone(-i, j);
+
+                    if (b.Length - i != R11.len || b.Length - i - j != R12.len || b.Length - i != R13.len)
+                        throw new Exception("Error 3.7.1");
+                    if (!R11.UnsecureCompare(R10, i))
+                        throw new Exception("Error 3.7.2");
+                    if (!R12.UnsecureCompare(R10, i, R10.len - j))
+                        throw new Exception("Error 3.7.3");
+                    if (!R13.UnsecureCompare(R10, 0, R10.len - i))
+                        throw new Exception("Error 3.7.4");
+                    if (R14.len != R10.len - i - j)
+                        throw new Exception($"Error 3.7.5.1 ({R14.len}, {R10.len}, {i}, {j})");
+                    if (!R14.UnsecureCompare(R10, j, R10.len - i))
+                        throw new Exception("Error 3.7.5.2 ({R14.len}, {R10.len}, {i}, {j})");
+                }
             }
         }
     }

@@ -150,7 +150,7 @@ namespace cryptoprime
             }
 
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
-            /// <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива. (-shift, shift) то же, что и (0, shift)</param>
+            /// <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива, дополнительно к shift (newLen = this.len - shift + len)</param>
             /// <param name="shift">Сдвиг начала массива относительно исходной записи</param>
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
             public Record NoCopyClone(nint len = 0, nint shift = 0)
@@ -162,10 +162,7 @@ namespace cryptoprime
 
                 if (len <= 0)
                 {
-                    if (len == 0)
-                        len = this.len - shift;
-                    else
-                        len = this.len + len;
+                    len = this.len - shift + len;
                 }
 
                 if (len + shift > this.len || len == 0)
@@ -336,7 +333,7 @@ namespace cryptoprime
             }
 
             /// <summary>Сравнивает две записи</summary>
-            /// <param name="b">Вторая запись для сравнения</param>
+            /// <param name="b">Вторая запись для сравнения. Если размеры записей разные, то в b нужно передавать большую запись (т.к. иначе размеры записей не совпадут)</param>
             /// <param name="start">Самый первый элемент для сравнения в массиве b</param>
             /// <param name="postEnd">Элемент, идущий после последнего элемента для сравнения. 0 == b.len. Отрицательное значение равно b.len+postEnd</param>
             /// <returns>true, если значения массивов в записях равны</returns>
@@ -347,7 +344,7 @@ namespace cryptoprime
 
                 var lenb = postEnd - start;
                 if (lenb > b.len)
-                    throw new ArgumentOutOfRangeException("start");
+                    throw new ArgumentOutOfRangeException("start", "postEnd - start > b.len");
 
                 if (this.len != lenb)
                     return false;
@@ -386,6 +383,27 @@ namespace cryptoprime
                     return false;
 
                 return true;
+            }
+
+            /// <summary>Проверяет, что индексы start и end лежат внутри массива. start &lt;= end. Если условия не выполнены, то генерируется исключение.</summary>
+            /// <param name="start">Индекс для проверки в границах массива</param>
+            /// <param name="end">Индекс для проверки в границах массива</param>
+            public void checkRange(nint start, nint end)
+            {
+                if (end < start)
+                    throw new ArgumentOutOfRangeException("end < start");
+
+                if (start > len)
+                    throw new ArgumentOutOfRangeException("start > len");
+
+                if (end > len)
+                    throw new ArgumentOutOfRangeException("end > len");
+                
+                if (start < 0)
+                    throw new ArgumentOutOfRangeException("start > len");
+
+                if (end < 0)
+                    throw new ArgumentOutOfRangeException("end > len");
             }
         }
 
