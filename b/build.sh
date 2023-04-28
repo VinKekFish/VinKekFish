@@ -9,7 +9,7 @@ fi
 
 if [ -z "$testTags" ]
 then
-    testTags="+mandatory +inWork <2e3 ?"
+    testTags="+mandatory +inWork <200 ?"
 fi
 
 rm -f tests-*.log

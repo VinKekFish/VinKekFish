@@ -150,20 +150,27 @@ namespace cryptoprime
             }
 
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
-            /// <param name="len">Длина массива либо -1, если длина массива такая же, как копируемой записи</param>
+            /// <param name="len">Длина массива либо -1, если длина массива от shift до конца исходного массива, либо иное значение не более this.len</param>
+            /// <param name="shift">Сдвиг начала массива относительно исходной записи</param>
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
-            public Record NoCopyClone(nint len = -1)
+            public Record NoCopyClone(nint len = -1, nint shift = 0)
             {
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.NoCopyClone");
+                if (shift < 0 || shift >= this.len)
+                    throw new ArgumentOutOfRangeException("shift");
 
                 if (len < 0)
-                    len = this.len;
+                    len = this.len - shift;
+                else
+                if (len + shift > this.len || len == 0)
+                    throw new ArgumentOutOfRangeException("len");
+
 
                 return new Record()
                 {
                     len       = len,
-                    array     = this.array,
+                    array     = this.array + shift,
                     allocator = null
                 };
             }

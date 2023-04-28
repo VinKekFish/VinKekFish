@@ -185,22 +185,56 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             using var R1 = getRecordFromBytesArray(b);
             using var R2 = (Record) R1.Clone();
             using var R3 =          R1.Clone(0, -1);
+            using var R4 = R1.NoCopyClone();
+            using var R5 = R1.NoCopyClone(-1, 1);
+            using var R7 = R1.NoCopyClone(1, R1.len-1);
+
+            try
+            {
+                var R6 = R1.NoCopyClone(0);
+                throw new Exception("R1.NoCopyClone(0)");
+            }
+            catch (ArgumentOutOfRangeException)
+            {}
+
+            try
+            {
+                var R6 = R1.NoCopyClone(2, R1.len-1);
+                throw new Exception("R1.NoCopyClone(R1.len, R1.len-1)");
+            }
+            catch (ArgumentOutOfRangeException)
+            {}
 
             if (!R1.UnsecureCompare(R2))
                 throw new Exception("Error 3.1");
             if (!R1.UnsecureCompare(R3))
                 throw new Exception("Error 3.2");
+            if (!R1.UnsecureCompare(R4))
+                throw new Exception("Error 3.2+1");
 
             lst.Add(R1.CloneToSafeBytes());
             for (int i = 0; i < 256; i++)
                 if (b[i] != i)
                     throw new Exception("Error 3.3");
 
-            R1.array[0] = 255;
+            for (int i = 0; i < 255; i++)
+                if (R5.array[i] != i+1)
+                    throw new Exception("Error 3.3+1");
+            for (int i = 0; i < 1; i++)
+                if (R7.array[i] != 255)
+                    throw new Exception("Error 3.3+2");
+
+            R1.array[0] = 253;
+            R1.array[1] = 254;
             if (R2.array[0] != 0 || R3.array[0] != 0)
                 throw new Exception("Error 3.4");
+            if (R4.array[0] != 253 || R5.array[0] != 254 || R7.array[0] != 255)
+                throw new Exception("Error 3.4+1");
 
-            R1.Clear();
+            R4.Clear();
+            if (!R1.UnsecureCompare(R4))
+                throw new Exception("Error 3.2+1+1");
+
             if (!R3.UnsecureCompare(R2))
                 throw new Exception("Error 3.5");
 
@@ -225,13 +259,37 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
     }
 }
 
-
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>
 public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_parent
 {
     public BytesBuilder_ForPointers_Record_test4(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected unsafe class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            
+
+            return lst;
+        }
+    }
+}
+
+
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+/// <summary>Тест для BytesBuilderForPointers.Record
+/// </summary>
+public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_parent
+{
+    public BytesBuilder_ForPointers_Record_test5(TestConstructor constructor):
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {}
 
