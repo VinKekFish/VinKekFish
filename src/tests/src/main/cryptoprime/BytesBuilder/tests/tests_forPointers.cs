@@ -163,7 +163,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 40)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 40, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет функции клонирования</summary>
 public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_parent
@@ -182,28 +182,42 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             for (int i = 0; i < 256; i++)
                 b[i] = (byte) i;
 
+            for (int j = 0; j < Environment.ProcessorCount << 1; j++)
+            ThreadPool.QueueUserWorkItem
+            (
+                (state) => Calc(b)
+            );
+
+            lst.Add(getRecordFromBytesArray(b).CloneToSafeBytes(destroyRecord: true));
+
+            return lst;
+        }
+
+        private static void Calc(byte[] b)
+        {
             using var R1 = getRecordFromBytesArray(b);
-            using var R2 = (Record) R1.Clone();
-            using var R3 =          R1.Clone(0, -1);
+            using var R2 = (Record)R1.Clone();
+            using var R3 = R1.Clone(0, -1);
             using var R4 = R1.NoCopyClone();
             using var R5 = R1.NoCopyClone(-1, 1);
-            using var R7 = R1.NoCopyClone(1, R1.len-1);
-
+            using var R7 = R1.NoCopyClone(1, R1.len - 1);
             try
             {
                 var R6 = R1.NoCopyClone(0);
+                R6.Dispose();
+                R6.NoCopyClone();
                 throw new Exception("R1.NoCopyClone(0)");
             }
-            catch (ArgumentOutOfRangeException)
-            {}
+            catch (ObjectDisposedException)
+            { }
 
             try
             {
-                var R6 = R1.NoCopyClone(2, R1.len-1);
+                var R6 = R1.NoCopyClone(2, R1.len - 1);
                 throw new Exception("R1.NoCopyClone(R1.len, R1.len-1)");
             }
             catch (ArgumentOutOfRangeException)
-            {}
+            { }
 
             if (!R1.UnsecureCompare(R2))
                 throw new Exception("Error 3.1");
@@ -212,13 +226,12 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             if (!R1.UnsecureCompare(R4))
                 throw new Exception("Error 3.2+1");
 
-            lst.Add(R1.CloneToSafeBytes());
             for (int i = 0; i < 256; i++)
                 if (b[i] != i)
                     throw new Exception("Error 3.3");
 
             for (int i = 0; i < 255; i++)
-                if (R5.array[i] != i+1)
+                if (R5.array[i] != i + 1)
                     throw new Exception("Error 3.3+1");
             for (int i = 0; i < 1; i++)
                 if (R7.array[i] != 255)
@@ -234,9 +247,9 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             R7.Clear();
             if (R4.array[0] != 253 || R5.array[0] != 254 || R7.array[0] != 0)
                 throw new Exception("Error 3.4+1+1");
-            if (R4.array[R4.len-2] != 254 || R5.array[R5.len-2] != 254 || R5.array[253] != 254)
-                throw new Exception($"Error 3.4+1+2 ({R4.array[R4.len-2]}==254; {R5.array[R5.len-2]}==253)");
-            if (R4.array[R4.len-1] != 0 || R5.array[R5.len-1] != 0 || R7.array[R7.len-1] != 0)
+            if (R4.array[R4.len - 2] != 254 || R5.array[R5.len - 2] != 254 || R5.array[253] != 254)
+                throw new Exception($"Error 3.4+1+2 ({R4.array[R4.len - 2]}==254; {R5.array[R5.len - 2]}==253)");
+            if (R4.array[R4.len - 1] != 0 || R5.array[R5.len - 1] != 0 || R7.array[R7.len - 1] != 0)
                 throw new Exception("Error 3.4+1+3");
 
             R4.Clear();
@@ -264,7 +277,25 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             if (R3.array[0] != 0)
                 throw new Exception("Error 3.6");
 
-            return lst;
+            for (int i = 0; i < b.Length - 1; i++)
+            {
+                using var R10 = getRecordFromBytesArray(b);
+                using var R11 = R10.NoCopyClone(0,  i);
+                using var R12 = R10.NoCopyClone(-i, i);
+                using var R13 = R10.NoCopyClone(-i, 0);
+                using var R14 = R10.NoCopyClone(-i, 3);
+
+                if (b.Length - i != R11.len || b.Length - i != R12.len || b.Length - i != R13.len)
+                    throw new Exception("Error 3.7.1");
+                if (!R10.UnsecureCompare(R11, i))
+                    throw new Exception("Error 3.7.2");
+                if (!R10.UnsecureCompare(R12, i))
+                    throw new Exception("Error 3.7.3");
+                if (!R10.UnsecureCompare(R13, 0))
+                    throw new Exception("Error 3.7.4");
+                if (!R10.UnsecureCompare(R14, 3))
+                    throw new Exception("Error 3.7.5");
+            }
         }
     }
 }
@@ -285,15 +316,72 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
         {
             List<byte[]> lst = new List<byte[]>();
 
-            
+            var b = new byte[256];
+            for (int i = 0; i < 256; i++)
+                b[i] = (byte) i;
 
+            var success = 0;
+            var cnt     = Environment.ProcessorCount << 1;
+            cnt = 1;
+
+            Calc(b);
+/*
+            for (int j = 0; j < cnt; j++)
+            ThreadPool.QueueUserWorkItem
+            (
+                delegate
+                {
+                    try
+                    {
+                        Interlocked.Add(  ref success, Calc(b)  );
+                    }
+                    catch (Exception e)
+                    {
+                        var te = new TestError() {ex = e, Message = e.Message};
+
+                        lock (task)
+                            task.error.Add(te);
+                    }
+                }
+            );
+
+            if (success != cnt)
+                throw new Exception($"success != cnt ({success} == {cnt})");
+*/
             return lst;
+        }
+
+        public static int Calc(byte[] b)
+        {// TODO: Здесь ошибка в тестах: консоль неисправна после запуска теста
+            AllocatorForUnsafeMemoryInterface? allocator = null;
+            for (int i = 0; i < 1024 * 1024; i++)
+            {
+                using (var R1 = getRecordFromBytesArray(b, allocator))
+                {
+                    allocator ??= R1.allocator;
+                    for (int j = 0; j < 64; j++)
+                    {
+                        /*using (var R2 = R1.NoCopyClone())
+                        {
+                            using (var R3 = R1.NoCopyClone(-1, j % (R1.len - 1)))
+                            {
+                            }
+                        }*/
+                    }
+    /*
+                if (!R1.UnsecureCompare(getRecordFromBytesArray(b)))
+                    throw new Exception("Error Record_test4.1");
+*/
+                }
+            }
+
+            return 1;
         }
     }
 }
 
 
-// [TestTagAttribute("inWork")]
+[TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>

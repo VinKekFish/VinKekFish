@@ -150,19 +150,24 @@ namespace cryptoprime
             }
 
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
-            /// <param name="len">Длина массива либо -1, если длина массива от shift до конца исходного массива, либо иное значение не более this.len</param>
+            /// <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива. (-shift, shift) то же, что и (0, shift)</param>
             /// <param name="shift">Сдвиг начала массива относительно исходной записи</param>
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
-            public Record NoCopyClone(nint len = -1, nint shift = 0)
+            public Record NoCopyClone(nint len = 0, nint shift = 0)
             {
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.NoCopyClone");
                 if (shift < 0 || shift >= this.len)
                     throw new ArgumentOutOfRangeException("shift");
 
-                if (len < 0)
-                    len = this.len - shift;
-                else
+                if (len <= 0)
+                {
+                    if (len == 0)
+                        len = this.len - shift;
+                    else
+                        len = this.len + len;
+                }
+
                 if (len + shift > this.len || len == 0)
                     throw new ArgumentOutOfRangeException("len");
 
@@ -209,6 +214,7 @@ namespace cryptoprime
             public void Clear()
             {
                 if (array != null)
+                if (len > 0)
                     BytesBuilder.ToNull(len, array);
             }
 
@@ -238,7 +244,7 @@ namespace cryptoprime
                     if (disposing == false)
                         return;
 
-                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed twice");
+                    throw new Exception("BytesBuilderForPointers.Record Dispose() executed twice");
                 }
 
                 bool allocatorExists = allocator != null || array != null;
@@ -254,7 +260,7 @@ namespace cryptoprime
 
                 isDisposed = true;
 
-                // TODO: Проверить, что это исключение действительно работает, то есть оно будет залогировано при окончании программы
+                // .NET может избегать вызова десктруктора, а исключение может быть не залогировано при завершении программы.
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
                     throw new Exception("BytesBuilderForPointers.Record ~Record() executed with the not disposed Record");
@@ -328,6 +334,37 @@ namespace cryptoprime
 
                 return true;
             }
+
+            /// <summary>Сравнивает две записи</summary>
+            /// <param name="b">Вторая запись для сравнения</param>
+            /// <param name="start">Самый первый элемент для сравнения в массиве b</param>
+            /// <param name="postEnd">Элемент, идущий после последнего элемента для сравнения. 0 == b.len. Отрицательное значение равно b.len+postEnd</param>
+            /// <returns>true, если значения массивов в записях равны</returns>
+            public bool UnsecureCompare(Record b, nint start, nint postEnd = 0)
+            {
+                if (postEnd <= 0)
+                    postEnd = b.len + postEnd;
+
+                var lenb = postEnd - start;
+                if (lenb > b.len)
+                    throw new ArgumentOutOfRangeException("start");
+
+                if (this.len != lenb)
+                    return false;
+
+                var aa = this.array;
+                var ba = b   .array;
+
+                for (nint i = 0; i < len; i++)
+                {
+                    if (aa[i] != ba[i + start])
+                        return false;
+                }
+
+                return true;
+            }
+
+
 // TODO: Это нужно перенести отсюда, т.к. эта функция не подлежит оптимизации
             /// <summary>Сравнивает две записи: this - эталонная запись, подлежит защите</summary>
             /// <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
@@ -464,6 +501,12 @@ namespace cryptoprime
             public Record FixMemory(object array, nint length)
             {
                 throw new NotImplementedException();
+            }
+
+            ~AllocHGlobal_AllocatorForUnsafeMemory()
+            {
+                if (_memAllocated > 0)
+                    throw new Exception("~AllocHGlobal_AllocatorForUnsafeMemory: Allocator have memory this not been freed");
             }
         }
 
