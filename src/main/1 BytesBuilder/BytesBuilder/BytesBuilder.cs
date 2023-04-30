@@ -804,8 +804,11 @@ namespace cryptoprime
         /// <param name="count">Количество элементов для сравнения</param>
         /// <param name="indexWell">Начальный индекс для сравнения в массиве wellHash</param>
         /// <returns><see langword="true"/> - если массивы совпадают</returns>
-        public unsafe static bool UnsecureCompare(nint wellLen, nint hashLen, byte* wellHash, byte* hash, int count = -1, int indexWell = 0)
+        public unsafe static bool UnsecureCompare(nint wellLen, nint hashLen, byte* wellHash, byte* hash, nint count = -1, nint indexWell = 0)
         {
+            if (indexWell < 0)
+                throw new ArgumentOutOfRangeException("indexWell");
+
             if (count == -1)
             {
                 if (wellLen != indexWell + hashLen || wellLen < indexWell)
@@ -848,6 +851,9 @@ namespace cryptoprime
         /// <returns><see langword="true"/> - если массивы совпадают</returns>
         public unsafe static bool UnsecureCompare(byte[] wellHash, byte[] hash, int count = -1, int indexWell = 0)
         {
+            if (indexWell < 0)
+                throw new ArgumentOutOfRangeException("indexWell");
+
             if (count == -1)
             {
                 if (wellHash.LongLength != indexWell + hash.LongLength || wellHash.LongLength < indexWell)

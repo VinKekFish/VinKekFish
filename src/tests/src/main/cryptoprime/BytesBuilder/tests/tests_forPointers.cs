@@ -162,7 +162,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
     }
 }
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 500, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет функции клонирования</summary>
@@ -308,7 +308,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
     }
 }
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 20_000, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>
@@ -425,6 +425,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
                             throw new Exception("Error Record_test 4.1c-last");
                     }
 
+                    // По сути, здесь тестируется и вызов Clear для R3 и R2
                     for (nint i = 0; i < r1l; i++)
                         if (r1a[i] != 0)
                             throw new Exception("Error Record_test 4.1d");
@@ -445,7 +446,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 2700, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>
 public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_parent
@@ -460,7 +461,93 @@ public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_par
         {
             List<byte[]> lst = new List<byte[]>();
 
-            
+            var b = new byte[256];
+            for (int i = 0; i < 256; i++)
+                b[i] = (byte) i;
+
+            using var R = Record.getRecordFromBytesArray(b);
+
+            for (int i = 0; i < b.Length; i++)
+            for (int j = i; j < b.Length; j++)
+                R.checkRange(i, j);
+
+            for (int i = 0; i < b.Length; i++)
+            for (int j = 0; j < i; j++)
+                try
+                {
+                    R.checkRange(i, j);
+                    var err = new TestError() { Message = $"checkRange({i}, {j}) not got exception" };
+                    task.error.Add(err);
+                }
+                catch
+                {}
+
+            try
+            {
+                R.checkRange(-1,    0);
+                R.checkRange(0,     R.len);
+                R.checkRange(R.len, R.len-1);
+
+                R.checkRange(0,             nint.MaxValue);
+                R.checkRange(nint.MinValue, 0);
+
+                var err = new TestError() { Message = $"checkRange(...) not got exception" };
+                task.error.Add(err);
+            }
+            catch
+            {}
+
+            fixed (byte * bp = b)
+            {
+                for (int i = 0; i < b.Length; i++)
+                {
+                    if (!BytesBuilder.UnsecureCompare(i, i, bp, R))
+                        throw new Exception("UnsecureCompare 1.1");
+
+                    for (int j = 0; j < i; j++)
+                    {
+                        var a = bp[j];
+                        bp[j] = (byte) (j + 1);
+
+                        if (!BytesBuilder.UnsecureCompare(i, i, bp, R, j))
+                            throw new Exception("UnsecureCompare 1.2");
+                        if (BytesBuilder.UnsecureCompare(i, i, bp, R, j+1))
+                            throw new Exception("UnsecureCompare 1.3");
+
+                        bp[j] = a;
+                    }
+                }
+
+                for (nint s = 1; s < b.Length-3; s++)
+                for (nint i = 1; i < b.Length-s; i++)
+                {
+                    var b1 = bp + i;
+                    if (!BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, -1,  i))
+                        throw new Exception("UnsecureCompare 1.4.1");
+                    if (!BytesBuilder.UnsecureCompare(R.len-1, R.len,    R, b1, s-1, i))
+                        throw new Exception("UnsecureCompare 1.4.2");
+                    if (!BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, s,   i))
+                        throw new Exception("UnsecureCompare 1.4.3");
+                    if (!BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, R.len-i, i))
+                        throw new Exception("UnsecureCompare 1.4.4");
+                    if (!BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, R.len-i-1, i))
+                        throw new Exception("UnsecureCompare 1.4.5");
+                    if (BytesBuilder.UnsecureCompare(R.len,  b.Length-i, R, b1, -1,  i+1))
+                        throw new Exception("UnsecureCompare 1.5.1");
+                    if (BytesBuilder.UnsecureCompare(R.len,  b.Length-i, R, b1, -1,  i-1))
+                        throw new Exception("UnsecureCompare 1.5.2");
+                    if (BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, R.len-i+1, i))
+                        throw new Exception("UnsecureCompare 1.5.3");
+
+                    try
+                    {
+                        BytesBuilder.UnsecureCompare(R.len, b.Length-i, R, b1, -1, -i);
+                        throw new Exception("UnsecureCompare 1.6.1");
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {}
+                }
+            }
 
             return lst;
         }

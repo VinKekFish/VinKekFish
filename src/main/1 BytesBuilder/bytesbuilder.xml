@@ -185,7 +185,7 @@
             <param name="target">Массив для записи</param>
             <param name="start">Индекс в массиве для записи туда числа</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.UnsecureCompare(System.IntPtr,System.IntPtr,System.Byte*,System.Byte*,System.Int32,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.UnsecureCompare(System.IntPtr,System.IntPtr,System.Byte*,System.Byte*,System.IntPtr,System.IntPtr)">
             <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>
             <param name="wellLen">Длина первого массива</param>
             <param name="hashLen">Длина второго массива</param>
