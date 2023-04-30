@@ -413,6 +413,8 @@ namespace cryptoprime
                 {
                     if (index >= len)
                         throw new ArgumentOutOfRangeException("index >= len");
+                    if (index < 0)
+                        throw new ArgumentOutOfRangeException("index >= len");
 
                     return this.array[index];
                 }
