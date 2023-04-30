@@ -392,9 +392,11 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
             static AllocatorForUnsafeMemoryInterface? SubCalc(byte[] b, AllocatorForUnsafeMemoryInterface? allocator)
             {
-                using var R1 = getRecordFromBytesArray(b, allocator);
+                using var R1  = getRecordFromBytesArray(b, allocator);
+                      var r1a = R1.array;
+                      var r1l = R1.len;
+                allocator   ??= R1.allocator;
 
-                allocator  ??= R1.allocator;
                 for (int j = 0; j < 64; j++)
                 {
                     using (var R2 = R1.NoCopyClone())
@@ -407,28 +409,32 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
                             if (!R1.UnsecureCompare(R10))
                                 throw new Exception("Error Record_test 4.1a");*/
                             fixed (byte * bp = b)
-                            if (!BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, R1))
+                            if (!BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, r1a))
                                 throw new Exception("Error Record_test 4.1a");
                         }
 
-                        for (int i = j; i < R1.len - 1; i++)
-                            if (R1[i] != 0)
+                        for (nint i = shift; i < r1l - 1; i++)
+                            if (r1a[i] != 0)
                                 throw new Exception("Error Record_test 4.1b");
 
-                        for (int i = 1; i < j; i++)
-                            if (R1[i] == 0)
+                        for (nint i = 1; i < shift; i++)
+                            if (r1a[i] == 0)
                                 throw new Exception("Error Record_test 4.1c-all");
 
-                        if (R1[R1.len-1] == 0)
+                        if (r1a[R1.len-1] == 0)
                             throw new Exception("Error Record_test 4.1c-last");
                     }
 
-                    for (int i = 0; i < R1.len; i++)
-                        if (R1[i] != 0)
+                    for (nint i = 0; i < r1l; i++)
+                        if (r1a[i] != 0)
                             throw new Exception("Error Record_test 4.1d");
 
                     fixed (byte * bp = b)
-                    BytesBuilder.CopyTo(b.Length, R1.len, bp, R1);
+                    if (BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, r1a))
+                                throw new Exception("Error Record_test 4.1e");
+
+                    fixed (byte * bp = b)
+                    BytesBuilder.CopyTo(b.Length, R1.len, bp, r1a);
                 }
 
                 return allocator;
