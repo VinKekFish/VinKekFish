@@ -185,6 +185,16 @@
             <param name="target">Массив для записи</param>
             <param name="start">Индекс в массиве для записи туда числа</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.UnsecureCompare(System.IntPtr,System.IntPtr,System.Byte*,System.Byte*,System.Int32,System.Int32)">
+            <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>
+            <param name="wellLen">Длина первого массива</param>
+            <param name="hashLen">Длина второго массива</param>
+            <param name="wellHash">Первый массив</param>
+            <param name="hash">Второй массив</param>
+            <param name="count">Количество элементов для сравнения</param>
+            <param name="indexWell">Начальный индекс для сравнения в массиве wellHash</param>
+            <returns><see langword="true"/> - если массивы совпадают</returns>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.UnsecureCompare(System.Byte[],System.Byte[],System.Int32,System.Int32)">
             <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>
             <param name="wellHash">Первый массив</param>
@@ -409,6 +419,11 @@
             <summary>Сравнивает две записи: this - эталонная запись, подлежит защите</summary>
             <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
             <returns>true, если значения массивов в записях равны</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.checkRange(System.IntPtr,System.IntPtr)">
+            <summary>Проверяет, что индексы start и end лежат внутри массива. start &lt;= end. Если условия не выполнены, то генерируется исключение.</summary>
+            <param name="start">Индекс для проверки в границах массива</param>
+            <param name="end">Индекс для проверки в границах массива</param>
         </member>
         <member name="T:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface">
             <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>

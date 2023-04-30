@@ -797,6 +797,50 @@ namespace cryptoprime
         }
 
         /// <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>
+        /// <param name="wellLen">Длина первого массива</param>
+        /// <param name="hashLen">Длина второго массива</param>
+        /// <param name="wellHash">Первый массив</param>
+        /// <param name="hash">Второй массив</param>
+        /// <param name="count">Количество элементов для сравнения</param>
+        /// <param name="indexWell">Начальный индекс для сравнения в массиве wellHash</param>
+        /// <returns><see langword="true"/> - если массивы совпадают</returns>
+        public unsafe static bool UnsecureCompare(nint wellLen, nint hashLen, byte* wellHash, byte* hash, int count = -1, int indexWell = 0)
+        {
+            if (count == -1)
+            {
+                if (wellLen != indexWell + hashLen || wellLen < indexWell)
+                    return false;
+
+                byte * w1 = wellHash, h1 = hash;
+                byte * w = w1 + indexWell, h = h1, S = w1 + wellLen;
+
+                for (; w < S; w++, h++)
+                {
+                    if (*w != *h)
+                        return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                if (wellLen < indexWell + count || hashLen < count)
+                    return false;
+
+                byte * w1 = wellHash, h1 = hash;
+                byte * w  = w1 + indexWell, h = h1, S = w1 + indexWell + count;
+
+                for (; w < S; w++, h++)
+                {
+                    if (*w != *h)
+                        return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>
         /// <param name="wellHash">Первый массив</param>
         /// <param name="hash">Второй массив</param>
         /// <param name="count">Количество элементов для сравнения</param>

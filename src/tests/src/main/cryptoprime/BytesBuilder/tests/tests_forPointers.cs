@@ -163,7 +163,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 40, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 500, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет функции клонирования</summary>
 public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_parent
@@ -182,9 +182,10 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
             for (int i = 0; i < 256; i++)
                 b[i] = (byte) i;
 
-            for (int j = 0; j < Environment.ProcessorCount << 1; j++)
-            ThreadPool.QueueUserWorkItem
+            // for (int j = 0; j < Environment.ProcessorCount << 1; j++)
+            Parallel.For
             (
+                0, Environment.ProcessorCount << 1,
                 (state) => Calc(b)
             );
 
@@ -307,8 +308,8 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
     }
 }
 
-// [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+[TestTagAttribute("inWork")]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 20_000, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>
 public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_parent
@@ -329,14 +330,11 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
             var success = 0;
             var cnt     = Environment.ProcessorCount << 1;
-            cnt = 1;
 
-            Calc(b);
-/*
-            for (int j = 0; j < cnt; j++)
-            ThreadPool.QueueUserWorkItem
+            Parallel.For
             (
-                delegate
+                0, cnt,
+                delegate (int _)
                 {
                     try
                     {
@@ -354,35 +352,87 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
             if (success != cnt)
                 throw new Exception($"success != cnt ({success} == {cnt})");
-*/
+
             return lst;
         }
 
         public static int Calc(byte[] b)
-        {// TODO: Здесь ошибка в тестах: консоль неисправна после запуска теста
-            AllocatorForUnsafeMemoryInterface? allocator = null;
-            for (int i = 0; i < 1024 * 1024; i++)
+        {
+            AllocatorForUnsafeMemoryInterface? allocator = new AllocHGlobal_AllocatorForUnsafeMemory_debug();
+            var a = (allocator as AllocHGlobal_AllocatorForUnsafeMemory_debug)!.allocatedRecords_Debug;
+
+            var ErrorOccured = false;
+            for (int i = 0; i < 16 * 1024; i++)
             {
-                using (var R1 = getRecordFromBytesArray(b, allocator))
+                allocator = SubCalc(b, allocator);
+                if ((i & 0xFFF) == 0xFFF)
                 {
-                    allocator ??= R1.allocator;
-                    for (int j = 0; j < 64; j++)
+                    // GC.Collect();
+                    var ama = (allocator as AllocHGlobal_AllocatorForUnsafeMemory_debug)!.memAllocated;
+                    if (ama > 0)
                     {
-                        /*using (var R2 = R1.NoCopyClone())
-                        {
-                            using (var R3 = R1.NoCopyClone(-1, j % (R1.len - 1)))
-                            {
-                            }
-                        }*/
+                        ErrorOccured = true;
+                        Console.WriteLine("ERROR: allocated: " + ama);
                     }
-    /*
-                if (!R1.UnsecureCompare(getRecordFromBytesArray(b)))
-                    throw new Exception("Error Record_test4.1");
-*/
                 }
             }
 
-            return 1;
+
+            var cnt = 0;
+            foreach (var e in a)
+            {
+                Console.WriteLine(e.Value);
+                cnt++;
+
+                if (cnt > 20)
+                    break;
+            }
+
+            return ErrorOccured ? 0 : 1;
+
+            static AllocatorForUnsafeMemoryInterface? SubCalc(byte[] b, AllocatorForUnsafeMemoryInterface? allocator)
+            {
+                using var R1 = getRecordFromBytesArray(b, allocator);
+
+                allocator  ??= R1.allocator;
+                for (int j = 0; j < 64; j++)
+                {
+                    using (var R2 = R1.NoCopyClone())
+                    {
+                        var shift = j % (R1.len - 1);
+                        using (var R3 = R1.NoCopyClone(-1, j))
+                        {
+                            /* Это не делаем, т.к. очень медленное выделение памяти
+                            using var R10 = getRecordFromBytesArray(b, allocator);
+                            if (!R1.UnsecureCompare(R10))
+                                throw new Exception("Error Record_test 4.1a");*/
+                            fixed (byte * bp = b)
+                            if (!BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, R1))
+                                throw new Exception("Error Record_test 4.1a");
+                        }
+
+                        for (int i = j; i < R1.len - 1; i++)
+                            if (R1[i] != 0)
+                                throw new Exception("Error Record_test 4.1b");
+
+                        for (int i = 1; i < j; i++)
+                            if (R1[i] == 0)
+                                throw new Exception("Error Record_test 4.1c-all");
+
+                        if (R1[R1.len-1] == 0)
+                            throw new Exception("Error Record_test 4.1c-last");
+                    }
+
+                    for (int i = 0; i < R1.len; i++)
+                        if (R1[i] != 0)
+                            throw new Exception("Error Record_test 4.1d");
+
+                    fixed (byte * bp = b)
+                    BytesBuilder.CopyTo(b.Length, R1.len, bp, R1);
+                }
+
+                return allocator;
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// #define RECORD_DEBUG
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -260,7 +261,7 @@ namespace cryptoprime
                 // .NET может избегать вызова десктруктора, а исключение может быть не залогировано при завершении программы.
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
-                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed with the not disposed Record");
+                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed with a not disposed Record");
             }
 
             /// <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
@@ -393,17 +394,28 @@ namespace cryptoprime
                 if (end < start)
                     throw new ArgumentOutOfRangeException("end < start");
 
-                if (start > len)
-                    throw new ArgumentOutOfRangeException("start > len");
+                if (start >= len)
+                    throw new ArgumentOutOfRangeException("start >= len");
 
-                if (end > len)
-                    throw new ArgumentOutOfRangeException("end > len");
-                
+                if (end >= len)
+                    throw new ArgumentOutOfRangeException("end >= len");
+
                 if (start < 0)
                     throw new ArgumentOutOfRangeException("start > len");
 
                 if (end < 0)
                     throw new ArgumentOutOfRangeException("end > len");
+            }
+
+            public byte this[nint index]
+            {
+                get
+                {
+                    if (index >= len)
+                        throw new ArgumentOutOfRangeException("index >= len");
+
+                    return this.array[index];
+                }
             }
         }
 
@@ -477,7 +489,7 @@ namespace cryptoprime
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Длина выделяемого участка памяти</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
-            public Record AllocMemory(nint len)
+            public virtual Record AllocMemory(nint len)
             {
                 if (len < 1)
                     throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory.ArgumentOutOfRangeException: len must be > 0");
@@ -498,7 +510,7 @@ namespace cryptoprime
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями)</summary>
             /// <param name="recordToFree">Память к освобождению</param>
-            public void FreeMemory(Record recordToFree)
+            public virtual void FreeMemory(Record recordToFree)
             {
                 Marshal.FreeHGlobal(recordToFree.ptr);
                 InterlockedDecrement_memAllocated();
@@ -525,6 +537,28 @@ namespace cryptoprime
             {
                 if (_memAllocated > 0)
                     throw new Exception("~AllocHGlobal_AllocatorForUnsafeMemory: Allocator have memory this not been freed");
+            }
+        }
+
+        public class AllocHGlobal_AllocatorForUnsafeMemory_debug : AllocHGlobal_AllocatorForUnsafeMemory
+        {
+            public ConcurrentDictionary<Record, string> allocatedRecords_Debug = new ConcurrentDictionary<Record, string>(Environment.ProcessorCount, 1024);
+
+            public override Record AllocMemory(nint len)
+            {
+                var result = base.AllocMemory(len);
+
+                allocatedRecords_Debug.TryAdd(  result, new System.Diagnostics.StackTrace(true).ToString()  );
+
+                return result;
+            }
+
+            public override void FreeMemory(Record recordToFree)
+            {
+                base.FreeMemory(recordToFree);
+
+                while (!allocatedRecords_Debug.TryRemove(recordToFree, out string _))
+                {}
             }
         }
 
