@@ -459,7 +459,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<string> lst = new List<string>();
 
             var b = new byte[256];
             for (int i = 0; i < 256; i++)
@@ -548,6 +548,14 @@ public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_par
                     {}
                 }
             }
+/*
+            var al = new AllocHGlobal_AllocatorForUnsafeMemory_debug();
+            using var R1 = Record.getRecordFromBytesArray(b, al);
+            foreach (var r in al.allocatedRecords_Debug)
+            {
+                lst.Add(r.Value);
+            }
+*/
 
             return lst;
         }
