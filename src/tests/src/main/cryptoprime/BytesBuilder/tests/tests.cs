@@ -1,5 +1,9 @@
 #define CAN_CREATEFILE_FOR_BytesBuilder
 
+/*
+Это тесты для базового класса BytesBuilder
+*/
+
 namespace cryptoprime_tests;
 
 using System.Text;

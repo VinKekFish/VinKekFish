@@ -518,7 +518,7 @@
             <summary>Минимально возможный размер циклического буфера</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Resize(System.IntPtr)">
-            <summary>Изменяет размер циклического буфера без потери данных.<para>Ничего не блокируется, при многопоточных вызовах синхронизация остаётся на пользователе.</para></summary>
+            <summary>Изменяет размер циклического буфера без потери данных.<para>При многопоточных вызовах синхронизация остаётся на пользователе.</para></summary>
             <param name="Size">Новый размер</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.ReadBytesTo(System.Byte*,System.IntPtr)">
@@ -585,12 +585,7 @@
             <summary>Удаляет байты из начала массива</summary>
             <param name="len">Количество байтов к удалению</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record)">
-            <summary>Создаёт массив байтов, включающий в себя result.len байтов из буфера, и удаляет их с очисткой</summary>
-            <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>. Длина запрошенных данных устанавливается полем len этой записи</param>
-            <returns>Запрошенный результат (первые resultCount байтов), этот возвращаемый результат равен параметру result</returns>
-        </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
             <param name="count">Длина запрашиваемых данных</param>

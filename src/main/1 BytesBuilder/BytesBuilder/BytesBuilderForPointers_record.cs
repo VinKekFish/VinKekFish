@@ -559,7 +559,7 @@ namespace cryptoprime
             {
                 base.FreeMemory(recordToFree);
 
-                while (!allocatedRecords_Debug.TryRemove(recordToFree, out string _))
+                while (!allocatedRecords_Debug.TryRemove(recordToFree, out string? _))
                 {}
             }
         }

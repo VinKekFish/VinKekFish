@@ -10,3 +10,4 @@
 # [cryptoprime](3 cryptoprime)
 
 Основные примитивы шифрования: ThreeFish (генерированный из [generator](2 generator) ) и keccak
+Генерированный класс Threefish_Static_Generated требует подготовки для работы с помощью класса Threefish1024, который вычисляет расширения ключа и твика

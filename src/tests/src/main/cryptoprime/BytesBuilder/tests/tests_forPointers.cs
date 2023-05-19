@@ -1,4 +1,7 @@
 // Флаг изменения тестовых файлов идёт в tests.cs
+/*
+Это тесты для класса BytesBuilderForPointers и BytesBuilderForPointers.Record
+*/
 
 namespace cryptoprime_tests;
 
@@ -445,7 +448,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 }
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 2700, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// </summary>

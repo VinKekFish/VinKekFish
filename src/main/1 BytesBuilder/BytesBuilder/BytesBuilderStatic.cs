@@ -29,7 +29,7 @@ namespace cryptoprime
             Resize(Size);
         }
 
-        /// <summary>Изменяет размер циклического буфера без потери данных.<para>Ничего не блокируется, при многопоточных вызовах синхронизация остаётся на пользователе.</para></summary>
+        /// <summary>Изменяет размер циклического буфера без потери данных.<para>При многопоточных вызовах синхронизация остаётся на пользователе.</para></summary>
         /// <param name="Size">Новый размер</param>
         public void Resize(nint Size)
         {
@@ -43,7 +43,9 @@ namespace cryptoprime
 
             if (oldRegion != null)
             {
-                ReadBytesTo(newRegion.array, count);
+                if (count > 0)
+                    ReadBytesTo(newRegion.array, count);
+
                 oldRegion.Dispose();
                 oldRegion = null;
             }
@@ -54,6 +56,11 @@ namespace cryptoprime
             after  = bytes + region.len;
             Start  = 0;
             End    = Count;
+
+            if (Count == size)
+            {
+                End = 0;
+            }
         }
 
         /// <summary>Прочитать count байтов из циклического буфера в массив target</summary>
@@ -76,11 +83,15 @@ namespace cryptoprime
             if (l1 + l2 != this.count)
                 throw new Exception("ReadBytesTo: Fatal algorithmic error: l1 + l2 != this.count");
 
+            if (l1 > 0)
             BytesBuilder.CopyTo(l1, count, s1, target);
 
             var lc = count - l1;
-            if (l2 > 0 && lc > 0)
-            BytesBuilder.CopyTo(l2, lc, bytes, target + l1);
+            if (lc > 0)
+                if (l2 >= lc)
+                    BytesBuilder.CopyTo(l2, lc, bytes, target + l1);
+                else
+                    throw new Exception("ReadBytesTo: Fatal algorithmic error: condition not met: l2 > 0");
         }
 
         /// <summary>Записывает байты в циклический буфер (добавляет байты в конец)</summary>
@@ -113,6 +124,10 @@ namespace cryptoprime
                     else
                         throw new Exception("WriteBytes: Fatal algorithmic error: End > size");
                 }
+                else
+                if (A < countToWrite)
+                    throw new Exception("WriteBytes: Fatal algorithmic error: End < size && A < countToWrite");
+
 
                 // Если ещё остались байты для записи
                 if (A < countToWrite)
@@ -122,6 +137,9 @@ namespace cryptoprime
             {
                 var s1 = bytes + End;
                 var l1 = (nint)(   (bytes + Start) - s1   );
+
+                if (l1 < countToWrite)
+                    throw new Exception("WriteBytes: Fatal algorithmic error: l1 < countToWrite");
 
                 var A  = BytesBuilder.CopyTo(countToWrite, l1, source, s1);
                 count += A;
@@ -136,13 +154,13 @@ namespace cryptoprime
         }
 
                                                                                 /// <summary>Адрес циклического буфера == region.array</summary>
-        protected byte *  bytes  = null;                                        /// <summary>Поле, указывающее на первый байт после конца массива</summary>
+        protected byte *  bytes  = null;                                        /// <summary>Поле, указывающее на первый байт после конца региона памяти буфера. Он не меняется при добавлении или удалении данных. Только при изменении размера циклического буфера</summary>
         protected byte *  after  = null;                                        /// <summary>Обёртка для циклического буфера</summary>
         protected Record? region = null;
                                                                                 /// <summary>Количество всех сохранённых байтов в этом объекте - сырое поле для корректировки значений</summary>
         protected nint count = 0;                                               /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count => count;
-                                                                                /// <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count)</summary>
+                                                                                /// <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count); при полном заполнении буфера End = 0</summary>
         protected nint Start = 0, End = 0;
 
         /// <summary>Получает адрес элемента с индексом index</summary>
@@ -294,28 +312,15 @@ namespace cryptoprime
             }
         }
 
-        /// <summary>Создаёт массив байтов, включающий в себя result.len байтов из буфера, и удаляет их с очисткой</summary>
-        /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>. Длина запрошенных данных устанавливается полем len этой записи</param>
-        /// <returns>Запрошенный результат (первые resultCount байтов), этот возвращаемый результат равен параметру result</returns>
-        public Record getBytesAndRemoveIt(Record result)
-        {
-            if (result.len > this.count)
-                throw new ArgumentOutOfRangeException("BytesBuilderStatic.getBytesAndRemoveIt: count > this.count");
-            if (result.isDisposed)
-                throw new ArgumentOutOfRangeException(nameof(result), "BytesBuilderStatic.getBytesAndRemoveIt: result.isDisposed");
-
-            ReadBytesTo(result, result.len);
-            RemoveBytes(result.len);
-
-            return result;
-        }
-
         /// <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
         /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
         /// <param name="count">Длина запрашиваемых данных</param>
         /// <returns></returns>
-        public Record getBytesAndRemoveIt(Record result, int count)
+        public Record getBytesAndRemoveIt(Record result, nint count = -1)
         {
+            if (count < 0)
+                count = Math.Min(this.count, result.len);
+
             if (count > result.len)
                 throw new ArgumentOutOfRangeException(nameof(result), "BytesBuilderStatic.getBytesAndRemoveIt: count > result.len");
             if (count > this.count)
