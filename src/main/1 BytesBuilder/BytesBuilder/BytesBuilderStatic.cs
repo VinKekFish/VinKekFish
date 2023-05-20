@@ -63,11 +63,14 @@ namespace cryptoprime
             }
         }
 
-        /// <summary>Прочитать count байтов из циклического буфера в массив target</summary>
+        /// <summary>Прочитать count байтов из циклического буфера в массив target, не удаляя прочитанные значения</summary>
         /// <param name="target">Целевой массив, куда копируются значения</param>
         /// <param name="count">Количество байтов для копирования. Если меньше нуля, то копируются все байты</param>
         public void ReadBytesTo(byte* target, nint count = -1)
         {
+            if (region == null)
+                throw new ObjectDisposedException("BytesBuilderStatic");
+
             if (count < 0)
                 count = Count;
 
@@ -99,6 +102,9 @@ namespace cryptoprime
         /// <param name="countToWrite">Количество байтов для добавления</param>
         public void WriteBytes(byte* source, nint countToWrite)
         {
+            if (region == null)
+                throw new ObjectDisposedException("BytesBuilderStatic");
+
             if (count + countToWrite > size)
                 throw new ArgumentOutOfRangeException("WriteBytes: count + countToWrite > size");
             if (countToWrite <= 0)
@@ -163,7 +169,7 @@ namespace cryptoprime
                                                                                 /// <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count); при полном заполнении буфера End = 0</summary>
         protected nint Start = 0, End = 0;
 
-        /// <summary>Получает адрес элемента с индексом index</summary>
+        /// <summary>Получает адрес элемента с индексом index (с учётом смещения первого элемента буфера)</summary>
         /// <param name="index">Индекс получаемого элемента</param>
         /// <returns>Адрес элемента массива</returns>
         public byte * this[nint index]
@@ -186,6 +192,9 @@ namespace cryptoprime
 
                     p = bytes + index;
 
+                    if (p >= after || p < bytes)
+                        throw new Exception("WriteBytes: Fatal algorithmic error: p >= after || p < bytes");
+
                     return p;
                 }
             }
@@ -204,10 +213,10 @@ namespace cryptoprime
                     }
                     else
                     {
-                        var r = (nint) (after - (bytes + Start));
-
                         if (count == 0)
                             return 0;
+
+                        var r = (nint) (after - (bytes + Start));
 
                         return r;
                     }
@@ -243,8 +252,8 @@ namespace cryptoprime
             add(rec.array, rec.len);
         }
 
-        /// <summary>Обнуляет объект</summary>
-        /// <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве</param>
+        /// <summary>Очищает циклический буфер</summary>
+        /// <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
         public void Clear(bool fast = false)
         {
             count = 0;
@@ -343,6 +352,10 @@ namespace cryptoprime
 
             region?.Dispose();
             region = null;
+            bytes  = null;
+            after  = null;
+            Start  = 0;
+            End    = 0;
 
             if (!disposing)
                 throw new Exception("~BytesBuilderStatic: region != null");

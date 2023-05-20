@@ -522,7 +522,7 @@
             <param name="Size">Новый размер</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.ReadBytesTo(System.Byte*,System.IntPtr)">
-            <summary>Прочитать count байтов из циклического буфера в массив target</summary>
+            <summary>Прочитать count байтов из циклического буфера в массив target, не удаляя прочитанные значения</summary>
             <param name="target">Целевой массив, куда копируются значения</param>
             <param name="count">Количество байтов для копирования. Если меньше нуля, то копируются все байты</param>
         </member>
@@ -535,7 +535,7 @@
             <summary>Адрес циклического буфера == region.array</summary>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.after">
-            <summary>Поле, указывающее на первый байт после конца массива</summary>
+            <summary>Поле, указывающее на первый байт после конца региона памяти буфера. Он не меняется при добавлении или удалении данных. Только при изменении размера циклического буфера</summary>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.region">
             <summary>Обёртка для циклического буфера</summary>
@@ -547,13 +547,13 @@
             <summary>Количество всех сохранённых байтов в этом объекте</summary>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.Start">
-            <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count)</summary>
+            <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count); при полном заполнении буфера End = 0</summary>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.End">
-            <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count)</summary>
+            <summary>End - это индекс следующего добавляемого байта. Для Start = 0 поле End должно быть равно размеру сохранённых данных (End == Count); при полном заполнении буфера End = 0</summary>
         </member>
         <member name="P:cryptoprime.BytesBuilderStatic.Item(System.IntPtr)">
-            <summary>Получает адрес элемента с индексом index</summary>
+            <summary>Получает адрес элемента с индексом index (с учётом смещения первого элемента буфера)</summary>
             <param name="index">Индекс получаемого элемента</param>
             <returns>Адрес элемента массива</returns>
         </member>
@@ -571,8 +571,8 @@
             <param name="rec">Добавляемый массив (копируется)</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Clear(System.Boolean)">
-            <summary>Обнуляет объект</summary>
-            <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве</param>
+            <summary>Очищает циклический буфер</summary>
+            <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
