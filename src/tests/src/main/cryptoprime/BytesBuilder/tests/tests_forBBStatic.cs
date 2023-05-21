@@ -69,8 +69,8 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             {}
 
             const int L1 = 512, S1 = 1024, L2 = L1+S1;
-            bbs.WriteBytes(etalon + 0,  L1);
-            bbs.WriteBytes(etalon + S1, L1);
+            bbs.WriteBytes(etalon.array + 0,  L1);
+            bbs.WriteBytes(etalon.array + S1, L1);
 
             result.array[L1+0] = 255;
             result.array[L1+1] = 255;
@@ -91,7 +91,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
                            i + (S1 >> 1)
                    )
                 {
-                    var er = result.NoCopyClone(1024);
+                    using var er = result.NoCopyClone(1024);
                     throw new Exception($"1.1.2 {i}; {rshort[i + (L1 >> 1)]} == {i + (S1 >> 1)}; {er.ToString()}");
                 }
             }
@@ -108,6 +108,8 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
 
             result.Dispose();
             etalon.Dispose();
+
+            GC.Collect();
 
             return lst;
         }

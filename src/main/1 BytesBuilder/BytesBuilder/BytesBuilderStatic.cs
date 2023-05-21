@@ -98,7 +98,8 @@ namespace cryptoprime
         }
 
         /// <summary>Записывает байты в циклический буфер (добавляет байты в конец)</summary>
-        /// <param name="source">Источник, из которого берутся данные</param>
+        /// <param name="source">Источник, из которого берутся данные.
+        /// <para>Если передаётся Record, убедитесь, что не передаётся что-то типа "record + 16" - это будет неверное приведение типов; верное приведение типов "record.array+16"</para></param>
         /// <param name="countToWrite">Количество байтов для добавления</param>
         public void WriteBytes(byte* source, nint countToWrite)
         {
@@ -158,11 +159,11 @@ namespace cryptoprime
                     throw new Exception("WriteBytes: Fatal algorithmic error: End > Start");
             }
         }
-
+#warning PUBLIC -> protected
                                                                                 /// <summary>Адрес циклического буфера == region.array</summary>
         protected byte *  bytes  = null;                                        /// <summary>Поле, указывающее на первый байт после конца региона памяти буфера. Он не меняется при добавлении или удалении данных. Только при изменении размера циклического буфера</summary>
         protected byte *  after  = null;                                        /// <summary>Обёртка для циклического буфера</summary>
-        protected Record? region = null;
+        public Record? region = null;
                                                                                 /// <summary>Количество всех сохранённых байтов в этом объекте - сырое поле для корректировки значений</summary>
         protected nint count = 0;                                               /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count => count;

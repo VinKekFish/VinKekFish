@@ -294,7 +294,7 @@ namespace cryptoprime
                 return (ulong *) t.array;
             }
                                                                                     /// <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
-            public static Record operator +(Record a, nint len)
+            public static Record operator >>(Record a, nint len)
             {
                 return new Record
                 {

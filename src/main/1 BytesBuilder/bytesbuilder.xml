@@ -528,7 +528,8 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.WriteBytes(System.Byte*,System.IntPtr)">
             <summary>Записывает байты в циклический буфер (добавляет байты в конец)</summary>
-            <param name="source">Источник, из которого берутся данные</param>
+            <param name="source">Источник, из которого берутся данные.
+            <para>Если передаётся Record, убедитесь, что не передаётся что-то типа "record + 16" - это будет неверное приведение типов; верное приведение типов "record.array+16"</para></param>
             <param name="countToWrite">Количество байтов для добавления</param>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.bytes">
