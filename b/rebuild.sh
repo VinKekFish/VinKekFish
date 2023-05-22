@@ -21,7 +21,9 @@ rm -fR ./build
 rm -fR ./src/builder/builder/bin/
 rm -fR ./src/builder/builder/obj/
 dotnet clean ./src/builder/builder/
-dotnet clean ./src/main/cryptoprime/
+dotnet clean './src/main/1 BytesBuilder/'
+dotnet clean './src/main/2 generator/'
+dotnet clean './src/main/3 cryptoprime/'
 dotnet clean ./src/tests/
 
 

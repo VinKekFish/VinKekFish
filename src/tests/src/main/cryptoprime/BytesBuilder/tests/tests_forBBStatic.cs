@@ -69,16 +69,14 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             {}
 
             const int L1 = 512, S1 = 1024, L2 = L1+S1;
-            bbs.WriteBytes(etalon.array + 0,  L1);
-            bbs.WriteBytes(etalon.array + S1, L1);
+            bbs.WriteBytes(etalon >> 0,  L1);
+            bbs.WriteBytes(etalon >> S1, L1);
 
-            result.array[L1+0] = 255;
-            result.array[L1+1] = 255;
-            result.array[L2+0] = 255;
-            result.array[L2+1] = 0;
-            result.array[L2+2] = 254;
+            result[L2+0] = 255;
+            result[L2+1] = 253;
+            result[L2+2] = 254;
 
-            if (bbs.len1 != L1 + L1 || bbs.Count != bbs.len1)
+            if (bbs.len1 != L1 + L1 || bbs.Count != bbs.len1 || bbs.len2 != 0)
                 throw new Exception("1.0");
 
             bbs.getBytesAndRemoveIt(result); // , L1 + L1
@@ -96,14 +94,32 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
                 }
             }
 
-            if (result.array[L1+0] != 255 || result.array[L1+1] != 255)
+            if (bbs.len1 != 0 || bbs.len2 != 0 || bbs.Count != 0)
                 throw new Exception("1.1.3");
-            if (result.array[L2+0] != 255)
+            if (result[L2+0] != 255)
                 throw new Exception("1.1.4.0");
-            if (result.array[L2+1] != 0)
+            if (result[L2+1] != 253)
                 throw new Exception("1.1.4.1");
-            if (result.array[L2+2] != 254)
+            if (result[L2+2] != 254)
                 throw new Exception("1.1.4.2");
+
+            var resultInList = result.NoCopyClone(L2+2);
+            lst.Add(resultInList.ToString());
+
+            bbs.add(etalon >> 768, 1);
+            bbs.getBytes(1, result >> L2);
+            if (result[L2+0] != 128)
+                throw new Exception("1.1.5.1a");
+            if (result[L2+1] != 253)
+                throw new Exception("1.1.5.1b");
+
+            bbs.getBytesAndRemoveIt(result >> L2 + 1);
+            if (result[L2+0] != 128)
+                throw new Exception("1.1.5.2a");
+            if (result[L2+1] != 128)
+                throw new Exception("1.1.5.2b");
+            if (result[L2+2] != 254)
+                throw new Exception("1.1.5.2c");
 
 
             result.Dispose();

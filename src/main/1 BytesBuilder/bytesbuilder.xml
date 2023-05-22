@@ -343,7 +343,7 @@
             <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.ToString(System.Int32,System.Int32)">
-            <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
+            <summary>Выводит строковое представление для отладки в формате "{длина}\n элемент элемент элемент"</summary>
             <param name="maxLen">Максимальное количество элементов массива для вывода в строку</param>
             <param name="maxStrLen">Максимальная длина строки для вывода результата</param>
         </member>
@@ -400,8 +400,14 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.UInt64*">
             <summary>Возвращает ссылку на массив, преобразованную в тип unint * </summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Addition(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
-            <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_RightShift(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Смещает начало записи на len. r &gt;&gt; 128 возвращает запись res: res.array=r.array+128, res.len=r.len-128</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_LeftShift(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Уменьшает длину записи. r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_BitwiseAnd(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.UnsecureCompare(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Сравнивает две записи</summary>

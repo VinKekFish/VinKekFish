@@ -71,11 +71,13 @@ namespace cryptoprime
 
                 var sb = new StringBuilder();
 
-                sb.AppendLine($"length = {len}; ");
+                sb.Append($"length = {len}; ");
                 if (array != null)
                 {
                     for (int i = 0; i < len; i++)
+                    {
                         sb.Append(array[i].ToString("D3") + "  ");
+                    }
                 }
                 else
                 {
@@ -85,7 +87,11 @@ namespace cryptoprime
                 return sb.ToString();
             }
 
-            /// <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
+            public const int ToString_LineBlock = 8;
+            public const int ToString_Line      = 16;
+            public const int ToString_Block     = 4*ToString_Line;
+            public const int ToString_Block2    = 4*ToString_Block;
+            /// <summary>Выводит строковое представление для отладки в формате "{длина}\n элемент элемент элемент"</summary>
             /// <param name="maxLen">Максимальное количество элементов массива для вывода в строку</param>
             /// <param name="maxStrLen">Максимальная длина строки для вывода результата</param>
             public string ToString(int maxLen = int.MaxValue, int maxStrLen = int.MaxValue)
@@ -101,11 +107,27 @@ namespace cryptoprime
                     string? tmp = null;
                     for (int i = 0; i < len && i < maxLen; i++)
                     {
-                        tmp = array[i].ToString("D3") + "  ";
+                        tmp = array[i].ToString("D3") + " ";
                         if (sb.Length + tmp.Length > maxStrLen)
                             break;
 
                         sb.Append(tmp);
+
+
+                        if (i % ToString_LineBlock == ToString_LineBlock-1)
+                            sb.Append("  ");
+                        if (i % ToString_Line == ToString_Line-1)
+                            sb.AppendLine();
+                        if (i % ToString_Block == ToString_Block-1)
+                            sb.AppendLine();
+
+                        if (i % ToString_Block2 == ToString_Block2-1)
+                        if (i != len - 1)
+                        if (i != maxLen - 1)
+                        {
+                            sb.AppendLine();
+                            sb.AppendLine($"{i+1}:");
+                        }
                     }
                 }
                 else
@@ -293,8 +315,30 @@ namespace cryptoprime
 
                 return (ulong *) t.array;
             }
-                                                                                    /// <summary>var r = a + Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
-            public static Record operator +(Record a, nint len)
+                                                                                    /// <summary>Смещает начало записи на len. r &gt;&gt; 128 возвращает запись res: res.array=r.array+128, res.len=r.len-128</summary>
+            public static Record operator >>(Record a, nint len)
+            {
+                return new Record
+                {
+                    allocator = null,
+                    array     = a.array + len,
+                    len       = a.len - len
+                };
+            }
+
+                                                                                    /// <summary>Уменьшает длину записи. r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+            public static Record operator <<(Record a, nint len)
+            {
+                return new Record
+                {
+                    allocator = null,
+                    array     = a.array,
+                    len       = a.len - len
+                };
+            }
+
+                                                                                    /// <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
+            public static Record operator &(Record a, nint len)
             {
                 return new Record
                 {
@@ -312,6 +356,7 @@ namespace cryptoprime
 
                 return t.len;
             }*/
+
 
             /// <summary>Сравнивает две записи</summary>
             /// <param name="b">Вторая запись для сравнения</param>
@@ -417,6 +462,15 @@ namespace cryptoprime
                         throw new ArgumentOutOfRangeException("index >= len");
 
                     return this.array[index];
+                }
+                set
+                {
+                    if (index >= len)
+                        throw new ArgumentOutOfRangeException("index >= len");
+                    if (index < 0)
+                        throw new ArgumentOutOfRangeException("index >= len");
+
+                    this.array[index] = value;
                 }
             }
         }
