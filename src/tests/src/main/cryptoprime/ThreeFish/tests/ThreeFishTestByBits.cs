@@ -35,7 +35,7 @@ namespace main_tests
             {
                 // 128 - это размер одного блока
                 long size = 128;
-                for (ulong valk = 0; valk < (ulong) (size << 3); valk++)
+                for (nint valk = 0; valk < (nint) (size << 3); valk++)
                 {
                     var bk1 = new byte[size];
                     BytesBuilder.ToNull(bk1, 0xFFFF_FFFF__FFFF_FFFF);
@@ -45,7 +45,7 @@ namespace main_tests
                     BytesBuilder.ToNull(bk2);
                     BitToBytes.setBit(bk2, valk);
 
-                    for (ulong valt = 0; valt < (ulong) (size << 3); valt++)
+                    for (nint valt = 0; valt < (nint) (size << 3); valt++)
                     {
                         var b1 = new byte[size];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);

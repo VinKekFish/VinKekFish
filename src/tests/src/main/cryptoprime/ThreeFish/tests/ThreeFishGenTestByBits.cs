@@ -39,7 +39,7 @@ namespace main_tests
                 // 128 - это размер одного блока
                 const long size = 128;
                 const long sb   = size << 3;    // Размер одного блока в битах
-                for (ulong valk = 0; valk < (ulong) sb; valk++)
+                for (nint valk = 0; valk < (nint) sb; valk++)
                 {
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     var bk1 = new byte[size];
@@ -50,7 +50,7 @@ namespace main_tests
                     BytesBuilder.ToNull(bk2);
                     BitToBytes.setBit(bk2, valk);
 
-                    for (ulong valt = 0; valt < (ulong) sb; valt++)
+                    for (nint valt = 0; valt < (nint) sb; valt++)
                     {
                         var b1 = new byte[size];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);
@@ -75,7 +75,7 @@ namespace main_tests
 
                 const long sizetw = threefish_slowly.twLen;
                 const long sbtw   = sizetw << 3;
-                for (ulong valk = 0; valk < (ulong) sb; valk++)
+                for (nint valk = 0; valk < (nint) sb; valk++)
                 {
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     var bk1 = new byte[size];
@@ -86,7 +86,7 @@ namespace main_tests
                     BytesBuilder.ToNull(bk2);
                     BitToBytes.setBit(bk2, valk);
 
-                    for (ulong valt = 0; valt < (ulong) sbtw; valt++)
+                    for (nint valt = 0; valt < (nint) sbtw; valt++)
                     {
                         var b1 = new byte[sizetw];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);

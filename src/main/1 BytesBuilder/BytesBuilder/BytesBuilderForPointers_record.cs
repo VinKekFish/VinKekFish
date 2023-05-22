@@ -191,13 +191,14 @@ namespace cryptoprime
                 if (len + shift > this.len || len == 0)
                     throw new ArgumentOutOfRangeException("len");
 
-
-                return new Record()
+                var r = new Record()
                 {
                     len       = len,
                     array     = this.array + shift,
-                    allocator = null
                 };
+
+                r.allocator = new AllocHGlobal_NoCopy(this, r);
+                return r;
             }
 
             /// <summary>Копирует содержимое объекта в безопасный массив байтов</summary>
@@ -241,12 +242,14 @@ namespace cryptoprime
             /// <summary>Если true, то объект уже уничтожен</summary>
             public bool isDisposed = false;     // Оставлено public, чтобы обеспечить возможность повторного использования того же объекта
 
+            /// <summary>Количество входящих ссылок, полученные NoCopyClone и т.п.
+            /// <para>Синхронизация осуществляется при помощи lock (inLinks) либо при помощи класса AllocHGlobal_NoCopy</para></summary>
+            public readonly List<Record> inLinks = new List<Record>(0);
+
             /// <summary>Очищает и освобождает выделенную область памяти</summary>
-            // TODO: протестировать на двойной вызов (должно всё работать)
             public void Dispose()
             {
                 Dispose(true);
-                GC.SuppressFinalize(this);
             }
 
             /// <summary>Вызывает Dispose()</summary>
@@ -266,10 +269,30 @@ namespace cryptoprime
 
                     throw new Exception("BytesBuilderForPointers.Record Dispose() executed twice");
                 }
+                else
+                    GC.SuppressFinalize(this);
 
                 bool allocatorExists = allocator != null || array != null;
 
-                Clear();
+                lock (inLinks)
+                {
+                    for (int i = 0; i < inLinks.Count; i++)
+                    {
+                        try
+                        {
+                            inLinks[i].Dispose();
+                        }
+                        catch
+                        {}
+                    }
+                    inLinks.Clear();
+                }
+
+                if (allocator is AllocHGlobal_NoCopy)
+                    allocatorExists = false;
+                else
+                    Clear();
+
                 allocator?.FreeMemory(this);
 
                 len       = 0;
@@ -279,7 +302,6 @@ namespace cryptoprime
                 allocator = null;
 
                 isDisposed = true;
-
                 // .NET может избегать вызова десктруктора, а исключение может быть не залогировано при завершении программы.
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
@@ -318,34 +340,46 @@ namespace cryptoprime
                                                                                     /// <summary>Смещает начало записи на len. r &gt;&gt; 128 возвращает запись res: res.array=r.array+128, res.len=r.len-128</summary>
             public static Record operator >>(Record a, nint len)
             {
-                return new Record
+                if (a.len <= len)
+                    throw new ArgumentOutOfRangeException("len", "in '>>' operator");
+
+                var r = new Record()
                 {
-                    allocator = null,
                     array     = a.array + len,
                     len       = a.len - len
                 };
+
+                r.allocator = new AllocHGlobal_NoCopy(a, r);
+                return r;
             }
 
                                                                                     /// <summary>Уменьшает длину записи. r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
             public static Record operator <<(Record a, nint len)
             {
-                return new Record
+                if (a.len <= len)
+                    throw new ArgumentOutOfRangeException("len", "in '<<' operator");
+
+                var r = new Record()
                 {
-                    allocator = null,
                     array     = a.array,
                     len       = a.len - len
                 };
+
+                r.allocator = new AllocHGlobal_NoCopy(a, r);
+                return r;
             }
 
                                                                                     /// <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
             public static Record operator &(Record a, nint len)
             {
-                return new Record
+                var r = new Record()
                 {
-                    allocator = null,
                     array     = a.array + a.len,
                     len       = len
                 };
+
+                r.allocator = new AllocHGlobal_NoCopy(a, r);
+                return r;
             }
             /* Это преобразование типов входит в конфликт с удобством и другими преобразованиями
                                                                                 /// <summary>Возвращает длину данных</summary>
@@ -498,6 +532,38 @@ namespace cryptoprime
             /// <param name="length">Длина объекта в байтах. Длины массивов необходимо домножать на размер элемента массива</param>
             /// <returns></returns>
             public Record FixMemory(object array, nint length);
+        }
+
+        public class AllocHGlobal_NoCopy : AllocatorForUnsafeMemoryInterface
+        {
+            public readonly Record sourceRecord;
+            public AllocHGlobal_NoCopy(Record sourceRecord, Record newRecord)
+            {
+                this.sourceRecord = sourceRecord;
+                lock (sourceRecord.inLinks)
+                    sourceRecord.inLinks.Add(newRecord);
+            }
+
+            public Record AllocMemory(nint len)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Record FixMemory(byte[] array)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Record FixMemory(object array, nint length)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void FreeMemory(Record recordToFree)
+            {
+                lock (sourceRecord.inLinks)
+                    sourceRecord.inLinks.Remove(recordToFree);
+            }
         }
 
         /// <summary>Выделяет память с помощью Marshal.AllocHGlobal</summary>

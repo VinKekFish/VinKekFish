@@ -22,7 +22,7 @@ namespace cryptoprime
 
         /// <summary>Получить бит из битово массива</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
-        public static bool getBit(byte[] array, ulong index)
+        public static bool getBit(byte[] array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
@@ -35,7 +35,7 @@ namespace cryptoprime
 
         /// <summary>Установить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void setBit(byte[] array, ulong index)
+        public static void setBit(byte[] array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
@@ -45,7 +45,7 @@ namespace cryptoprime
 
         /// <summary>Сбросить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void resetBit(byte[] array, ulong index)
+        public static void resetBit(byte[] array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);

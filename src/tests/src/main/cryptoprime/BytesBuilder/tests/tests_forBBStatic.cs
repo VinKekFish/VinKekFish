@@ -42,7 +42,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
                 eshort[i] = (ushort) i;
             }
 
-            using var bbs = new BytesBuilderStatic(1024);
+            var bbs = new BytesBuilderStatic(1024);
             try
             {
                 bbs.WriteBytes(etalon, 1025);
@@ -69,6 +69,13 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             {}
 
             const int L1 = 512, S1 = 1024, L2 = L1+S1;
+            var et0  = etalon >> 0;
+            var etS1 = etalon >> S1;
+            if (et0.array != etalon.array)
+                throw new Exception("et0");
+            if (etS1.array != etalon.array + S1)
+                throw new Exception("etS1");
+
             bbs.WriteBytes(etalon >> 0,  L1);
             bbs.WriteBytes(etalon >> S1, L1);
 
@@ -107,7 +114,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             lst.Add(resultInList.ToString());
 
             bbs.add(etalon >> 768, 1);
-            bbs.getBytes(1, result >> L2);
+            bbs.getBytes(-1, result >> L2);
             if (result[L2+0] != 128)
                 throw new Exception("1.1.5.1a");
             if (result[L2+1] != 253)
@@ -121,9 +128,21 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             if (result[L2+2] != 254)
                 throw new Exception("1.1.5.2c");
 
+            if (bbs.len1 != 0 || bbs.len2 != 0 || bbs.Count != 0)
+                throw new Exception("1.1.6");
+            // При забирании данных буфер автоматически очищается
+            if (!bbs.isEntireNull())
+                throw new Exception("1.1.7a");
+            bbs.add(etalon >> 768, 1);
+            if (bbs.isEntireNull())
+                throw new Exception("1.1.7b");
+            bbs.Clear();
+            if (!bbs.isEntireNull())
+                throw new Exception("1.1.7c");
 
             result.Dispose();
             etalon.Dispose();
+            bbs   .Dispose();
 
             GC.Collect();
 

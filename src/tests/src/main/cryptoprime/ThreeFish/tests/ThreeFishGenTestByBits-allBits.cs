@@ -53,7 +53,7 @@ namespace main_tests
                 yield return new SourceTask() {Name = $"Threfish key = 0; tweak = 0; text = 0", key = key, text = text, tweak = tweak };
 
                 const long sb   = size << 3;    // Размер одного блока в битах
-                for (ulong valk = 0; valk < (ulong) sb; valk++)
+                for (nint valk = 0; valk < (nint) sb; valk++)
                 {
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     key = new byte[size];
@@ -70,7 +70,7 @@ namespace main_tests
                 }
 
                 key = new byte[size];
-                for (ulong valk = 0; valk < (ulong) sb; valk++)
+                for (nint valk = 0; valk < (nint) sb; valk++)
                 {
                     text = new byte[size];
                     BytesBuilder.ToNull(text, 0xFFFF_FFFF__FFFF_FFFF);
@@ -87,7 +87,7 @@ namespace main_tests
 
                 text = new byte[size];
                 const long st   = tsize << 3;    // Размер одного блока tweak в битах
-                for (ulong valk = 0; valk < (ulong) st; valk++)
+                for (nint valk = 0; valk < (nint) st; valk++)
                 {
                     tweak = new byte[tsize];
                     BytesBuilder.ToNull(tweak, 0xFFFF_FFFF__FFFF_FFFF);

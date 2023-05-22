@@ -159,11 +159,11 @@ namespace cryptoprime
                     throw new Exception("WriteBytes: Fatal algorithmic error: End > Start");
             }
         }
-#warning PUBLIC -> protected
+
                                                                                 /// <summary>Адрес циклического буфера == region.array</summary>
         protected byte *  bytes  = null;                                        /// <summary>Поле, указывающее на первый байт после конца региона памяти буфера. Он не меняется при добавлении или удалении данных. Только при изменении размера циклического буфера</summary>
         protected byte *  after  = null;                                        /// <summary>Обёртка для циклического буфера</summary>
-        public Record? region = null;
+        protected Record? region = null;
                                                                                 /// <summary>Количество всех сохранённых байтов в этом объекте - сырое поле для корректировки значений</summary>
         protected nint count = 0;                                               /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count => count;
@@ -177,6 +177,9 @@ namespace cryptoprime
         {
             get
             {
+                if (region == null)
+                    throw new ObjectDisposedException("BytesBuilderStatic.RemoveBytes");
+
                 if (index >= count)
                     throw new ArgumentOutOfRangeException();
 
@@ -257,12 +260,31 @@ namespace cryptoprime
         /// <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
         public void Clear(bool fast = false)
         {
+            if (region == null)
+                throw new ObjectDisposedException("BytesBuilderStatic.RemoveBytes");
+
             count = 0;
             Start = 0;
             End   = 0;
 
             if (!fast)
                 BytesBuilder.ToNull(size, bytes);
+        }
+
+        /// <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
+        /// <returns>true, если все значения внутреннего буфера равны нулю</returns>
+        public bool isEntireNull()
+        {
+            if (region == null)
+                throw new ObjectDisposedException("BytesBuilderStatic.RemoveBytes");
+
+            for (int i = 0; i < size; i++)
+            {
+                if (bytes[i] != 0)
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
@@ -301,6 +323,9 @@ namespace cryptoprime
         /// <param name="len">Количество байтов к удалению</param>
         public void RemoveBytes(nint len)
         {
+            if (region == null)
+                throw new ObjectDisposedException("BytesBuilderStatic.RemoveBytes");
+
             if (len > count)
                 throw new ArgumentOutOfRangeException();
 
@@ -348,13 +373,15 @@ namespace cryptoprime
         /// <param name="disposing">Всегда true, кроме вызова из деструктора</param>
         public virtual void Dispose(bool disposing = true)
         {
+            if (after  == null)
             if (region == null)
                 return;
 
             region?.Dispose();
             region = null;
-            bytes  = null;
             after  = null;
+            bytes  = null;
+            count  = 0;
             Start  = 0;
             End    = 0;
 

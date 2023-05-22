@@ -4,15 +4,15 @@
         <name>bytesbuilder</name>
     </assembly>
     <members>
-        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte[],System.UInt64)">
+        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte[],System.IntPtr)">
             <summary>Получить бит из битово массива</summary>
             <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte[],System.UInt64)">
+        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte[],System.IntPtr)">
             <summary>Установить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte[],System.UInt64)">
+        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte[],System.IntPtr)">
             <summary>Сбросить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
@@ -378,6 +378,10 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.Record.isDisposed">
             <summary>Если true, то объект уже уничтожен</summary>
         </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.Record.inLinks">
+            <summary>Количество входящих ссылок, полученные NoCopyClone и т.п.
+            <para>Синхронизация осуществляется при помощи lock (inLinks) либо при помощи класса AllocHGlobal_NoCopy</para></summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Dispose">
             <summary>Очищает и освобождает выделенную область памяти</summary>
         </member>
@@ -580,6 +584,10 @@
         <member name="M:cryptoprime.BytesBuilderStatic.Clear(System.Boolean)">
             <summary>Очищает циклический буфер</summary>
             <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderStatic.isEntireNull">
+            <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
+            <returns>true, если все значения внутреннего буфера равны нулю</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
