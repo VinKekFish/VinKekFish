@@ -19,3 +19,5 @@ fi
 
 
 ./build/builder/builder "$configuration" "$testTags" "$flags"
+
+# dotnet ./build/SecureCompare.dll

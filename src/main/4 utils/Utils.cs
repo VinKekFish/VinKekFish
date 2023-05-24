@@ -25,7 +25,7 @@ public unsafe static class Utils
         return r != 0;
     }
 
-    /// <summary>Безопасно сравнивает два массива. Функция хуже, но быстрее, чем SecureCompare</summary>
+    /// <summary>Безопасно сравнивает два массива. Функция немного хуже, но раз в 5 быстрее, чем SecureCompare</summary>
     /// <param name="r1">Первый массив</param>
     /// <param name="r2">Второй массив</param>
     /// <returns><see langword="true"/>, если массивы совпадают.</returns>
@@ -34,7 +34,7 @@ public unsafe static class Utils
         return SecureCompareSpeed(r1, r2, 0, 0, r1.len, r2.len);
     }
 
-    /// <summary>Безопасно сравнивает два массива. Функция хуже, но быстрее, чем SecureCompare</summary>
+    /// <summary>Безопасно сравнивает два массива. Функция немного хуже, но раз в 5 быстрее, чем SecureCompare</summary>
     /// <param name="r1">Первый массив</param>
     /// <param name="r2">Второй массив</param>
     /// <param name="start1">Начальный индекс для сравнения в первом массиве</param>
@@ -47,6 +47,10 @@ public unsafe static class Utils
         var len = len1;
         if (len > len2)
             len = len2;
+        if (start1 + len1 > r1.len)
+            throw new ArgumentOutOfRangeException("r1");
+        if (start2 + len2 > r2.len)
+            throw new ArgumentOutOfRangeException("r2");
 
         byte * r1a = r1.array + start1, r2a = r2.array + start2, End1 = r1a + len;
 
