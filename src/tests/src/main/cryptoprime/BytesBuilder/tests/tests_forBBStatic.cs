@@ -12,7 +12,7 @@ using DriverForTestsLib;
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 50, singleThread: true)]
 /// <summary>Тест для BytesBuilderStatic</summary>
 public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
@@ -68,7 +68,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             catch (ArgumentOutOfRangeException)
             {}
 
-            const int L1 = 512, S1 = 1024, L2 = L1+S1;
+            const int L1 = 512, S1 = 1024, L2 = L1+L1;
             var et0  = etalon >> 0;
             var etS1 = etalon >> S1;
             if (et0.array != etalon.array)
@@ -79,7 +79,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             bbs.WriteBytes(etalon >> 0,  L1);
             bbs.WriteBytes(etalon >> S1, L1);
 
-            result[L2+0] = 255;
+            result[L2+0] = 251;
             result[L2+1] = 253;
             result[L2+2] = 254;
 
@@ -103,7 +103,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
 
             if (bbs.len1 != 0 || bbs.len2 != 0 || bbs.Count != 0)
                 throw new Exception("1.1.3");
-            if (result[L2+0] != 255)
+            if (result[L2+0] != 251)
                 throw new Exception("1.1.4.0");
             if (result[L2+1] != 253)
                 throw new Exception("1.1.4.1");

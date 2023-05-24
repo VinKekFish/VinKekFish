@@ -95,6 +95,16 @@ partial class Program
                 return result;
         }
 
+        // ----------------  main-crypto ----------------
+        (result, dir) = ExecuteBuildForProject(cd, "src/main/5 main-crypto/", inSingleFile: false);
+        end_build_for_project_event?.Invoke(result, dir);
+
+        if (result != ErrorCode.Success)
+        {
+            if (result != ErrorCode.SuccessActual)
+                return result;
+        }
+
 
 
 

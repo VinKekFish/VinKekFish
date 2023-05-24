@@ -11,18 +11,19 @@ public unsafe static class Utils
     /// <returns>true, если значения массивов в записях равны</returns>
     public static bool SecureCompare(Record well, Record devil)
     {
-        var aa = well .array;
-        var ba = devil.array;
+        var aa  = well .array;
+        var ba  = devil.array;
+        var len = well.len;
 
         nint r = 0;
         for (nint i = 0; i < devil.len; i++)
         {
-            r |= aa[i % well.len] ^ ba[i];                        
+            r |= aa[i % len] ^ ba[i];                        
         }
 
         r |= well.len ^ devil.len;
 
-        return r != 0;
+        return r == 0;
     }
 
     /// <summary>Безопасно сравнивает два массива. Функция немного хуже, но раз в 5 быстрее, чем SecureCompare</summary>
@@ -54,12 +55,14 @@ public unsafe static class Utils
 
         byte * r1a = r1.array + start1, r2a = r2.array + start2, End1 = r1a + len;
 
-        byte V = 0;
+        nint V = 0;
         for (; r1a < End1; r1a++, r2a++)
         {
-            V |= (byte) (*r1a ^ *r2a);
+            V |= *r1a ^ *r2a;
         }
 
-        return V == 0 && len1 == len2;
+        V |= len1 ^ len2;
+
+        return V == 0;
     }
 }
