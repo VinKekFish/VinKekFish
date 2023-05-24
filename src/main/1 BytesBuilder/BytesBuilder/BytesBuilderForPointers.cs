@@ -274,43 +274,7 @@ namespace cryptoprime
                 data += *(target + i);
             }
         }
-/*
-Эта функция хуже, чем Record.SecureCompare; плюс, здесь не отключена оптимизация
-        /// <summary>Безопасно сравнивает два массива</summary>
-        /// <param name="r1">Первый массив</param>
-        /// <param name="r2">Второй массив</param>
-        /// <returns><see langword="true"/>, если массивы совпадают.</returns>
-        public unsafe static bool isArrayEqual_Secure(Record r1, Record r2)
-        {
-            return isArrayEqual_Secure(r1, r2, 0, 0, r1.len, r2.len);
-        }
 
-
-        /// <summary>Безопасно сравнивает два массива</summary>
-        /// <param name="r1">Первый массив</param>
-        /// <param name="r2">Второй массив</param>
-        /// <param name="start1">Начальный индекс для сравнения в первом массиве</param>
-        /// <param name="start2">Начальный индекс для сравнения во втором массиве</param>
-        /// <param name="len1">Длина подмассива для сравнивания</param>
-        /// <param name="len2">Длина подмассива для сравнивания</param>
-        /// <returns><see langword="true"/>, если массивы совпадают.</returns>
-        public unsafe static bool isArrayEqual_Secure(Record r1, Record r2, nint start1, nint start2, nint len1, nint len2)
-        {
-            var len = len1;
-            if (len > len2)
-                len = len2;
-
-            byte * r1a = r1.array + start1, r2a = r2.array + start2, End1 = r1a + len;
-
-            byte V = 0;
-            for (; r1a < End1; r1a++, r2a++)
-            {
-                V |= (byte) (*r1a - *r2a);
-            }
-
-            return V == 0 && len1 == len2;
-        }
-*/
         /// <summary>Удаляет объект, вызывая Clear</summary>
         void IDisposable.Dispose()
         {

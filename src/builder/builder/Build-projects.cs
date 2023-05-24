@@ -75,6 +75,25 @@ partial class Program
                 return result;
         }
 
+        // ----------------  VinKekFish_Utils  ----------------
+        (result, dir) = ExecuteBuildForProject(cd, "src/main/4 utils/", inSingleFile: false);
+        end_build_for_project_event?.Invoke(result, dir);
+
+        if (result != ErrorCode.Success)
+        {
+            if (result != ErrorCode.SuccessActual)
+                return result;
+        }
+
+        // ----------------  VinKekFish_Utils test-dev  ----------------
+        (result, dir) = ExecuteBuildForProject(cd, "src/test-dev/SecureCompare/", inSingleFile: false);
+        end_build_for_project_event?.Invoke(result, dir);
+
+        if (result != ErrorCode.Success)
+        {
+            if (result != ErrorCode.SuccessActual)
+                return result;
+        }
 
 
 
@@ -82,6 +101,7 @@ partial class Program
 
 
         // ----------------  All tests executor. MUST BE LAST  ----------------
+        // Кроме одноразовых тестов test-dev
         (result, dir) = ExecuteBuildForProject(cd, "src/tests/", false);
         end_build_for_project_event?.Invoke(result, dir);
 

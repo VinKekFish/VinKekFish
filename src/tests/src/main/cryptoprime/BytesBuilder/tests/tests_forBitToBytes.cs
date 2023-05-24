@@ -12,8 +12,8 @@ using DriverForTestsLib;
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
-[TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 25, singleThread: true)]
 /// <summary>Тест для BytesBuilderStatic</summary>
 public unsafe class BitToBytes_test1: BytesBuilder_test_parent
 {

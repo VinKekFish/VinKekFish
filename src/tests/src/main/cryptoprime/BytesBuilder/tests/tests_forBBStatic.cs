@@ -13,7 +13,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 50, singleThread: true)]
 /// <summary>Тест для BytesBuilderStatic</summary>
 public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
 {
@@ -110,7 +110,7 @@ public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
             if (result[L2+2] != 254)
                 throw new Exception("1.1.4.2");
 
-            var resultInList = result.NoCopyClone(L2+2);
+            var resultInList = result.NoCopyClone(L2+3);
             lst.Add(resultInList.ToString());
 
             bbs.add(etalon >> 768, 1);

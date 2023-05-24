@@ -402,11 +402,20 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
                 for (int j = 0; j < 64; j++)
                 {
+                    if (R1.inLinks.Count != 0)
+                        throw new Exception("Error Record_test inLinks.1");
+
                     using (var R2 = R1.NoCopyClone())
                     {
+                        if (R1.inLinks.Count != 1)
+                            throw new Exception("Error Record_test inLinks.2");
+
                         var shift = j % (R1.len - 1);
                         using (var R3 = R1.NoCopyClone(-1, j))
                         {
+                            if (R1.inLinks.Count != 2)
+                                throw new Exception("Error Record_test inLinks.3");
+
                             /* Это не делаем, т.к. очень медленное выделение памяти
                             using var R10 = getRecordFromBytesArray(b, allocator);
                             if (!R1.UnsecureCompare(R10))
@@ -416,26 +425,32 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
                                 throw new Exception("Error Record_test 4.1a");
                         }
 
+                        if (R1.inLinks.Count != 1)
+                            throw new Exception("Error Record_test inLinks.4");
+
                         for (nint i = shift; i < r1l - 1; i++)
-                            if (r1a[i] != 0)
+                            if (r1a[i] == 0 && i != 0)
                                 throw new Exception("Error Record_test 4.1b");
 
                         for (nint i = 1; i < shift; i++)
-                            if (r1a[i] == 0)
+                            if (r1a[i] == 0 && i != 0)
                                 throw new Exception("Error Record_test 4.1c-all");
 
                         if (r1a[R1.len-1] == 0)
                             throw new Exception("Error Record_test 4.1c-last");
                     }
 
-                    // По сути, здесь тестируется и вызов Clear для R3 и R2
+                    if (R1.inLinks.Count != 0)
+                        throw new Exception("Error Record_test inLinks.5");
+
+                    // По сути, здесь тестируется и вызов Clear для R3 и R2 (теперь тест бесполезен, т.к. Clear не вызывается)
                     for (nint i = 0; i < r1l; i++)
-                        if (r1a[i] != 0)
+                        if (r1a[i] == 0 && i != 0)
                             throw new Exception("Error Record_test 4.1d");
 
                     fixed (byte * bp = b)
-                    if (BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, r1a))
-                                throw new Exception("Error Record_test 4.1e");
+                    if (!BytesBuilder.UnsecureCompare(b.Length, R1.len, bp, r1a))
+                        throw new Exception("Error Record_test 4.1e");
 
                     fixed (byte * bp = b)
                     BytesBuilder.CopyTo(b.Length, R1.len, bp, r1a);

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>4 utils</name>
+    </assembly>
+    <members>
+        <member name="M:VinKekFish_Utils.Utils.SecureCompare(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Сравнивает две записи: well - эталонная запись, подлежит защите</summary>
+            <param name="well">Эталонная запись, с которой сравнивается запись devil</param>
+            <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
+            <returns>true, если значения массивов в записях равны</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.SecureCompareSpeed(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Безопасно сравнивает два массива. Функция хуже, но быстрее, чем SecureCompare</summary>
+            <param name="r1">Первый массив</param>
+            <param name="r2">Второй массив</param>
+            <returns><see langword="true"/>, если массивы совпадают.</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.SecureCompareSpeed(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>Безопасно сравнивает два массива. Функция хуже, но быстрее, чем SecureCompare</summary>
+            <param name="r1">Первый массив</param>
+            <param name="r2">Второй массив</param>
+            <param name="start1">Начальный индекс для сравнения в первом массиве</param>
+            <param name="start2">Начальный индекс для сравнения во втором массиве</param>
+            <param name="len1">Длина подмассива для сравнивания</param>
+            <param name="len2">Длина подмассива для сравнивания</param>
+            <returns><see langword="true"/>, если массивы совпадают.</returns>
+        </member>
+    </members>
+</doc>

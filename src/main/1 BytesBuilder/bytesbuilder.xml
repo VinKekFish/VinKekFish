@@ -360,7 +360,7 @@
             <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.NoCopyClone(System.IntPtr,System.IntPtr)">
-            <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в копируемой записи только после того, как будет закончено использование копии</summary>
+            <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в оригинальной записи только после того, как будет закончено использование копии (если это будет не так, возникнет исключение)</summary>
             <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива, дополнительно к shift (newLen = this.len - shift + len)</param>
             <param name="shift">Сдвиг начала массива относительно исходной записи</param>
             <returns>Новая запись, указывающая на тот же самый массив</returns>
@@ -423,11 +423,6 @@
             <param name="b">Вторая запись для сравнения. Если размеры записей разные, то в b нужно передавать большую запись (т.к. иначе размеры записей не совпадут)</param>
             <param name="start">Самый первый элемент для сравнения в массиве b</param>
             <param name="postEnd">Элемент, идущий после последнего элемента для сравнения. 0 == b.len. Отрицательное значение равно b.len+postEnd</param>
-            <returns>true, если значения массивов в записях равны</returns>
-        </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.SecureCompare(cryptoprime.BytesBuilderForPointers.Record)">
-            <summary>Сравнивает две записи: this - эталонная запись, подлежит защите</summary>
-            <param name="devil">Вторая запись для сравнения. Вторая запись - запись, переданная злоумышленником</param>
             <returns>true, если значения массивов в записях равны</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.checkRange(System.IntPtr,System.IntPtr)">
