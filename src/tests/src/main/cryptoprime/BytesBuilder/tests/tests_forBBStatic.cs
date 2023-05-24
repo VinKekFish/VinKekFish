@@ -13,7 +13,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
 // [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 50, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 50, singleThread: false)]
 /// <summary>Тест для BytesBuilderStatic</summary>
 public unsafe class BytesBuilder_Static_test1: BytesBuilder_test_parent
 {
