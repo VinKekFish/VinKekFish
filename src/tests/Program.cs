@@ -38,7 +38,7 @@ class MainTestConstructor : TestConstructor
     {
         // Вызываем, чтобы загрузилась сборка
         if (Keccak_sha_3_512_test.canCreateFile) {}
-        new maincrypto.TMP();
+        new maincrypto.keccak.Keccak_20200918().Dispose();
         /*
         var PTT = new ParallelTasks_Tests(this, canCreateFile: canCreateFile);
         TestConstructor.addTasksForQueue
