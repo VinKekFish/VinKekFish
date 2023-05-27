@@ -346,6 +346,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         var ba = stackalloc byte[1];
         var b  = new Record() { array = ba, len = 1 };
         // using var b = output.getBytesAndRemoveIt(  AllocMemoryForSaveBytes(1)  );
+        output.getBytesAndRemoveIt(b);
 
         var result = ba[0];
         ba[0]      = 0;
