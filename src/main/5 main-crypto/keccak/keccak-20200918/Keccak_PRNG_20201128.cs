@@ -377,8 +377,14 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
                 BytesBuilderForPointers.BytesToULong(out ulong result, b.array, start: 0, length: b.len);
 
-                if (cutoff < 0x8000_0000__0000_0000U)
-                    result &= 0x7FFF_FFFF__FFFF_FFFFU;  // Сбрасываем старший бит, т.к. он не нужен никогда
+                ulong cf = 1U << 63;
+                //if (cutoff < 0x8000_0000__0000_0000U)
+                // result &= 0x7FFF_FFFF__FFFF_FFFFU;  // Сбрасываем старший бит, т.к. он не нужен никогда
+                while (cutoff < cf)
+                {
+                    result &= cf - 1;
+                    cf >>= 1;
+                }
 
                 if (result <= cutoff)
                     return result;
@@ -439,7 +445,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     }
 
     /// <summary>Осуществляет перестановки таблицы 2-хбайтовых целых чисел</summary>
-    /// <param name="table">Исходная таблица для перестановок длиной не более int.MaxValue</param>
+    /// <param name="table">Исходная таблица для перестановок длиной не более int.MaxValue и не менее чем 4 числа</param>
     public void doRandomPermutationForUShorts(ushort[] table)
     {
         // Иначе всё равно будет слишком долго
@@ -448,23 +454,29 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (table.Length <= 3)
             throw new ArgumentException("doRandomCubicPermutationForUShorts: table is very short");
 
-        ushort a;
-        ulong  index;
         fixed (ushort * T = table)
         {
-            var len = (ulong) table.LongLength;
-
-            // Алгоритм тасования Дурштенфельда
-            // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
-            for (ulong i = 0; i < len - 1; i++)
-            {
-                getCutoffForUnsignedInteger(0, (ulong) len - i - 1, out ulong cutoff, out ulong range);
-                index = getUnsignedInteger (0, cutoff, range, outputBuffer!) + i;
-
-                a        = T[i];
-                T[i]     = T[index];
-                T[index] = a;
-            }
+            doRandomPermutationForUShorts((ulong) table.LongLength, T);
         }
+    }
+
+    public void doRandomPermutationForUShorts(ulong len, ushort* T)
+    {
+        ushort a;
+        ulong  index;
+
+        // Алгоритм тасования Дурштенфельда
+        // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
+        for (ulong i = 0; i < len - 1; i++)
+        {
+            getCutoffForUnsignedInteger(0, (ulong)len - i - 1, out ulong cutoff, out ulong range);
+            index = getUnsignedInteger(0, cutoff, range, outputBuffer!) + i;
+
+            a        = T[i];
+            T[i]     = T[index];
+            T[index] = a;
+        }
+
+        a = 0;
     }
 }
