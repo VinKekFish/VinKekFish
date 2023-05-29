@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace cryptoprime
 {
-    public static class BitToBytes
+    public unsafe static class BitToBytes
     {
         public static readonly byte[] BitMask =
         {
@@ -24,6 +24,14 @@ namespace cryptoprime
         /// <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
         public static bool getBit(byte[] array, nint index)
         {
+            fixed (byte * b = array)
+                return getBit(b, index);
+        }
+
+        /// <summary>Получить бит из битово массива</summary>
+        /// <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
+        public static bool getBit(byte* array, nint index)
+        {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
             var r = array[i];
@@ -37,6 +45,14 @@ namespace cryptoprime
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         public static void setBit(byte[] array, nint index)
         {
+            fixed (byte * b = array)
+                setBit(b, index);
+        }
+
+        /// <summary>Установить бит в битовом массиве</summary>
+        /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        public static void setBit(byte* array, nint index)
+        {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
 
@@ -46,6 +62,14 @@ namespace cryptoprime
         /// <summary>Сбросить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         public static void resetBit(byte[] array, nint index)
+        {
+            fixed (byte * b = array)
+                resetBit(b, index);
+        }
+
+        /// <summary>Сбросить бит в битовом массиве</summary>
+        /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        public static void resetBit(byte* array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);

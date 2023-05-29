@@ -8,11 +8,23 @@
             <summary>Получить бит из битово массива</summary>
             <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
         </member>
+        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte*,System.IntPtr)">
+            <summary>Получить бит из битово массива</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
+        </member>
         <member name="M:cryptoprime.BitToBytes.setBit(System.Byte[],System.IntPtr)">
             <summary>Установить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
+        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte*,System.IntPtr)">
+            <summary>Установить бит в битовом массиве</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        </member>
         <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte[],System.IntPtr)">
+            <summary>Сбросить бит в битовом массиве</summary>
+            <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
+        </member>
+        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte*,System.IntPtr)">
             <summary>Сбросить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>

@@ -291,6 +291,7 @@ namespace cryptoprime
                 if (allocator is AllocHGlobal_NoCopy)
                     allocatorExists = false;
                 else
+                if (allocatorExists)
                     Clear();
 
                 allocator?.FreeMemory(this);

@@ -127,4 +127,9 @@ public unsafe abstract class Keccak_abstract: IDisposable
             throw new Exception("~Keccak_abstract: State != null");
         }
     }
+
+    public void CalcStep()
+    {
+        Keccackf(a: Slong, c: Clong, b: Blong);
+    }
 }

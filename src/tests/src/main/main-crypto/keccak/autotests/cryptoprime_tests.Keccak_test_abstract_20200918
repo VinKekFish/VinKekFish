@@ -1,0 +1,37 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			4
+		
+		Count:		System.Int32		.enumerableObject.Count
+			1
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     length = 200
+231 221 225 064 121 143 037 241   212 111 142 127 045 164 151 255   
+053 214 023 035 063 169 090 235   097 174 217 033 090 099 229 005   
+020 038 058 174 034 121 012 148   138 071 192 051 249 204 213 132   
+196 071 070 164 160 229 254 144   003 033 113 013 038 230 166 169   
+
+242 112 201 140 242 254 190 100   228 009 197 162 036 249 065 024   
+238 169 090 166 030 038 152 213   118 046 025 214 012 218 091 140   
+095 085 207 219 022 124 165 129   017 102 196 123 149 112 054 097   
+194 101 004 231 038 053 245 022   077 073 128 111 048 071 021 189   
+
+156 005 025 027 247 166 048 173   038 200 071 003 205 049 184 067   
+203 014 208 079 085 090 124 184   059 161 048 127 233 068 246 117   
+087 208 083 098 005 078 040 139   100 252 143 208 183 090 147 048   
+159 086 165 017 026 047 242 001   200 050 207 028 138 232 062 140   
+
+073 162 236 092 123 255 241 234   		[:String]
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 
