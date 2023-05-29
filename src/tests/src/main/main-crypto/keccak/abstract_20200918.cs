@@ -39,8 +39,8 @@ public class Keccak_test_erfc_S : TestTask
 }
 
 
-// [TestTagAttribute("inWork")]
-[TestTagAttribute("keccak", duration: 520, singleThread: false)]
+[TestTagAttribute("inWork")]
+[TestTagAttribute("keccak", duration: 550, singleThread: false)]
 public class Keccak_test_abstract_20200918: Keccak_test_parent
 {
     public Keccak_test_abstract_20200918(TestConstructor constructor):
@@ -82,6 +82,17 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             lst.Add(debugRecord.ToString());
             lst.Add("Deviation: " + deviation.ToString("D2"));
 
+            k2.clearOnly_C_and_B();
+            isNullBC(k2, "k2.b || k2.c != null");
+            k2.ClearStateWithoutStateField();
+            k2.CalcStep();
+            if (BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
+                throw new Exception("1.4.1");
+            k .CalcStep();
+            if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
+                throw new Exception("1.4.2");
+
+
             var N = 1024;
             for (int i = 0; i < N; i++)
             {
@@ -102,10 +113,20 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             return lst;
         }
 
-        private static void isNull(Keccak_20200918 k, string msg)
+        private static void isNull(Keccak_abstract k, string msg)
         {
             for (int i = 0; i < KeccakPrime.b_size; i++)
                 if (k.S[i] != 0)
+                    throw new Exception(msg);
+        }
+
+        private static void isNullBC(Keccak_abstract k, string msg)
+        {
+            for (int i = 0; i < KeccakPrime.b_size; i++)
+                if (k.B[i] != 0)
+                    throw new Exception(msg);
+            for (int i = 0; i < KeccakPrime.c_size; i++)
+                if (k.C[i] != 0)
                     throw new Exception(msg);
         }
     }
