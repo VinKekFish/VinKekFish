@@ -15,7 +15,6 @@ class Program
         var parser = new TestConditionParser(String.Join(',', args), true);
         tc.conditions = parser.resultCondition;
 
-
         driver.ExecuteTests
         (
             new TestConstructor[] { tc },
@@ -26,6 +25,14 @@ class Program
                 doKeepLogFile            = false // || true
             }
         );
+/*
+        // Принудительно пытаемся вызвать деструкторы более агрессивно, чем делали это ранее
+        for (int i = 0; i < byte.MaxValue; i++)
+        {
+            Empty.@do();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }*/
     }
 }
 
@@ -38,15 +45,7 @@ class MainTestConstructor : TestConstructor
     {
         // Вызываем, чтобы загрузилась сборка, где есть свои тесты
         if (Keccak_sha_3_512_test.canCreateFile) {}
-
-        /*
-        var PTT = new ParallelTasks_Tests(this, canCreateFile: canCreateFile);
-        TestConstructor.addTasksForQueue
-        (
-            source:     PTT.getTasks(),
-            tasksQueue: tasks
-        );
-        */
+        // new Empty();
 
         // Получаем все задачи, которые могут быть автоматически собраны из данного домена приложения
         var list = this.getTasksFromAppDomain
@@ -77,5 +76,18 @@ class MainTestConstructor : TestConstructor
 
         // Ставим эти задачи на выполнение
         TestConstructor.addTasksForQueue(list, tasks);
+    }
+}
+
+public class Empty
+{
+    ~Empty()
+    {
+        throw new Exception("\n!!!!!!!!!!!!!!\n(class Empty)");
+    }
+
+    public static void @do()
+    {
+        new Empty();
     }
 }

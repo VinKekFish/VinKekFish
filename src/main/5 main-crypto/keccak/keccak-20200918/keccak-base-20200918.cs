@@ -7,6 +7,9 @@ namespace maincrypto.keccak;
 /// <summary>Базовый класс для реализаций keccak. Умеет производить заполнение всей памяти (на всякий случай)</summary>
 public abstract class Keccak_base_20200918: Keccak_abstract
 {
+    public Keccak_base_20200918(bool noInit = false): base(noInit)
+    {}
+
     /// <summary>Производит очистку состояния объекта</summary>
     /// <param name="GCCollect">Если <see langword="true"/>, то пытается произвести полную очистку памяти приложения,
     /// выделяя кучу памяти и перезаписывая её. Без гарантий на перезапись.

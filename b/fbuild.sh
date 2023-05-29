@@ -2,8 +2,8 @@
 # Можно запускать без параметров
 # Пример запуска с параметрами:
 # ./b/fbuild.sh Release 'inWork'
-configuration=$1
-testTags=$2
+configuration=$2
+testTags=$1
 flags=$3
 
 if [ -z "$configuration" ]

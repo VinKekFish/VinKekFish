@@ -7,8 +7,40 @@ using maincrypto.keccak;
 using Record = cryptoprime.BytesBuilderForPointers.Record;
 
 
-[TestTagAttribute("inWork")]
-[TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("keccak")]
+public class Keccak_test_erfc_S : TestTask
+{
+    public Keccak_test_erfc_S(TestConstructor constructor) :
+                                            base(nameof(Keccak_test_erfc_S), constructor)
+    {
+        taskFunc = () => 
+        {
+            // Console.WriteLine(Keccak_test_parent.sqrt(0.25m));
+            // Console.WriteLine(Keccak_test_parent.sqrt(25m));
+            var etalon = new Dictionary<double, double>()
+            {
+                {-1.0, 1.8427007929497148},
+                { 0.0, 1.0},
+                { 1.0, 0.15729920705028522},
+                { 1.5, 0.033894853524688906},
+                { 2.0, 0.004677734981047177}
+            };
+            foreach (var eval in etalon)
+            {
+                var val = Keccak_test_parent.erfc((decimal) eval.Key);
+                if (Math.Abs(((double) val - eval.Value)/eval.Value) > 1e-12)
+                {
+                    throw new Exception($"{val:E17} == {eval.Value:E17}; for {eval.Key:E3}");
+                }
+            }
+        };
+    }
+}
+
+
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("keccak", duration: 520, singleThread: false)]
 public class Keccak_test_abstract_20200918: Keccak_test_parent
 {
     public Keccak_test_abstract_20200918(TestConstructor constructor):
@@ -22,30 +54,49 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
         {
             List<string> lst = new List<string>();
 
-            using var k = new Keccak_20200918();
-            
+            using var k           = new Keccak_20200918();
             using var debugRecord = new Record() { array = k.S, len = KeccakPrime.b_size };
-            Console.WriteLine(debugRecord);
 
             isNull(k, "1.1");
-
             k.CalcStep();
+            int deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
 
-            var cnt = 0;
-            for (int i = 0; i < KeccakPrime.b_size << 3; i++)
-                cnt += BitToBytes.getBit(k.S, i) ? 1 : 0;
-
-            var etalonCnt = KeccakPrime.b_size << 2;
-            var deviation = etalonCnt - cnt;
-            if (deviation < 0)
-                deviation *= -1;
-
-            // Вероятность, примерно, одна миллионная - это 2^-20
-            // Если установленных битов больше, чем 20, значит у нас точно плохие параметры криптографии
             if (deviation >= 20)
             {
                 throw new Exception("1.2");
             }
+            lst.Add(debugRecord.ToString());
+            lst.Add("Deviation: " + deviation.ToString("D2"));
+
+            using var k2 = k.Clone();
+            if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
+                throw new Exception("1.3.1");
+            k2.CalcStep();
+            if (BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
+                throw new Exception("1.3.2");
+            k .CalcStep();
+            if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
+                throw new Exception("1.3.3");
+
+                deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
+            lst.Add(debugRecord.ToString());
+            lst.Add("Deviation: " + deviation.ToString("D2"));
+
+            var N = 1024;
+            for (int i = 0; i < N; i++)
+            {
+                k.CalcStep();
+                // deviation = GetDeviationOfBits(k);
+                deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
+                var P  = Keccak_test_parent.erfc(deviation / Keccak_test_parent.sqrt(KeccakPrime.b_size << 3) / Keccak_test_parent.sqrt2);
+                var P2 = Keccak_test_parent.erfc_2N(deviation, KeccakPrime.b_size << 3);
+                if (Math.Abs(P - P2) > 1e-22m)
+                    throw new Exception("Math.Abs(P - P2) > 1e-22m");
+
+                if ((double) P < 1/Math.Sqrt(N) || P < 0.01m)
+                    throw new Exception($"for i={i}: deviation {deviation}\t{P}");
+            }
+
             lst.Add(debugRecord.ToString());
 
             return lst;

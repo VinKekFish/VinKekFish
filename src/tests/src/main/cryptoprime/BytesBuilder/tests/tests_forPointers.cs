@@ -12,7 +12,7 @@ using DriverForTestsLib;
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 4*10e3, singleThread: true)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 40*1e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет, работает ли IDisposable - удаляется ли выделенная память</summary>
 public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_parent

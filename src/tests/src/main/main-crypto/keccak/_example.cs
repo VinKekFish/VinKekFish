@@ -7,7 +7,7 @@ using DriverForTestsLib;
 using VinKekFish_Utils;
 using maincrypto.keccak;
 
-// [TestTagAttribute("inWork")]
+[TestTagAttribute("inWork")]
 [TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
 public class Keccak_test_example: Keccak_test_parent
 {
@@ -24,5 +24,15 @@ public class Keccak_test_example: Keccak_test_parent
 
             return lst;
         }
+    }
+}
+
+[TestTagAttribute("empty")]
+public class Keccak_test_empty : TestTask
+{
+    public Keccak_test_empty(TestConstructor constructor) :
+                                            base(nameof(Keccak_test_empty), constructor)
+    {
+        taskFunc = () => {};
     }
 }

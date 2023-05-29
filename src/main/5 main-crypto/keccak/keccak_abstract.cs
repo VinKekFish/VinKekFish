@@ -16,11 +16,16 @@ namespace maincrypto.keccak;
 /// </summary>
 public unsafe abstract class Keccak_abstract: IDisposable
 {
-    public Keccak_abstract()
+    /// <summary>Создаёт объект для использования с примитивом keccak</summary>
+    /// <param name="noInit">Если true, то не будет делать инициализацию полей нулями</param>
+    public Keccak_abstract(bool noInit = false)
     {
         StatePtr = Marshal.AllocHGlobal(StateLen);
         State    = (byte *) StatePtr.ToPointer();
         getStatesArray();
+
+        if (!noInit)
+            init();
     }
 
     public byte  * S, B, C;                 // Размеры в элементах ulong: S_len2, S_len2, S_len
@@ -101,6 +106,9 @@ public unsafe abstract class Keccak_abstract: IDisposable
 
     public virtual void Dispose(bool disposing)
     {
+        if (State == null)
+            throw new ObjectDisposedException("Keccak_abstract");
+
         Clear(false);
 
         Marshal.FreeHGlobal(StatePtr);

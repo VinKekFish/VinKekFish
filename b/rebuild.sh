@@ -1,6 +1,6 @@
 # Файл нужно запускать из корневой директории репозитория VinKekFish
-configuration=$1
-testTags=$2
+configuration=$2
+testTags=$1
 
 if [ -z "$configuration" ]
 then
@@ -29,4 +29,4 @@ dotnet clean ./src/tests/
 
 
 # Вызов билда
-bash ./b/build.sh "$configuration" "$testTags"
+bash ./b/build.sh "$testTags" "$configuration"

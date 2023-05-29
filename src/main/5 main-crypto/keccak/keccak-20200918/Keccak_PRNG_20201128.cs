@@ -280,7 +280,8 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
             InputBytesImmediately();
         }
 
-        Keccackf(a: Slong, c: Clong, b: Blong);
+        //Keccackf(a: Slong, c: Clong, b: Blong);
+        base.CalcStep();
 
         if (SaveBytes)
         {

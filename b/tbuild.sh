@@ -1,6 +1,6 @@
 # Файл нужно запускать из корневой директории репозитория VinKekFish
-configuration=$1
-testTags=$2
+configuration=$2
+testTags=$1
 
 if [ -z "$configuration" ]
 then
@@ -13,4 +13,4 @@ then
 fi
 
 # Вызов билда
-bash ./b/fbuild.sh "$configuration" "$testTags"
+bash ./b/fbuild.sh "$testTags" "$configuration"

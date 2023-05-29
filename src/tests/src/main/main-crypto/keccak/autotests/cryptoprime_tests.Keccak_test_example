@@ -1,0 +1,20 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			0
+		
+		Count:		System.Int32		.enumerableObject.Count
+			0
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 
