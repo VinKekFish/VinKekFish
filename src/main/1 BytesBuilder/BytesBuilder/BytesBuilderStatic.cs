@@ -350,7 +350,7 @@ namespace cryptoprime
         /// <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
         /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
         /// <param name="count">Длина запрашиваемых данных</param>
-        /// <returns></returns>
+        /// <returns>Массив result</returns>
         public Record getBytesAndRemoveIt(Record result, nint count = -1)
         {
             if (count < 0)
@@ -367,6 +367,20 @@ namespace cryptoprime
             RemoveBytes(count);
 
             return result;
+        }
+
+        /// <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
+        /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
+        /// <param name="count">Длина запрашиваемых данных</param>
+        public void getBytesAndRemoveIt(byte * result, nint count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(result), "BytesBuilderStatic.getBytesAndRemoveIt: count < 0");
+            if (count > this.count)
+                throw new ArgumentOutOfRangeException(nameof(count), "BytesBuilderStatic.getBytesAndRemoveIt: count > this.count");
+
+            ReadBytesTo(result, count);
+            RemoveBytes(count);
         }
 
         /// <summary>Очищает и освобождает всю небезопасно выделенную под объект память</summary>

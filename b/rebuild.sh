@@ -7,8 +7,7 @@ then
     configuration="Release"
 fi
 
-# "-not_to_execute" ставим для того, чтобы build.sh понимал,
-# что мы передали параметр и не подставлял туда значения сокращённого тестирования
+
 if [ -z "$testTags" ]
 then
     testTags="?"
@@ -24,6 +23,8 @@ dotnet clean ./src/builder/builder/
 dotnet clean './src/main/1 BytesBuilder/'
 dotnet clean './src/main/2 generator/'
 dotnet clean './src/main/3 cryptoprime/'
+dotnet clean './src/main/4 utils/'
+dotnet clean './src/main/5 main-crypto/'
 dotnet clean ./src/tests/
 
 

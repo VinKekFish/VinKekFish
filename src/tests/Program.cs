@@ -36,9 +36,9 @@ class MainTestConstructor : TestConstructor
 
     public override void CreateTasksLists(ConcurrentQueue<TestTask> tasks)
     {
-        // Вызываем, чтобы загрузилась сборка
+        // Вызываем, чтобы загрузилась сборка, где есть свои тесты
         if (Keccak_sha_3_512_test.canCreateFile) {}
-        new maincrypto.keccak.Keccak_20200918().Dispose();
+
         /*
         var PTT = new ParallelTasks_Tests(this, canCreateFile: canCreateFile);
         TestConstructor.addTasksForQueue

@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_BytesBuilder
+// #define CAN_CREATEFILE_FOR_BytesBuilder
 
 /*
 Это тесты для базового класса BytesBuilder

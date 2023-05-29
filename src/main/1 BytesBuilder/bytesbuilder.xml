@@ -599,7 +599,12 @@
             <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
             <param name="count">Длина запрашиваемых данных</param>
-            <returns></returns>
+            <returns>Массив result</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(System.Byte*,System.IntPtr)">
+            <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
+            <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
+            <param name="count">Длина запрашиваемых данных</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Dispose(System.Boolean)">
             <summary>Очищает и освобождает всю небезопасно выделенную под объект память</summary>

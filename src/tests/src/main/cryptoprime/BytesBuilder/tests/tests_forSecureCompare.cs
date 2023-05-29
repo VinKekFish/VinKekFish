@@ -15,7 +15,7 @@ using static cryptoprime.BytesBuilderForPointers.Record;
 using static VinKekFish_Utils.Utils;
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("SecureCompare", duration: 4300, singleThread: false)]
 /// <summary>Тест для VinKekFish_Utils.Utils.SecureCompare</summary>
 public unsafe class SecureCompare_test: BytesBuilder_test_parent

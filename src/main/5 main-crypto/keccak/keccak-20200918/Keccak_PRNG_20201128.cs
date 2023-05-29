@@ -356,47 +356,40 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
     /// <summary>Выдаёт случайное криптостойкое число от 0 до cutoff включительно. Это вспомогательная функция для основной функции генерации случайных чисел</summary>
     /// <param name="cutoff">Максимальное число (включительно) для генерации. cutoff должен быть близок к ulong.MaxValue или к 0x8000_0000__0000_0000U, иначе неопределённая отсрочка будет очень долгой</param>
-    /// <param name="arrayAt8Length">Вспомогательная выделенная память в размере не менее 8-ми байтов (можно не инициализировать). Очищается после использования внутри функции, но не освобождается. Может быть null</param>
     /// <returns>Случайное число в диапазоне [0; cutoff]</returns>
-    public ulong getUnsignedInteger(ulong cutoff = ulong.MaxValue, Record? arrayAt8Length = null)
+    public ulong getUnsignedInteger(Cutoff cutoff)
     {
-        var b = arrayAt8Length ?? AllocMemoryForSaveBytes(8);
-        if (b.len < 8)
-            throw new ArgumentOutOfRangeException("Keccak_PRNG_20201128.getUnsignedInteger: arrayAt8Length.len < 8");
-
+        var b = stackalloc byte[cutoff.cbytes];
         try
         {
             while (true)
             {
-                if (this.output!.Count < 8)
+                if (this.output!.Count < cutoff.cbytes)
                 {
                     InputBytesImmediately(notException: true);
                     calcStepAndSaveBytes(inputReadyCheck: inputReady);
                 }
 
-                output.getBytesAndRemoveIt(result: b, 8);
+                output.getBytesAndRemoveIt(result: b, cutoff.cbytes);
 
-                BytesBuilderForPointers.BytesToULong(out ulong result, b.array, start: 0, length: b.len);
-
-                ulong cf = 1U << 63;
-                //if (cutoff < 0x8000_0000__0000_0000U)
-                // result &= 0x7FFF_FFFF__FFFF_FFFFU;  // Сбрасываем старший бит, т.к. он не нужен никогда
-                while (cutoff < cf)
+                ulong result = 0;
+                byte  bn     = 0;
+                while (cutoff.cbytes > 0)
                 {
-                    result &= cf - 1;
-                    cf >>= 1;
+                    result <<= 8;
+                    result |= b[bn];
+                    bn++;
                 }
+                result &= cutoff.mask;
 
-                if (result <= cutoff)
+                if (result <= cutoff.cutoff)
                     return result;
             }
         }
         finally
         {
-            if (arrayAt8Length == null)
-                b.Dispose();
-            else
-                b.Clear();
+            BytesBuilder.ToNull(cutoff.cbytes, b);
+            b = null;
         }
     }
 
@@ -404,13 +397,59 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="min">Минимальное значение</param>
     /// <param name="cutoff">Результат функции getCutoffForUnsignedInteger</param>
     /// <param name="range">Результат функции getCutoffForUnsignedInteger</param>
-    /// <param name="arrayAt8Length">Вспомогательный массив, длиной не менее 8-ми байтов (можно не инициализировать). После использования очищается, но не освобождается. Может быть null</param>
     /// <returns>Случайное число в указанном диапазоне</returns>
-    public ulong getUnsignedInteger(ulong min, ulong cutoff, ulong range, Record? arrayAt8Length = null)
+    public ulong getUnsignedInteger(ulong min, Cutoff cutoff)
     {
-        var random = getUnsignedInteger(cutoff, arrayAt8Length) % range;
+        var random = getUnsignedInteger(cutoff);
 
         return random + min;
+    }
+
+    /// <summary>Представляет информацию о том, какое именно случайное число надо сгенерировать</summary>
+    public class Cutoff
+    {                                       /// <summary>Генерация чисел от 0 до cutoff включительно</summary>
+        public ulong cutoff;                /// <summary>Маска, накладываемая на сгенерированное число, чтобы оно не выходило за рамки cutoff</summary>
+        public ulong mask;                  /// <summary>Количество битов в числе для генерации</summary>
+        public byte  cbits;                 /// <summary>Количество байтов в числе для генерации</summary>
+        public byte  cbytes;
+
+        public Cutoff()
+        {
+            cutoff = ulong.MaxValue;
+            mask   = ulong.MaxValue;
+
+            cbits  = 64;
+            cbytes = 8;
+        }
+
+        /// <summary>Создаёт описатель случайного числа для генерации</summary>
+        /// <param name="range">Число будет генерироваться в диапазоне [0; range] (обе границы включены в диапазон)</param>
+        public Cutoff(ulong range): this()
+        {
+            cutoff = range;
+            if (range >= 0x8000_0000__0000_0000U)
+            {
+                return;
+            }
+            if (range == 0)
+                throw new ArgumentOutOfRangeException("range", "Keccak_PRNG_20201128.Cutoff.Cutoff: range == 0");
+
+            // cutoff <- [1; 0x7FFF_FFFF__FFFF_FFFFU]
+
+            // Переменные будут выкидываться, если они были сгенерированны выше, чем граница обрезания cutoff
+            // Оптимизируем обрезание переменной: вычисляем старший бит, который всегда должен быть обрезан
+            cbits  = (byte)(    64 - UInt64.LeadingZeroCount(cutoff)    ); // cbits <- [1; 63]
+            cbytes = (byte)(    cbits >> 3    );
+            if ((cbits & 7) > 0)
+                cbytes++;
+
+            ulong cf = 1U << cbits;     // cf всегда больше нуля (и даже больше 1)
+
+            if (cf <= range)
+                throw new Exception("Keccak_PRNG_20201128.Cutoff.Cutoff: fatal algorithmic error: cf <= range");
+
+            mask = cf - 1;
+        }
     }
 
     /// <summary>Вычисляет параметры для применения в getUnsignedInteger</summary>
@@ -419,30 +458,11 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="cutoff">Параметр cutoff для передачи getUnsignedInteger</param>
     /// <param name="range">Диапазон для ввода в функцию getUnsignedInteger</param>
     // TODO: хорошо протестировать
-    public static void getCutoffForUnsignedInteger(ulong min, ulong max, out ulong cutoff, out ulong range)
+    public static Cutoff getCutoffForUnsignedInteger(ulong min, ulong max)
     {
-        range = max - min + 1;
+        var range = max - min;
 
-        if (range >= 0x8000_0000__0000_0000U)
-        {
-            cutoff = range;
-            return;
-        }
-
-        var mod = (0x8000_0000__0000_0000U) % range;
-
-        if (mod == 0)
-        {
-            cutoff = 0x8000_0000__0000_0000U - 1;
-            return;
-        }
-
-        var result = 0x8000_0000__0000_0000U - mod - 1;
-
-        if ((result + 1) % range != 0)
-            throw new Exception("Fatal error: Keccak_PRNG_20201128.getCutoffForUnsignedInteger");
-
-        cutoff = result;
+        return new Cutoff(range);
     }
 
     /// <summary>Осуществляет перестановки таблицы 2-хбайтовых целых чисел</summary>
@@ -470,8 +490,8 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
         for (ulong i = 0; i < len - 1; i++)
         {
-            getCutoffForUnsignedInteger(0, (ulong)len - i - 1, out ulong cutoff, out ulong range);
-            index = getUnsignedInteger(0, cutoff, range, outputBuffer!) + i;
+            var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);
+            index = getUnsignedInteger(0, cutoff) + i;
 
             a        = T[i];
             T[i]     = T[index];
