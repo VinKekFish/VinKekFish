@@ -6,6 +6,7 @@ using cryptoprime;
 using DriverForTestsLib;
 using VinKekFish_Utils;
 using maincrypto.keccak;
+using Record = cryptoprime.BytesBuilderForPointers.Record;
 
 [TestTagAttribute("inWork")]
 [TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
@@ -27,7 +28,8 @@ public class Keccak_test_example: Keccak_test_parent
     }
 }
 
-[TestTagAttribute("empty")]
+[TestTagAttribute("inWork")]
+[TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
 public class Keccak_test_empty : TestTask
 {
     public Keccak_test_empty(TestConstructor constructor) :
