@@ -710,6 +710,10 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                         // Этот блок нужен для того, чтобы удалить tmpR1 в том случае, если getBytesAndRemoveIt выдаст исключение (он это должен делать в конце цикла)
                         try
                         {
+                            // Прерываем цикл, когда слишком мало данных осталось для извлечения
+                            if (bb.Count < counter_a)
+                                throw new BytesBuilder.ResultCountIsTooLarge(counter_a, bb.Count);
+
                             var a = bb .getBytesAndRemoveIt(tmpR1);
                             var b = bb2.getBytesAndRemoveIt(tmpR2);
 
