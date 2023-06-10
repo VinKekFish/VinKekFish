@@ -39,7 +39,7 @@ public class Keccak_test_erfc_S : TestTask
 }
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("keccak", duration: 550, singleThread: false)]
 public class Keccak_test_abstract_20200918: Keccak_test_parent
 {

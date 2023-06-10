@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_keccak
+// #define CAN_CREATEFILE_FOR_keccak
 
 namespace cryptoprime_tests;
 

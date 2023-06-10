@@ -11,6 +11,8 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     {
         var result = new Keccak_20200918(true);
         CloneState(result);
+
+        result.isInitiated = this.isInitiated;
         return result;
     }
 

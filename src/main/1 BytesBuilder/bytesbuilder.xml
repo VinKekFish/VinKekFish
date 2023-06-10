@@ -308,11 +308,12 @@
             <param name="position">Индекс удаляемого блока</param>
             <param name="doClear">Если true, то удалённый блок очищается нулями и память, выделенная под него, освобождается ( всё это делается вызовом Record.Dispose() )</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя result.len символов, и удаляет их с очисткой из BytesBuilder</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>. Количество байтов устанавливается длиной массива. <para>Если Result.allocator, то может быть ситуация разыменования <see langword="null"/>, если нет allocator у записей, которые были добавлены в буфер</para></param>
+            <param name="resultLen">Длина результата. Если -1, то длина берётся из result.len</param>
             <returns>Запрошенный результат (первые result.len байтов). Этот возвращаемый результат равен параметру result</returns>
-            <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте)</remarks>
+            <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте). Проверьте, что в функции add было копирование или все массивы, переданные в данную коллекцию более не используются</remarks>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.BytesToULong(System.UInt64@,System.Byte*,System.IntPtr,System.IntPtr)">
             <summary>Получает 8-мибайтовое целое число из массива. Младший байт по младшему индексу</summary>

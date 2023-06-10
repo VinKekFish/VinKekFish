@@ -201,31 +201,39 @@ namespace cryptoprime
 
         /// <summary>Создаёт массив байтов, включающий в себя result.len символов, и удаляет их с очисткой из BytesBuilder</summary>
         /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>. Количество байтов устанавливается длиной массива. <para>Если Result.allocator, то может быть ситуация разыменования <see langword="null"/>, если нет allocator у записей, которые были добавлены в буфер</para></param>
+        /// <param name="resultLen">Длина результата. Если -1, то длина берётся из result.len</param>
         /// <returns>Запрошенный результат (первые result.len байтов). Этот возвращаемый результат равен параметру result</returns>
-        /// <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте)</remarks>
-        public Record getBytesAndRemoveIt(Record result)
+        /// <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте). Проверьте, что в функции add было копирование или все массивы, переданные в данную коллекцию более не используются</remarks>
+        public Record getBytesAndRemoveIt(Record result, nint resultLen = -1)
         {
-            if (result.len > count)
+            if (resultLen == -1)
+            {
+                resultLen = result.len;
+                if (resultLen > count)
+                    resultLen = count;
+            }
+
+            if (resultLen > count || resultLen < 0 || result.len < resultLen)
                 throw new BytesBuilder.ResultCountIsTooLarge(resultCount: result.len, count: count);
 
             nint   cursor  = 0;
             Record current;
             for (int i = 0; i < bytes.Count; )
             {
-                if (cursor == result.len)
+                if (cursor == resultLen)
                     break;
 
-                if (cursor > result.len)
+                if (cursor > resultLen)
                     throw new System.Exception("Fatal algorithmic error (BytesBuilderForPointers.getBytesAndRemoveIt): cursor > resultCount");
 
                 current = bytes[i];
                 if (current.isDisposed)
                     throw new System.Exception("BytesBuilderForPointers.getBytes: current.isDisposed");
 
-                if (cursor + current.len > result.len)
+                if (cursor + current.len > resultLen)
                 {
                     // Делим массив на две части. Левая уходит наружу, правая остаётся в массиве
-                    nint left  = (nint) result.len - cursor;
+                    nint left  = (nint) resultLen - cursor;
                     nint right = (nint) current.len - left;
 
                     var bLeft  = current.Clone(0, left, allocator: current.allocator ?? result.allocator);
@@ -244,7 +252,7 @@ namespace cryptoprime
 
                 // Осторожно, может быть, что bytes[i] != current
                 var len   = bytes[i].len;
-                var check = BytesBuilder.CopyTo(len, result.len, bytes[i].array, result.array, cursor);
+                var check = BytesBuilder.CopyTo(len, resultLen, bytes[i].array, result.array, cursor);
                 cursor += check;
                 if (check != len)
                     throw new System.Exception("Fatal algorithmic error (BytesBuilderForPointers.getBytesAndRemoveIt): check != bytes[i].len");

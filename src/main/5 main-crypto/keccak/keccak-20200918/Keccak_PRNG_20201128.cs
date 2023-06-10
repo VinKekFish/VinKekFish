@@ -23,15 +23,24 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="allocator">Способ выделения памяти внутри объекта (см. поле allocator), кроме выделения памяти для вывода. Может быть null.</param>
     /// <param name="outputSize">Размер буффера output для приёма выхода. Если outputSize недостаточен, получить данные за один раз будет невозможно</param>
     /// <exception cref="OutOfMemoryException"></exception>
-    /// <remarks>Рекомендуется вызвать init() после вызова конструктора.</remarks>
-    public Keccak_PRNG_20201128(AllocatorForUnsafeMemoryInterface? allocator = null, int outputSize = 4096)
+    /// <exception cref="ArgumentOutOfRangeException">Если outputSize &lt; InputSize</exception>
+    /// <remarks>init() вызывается автоматически всегда</remarks>
+    public Keccak_PRNG_20201128(AllocatorForUnsafeMemoryInterface? allocator = null, nint outputSize = 4096): base(noInit: true)
     {
+        if (outputSize < InputSize)
+        {
+            this.Dispose();
+            throw new ArgumentOutOfRangeException("outputSize");
+        }
+
         if (allocator != null)
             this.allocator = allocator;
 
         inputTo      = AllocMemory(InputSize);
         outputBuffer = AllocMemory(InputSize);
         output       = new BytesBuilderStatic(outputSize);
+
+        init();
     }
 
     /// <summary>Инициализация объекта нулями</summary>
@@ -39,6 +48,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     {
         base.init();
         inputTo!.Clear();
+        outputBuffer!.Clear();
     }
                                                                     /// <summary>Выделение памяти с помощью allocator</summary><param name="len">Размер выделяемого участка памяти</param><returns>Record, инкапсулирующий выделенный участок памяти</returns>
     public Record AllocMemory(nint len)
@@ -75,10 +85,11 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
     /// <summary>Это массив для немедленного введения в Sponge на следующем шаге</summary>
     protected          Record? inputTo      = null;
-    /// <summary>Если <see langword="true"/>, то в массиве inputTo ожидают данные. Можно вызывать calStep</summary>
-    protected          bool    inputReady   = false;
-    /// <summary>Если <see langword="true"/>, то в массиве inputTo ожидают данные. Можно вызывать calStep</summary>
-    public             bool    isInputReady => inputReady;
+    /// <summary>В массиве inputTo ожидают данные в количестве inputReady. Можно вызывать calStep</summary>
+    protected          byte    inputReady   = 0;
+                                                                    /// <summary>Если <see langword="true"/>, то в массиве inputTo ожидают данные. Можно вызывать calStep</summary>
+    public             bool    isInputReady => inputReady > 0;      /// <summary>Количество данных, которые доступны в массиве inputTo для непосредственного ввода в губку. Используются calStep автоматически для ввода данных перед криптографическим преобразованием</summary>
+    public             byte    InputReady   => inputReady;
 
     /// <summary>Массив, представляющий результаты вывода</summary>
     public    readonly BytesBuilderStatic? output       = null;
@@ -89,37 +100,40 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     public long outputCount => output!.Count;
 
     /// <summary>Ввести рандомизирующие байты (в том числе, открытый вектор инициализации). Не выполняет криптографических операций</summary>
-    /// <param name="bytesToInput">Рандомизирующие байты. Копируются. bytesToInput должны быть очищены вручную</param>
+    /// <param name="bytesToInput">Рандомизирующие байты. Копируются. bytesToInput должны быть очищены вручную, если больше не нужны</param>
+    /// <remarks>После ввода данных необходимо вручную вызвать InputBytesImmediately (один раз) перед calcStep</remarks>
     public void InputBytes(byte[] bytesToInput)
     {
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
         INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, allocator));
-        InputBytesImmediately(notException: true);
+        // InputBytesImmediately(notException: true);
     }
 
     /// <summary>Ввести рандомизирующие байты (в том числе, открытый вектор инициализации). Не выполняет криптографических операций</summary>
-    /// <param name="bytesToInput">Рандомизирующие байты. Копируются. bytesToInput должны быть очищены вручную</param>
+    /// <param name="bytesToInput">Рандомизирующие байты. Копируются. bytesToInput должны быть очищены вручную, если больше не нужны</param>
     /// <param name="len">Длина рандомизирующей последовательности</param>
+    /// <remarks>После ввода данных необходимо вручную вызвать InputBytesImmediately (один раз) перед calcStep</remarks>
     public void InputBytes(byte * bytesToInput, nint len)
     {
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
         INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, 0, len, allocator));
-        InputBytesImmediately(notException: true);
+        // InputBytesImmediately(notException: true);
     }
 
     /// <summary>Ввести рандомищирующие байты. Не выполняет криптографических операций.</summary>
     /// <param name="data">Вводимые байты. Будут очищены автоматически. Не должны использоваться ещё где-либо</param>
+    /// <remarks>После ввода данных необходимо вручную вызвать InputBytesImmediately (один раз) перед calcStep</remarks>
     public void InputBytesWithoutClone(Record data)
     {
         if (data.array == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: data.array == null");
 
         INPUT!.add(data);
-        InputBytesImmediately(notException: true);
+        // InputBytesImmediately(notException: true);
     }
 
     /// <summary>Ввести секретный ключ и ОВИ (вместе с криптографическим преобразованием)</summary>
@@ -138,40 +152,44 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (key == null || key_length <= 0)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: key == null || key_length <= 0");
 
-        if (inputReady)
-            throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: inputReady == true");
+        if (inputReady > 0)
+            throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: inputReady > 0");
 
-        INPUT.addWithCopy(key, key_length, allocator);
-        InputBytesImmediately(ForOverwrite: true); // Это нужно, чтобы даже маленький ключ точно был записан
-        do
-        {
-            calcStep(Overwrite: false);
-            InputBytesImmediately(ForOverwrite: true);
-        }
-        while (inputReady);
-// TODO: Почему здесь ключ перед ОВИ???
-        // Завершаем ввод ключа конструкцией Overwrite, которая даёт некую необратимость состояния в отношении ключа
         if (OIV != null)
         {
             if (OIV_length <= 0)
                 throw new ArgumentOutOfRangeException("Keccak_PRNG_20201128.InputKeyAndStep: OIV_length <= 0");
 
             INPUT.addWithCopy(OIV, OIV_length, allocator);
-            InputBytesImmediately(true);
-            calcStep(Overwrite: true);          // xor, к тому же, даёт больше ПЭМИН, так что просто Overwrite, хотя особо смысла в этом нет, т.к. xor в других операциях тоже идёт (но не с ключевой информацией)
-        }
-        else
-        {
-            inputTo!.Clear();
-            inputReady = true;
-            calcStep(Overwrite: true);
+            InputBytesImmediately();
+            if (inputReady <= 0)
+                throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: inputReady != true with OIV != null after first input");
+
+            // Вводим столько байтов, сколько есть
+            while (inputReady > 0)
+                calcStep(true, Overwrite: false, regime: 1);
         }
 
-        if (INPUT.countOfBlocks > 0)
+        if (INPUT.Count > 0)
+            throw new Exception("Keccak_PRNG_20201128.InputKeyAndStep: fatal algorithmic error. INPUT.Count > 0 || inputReady > 0 after OIV input");
+
+        // Завершаем ввод открытого вектора инициализации
+        calcStep(false, Overwrite: false, inputAlways: true, regime: 2);
+
+        // Вводим ключ
+        INPUT.addWithCopy(key, key_length, allocator);
+        InputBytesImmediately();
+        while (inputReady > 0)
+            calcStep(Overwrite: false, regime: 3);
+
+        // Завершаем ввод ключа конструкцией Overwrite, которая даёт некую необратимость состояния в отношении ключа
+        calcStep(false, Overwrite: true, inputAlways: true, regime: 4);
+
+        if (INPUT.countOfBlocks > 0 || inputReady > 0)
         {
             INPUT.Clear();
             Clear(true);
-            throw new ArgumentException("key must be a multiple of 64 bytes", nameof(key));
+            throw new ArgumentException("Keccak_PRNG_20201128.InputKeyAndStep: fatal algorithmic error. INPUT.countOfBlocks > 0", nameof(key));
         }
     }
 
@@ -184,7 +202,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         output      ?.Clear();
         outputBuffer?.Clear();
 
-        inputReady = false;
+        inputReady = 0;
 
         base.Clear(GcCollect);
     }
@@ -217,77 +235,89 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     }
 
     /// <summary>Переносит байты из очереди ожидания в массив байтов для непосредственного ввода в криптографическое состояние. Не выполняет криптографических операций</summary>
-    /// <param name="ForOverwrite">Если <see langword="true"/>, то записывает данные, даже если их меньше, чем блок, выравнивая вход нулями до InputSize. Эта реализация нигде не имеет paddings, поэтому осторожнее с этим, это может вызвать неоднозначность при вводе (введены нули в конце или короткое значение?)</param>
-    /// <param name="notException">Если false, то при установленном флаге inputReady будет выдано исключение</param>
+    /// <param name="notException">Если false, то при установленном флаге inputReady будет выдано исключение. Если true, то inputReady != 0 - функция ничего не делает</param>
     /// <remarks>Если inputReady установлен, то функция выдаст исключение. Установить notException, если исключение не нужно</remarks>
+    /// <remarks>В случае, если ввод успешен, inputReady устанавливается в true</remarks>
+    /// <remarks>Если INPUT.Count == 0 (очередь входа пуста), то функция ничего не делает (при inputReady !=0 - выдаёт исключение)</remarks>
     // При INPUT.Count == 0 не должен изменять inputReady
-    public void InputBytesImmediately(bool ForOverwrite = false, bool notException = false)
+    public void InputBytesImmediately(bool notException = false)
     {
         if (inputTo == null)
             throw new Exception("Keccak_PRNG_20201128.InputBytesImmediately: object is destroyed and can not work");
 
-        if (!inputReady)
+        if (inputReady == 0)
         {
-            if (INPUT!.Count >= InputSize)
+            if (INPUT!.Count >= 0)
             {
-                // TODO: сделать тесты на верность getBytesAndRemoveIt и, по возможности, на его использование
+                var a = INPUT!.Count;
+                if (INPUT!.Count < inputTo.len)
+                {
+                    inputTo.Clear();
+                }
+                else
+                    a = inputTo.len;
+
                 INPUT.getBytesAndRemoveIt(inputTo);
-                inputReady = true;
-            }
-            else
-            if (ForOverwrite && INPUT.Count > 0)
-            {
-                inputTo.Clear();
-                INPUT.getBytesAndRemoveIt(inputTo);
-                inputReady = true;
+                inputReady = (byte) a;
+
+                if (a > InputSize)
+                    throw new Exception("Keccak_PRNG_20201128.InputBytesImmediately: fatal algorithmic error. inputReady > InputSize");
             }
         }
         else
         if (!notException)
-            throw new Exception("Keccak_PRNG_20201128.InputBytesImmediately: inputReady = true");
+            throw new Exception("Keccak_PRNG_20201128.InputBytesImmediately: inputReady != 0");
     }
 
     /// <summary>Выполняет шаг keccak и сохраняет полученный результат в output</summary>
-    public void calcStepAndSaveBytes(bool inputReadyCheck = true)
+    public void calcStepAndSaveBytes(bool inputReadyCheck = true, byte SaveBytes = InputSize)
     {
-        calcStep(inputReadyCheck: inputReadyCheck, SaveBytes: true);
+        calcStep(inputReadyCheck: inputReadyCheck, SaveBytes: SaveBytes);
     }
 
-    /// <summary>Расчитывает шаг губки keccak. Если есть InputSize (64) байта для ввода (точнее, inputReady == true), то вводит первые 64-ре байта</summary>
-    /// <param name="inputReadyCheck">Параметр должен совпадать с флагом inputReady. Этот параметр введён для дополнительной проверки, что функция вызывается в правильном контексте</param>
-    /// <param name="SaveBytes">Если <see langword="null"/>, выход не сохраняется</param>
+    /// <summary>Расчитывает один шаг губки keccak. Если есть InputSize (64) байта для ввода (точнее, inputReady == true), то вводит первые 64-ре байта</summary>
+    /// <param name="inputReadyCheck">Параметр должен совпадать с флагом isInputReady. Этот параметр введён для дополнительной проверки, что функция вызывается в правильном контексте</param>
+    /// <param name="SaveBytes">Если 0, выход не сохраняется, в противном случае сохраняется SaveBytes байтов</param>
     /// <param name="Overwrite">Если <see langword="true"/>, то вместо xor применяет перезапись внешней части состояния на вводе данных (конструкция Overwrite)</param>
+    /// <param name="inputAlways">Если <see langword="true"/>, то ввод данных будет производится даже при inputReady == 0</param>
     /// <remarks>Перед calcStep должен быть установлен inputReady, если нужна обработка введённой информации. Функции Input* устанавливают этот флаг автоматически</remarks>
-    public void calcStep(bool inputReadyCheck = true, bool SaveBytes = false, bool Overwrite = false)
+    /// <remarks>Если inputReady, то после поглощения inputTo, вызывается InputBytesImmediately, чтобы подготовить новый inputTo, если очередь ожидания на входе заполнена</remarks>
+    /// <remarks>while (inputReady > 0) calcStep; позволяет рассчитывать дуплекс с заранее введёнными данными в массив INPUT</remarks>
+    public void calcStep(bool inputReadyCheck = true, byte SaveBytes = 0, bool Overwrite = false, byte regime = 0, bool inputAlways = false)
     {
-        if (inputReady != inputReadyCheck)
-            throw new ArgumentException("Keccak_PRNG_20201128.calcStep: inputReady != inputReadyCheck");
+        if (isInputReady != inputReadyCheck)
+            throw new ArgumentException("Keccak_PRNG_20201128.calcStep: isInputReady != inputReadyCheck");
 
         if (State == null)
             throw new Exception("Keccak_PRNG_20201128.calcStep: State == null");
-// TODO:
-        while (inputReady)      // Здесь нужен while или if ?
+
+        // Осуществляем ввод данных, если они есть или ввод идёт принудительно вне зависимости от того, есть данные или нет (например, если вводится иной режим)
+        if (inputReady > 0 || inputAlways)
         {
             byte * input = inputTo!.array;
 
             if (Overwrite)
-                Keccak_InputOverwrite64_512(message: input, len: InputSize, S: S);
+                Keccak_InputOverwrite64_512(message: input, len: inputReady, S: S, regime: regime);
             else
-                Keccak_Input64_512(message: input, len: InputSize, S: S);
+                Keccak_Input64_512(message: input, len: inputReady, S: S, regime: regime);
 
             inputTo.Clear();
-            inputReady = false;
+            inputReady = 0;
             InputBytesImmediately();
         }
 
         //Keccackf(a: Slong, c: Clong, b: Blong);
         base.CalcStep();
 
-        if (SaveBytes)
-        {
-            Keccak_Output_512(output: outputBuffer!.array, len: InputSize, S: S);
 
-            output     !.add(outputBuffer.array, InputSize);
+        if (SaveBytes != 0)
+        {
+            if (SaveBytes > InputSize || SaveBytes < 0)
+                throw new ArgumentOutOfRangeException("Keccak_PRNG_20201128.calcStep: SaveBytes > InputSize || SaveBytes < 0");
+
+            Keccak_Output_512(output: outputBuffer!.array, len: SaveBytes, S: S);
+
+            output     !.add(outputBuffer.array, SaveBytes);
             outputBuffer.Clear();
         }
     }
@@ -329,7 +359,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         while (len > 0)
         {
             InputBytesImmediately(notException: true);
-            calcStep(inputReadyCheck: inputReady);
+            calcStep(inputReadyCheck: isInputReady);
             Keccak_Output_512(output: output, len: (byte) (len >= 64 ? 64 : len), S: S);
             len    -= 64;
             output += 64;
@@ -341,7 +371,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (this.output!.Count <= 0)
         {
             InputBytesImmediately(notException: true);
-            calcStepAndSaveBytes(inputReadyCheck: inputReady);
+            calcStepAndSaveBytes(inputReadyCheck: isInputReady);
         }
 
         var ba = stackalloc byte[1];
@@ -368,7 +398,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                 if (this.output!.Count < cutoff.cbytes)
                 {
                     InputBytesImmediately(notException: true);
-                    calcStepAndSaveBytes(inputReadyCheck: inputReady);
+                    calcStepAndSaveBytes(inputReadyCheck: isInputReady);
                 }
 
                 output.getBytesAndRemoveIt(result: b, cutoff.cbytes);

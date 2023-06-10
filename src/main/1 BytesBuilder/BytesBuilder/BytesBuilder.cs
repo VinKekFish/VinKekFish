@@ -180,7 +180,7 @@ namespace cryptoprime
                                         base
                                         (
                                             "resultCount",
-                                            $"resultCount is too large: resultCount > count ({resultCount} > {count})"
+                                            $"ResultCountIsTooLarge: resultCount is too large: resultCount > count ({resultCount} > {count})"
                                         )
             {}
         }
@@ -191,7 +191,7 @@ namespace cryptoprime
                                         base
                                         (
                                             "resultA",
-                                            $"resultA is too small: ({resultA.LongLength} < {resultCount})"
+                                            $"ResultAIsTooSmall: resultA is too small: ({resultA.LongLength} < {resultCount})"
                                         )
             {}
 
@@ -199,7 +199,7 @@ namespace cryptoprime
                                         base
                                         (
                                             "resultA",
-                                            $"resultA is too small: ({resultA_len} < {resultCount})"
+                                            $"ResultAIsTooSmall: resultA is too small: ({resultA_len} < {resultCount})"
                                         )
             {}
         }
@@ -210,7 +210,7 @@ namespace cryptoprime
                                         base
                                         (
                                             "allocator",
-                                            "resultA == null; allocator == null; bytes.length == 0; not found allocator"
+                                            "ResultAIsTooSmall: resultA == null; allocator == null; bytes.length == 0; not found allocator"
                                         )
             {}
         }

@@ -61,9 +61,10 @@ public unsafe abstract class Keccak_abstract: IDisposable
     public virtual void ClearState()
     {
         if (State != null)
+        {
             BytesBuilder.ToNull(StateLen, State);
-
-        ClearStateWithoutStateField();
+            ClearStateWithoutStateField();
+        }
     }
 
     /// <summary>Очищает вспомогательные поля объекта, но оставляет объект проинициализированным. В том числе, очищает вспомогательные массивы B и C</summary>
@@ -72,10 +73,13 @@ public unsafe abstract class Keccak_abstract: IDisposable
         clearOnly_C_and_B();
     }
 
+    protected bool isInitiated = false;
+
     /// <summary>Инициализирует состояние нулями</summary>
     public virtual void init()
     {
         BytesBuilder.ToNull(StateLen, State);
+        isInitiated = true;
     }
 
     /// <summary>Эту функцию можно вызывать после keccak, если нужно состояние S, но хочется очистить B и C</summary>
@@ -138,6 +142,9 @@ public unsafe abstract class Keccak_abstract: IDisposable
 
     public void CalcStep()
     {
+        if (!isInitiated)
+            throw new Exception("Keccak_abstract.CalcStep: !isInitiated");
+
         Keccackf(a: Slong, c: Clong, b: Blong);
     }
 }

@@ -299,7 +299,7 @@ namespace cryptoprime
 
             if (resultCount > count)
             {
-                throw new System.ArgumentOutOfRangeException("resultCount", "resultCount is too large: resultCount > count || resultCount == 0");
+                throw new System.ArgumentOutOfRangeException("resultCount", "BytesBuilderStatic: resultCount is too large: resultCount > count || resultCount == 0");
             }
 
             if (resultCount == 0)
