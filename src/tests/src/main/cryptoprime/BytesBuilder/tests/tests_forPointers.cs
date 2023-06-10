@@ -711,10 +711,10 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                         try
                         {
                             // Прерываем цикл, когда слишком мало данных осталось для извлечения
-                            if (bb.Count < counter_a)
+                            /*if (bb.Count < counter_a)
                                 throw new BytesBuilder.ResultCountIsTooLarge(counter_a, bb.Count);
-
-                            var a = bb .getBytesAndRemoveIt(tmpR1);
+*/
+                            var a = bb .getBytesAndRemoveIt(tmpR1, counter_a);
                             var b = bb2.getBytesAndRemoveIt(tmpR2);
 
                             if (a != tmpR1 || b != tmpR2)
