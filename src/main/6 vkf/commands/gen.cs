@@ -109,7 +109,7 @@ public class gen_command
         },
     };
 
-    private void PrintExited()
+    private void PrintExitedByClosed()
     {
         if (quilet)
             return;
@@ -123,7 +123,7 @@ public class gen_command
             return;
 
         Console.WriteLine();
-        Console.WriteLine("Enter command:");
+        Console.WriteLine("Enter the command:");
     }
 
     public ProgramErrorCode exec()
@@ -138,7 +138,7 @@ public class gen_command
             line = Console.ReadLine();
             if (line == null)
             {
-                PrintExited();
+                PrintExitedByClosed();
                 break;
             }
 
