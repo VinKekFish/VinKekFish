@@ -1,5 +1,7 @@
 using utils.console;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using utils;
 
 namespace builder;
 
@@ -8,7 +10,8 @@ partial class Program
 {
     public static ErrorCode ExecuteBuild()
     {
-        var cd  = Directory.GetCurrentDirectory();
+        var cd = Directory.GetCurrentDirectory();
+        var bb = new SortedSet<string>();
 
 
         // ----------------  BytesBuilder and ThreeFish slowly for ThreeFish generator  ----------------
@@ -19,6 +22,8 @@ partial class Program
         {
             if (result != ErrorCode.SuccessActual)
                 return result;
+            else
+                bb.Add("1");
         }
 
 
@@ -40,6 +45,8 @@ partial class Program
         {
             if (result != ErrorCode.SuccessActual)
                 return result;
+            else
+                bb.Add("2");
         }
 
         if (result != ErrorCode.SuccessActual)
@@ -73,6 +80,8 @@ partial class Program
         {
             if (result != ErrorCode.SuccessActual)
                 return result;
+            else
+                bb.Add("3");
         }
 
         // ----------------  VinKekFish_Utils  ----------------
@@ -83,6 +92,8 @@ partial class Program
         {
             if (result != ErrorCode.SuccessActual)
                 return result;
+            else
+                bb.Add("4");
         }
 
         // ----------------  VinKekFish_Utils test-dev  ----------------
@@ -103,16 +114,38 @@ partial class Program
         {
             if (result != ErrorCode.SuccessActual)
                 return result;
+            else
+                bb.Add("5");
         }
 
 
+        // ----------------  vkf: главная консольная программа ----------------
+        var vkf_folder  = "src/main/6 vkf";
+        var ckf_vFile   = "/Program-version.cs";
+        var versionStr  = "public static readonly string ProgramVersion_RiWiWak6ObEcc =";
+        var vkf_program = File.ReadAllText(vkf_folder + ckf_vFile);
+        var index       = vkf_program.IndexOf(versionStr);
+        var endIndex    = vkf_program.IndexOf("\n", startIndex: index);
+            vkf_program = vkf_program.Substring(0, length: index)
+                        + versionStr + "\"" + DateTimeStrings.getDateVersionString(DateTime.Now) + "\";"
+                        + vkf_program.Substring(endIndex);
+        File.WriteAllText(vkf_folder + ckf_vFile, vkf_program);
+
+        (result, dir) = ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: false, SelfContained: false);
+        end_build_for_project_event?.Invoke(result, dir);
+
+        if (result != ErrorCode.Success)
+        {
+            if (result != ErrorCode.SuccessActual)
+                return result;
+        }
 
 
 
 
         // ----------------  All tests executor. MUST BE LAST  ----------------
         // Кроме одноразовых тестов test-dev
-        (result, dir) = ExecuteBuildForProject(cd, "src/tests/", false);
+        (result, dir) = ExecuteBuildForProject(cd, "src/tests/", false, isActualCheck: false);
         end_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)

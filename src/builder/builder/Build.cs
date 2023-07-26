@@ -6,7 +6,7 @@ namespace builder;
 
 partial class Program
 {
-    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true, DateTime lastModified = default)
+    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true, DateTime lastModified = default, bool SelfContained = false)
     {
         var configurationForDotNet = Program.configuration;
         var output                 = Program.output;
@@ -48,7 +48,7 @@ partial class Program
 
         var buildVersion = getDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
-        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained false --use-current-runtime false {inSingleFileString}";
+        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained {SelfContained} --use-current-runtime false {inSingleFileString}";
 
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../../../VinKekFish/src/main/1 BytesBuilder/bytesbuilder.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/3 cryptoprime/cryptoprime.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/4 utils/4 utils.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/5 main-crypto/maincrypto.csproj" />
+    <!-- ProjectReference Include="..\..\..\..\DriverForTests\DriverForTestsLib\DriverForTestsLib.csproj" / -->
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>VinKekFish_console</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Мы не позволяем здесь unsafe-код, он должен быть вынесен весь в библиотеку -->
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Это предупреждения, сгенерированные по директиве #warning в исходных кодах -->
+    <WarningsNotAsErrors>CS1030</WarningsNotAsErrors>
+    <!-- Это предупреждения, сгенерированные из-за недостаточной xml-документации -->
+    <NoWarn>CS1591</NoWarn>
+    
+    <!-- Этот проект не оптимизируется, т.к. в этом проекте функции должны быть безопасны от тайминг-атак -->
+    <Optimize>false</Optimize>
+
+  </PropertyGroup>
+    
+</Project>

@@ -1,4 +1,5 @@
 # Файл нужно запускать из корневой директории репозитория VinKekFish
+# Больше тестов, чем build.sh
 configuration=$2
 testTags=$1
 
