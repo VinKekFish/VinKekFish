@@ -5,7 +5,12 @@
 
 Программа требует установленной [.NET 7.0](https://dotnet.microsoft.com/download).
 Часть функций работает только под Linux (требуются пути "/proc/meminfo", "/dev/random")
-    Поиск по шаблону ::onlylinux.sOq1JvFKRxQyw7FQ даст точки зависимости
+    Поиск по шаблону ::warn:onlylinux.sOq1JvFKRxQyw7FQ: даст точки зависимости
+
+
+### Описание других шиблонов
+
+[VinKekFish/Docs/Dev/Crypto/keys-templates.md](./Docs/Dev/Crypto/keys-templates.md)
 
 
 # Каталоги

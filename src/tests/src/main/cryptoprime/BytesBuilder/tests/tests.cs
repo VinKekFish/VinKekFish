@@ -84,6 +84,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
     /// <returns></returns>
     public static nint getMaxMemory()
     {
+        // entry::warn:onlylinux.sOq1JvFKRxQyw7FQ:
         try
         {
             var mi = File.ReadAllLines("/proc/meminfo");
@@ -101,7 +102,6 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
             }
             catch (Exception e)
             {
-                // entry::onlylinux.sOq1JvFKRxQyw7FQ
                 throw new Exception("getMaxMemory is not work properly. See the getMaxMemory code and let's create a '.debug.getMaxMemory' file", innerException: e);
             }
         }
