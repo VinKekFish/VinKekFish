@@ -4,7 +4,9 @@ class Program
 {
     // [{( - скобки убираем, проще запоминать просто слово "скобка"
     // < - меньше и больше легко перепутать, оставляем только один из них
-    static string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':{_+-*/=|&^%$#@!ΣΔΨλШЧЫЭЯ±";
+    // ! слишком похож на черту и имеет сложное наименование
+    // Ч - похоже на 4. ± - сложное наименование
+    static string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':(+-*/=|&^%$#@ΣΔΨλШЫЭЯ";
     static void Main(string[] args)
     {
         // 24bit or truecolor
