@@ -1,4 +1,6 @@
-﻿namespace VinKekFish_console;
+﻿// TODO: tests
+
+namespace VinKekFish_console;
 
 public partial class Program
 {
@@ -11,7 +13,7 @@ public partial class Program
 
     static ProgramErrorCode Main_ec(string[] args)
     {
-        if (args.Length == 0 || args[0] == "--help" || args[0] == "-h")
+        if (args.Length == 0 || args[0] == "--help" || args[0] == "-h" || args[0] == "-?")
         {
             PrintVersionHeader();
             PrintHelp();
@@ -25,9 +27,9 @@ public partial class Program
             return ProgramErrorCode.version;
         }
 
-        if (is_command_gen(args))
+        if (is_command_auto(args))
         {
-            return command_gen(args);
+            command_auto(args);
         }
 
         return ProgramErrorCode.success;

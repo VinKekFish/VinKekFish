@@ -1,4 +1,5 @@
-﻿// Виноградов С.В.
+﻿// TODO: tests
+// © Виноградов С.В. (1984, Мытищи)
 
 using cryptoprime;
 using static cryptoprime.KeccakPrime;

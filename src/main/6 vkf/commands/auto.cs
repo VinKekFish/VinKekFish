@@ -4,19 +4,23 @@ namespace VinKekFish_console;
 
 public partial class Program
 {
-    public static ProgramErrorCode command_gen(string[] args)
+    /// <summary>true - режим работы программы, где клиент - другая вызывающая программа</summary>
+    public static bool isAutomaticProgram = false;
+    public static void command_auto(string[] args)
     {
+        isAutomaticProgram = true;
+/*
         var argsList = new List<string>(args);
         argsList.RemoveAt(0);
 
         var command = new gen_command(argsList);
 
-        return command.exec();
+        return command.exec();*/
     }
 
-    public static bool is_command_gen(string[] args)
+    public static bool is_command_auto(string[] args)
     {
-        if (args[0] == "gen")
+        if (args[0] == "auto")
             return true;
 
         return false;
