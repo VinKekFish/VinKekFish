@@ -1,5 +1,7 @@
 // TODO: tests
 using System.Net.Sockets;
+using System.Text;
+using cryptoprime;
 
 namespace VinKekFish_EXE;
 
@@ -134,8 +136,12 @@ public class UnixSocketListener: IDisposable
         public readonly byte[] receiveBuffer = new byte[64*1024];
         protected virtual void StartReceive()
         {
-            // TODO: SocketFlags
-            connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this);
+            // connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this);
+
+            var b = new UTF8Encoding().GetBytes("Not implemented\nПока не реализовано\n");
+            BytesBuilder.CopyTo(b, receiveBuffer);
+            connection.Send(receiveBuffer, 0, b.Length, SocketFlags.None);
+            Close();
         }
 // System.Runtime.InteropServices.UnmanagedFunctionPointer
 // https://github.com/libfuse/libfuse/blob/master/example/hello.c#L176
@@ -149,15 +155,20 @@ public class UnixSocketListener: IDisposable
             try
             {
                 var received = connection.EndReceive(ar, out SocketError errorCode);
-                if (received == 0 || errorCode != SocketError.Success || !connection.Connected)
+                if (errorCode != SocketError.Success || !connection.Connected)
                 {
                     Close();
                     return;
                 }
 
+                /* // Это эхо.
                 if (errorCode == SocketError.Success)
                 if (connection.Connected)
                     connection.Send(receiveBuffer, 0, received, SocketFlags.None);
+                    *//*
+                var b = new UTF8Encoding().GetBytes("Not implemented\nПока не реализовано");
+                BytesBuilder.CopyTo(b, receiveBuffer);
+                connection.Send(receiveBuffer, 0, 32, SocketFlags.None);*/
             }
             catch (Exception ex)
             {
