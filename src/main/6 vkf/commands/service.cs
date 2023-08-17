@@ -6,13 +6,18 @@ using VinKekFish_EXE;
 
 public partial class Program
 {
+    public static Regime_Service? service = null;
     public static ProgramErrorCode command_service(string[] args)
     {
         isService = true;
         var list  = new List<string>(args);
         list.RemoveAt(0);
 
-        return new VinKekFish_EXE.Regime_Service().Start(list);
+//      AppDomain.CurrentDomain.ProcessExit += ProcessExit;
+        Console.CancelKeyPress += ProcessExit;
+
+        service = new VinKekFish_EXE.Regime_Service();
+        return service.Start(list);
     }
 
     public static bool is_command_service(string[] args)
@@ -21,5 +26,17 @@ public partial class Program
             return true;
 
         return false;
+    }
+
+    public static void ProcessExit(object? sender, EventArgs e)
+    {
+        try
+        {
+            service?.doTerminate(willBlock: true);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex.Message + "\n" + ex.StackTrace);
+        }
     }
 }
