@@ -7,9 +7,17 @@ namespace VinKekFish_EXE;
 public class Regime_Service
 {
                                                 /// <summary>Полное имя файла конфигурации</summary>
-    public string? ConfigFileName = null;
+    public string? ConfigFileName {get; init;}
     public Regime_Service()
     {
+    }
+                                                /// <summary>Вывод на экран справочную информацию по параметрам командной строки режима service</summary>
+    private static void PrintHelp()
+    {
+        Console.WriteLine("Use:");
+        Console.WriteLine("vkf service pathToConfigFile");
+        Console.WriteLine("");
+        Console.WriteLine("See an example of a config file in program packet");
     }
 
     /// <summary>Исполнение программы в режиме сервиса</summary>
@@ -24,14 +32,6 @@ public class Regime_Service
         }
 
         return ProgramErrorCode.success;
-    }
-
-    private static void PrintHelp()
-    {
-        Console.WriteLine("Use:");
-        Console.WriteLine("vkf service pathToConfigFile");
-        Console.WriteLine("");
-        Console.WriteLine("See an example of a config file in program packet");
     }
 }
 
