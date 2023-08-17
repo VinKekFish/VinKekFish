@@ -5,7 +5,8 @@ namespace VinKekFish_console;
 public partial class Program
 {
     /// <summary>true - режим работы программы, где клиент - другая вызывающая программа</summary>
-    public static bool isAutomaticProgram = false;
+    public static bool isAutomaticProgram = false;  /// <summary>true - программа работает из-под root в режиме сервиса</summary>
+    public static bool isService = false;
     public static void command_auto(string[] args)
     {
         isAutomaticProgram = true;
@@ -20,7 +21,7 @@ public partial class Program
 
     public static bool is_command_auto(string[] args)
     {
-        if (args[0] == "auto")
+        if (args[0].ToLowerInvariant().Trim() == "auto")
             return true;
 
         return false;

@@ -4,7 +4,7 @@ namespace VinKekFish_console;
 
 public partial class Program
 {
-    public enum ProgramErrorCode { success = 0, version = 100, noArgs = 101 };
+    public enum ProgramErrorCode { success = 0, version = 100, noArgs = 101, errorRegimeArgs = 102 };
 
     public static int Main(string[] args)
     {
@@ -21,7 +21,7 @@ public partial class Program
             return ProgramErrorCode.noArgs;
         }
 
-        if (args[0] == "-v" || args[0] == "--version")
+        if (args[0] == "-v" || args[0] == "--version" || args[0] == "-version" || args[0] == "version")
         {
             PrintVersionHeader();
             return ProgramErrorCode.version;
@@ -30,6 +30,20 @@ public partial class Program
         if (is_command_auto(args))
         {
             command_auto(args);
+        }
+
+        if (is_command_service(args))
+        {
+            command_service(args);
+        }
+
+        if (!isAutomaticProgram)
+        if (args[0].ToLowerInvariant().Trim() != "manual")
+        {
+            PrintVersionHeader();
+            PrintHelp();
+
+            return ProgramErrorCode.errorRegimeArgs;
         }
 
         return ProgramErrorCode.success;

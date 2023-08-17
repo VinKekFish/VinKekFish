@@ -1,9 +1,11 @@
 ﻿// dotnet publish --output ./build.dev -c Release --self-contained false --use-current-runtime true /p:PublishSingleFile=true
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ConsoleTest;
-class Program
+unsafe class Program
 {
     // [{( - скобки убираем, проще запоминать просто слово "скобка"
     // < - меньше и больше легко перепутать, оставляем только один из них
@@ -39,13 +41,22 @@ class Program
         // sc.Connect(un);
         Console.WriteLine($"Создан unix-сокет {path}");
         var owner_id = GetFileOwner(path);
-        Console.WriteLine($"Его владелец {owner_id}");
+        var owner_um = GetUserNameById(owner_id.uid);
+        var owner_gn = GetUserNameById(owner_id.gid);
+        Console.WriteLine($"Его владелец {owner_id} == {(owner_um, owner_gn)}");
+
+        if (geteuid() == owner_id.uid)
+            Console.WriteLine("Верный владелец");
+        else
+            Console.WriteLine("ERROR: Неверный владелец");
+
         Console.WriteLine("Нажмите любую клавишу...");
         Console.ReadLine();
     }
 
     //  sudo apt-get install libc6-dev - это уже установлено
     //  find /usr/include -name "stat.h"
+    [StructLayout(LayoutKind.Sequential)]
     public struct StatBuf
     {
         public long    st_dev;         /* ID of device containing file */
@@ -126,12 +137,62 @@ class Program
 };
 
     */
+
+    // find /usr/include -name "pwd.h"
+    // /usr/include/pwd.h
+    // sctuct passwd
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct Linux_PasswdEntry
+    {
+        public byte* userName;
+        public byte* pwd;
+        public int   uid, gid;
+        public byte* pw_gecos, pw_dir, pw_shell;
+    }
+
 // TODO: вот здесь нужно будет вставить проверку в реальном VinKekFish, что это функция реально работает и возвращает верный результат
+// Нужно взять текущего пользователя, его домашний каталог, а потом проверить, что всё норм, и что также создаётся stream с этими же правами (а что, если у нас у пользователя нет каталога? - не будет проверять, видимо этот пункт)
     // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern int stat(string path, ref StatBuf sb);
 
-    public static int GetFileOwner(string path)
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern Linux_PasswdEntry * getpwuid(int uid);
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int geteuid();
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void free(void * buff);
+
+    public static int strlen(byte * str)
+    {
+        int len = 0;
+        while (*str != 0)
+        {
+            str++;
+            len++;
+        }
+
+        return len;
+    }
+
+    public static string GetUserNameById(int uid)
+    {
+        var owner_nm = getpwuid(uid);
+        try
+        {
+            var bt = (*owner_nm).userName;
+            return new ASCIIEncoding().GetString(bt, strlen(bt));
+        }
+        finally
+        {
+            // Это не нужно, т.к. удаление от getpwuid не требуется
+            // free(owner_nm);
+        }
+    }
+
+    public static (int, int) GetFileOwner_fromStat(string path)
     {
         var a = new StatBuf();
         a.st_dev = -1;
@@ -150,7 +211,39 @@ class Program
         Console.WriteLine(a.st_blksize);
         Console.WriteLine(a.st_blocks);
         */
-        return a.st_uid;
+        return (a.st_uid, a.st_gid);
+    }
+
+    public static (int, int) GetFileOwner_fromLS(string path)
+    {
+        var psi = new ProcessStartInfo("ls", "-ln " + path);
+        psi.RedirectStandardOutput = true;
+        var pid = Process.Start(psi);
+        pid!.WaitForExit();
+
+        // // srwxr-xr-x 1 1003 1004 0 авг 17 14:02 /inRamA/socket
+        var std = pid.StandardOutput.ReadToEnd();
+        // Console.WriteLine(std);
+
+        var splitted = std.Split(new string[] {" ", "\t"}, 5, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (splitted.Length != 5)
+            throw new Exception("GetFileOwner_fromLS: ls have incorrect format");
+
+        var uid = int.Parse(splitted[2]);
+        var gid = int.Parse(splitted[3]);
+
+        return (uid, gid);
+    }
+
+    public static (int uid, int gid) GetFileOwner(string path)
+    {
+        var id1 = GetFileOwner_fromStat(path);
+        var id2 = GetFileOwner_fromLS  (path);
+
+        if (id1 != id2)
+            throw new Exception("GetFileOwner: id1 != id2\n" + $"{id1}, {id2}");
+
+        return id1;
     }
 
     public static bool isTrueColor(string? COLORTERM)
