@@ -84,7 +84,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
     /// <returns></returns>
     public static nint getMaxMemory()
     {
-        // entry::warn:onlylinux.sOq1JvFKRxQyw7FQ:
+        // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
         try
         {
             var mi = File.ReadAllLines("/proc/meminfo");
