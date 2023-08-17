@@ -2,10 +2,10 @@
 
 namespace VinKekFish_console;
 
+using VinKekFish_EXE;
+
 public partial class Program
 {
-    public enum ProgramErrorCode { success = 0, version = 100, noArgs = 101, errorRegimeArgs = 102 };
-
     public static int Main(string[] args)
     {
         return (int) Main_ec(args);
@@ -29,16 +29,16 @@ public partial class Program
 
         if (is_command_auto(args))
         {
-            command_auto(args);
+            return command_auto(args);
         }
 
         if (is_command_service(args))
         {
-            command_service(args);
+            return command_service(args);
         }
 
         if (!isAutomaticProgram)
-        if (args[0].ToLowerInvariant().Trim() != "manual")
+        if (!is_command_manual(args))
         {
             PrintVersionHeader();
             PrintHelp();
@@ -46,7 +46,9 @@ public partial class Program
             return ProgramErrorCode.errorRegimeArgs;
         }
 
-        return ProgramErrorCode.success;
+        return command_manual(args);
+
+        // return ProgramErrorCode.success;
     }
 
     public static void PrintVersionHeader()

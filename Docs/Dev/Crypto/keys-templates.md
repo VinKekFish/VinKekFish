@@ -12,4 +12,4 @@ entry::шаблон означает, что это непосредственн
 ::warn:*:_CODE_:
     Коды для предупреждающих сообщений (платформенная зависимость и т.п.)
     ::warn:onlylinux:_CODE_:    - коды для зависимостей от Linux
-    ::warn:onlylinux:sOq1JvFKRxQyw7FQ: - общий код
+    ::warn:onlylinux:sOq1JvFKRxQyw7FQ: - общий код, зависящий от Linux

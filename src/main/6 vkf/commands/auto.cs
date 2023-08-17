@@ -1,13 +1,15 @@
+// TODO: tests
 using static VinKekFish_console.Program;
 
 namespace VinKekFish_console;
+using VinKekFish_EXE;
 
 public partial class Program
 {
     /// <summary>true - режим работы программы, где клиент - другая вызывающая программа</summary>
     public static bool isAutomaticProgram = false;  /// <summary>true - программа работает из-под root в режиме сервиса</summary>
     public static bool isService = false;
-    public static void command_auto(string[] args)
+    public static ProgramErrorCode command_auto(string[] args)
     {
         isAutomaticProgram = true;
 /*
@@ -17,6 +19,8 @@ public partial class Program
         var command = new gen_command(argsList);
 
         return command.exec();*/
+
+        return ProgramErrorCode.success;
     }
 
     public static bool is_command_auto(string[] args)
