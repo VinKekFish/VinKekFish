@@ -143,10 +143,7 @@ public class UnixSocketListener: IDisposable
             connection.Send(receiveBuffer, 0, b.Length, SocketFlags.None);
             Close();
         }
-// System.Runtime.InteropServices.UnmanagedFunctionPointer
-// https://github.com/libfuse/libfuse/blob/master/example/hello.c#L176
-// https://github.com/vzabavnov/dotnetcore.fuse
-// https://github.com/vzabavnov/dotnetcore.fuse/blob/master/src/fuse.interop/FuseOpt/Functions.cs
+
         public void EndReceive(IAsyncResult ar)
         {
             if (listenSocket.doTerminate)

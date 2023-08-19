@@ -1,5 +1,11 @@
 ﻿Составить общее описание того, что я буду делать, как это будет выглядеть
 
+Fuse (libfuse)
+// System.Runtime.InteropServices.UnmanagedFunctionPointer
+// https://github.com/libfuse/libfuse/blob/master/example/hello.c#L176
+// https://github.com/vzabavnov/dotnetcore.fuse
+// https://github.com/vzabavnov/dotnetcore.fuse/blob/master/src/fuse.interop/FuseOpt/Functions.cs
+
 Xml-документация
 	https://docs.microsoft.com/ru-ru/dotnet/csharp/codedoc
 	https://docs.microsoft.com/ru-ru/dotnet/csharp/programming-guide/xmldoc/recommended-tags-for-documentation-comments
