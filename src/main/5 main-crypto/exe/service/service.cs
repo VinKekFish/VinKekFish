@@ -13,6 +13,9 @@ public class Regime_Service
                                                 /// <summary>Полное имя файла конфигурации</summary>
     public string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
     public bool    Terminated     = false;
+                                                /// <summary>Путь к создаваемому программой unix stream. Берётся из конфигурационного файла</summary>
+    public string? UnixStreamPath;              /// <summary>Путь к производителю энтропии (/dev/random)</summary>
+    public string  OS_Entropy_path = "/dev/random";
                                                 /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям чего-либо</summary>
     public UnixSocketListener? vkfListener = null;
     public Regime_Service()
@@ -51,18 +54,12 @@ public class Regime_Service
     public ProgramErrorCode Start(List<string> args)
     {
         GCSettings.LatencyMode = GCLatencyMode.Batch;
-        if (args.Count <= 0)
-        {
-            PrintHelp();
-            return ProgramErrorCode.noArgs_Service;
-        }
 
-        var fileString = File.ReadAllLines(args[0]);
-        var opt = new Options(  new List<string>(fileString)  );
-        Console.WriteLine(opt.ToString());
+        var poResult = ParseOptions(args);
+        if (poResult is not null)
+            return poResult.Value;
 
-
-        vkfListener = new UnixSocketListener("/inRamA/UnixSocketListener-socket");
+        vkfListener = new UnixSocketListener(UnixStreamPath!);
 
         while (!Terminated || vkfListener.connections.Count > 0)
         {
@@ -72,6 +69,38 @@ public class Regime_Service
         Console.WriteLine("Regime_Service.Start: exited");
 
         return ProgramErrorCode.success;
+    }
+
+    private ProgramErrorCode? ParseOptions(List<string> args)
+    {
+        if (args.Count <= 0)
+        {
+            PrintHelp();
+            return ProgramErrorCode.noArgs_Service;
+        }
+
+        var fileString = File.ReadAllLines(args[0]);
+        var opt = new Options(new List<string>(fileString));
+        // Console.WriteLine(opt.ToString());
+
+        var pathBlock = opt.SearchBlock("unix stream.path");
+        if (pathBlock is null)
+        {
+            Console.Error.WriteLine("In options not occur unix stream path");
+            return ProgramErrorCode.noArgs_Service;
+        }
+
+        UnixStreamPath = pathBlock.blocks[0].Name;
+        Console.WriteLine($"UnixStreamPath = {UnixStreamPath}");
+
+        var entropyBlock = opt.SearchBlock("entropy");
+        var block        = opt.SearchBlock("OS");
+        if (block is not null)
+            OS_Entropy_path  = block.Name;
+
+        Console.WriteLine($"OS_Entropy_path = {OS_Entropy_path}");
+
+        return null;
     }
 }
 

@@ -17,6 +17,35 @@ public class Options
         return options.ToString();
     }
 
+    /*
+    var pathBlock = opt.SearchBlock(new List<string> { "unix stream", "path" });
+    var pathBlock = opt.SearchBlock("unix stream.path");
+    */
+    public virtual Block? SearchBlock(string path, int depth = 0, Block? block = null)
+    {
+        var pp = path.Split('.');
+        return SearchBlock(  new List<string>(pp), depth, block  );
+    }
+
+    public virtual Block? SearchBlock(List<string> path, int depth = 0, Block? block = null)
+    {
+        block ??= this.options;
+
+        foreach (var b in block.blocks)
+        {
+            if (b.Name == path[depth])
+            {
+                if (path.Count > depth + 1)
+                    return SearchBlock(path, depth+1, b);
+                else
+                    return b;
+            }
+        }
+
+        return null;
+    }
+
+
     public class Block
     {
         public const    int          minIndent = 4;
