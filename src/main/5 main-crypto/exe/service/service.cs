@@ -13,7 +13,8 @@ public class Regime_Service
                                                 /// <summary>Полное имя файла конфигурации</summary>
     public string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
     public bool    Terminated     = false;
-                                                /// <summary>Путь к создаваемому программой unix stream. Берётся из конфигурационного файла</summary>
+                                                /// <summary>Путь к папке, где программой создаётся unix stream. Берётся из конфигурационного файла</summary>
+    public string? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream</summary>
     public string? UnixStreamPath;              /// <summary>Путь к производителю энтропии (/dev/random)</summary>
     public string  OS_Entropy_path = "/dev/random";
                                                 /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям чего-либо</summary>
@@ -71,7 +72,7 @@ public class Regime_Service
         return ProgramErrorCode.success;
     }
 
-    private ProgramErrorCode? ParseOptions(List<string> args)
+    public ProgramErrorCode? ParseOptions(List<string> args)
     {
         if (args.Count <= 0)
         {
@@ -90,17 +91,26 @@ public class Regime_Service
             return ProgramErrorCode.noArgs_Service;
         }
 
-        UnixStreamPath = pathBlock.blocks[0].Name;
+        UnixStreamDir  = pathBlock.blocks[0].Name;
+        UnixStreamPath = Path.Combine(UnixStreamDir, "random");
         Console.WriteLine($"UnixStreamPath = {UnixStreamPath}");
 
-        var entropyBlock = opt.SearchBlock("entropy");
-        var block        = opt.SearchBlock("OS");
-        if (block is not null)
-            OS_Entropy_path  = block.Name;
+        var stringFromOpts = GetStringFromOptions("entropy.OS", opt);
+        if (stringFromOpts is not null)
+            OS_Entropy_path  = stringFromOpts;
 
         Console.WriteLine($"OS_Entropy_path = {OS_Entropy_path}");
 
         return null;
+    }
+
+    public string? GetStringFromOptions(string path, Options opt, Options.Block? block = null)
+    {
+        var foundedBlock = opt.SearchBlock(path, block?.blockHeaderIndent ?? 0, block);
+        if (foundedBlock is null)
+            return null;
+
+        return foundedBlock.blocks[0].Name;
     }
 }
 
