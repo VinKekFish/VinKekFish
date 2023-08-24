@@ -2,13 +2,29 @@
 
 namespace VinKekFish_console;
 
+using System.Runtime;
 using VinKekFish_EXE;
 
 public partial class Program
 {
     public static int Main(string[] args)
     {
-        return (int) Main_ec(args);
+        try
+        {
+            return (int) Main_ec(args);
+        }
+        finally
+        {
+            // Пытаемся искусственно спровоцировать вызов деструкторов
+            GCSettings.LatencyMode = GCLatencyMode.Batch;
+            for (int i = 0; i < 2; i++)
+            {
+                GC.Collect();
+                GC.WaitForFullGCComplete();
+                GC.WaitForFullGCApproach();
+                GC.WaitForPendingFinalizers();
+            }
+        }
     }
 
     static ProgramErrorCode Main_ec(string[] args)

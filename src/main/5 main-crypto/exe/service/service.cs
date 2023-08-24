@@ -1,4 +1,6 @@
 // TODO: tests
+using System.Runtime;
+
 namespace VinKekFish_EXE;
 
 /// <summary>
@@ -46,6 +48,7 @@ public class Regime_Service
     /// <returns>Код возврата сервиса</returns>
     public ProgramErrorCode Start(List<string> args)
     {
+        GCSettings.LatencyMode = GCLatencyMode.Batch;
         if (args.Count <= 0)
         {
             PrintHelp();
@@ -59,7 +62,7 @@ public class Regime_Service
             Thread.Sleep(1000);
         }
 
-        Console.WriteLine("Regime_Service.Start: to exited");
+        Console.WriteLine("Regime_Service.Start: exited");
 
         return ProgramErrorCode.success;
     }

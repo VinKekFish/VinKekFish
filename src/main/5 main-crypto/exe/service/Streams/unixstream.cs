@@ -69,23 +69,29 @@ public class UnixSocketListener: IDisposable
     public bool isDisposed = false;
     public virtual void Close(bool fromDestructor = false)
     {
-        doTerminate = true;
-        listenSocket.Close();
+        // Блокируем объект на случай повторных вызовов
+        // Блокируем connections, т.к. мы его сейчас очищать будем
+        lock (this)
+        lock (connections)
+        {
+            doTerminate = true;
+            listenSocket.Close();
 
-        Parallel.ForEach
-        (
-            connections,
-            delegate(Connection connection, ParallelLoopState state, long i)
-            {
-                connection.Close();
-            }
-        );
-        connections.Clear();
+            Parallel.ForEach
+            (
+                connections,
+                delegate(Connection connection, ParallelLoopState state, long i)
+                {
+                    connection.Close();
+                }
+            );
+            connections.Clear();
 
-        if (fromDestructor)
-            throw new Exception("UnixSocketListener: Close.fromDestructor == true");
+            if (fromDestructor)
+                throw new Exception("UnixSocketListener: Close.fromDestructor == true");
 
-        isDisposed = true;
+            isDisposed = true;
+        }
     }
 
     public int ConnectionsCount => connections?.Count ?? 0;
