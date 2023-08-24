@@ -3,7 +3,7 @@
     <ProjectReference Include="../../../../VinKekFish/src/main/1 BytesBuilder/bytesbuilder.csproj" />
     <!-- ProjectReference Include="..\..\..\..\DriverForTests\DriverForTestsLib\DriverForTestsLib.csproj" / -->
   </ItemGroup>
-  
+
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>VinKekFish_Utils</RootNamespace>

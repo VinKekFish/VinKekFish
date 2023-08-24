@@ -12,6 +12,7 @@ public partial class Program
     public static ProgramErrorCode command_auto(string[] args)
     {
         isAutomaticProgram = true;
+        
 /*
         var argsList = new List<string>(args);
         argsList.RemoveAt(0);

@@ -3,6 +3,8 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using VinKekFish_Utils.Options;
+
 /// <summary>
 /// Класс, реализующий функциональность программы в режиме работы сервиса "service"
 /// </summary>
@@ -54,6 +56,11 @@ public class Regime_Service
             PrintHelp();
             return ProgramErrorCode.noArgs_Service;
         }
+
+        var fileString = File.ReadAllLines(args[0]);
+        var opt = new Options(  new List<string>(fileString)  );
+        Console.WriteLine(opt.ToString());
+
 
         vkfListener = new UnixSocketListener("/inRamA/UnixSocketListener-socket");
 
