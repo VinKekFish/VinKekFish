@@ -73,7 +73,6 @@ public class Options
             {
                 sb.AppendLine(str.ToString(indent + "\t"));
             }
-            sb.AppendLine();
 
             return sb.ToString();
         }
