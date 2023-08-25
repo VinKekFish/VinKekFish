@@ -17,9 +17,9 @@ namespace vinkekfish
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
         /// <summary>Сюда выводятся данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (перезаписать null), либо в Displose автоматически. Если ёмкости не хватает, новые данные перезаписывают старые</summary>
-        public    BytesBuilderStatic output      = null;    /// <summary>Отсюда вводятся в криптографическое состояние данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (перезаписать null), либо в Displose автоматически</summary>
-        public    BytesBuilderStatic input       = null;
-        protected Record             inputRecord = null;
+        public    BytesBuilderStatic? output      = null;    /// <summary>Отсюда вводятся в криптографическое состояние данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (перезаписать null), либо в Displose автоматически</summary>
+        public    BytesBuilderStatic? input       = null;
+        protected Record?             inputRecord = null;
 
         public void doStepAndIO(int countOfRounds = -1, int outputLen = -1, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
         {

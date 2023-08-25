@@ -1,14 +1,11 @@
 ﻿// TODO: tests
 using cryptoprime.VinKekFish;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using vinkekfish.keccak_20200918;
+using maincrypto.keccak;
 
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
@@ -36,7 +33,7 @@ namespace vinkekfish
             // new System.Security.Cryptography.RNGCryptoServiceProvider();
         }
 
-        public override void Init1(int RoundsForTables, byte * additionalKeyForTables, long additionalKeyForTables_length, byte * OpenInitVectorForTables = null, long OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
+        public override void Init1(int RoundsForTables, byte * additionalKeyForTables, nint additionalKeyForTables_length, byte * OpenInitVectorForTables = null, nint OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
         {
             if (LightGenerator != null)
                 ExitFromBackgroundCycle();
@@ -44,7 +41,7 @@ namespace vinkekfish
             base.Init1(RoundsForTables: RoundsForTables, additionalKeyForTables: additionalKeyForTables, additionalKeyForTables_length: additionalKeyForTables_length, OpenInitVectorForTables: OpenInitVectorForTables, OpenInitVectorForTables_length: OpenInitVectorForTables_length, PreRoundsForTranspose: PreRoundsForTranspose);
         }
 
-        public override void Init2(byte * key, ulong key_length, byte[] OpenInitVector, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = NORMAL_ROUNDS, bool IsEmptyKey = false)
+        public override void Init2(byte * key, nint key_length, byte[] OpenInitVector, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = NORMAL_ROUNDS, bool IsEmptyKey = false)
         {
             base.Init2(key: key, key_length: key_length, OpenInitVector: OpenInitVector, Rounds: Rounds, RoundsForEnd: RoundsForEnd, RoundsForExtendedKey: RoundsForExtendedKey, IsEmptyKey);
         }
@@ -58,7 +55,7 @@ namespace vinkekfish
         /// <param name="allocator">Метод выделения памяти для ключа. Если null, то AllocHGlobal_AllocatorForUnsafeMemory</param>
         /// <param name="CountOfRounds">Количество раундов для генерации</param>
         /// <returns>Сгенерированный ключ</returns>
-        public Record GetNewKey(long len = NORMAL_KEY, long blockLen = key_block_size, AllocatorForUnsafeMemoryInterface allocator = null, int CountOfRounds = VinKekFishBase_etalonK1.NORMAL_ROUNDS)
+        public Record GetNewKey(nint len = NORMAL_KEY, nint blockLen = key_block_size, AllocatorForUnsafeMemoryInterface? allocator = null, int CountOfRounds = VinKekFishBase_etalonK1.NORMAL_ROUNDS)
         {
             if (isInited2 != true)
                 throw new Exception("VinKekFish_k1_base_20210419_keyGeneration.GetNewKey: isInited2 != true (not initialized)");
@@ -82,14 +79,14 @@ namespace vinkekfish
             var  result = allocator.AllocMemory(len);
             result.Clear();
             byte regime = 0;
-            long start  = 0;
+            nint start  = 0;
             do
             {
                 // Режим 255 - это режим отбоя после ввода основного ключа. 254 - это EmptyStep и EmptyStepOverwrite. 253 - InputRandom
                 if (regime >= min_special_regime)
                     regime = 0;
 
-                NoInputData_ChangeTweak(_state, t0, regime++);
+                NoInputData_ChangeTweak(_state!, t0!, regime++);
                 DoStep(CountOfRounds);
 
                 outputData(result, start, outputLen: len, countToOutput: len - start > blockLen ? blockLen : len - start);
@@ -109,7 +106,7 @@ namespace vinkekfish
             if (CountOfRounds < MIN_ABSORPTION_ROUNDS)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419_keyGeneration.GetNewKey: CountOfRounds < MIN_INNER_ROUNDS");
 
-            NoInputData_ChangeTweak(_state, t0, 254);
+            NoInputData_ChangeTweak(_state!, t0!, 254);
             DoStep(CountOfRounds);
         }
 
@@ -120,7 +117,7 @@ namespace vinkekfish
             if (CountOfRounds < MIN_ABSORPTION_ROUNDS)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419_keyGeneration.GetNewKey: CountOfRounds < MIN_INNER_ROUNDS");
 
-            InputData_Overwrite(null, _state, 0, t0, 254);
+            InputData_Overwrite(null, _state!, 0, t0!, 254);
             DoStep(CountOfRounds);
         }
 
@@ -138,7 +135,7 @@ namespace vinkekfish
                 else
                     len = data_length;
 
-                InputData_Xor(data, _state, len, t0, 253);
+                InputData_Xor(data, _state!, len, t0!, 253);
                 data        += len;
                 data_length -= len;
 

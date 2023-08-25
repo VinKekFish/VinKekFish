@@ -21,15 +21,15 @@ namespace vinkekfish
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
         /// <summary>Здесь содержится два состояния, 4 твика на каждый блок TreeFish, матрицы c и b на каждый блок keccak. Матрицы c и b выровнены на 64 байта</summary>
-        protected readonly Record   States = null;
+        protected readonly Record   States;
         /// <summary>Здесь содержатся таблицы перестановок, длина CountOfRounds*4*Len*ushort</summary>
-        protected volatile Record   tablesForPermutations = null;
+        protected volatile Record?  tablesForPermutations = null;
 
         /// <summary>Аллокатор для выделения памяти внутри объекта</summary>
         public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
 
                                                                             /// <summary>Криптографическое состояние 1. Всегда в начале общего массива</summary>
-        protected byte *  State1 => States;                                 /// <summary>Криптографическое состояние 2</summary>
+        protected byte *  State1 => States!;                                /// <summary>Криптографическое состояние 2</summary>
         protected byte *  State2 => State1 + Len;
                                                                             /// <summary>Массив матриц b и c на каждый блок Keccak</summary>
         protected byte *  Matrix => State2 + Len;                           /// <summary>Массив tweak - по 4 tweak на каждый блок ThreeFish</summary>
@@ -84,8 +84,8 @@ namespace vinkekfish
         }
 
         /// <summary>Массив, устанавливающий номера ключевых блоков TreeFish для каждого трансформируемого блока</summary>
-        protected readonly int[] NumbersOfThreeFishBlocks = null;                           /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
-        protected readonly Timer Timer                    = null;
+        protected readonly int[]? NumbersOfThreeFishBlocks = null;                           /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
+        protected readonly Timer? Timer                    = null;
 
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
@@ -181,7 +181,7 @@ namespace vinkekfish
 
             if (TimerIntervalMs > 0)
             {
-                Timer = new Timer(WaitFunction, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
+                Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
             }
 
             State1Main = true;
@@ -197,7 +197,7 @@ namespace vinkekfish
             int j = 0;
             for (int i = 0; i < LenInThreeFish; i++)
             {
-                var k = NumbersOfThreeFishBlocks[j];
+                var k = NumbersOfThreeFishBlocks![j];
                 if (nums[j] >= 0)
                     throw new Exception("VinKekFishBase_KN_20210525.CheckNumbersOfThreeFishBlocks: Fatal algorithmic error");
 
@@ -214,7 +214,7 @@ namespace vinkekfish
             {
                 isInit2 = false;
                 ThreadsFunc_Current = ThreadFunction_empty;
-                BytesBuilder.ToNull(States.len, States);
+                BytesBuilder.ToNull(States!.len, States);
             }
         }
 

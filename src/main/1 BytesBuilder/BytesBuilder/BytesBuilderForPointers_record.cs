@@ -315,7 +315,7 @@ namespace cryptoprime
                 Dispose(false);
             }
                                                                                     /// <summary>Возвращает ссылку на массив</summary>
-            public static implicit operator byte * (Record t)
+            public static implicit operator byte * (Record? t)
             {
                 if (t == null)
                     return null;
@@ -323,7 +323,7 @@ namespace cryptoprime
                 return t.array;
             }
                                                                                     /// <summary>Возвращает ссылку на массив, преобразованную в тип ushort * </summary>
-            public static implicit operator ushort * (Record t)
+            public static implicit operator ushort * (Record? t)
             {
                 if (t == null)
                     return null;
@@ -331,14 +331,14 @@ namespace cryptoprime
                 return (ushort *) t.array;
             }
                                                                                     /// <summary>Возвращает ссылку на массив, преобразованную в тип unint * </summary>
-            public static implicit operator ulong * (Record t)
+            public static implicit operator ulong * (Record? t)
             {
                 if (t == null)
                     return null;
 
                 return (ulong *) t.array;
             }
-                                                                                    /// <summary>Смещает начало записи на len. r &gt;&gt; 128 возвращает запись res: res.array=r.array+128, res.len=r.len-128</summary>
+                                                                                    /// <summary>Смещает начало записи на len. Например, r &gt;&gt; 128 возвращает запись res: res.array=r.array+128, res.len=r.len-128</summary>
             public static Record operator >>(Record a, nint len)
             {
                 if (a.len <= len)
@@ -354,7 +354,7 @@ namespace cryptoprime
                 return r;
             }
 
-                                                                                    /// <summary>Уменьшает длину записи. r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+                                                                                    /// <summary>Уменьшает длину записи. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
             public static Record operator <<(Record a, nint len)
             {
                 if (a.len <= len)

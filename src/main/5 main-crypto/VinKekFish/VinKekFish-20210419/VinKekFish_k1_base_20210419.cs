@@ -1,7 +1,8 @@
 ﻿// TODO: tests
+// Здесь нужно сделать тест на диффузию и равномерность распределения TreeFish в этом модифицированном варианте
 using cryptoprime.VinKekFish;
 using cryptoprime;
-using vinkekfish.keccak_20200918;
+// using maincrypto.keccak;
 
 using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 
@@ -10,6 +11,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using static cryptoprime.BytesBuilderForPointers;
+
+// #nullable disable
+
+using maincrypto.keccak;
 
 namespace vinkekfish
 {
@@ -26,9 +31,9 @@ namespace vinkekfish
         public          int    RTables => _RTables;
 
                                                                         /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/_state/*' />
-        protected       Record _state = null, _state2 = null, t0 = null, t1 = null, t2 = null, _transpose200_3200 = null, _transpose200_3200_8 = null, _b = null, _c = null; /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/stateHandle/*' />
-        protected       Record stateHandle   = null;                    /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/pTablesHandle/*' />
-        protected       Record pTablesHandle = null;
+        protected       Record? _state = null, _state2 = null, t0 = null, t1 = null, t2 = null, _transpose200_3200 = null, _transpose200_3200_8 = null, _b = null, _c = null; /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/stateHandle/*' />
+        protected       Record? stateHandle   = null;                    /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/pTablesHandle/*' />
+        protected       Record? pTablesHandle = null;
 
         protected bool isInited1 = false;
         protected bool isInited2 = false;
@@ -55,7 +60,7 @@ namespace vinkekfish
         /// <param name="additionalKeyForTables">Дополнительный ключ: это ключ для таблиц перестановок</param>
         /// <param name="OpenInitVectorForTables">Дополнительный вектор инициализации для перестановок (используется совместно с ключом)</param>
         /// <param name="PreRoundsForTranspose">Количество раундов со стандартными таблицами transpose &lt; (не менее 1)</param>
-        public virtual void Init1(int RoundsForTables, byte * additionalKeyForTables, long additionalKeyForTables_length, byte * OpenInitVectorForTables = null, long OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
+        public virtual void Init1(int RoundsForTables, byte * additionalKeyForTables, nint additionalKeyForTables_length, byte * OpenInitVectorForTables = null, nint OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
         {
             Clear();
             GC.Collect();
@@ -66,17 +71,17 @@ namespace vinkekfish
             // 4 tweak (основной и запасные)
             // new byte[CryptoStateLen * 2 + CryptoTweakLen * 4];
             // место для вспомогательных матриц c и b
-            stateHandle = AllocHGlobal_allocator.AllocMemory(CryptoStateLen * 2 + CryptoTweakLen * 4 + cryptoprime.keccak.b_size + cryptoprime.keccak.c_size);
+            stateHandle = AllocHGlobal_allocator.AllocMemory(CryptoStateLen * 2 + CryptoTweakLen * 4 + cryptoprime.KeccakPrime.b_size + cryptoprime.KeccakPrime.c_size);
             stateHandle.Clear();
 
             // При изменении не забыть обнулить указатели в ClearState()
             _state  = stateHandle.NoCopyClone(CryptoStateLen);
-            _state2 = _state  + CryptoStateLen; // Это перегруженная операция сложения, _state2 идёт за массивом _state и имеет длину CryptoStateLen
-            t0      = _state2 + CryptoTweakLen;
-            t1      = t0      + CryptoTweakLen;
-            t2      = t1      + CryptoTweakLen;
-            _b      = t2      + cryptoprime.keccak.b_size;
-            _c      = _b      + cryptoprime.keccak.c_size;
+            _state2 = _state  & CryptoStateLen; // Это перегруженная операция сложения, _state2 идёт за массивом _state и имеет длину CryptoStateLen
+            t0      = _state2 & CryptoTweakLen;
+            t1      = t0      & CryptoTweakLen;
+            t2      = t1      & CryptoTweakLen;
+            _b      = t2      & cryptoprime.KeccakPrime.b_size;
+            _c      = _b      & cryptoprime.KeccakPrime.c_size;
 
             _RTables        = RoundsForTables;
             pTablesHandle   = GenStandardPermutationTables(Rounds: _RTables, key: additionalKeyForTables, key_length: additionalKeyForTables_length, OpenInitVector: OpenInitVectorForTables, OpenInitVector_length: OpenInitVectorForTables_length, PreRoundsForTranspose: PreRoundsForTranspose);
@@ -94,7 +99,7 @@ namespace vinkekfish
         /// <param name="RoundsForEnd">Количество раундов при широфвании последующих блоков ключа (допустимо 4)</param>
         /// <param name="RoundsForExtendedKey">Количество раундов отбоя ключа (рекомендуется NORMAL_ROUNDS = 64)</param>
         /// <param name="IsEmptyKey">Если key == null, то флаг должен быть установлен. Криптографического преобразования выполняться не будет</param>
-        public virtual void Init2(byte * key, ulong key_length, byte[] OpenInitVector, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = REDUCED_ROUNDS, bool IsEmptyKey = false)
+        public virtual void Init2(byte * key, nint key_length, byte[] OpenInitVector, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = REDUCED_ROUNDS, bool IsEmptyKey = false)
         {
             if (!isInited1)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419: Init1 must be executed before Init2");
@@ -110,11 +115,11 @@ namespace vinkekfish
                 {
                     InputKey
                     (
-                        key: key, key_length: key_length, OIV: oiv, OpenInitVector == null ? 0 : (ulong) OpenInitVector.LongLength,
-                        state: _state, state2: _state2, b: _b, c: _c,
-                        tweak: t0, tweakTmp: t1, tweakTmp2: t2,
+                        key: key, key_length: key_length, OIV: oiv, OpenInitVector == null ? 0 : (nint) OpenInitVector.LongLength,
+                        state: _state!, state2: _state2!, b: _b!, c: _c!,
+                        tweak: t0!, tweakTmp: t1!, tweakTmp2: t2!,
                         Initiated: false, SecondKey: false,
-                        R: Rounds, RE: RoundsForEnd, RM: RoundsForExtendedKey, tablesForPermutations: pTablesHandle, transpose200_3200: _transpose200_3200, transpose200_3200_8: _transpose200_3200_8
+                        R: Rounds, RE: RoundsForEnd, RM: RoundsForExtendedKey, tablesForPermutations: pTablesHandle, transpose200_3200: _transpose200_3200!, transpose200_3200_8: _transpose200_3200_8!
                     );
                 }
             }
@@ -169,7 +174,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public static Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface allocator = null, byte * key = null, long key_length = 0, byte * OpenInitVector = null, long OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
+        public static Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
         {
             GenTables();
 
@@ -194,8 +199,8 @@ namespace vinkekfish
             if (OpenInitVector != null)
                 throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
 
-            long len1  = VinKekFishBase_etalonK1.CryptoStateLen;
-            long len2  = VinKekFishBase_etalonK1.CryptoStateLen << 1;
+            nint len1  = VinKekFishBase_etalonK1.CryptoStateLen;
+            nint len2  = VinKekFishBase_etalonK1.CryptoStateLen << 1;
 
             var result = allocator.AllocMemory(Rounds * 4 * len1 * sizeof(ushort));
             var table1 = new ushort[len1];
@@ -277,8 +282,8 @@ namespace vinkekfish
 
             step
             (
-                countOfRounds: CountOfRounds, tablesForPermutations: pTablesHandle,
-                tweak: t0, tweakTmp: t1, tweakTmp2: t2, state: _state, state2: _state, b: _b, c: _c
+                countOfRounds: CountOfRounds, tablesForPermutations: pTablesHandle!,
+                tweak: t0!, tweakTmp: t1!, tweakTmp2: t2!, state: _state!, state2: _state!, b: _b!, c: _c!
             );
 
             isHaveOutputData = true;
@@ -289,7 +294,7 @@ namespace vinkekfish
         /// <param name="start">Индекс в массиве output, с которого надо начинать запись</param>
         /// <param name="outputLen">Длина массива output</param>
         /// <param name="countToOutput">Количество байтов, которое нужно изъять из массива</param>
-        public virtual void outputData(byte * output, long start, long outputLen, long countToOutput)
+        public virtual void outputData(byte * output, nint start, nint outputLen, nint countToOutput)
         {
             if (!isHaveOutputData)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.outputData: !isHaveOutputData");
@@ -300,7 +305,7 @@ namespace vinkekfish
             if (start + countToOutput > outputLen)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.outputData: start + lenToOutput > len");
 
-            BytesBuilder.CopyTo(countToOutput, outputLen, _state, output, start);
+            BytesBuilder.CopyTo(countToOutput, outputLen, _state!, output, start);
             isHaveOutputData = false;
         }
 

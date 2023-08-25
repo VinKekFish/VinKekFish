@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using cryptoprime;
 using cryptoprime.VinKekFish;
-using vinkekfish.keccak_20200918;
+using maincrypto.keccak;
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 
@@ -21,7 +21,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface allocator = null, byte * key = null, long key_length = 0, byte * OpenInitVector = null, long OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
+        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
         {
             this.GenTables();
 
@@ -37,19 +37,19 @@ namespace vinkekfish
             {
                 if (OpenInitVector == null)
                 {
-                    prng.InputKeyAndStep(key, key_length, null, 0);
+                    prng.InputKeyAndStep((byte*)key, key_length, null, 0);
                 }
                 else
                 {
-                    prng.InputKeyAndStep(key, key_length, OpenInitVector, OpenInitVector_length);
+                    prng.InputKeyAndStep((byte*)key, key_length, (byte*)OpenInitVector, OpenInitVector_length);
                 }
             }
             else
             if (OpenInitVector != null)
                 throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
 
-            long len1  = Len;
-            long len2  = Len * sizeof(ushort);
+            nint len1  = Len;
+            nint len2  = Len * sizeof(ushort);
 
             // Каждый раунд расходует по 4 таблицы. Всего раундов не более Rounds.
             // Длина таблицы - len1 (Len) * размер двухбайтового целого

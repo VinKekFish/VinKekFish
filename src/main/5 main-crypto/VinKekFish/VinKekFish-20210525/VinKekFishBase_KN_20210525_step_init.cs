@@ -38,7 +38,7 @@ namespace vinkekfish
             if (countOfRounds < 0)
                 countOfRounds = this.CountOfRounds;
 
-            var TB = tablesForPermutations;
+            var TB = tablesForPermutations!;
             if (!State1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main (at start)");
             // State1Main = true;
@@ -56,10 +56,10 @@ namespace vinkekfish
             for (int round = 0; round < countOfRounds; round++)
             {
                 doKeccak();
-                doPermutation(TB); TB += Len;
+                doPermutation(TB); TB <<= Len;
 
                 doThreeFish();
-                doPermutation(TB); TB += Len;
+                doPermutation(TB); TB <<= Len;
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 // Вычисляем tweak для данного раунда (работаем со старшим 4-хбайтным словом младшего 8-мибайтного слова tweak)
@@ -86,7 +86,7 @@ namespace vinkekfish
         /// <param name="PreRoundsForTranspose">Количество раундов, которое будет происходить со стандартными таблицами (не зависящими от ключа)</param>
         /// <param name="keyForPermutations">Дополнительный ключ: ключ для определения таблиц перестановок. Не должен зависеть от основного ключа<para>Пользователь должен обеспечить, чтобы при разглашении дополнительного ключа основной оставался бы неизвестным. Можно добавить при инициализации после основного ключа, но этот ключ, считается менее защищённым, чем основной</para></param>
         /// <param name="OpenInitVectorForPermutations">Дополнительный вектор инициализации</param>
-        public virtual void Init1(int PreRoundsForTranspose = 8, Record keyForPermutations = null, Record OpenInitVectorForPermutations = null)
+        public virtual void Init1(int PreRoundsForTranspose = 8, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null)
         {
             if (!State1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init1: Fatal algorithmic error: !State1Main");
@@ -107,7 +107,7 @@ namespace vinkekfish
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
         /// <param name="RoundsForTailsBlock">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
-        public virtual void Init2(Record key = null, Record OpenInitializationVector = null, Record TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true)
+        public virtual void Init2(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true)
         {
             if (RoundsForFinal < 0)
                 RoundsForFinal = NORMAL_ROUNDS_K;
@@ -134,7 +134,7 @@ namespace vinkekfish
                                                             /// <summary></summary>
         protected virtual void StartThreads()
         {
-            foreach (var t in threads)
+            foreach (var t in threads!)
             {
                 if (t.ThreadState != ThreadState.Running && t.ThreadState != ThreadState.WaitSleepJoin)
                     t.Start();
@@ -166,7 +166,7 @@ namespace vinkekfish
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
         /// <param name="RoundsForTailsBlock">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
-        protected virtual void InputKey(Record key = null, Record OpenInitializationVector = null, Record TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailsBlock = MIN_ROUNDS, bool FinalOverwrite = true)
+        protected virtual void InputKey(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailsBlock = MIN_ROUNDS, bool FinalOverwrite = true)
         {
             if (!State1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputKey: Fatal algorithmic error: !State1Main");
@@ -192,7 +192,7 @@ namespace vinkekfish
                 State1[MAX_SINGLE_KEY_K + 2 + 1] ^= len2;
             }
 
-            long keyLen = key == null ? 0 :key.len;
+            nint keyLen = key == null ? 0 : key.len;
             var dt      = keyLen;
             if (key != null)
             {
@@ -273,7 +273,7 @@ namespace vinkekfish
         /// <param name="dataLen">Длина вводимых данных</param>
         /// <param name="regime">Режим шифрования (это определяемое пользователем байтовое поле, вводимое во внешную часть криптографического состояния)</param>
         /// <param name="nullPadding">Если true, то вся внешняя часть криптографического состояния будет перезаписана нулями, даже если данных не хватит для перезаписи всего внешнего состояния</param>
-        public void InputData_Overwrite(byte * data, long dataLen, byte regime, bool nullPadding = true)
+        public void InputData_Overwrite(byte * data, nint dataLen, byte regime, bool nullPadding = true)
         {
             if (dataLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException();

@@ -19,7 +19,7 @@ namespace vinkekfish
 {
     public unsafe partial class VinKekFishBase_KN_20210525
     {
-        protected readonly Thread[] threads = null;
+        protected readonly Thread[]? threads = null;
 
         /// <summary>isEnded должен быть всегда false. Если true, то потоки завершают свою работу</summary>
         protected volatile bool   isEnded = false;
@@ -28,7 +28,7 @@ namespace vinkekfish
         /// <summary>Объект для передачи сигнала о завершении работы потоков. Вызывается однократно после выполнения задачи</summary>
         public    readonly object taskEndedSync = new object();
                                                                                     /// <summary>Функция, которая должна быть выполнена в этой задаче</summary>
-        protected volatile ThreadStart     ThreadsFunc_Current       = null;        /// <summary>Приращается каждый раз, когда ставится на исполнение новая задача</summary><remarks>Обязательно в lock (sync)</remarks>
+        protected volatile ThreadStart?    ThreadsFunc_Current       = null;        /// <summary>Приращается каждый раз, когда ставится на исполнение новая задача</summary><remarks>Обязательно в lock (sync)</remarks>
         protected volatile int             ThreadsTask_CountOfTasks  = 0;           /// <summary>Количество потоков, ещё не исполнивших эту задачу</summary><remarks>Обязательно в lock (sync)</remarks>
         protected volatile int             ThreadsExecutedForTask    = 0;
                                                                                     /// <summary>Исключения, свершившиеся при исполнении задач</summary>
@@ -86,7 +86,7 @@ namespace vinkekfish
                     Task_CountOfTasks = ThreadsTask_CountOfTasks;
                     try
                     {
-                        ThreadsFunc_Current();
+                        ThreadsFunc_Current!();
                     }
                     catch (Exception ex)
                     {
@@ -225,7 +225,7 @@ namespace vinkekfish
                         off = off2;
                     }
 
-                    keccak.Keccackf(a: (ulong *) off, c: (ulong *) (mat + keccak.b_size), b: (ulong *) mat);
+                    KeccakPrime.Keccackf(a: (ulong *) off, c: (ulong *) (mat + KeccakPrime.b_size), b: (ulong *) mat);
 
                     if (i != 0)
                     {
@@ -261,7 +261,7 @@ namespace vinkekfish
                 }
 
                 var offsetC = ThreeFishBlockLen * index;
-                var offsetK = ThreeFishBlockLen * NumbersOfThreeFishBlocks[index];
+                var offsetK = ThreeFishBlockLen * NumbersOfThreeFishBlocks![index];
                 var offC    = st2 + offsetC;
                 var offK    = st1 + offsetK;
 
@@ -342,8 +342,8 @@ namespace vinkekfish
                 var b = State1[i];
             }
 
-            var len = tablesForPermutations.len;
-            var a   = tablesForPermutations.array;
+            var len = tablesForPermutations!.len;
+            var a   = tablesForPermutations!.array;
             for (int i = 0; i < len; i += PAGE_SIZE)
             {
                 var b = a[i];

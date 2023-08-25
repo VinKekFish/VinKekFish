@@ -240,7 +240,7 @@ namespace cryptoprime
         {
             if (len > r_512b || len < 0)
             {
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: len > r_512b || len < 0");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_Input_512: len > r_512b || len < 0");
             }
 
             // В конце 72-хбайтового блока нужно поставить оконечный padding
@@ -275,7 +275,7 @@ namespace cryptoprime
 
                 if (i1 > 1)
                 {
-                    throw new Exception("cryptoprime.keccak.Keccak_Input_512: Fatal algorithmic error");
+                    throw new Exception("cryptoprime.KeccakPrime.Keccak_Input_512: Fatal algorithmic error");
                 }
 
                 // Это вычисление нужно для того, чтобы потом записать верно padding
@@ -289,7 +289,7 @@ namespace cryptoprime
 
                 // На всякий случай, проверка на выход за пределы массива
                 if (lastS >= SE || es >= SE)
-                    throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: lastS >= SE || es >= SE");
+                    throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_Input_512: lastS >= SE || es >= SE");
 
                  *lastS ^= 0x01;
                  *es    ^= 0x80;
@@ -306,7 +306,7 @@ namespace cryptoprime
         {
             if (len > r_512b || len < 0)
             {
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: len > r_512b || len < 0");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_Input_512: len > r_512b || len < 0");
             }
 
             // В конце 72-хбайтового блока нужно поставить оконечный padding
@@ -341,7 +341,7 @@ namespace cryptoprime
 
                 if (i1 > 1)
                 {
-                    throw new Exception("cryptoprime.keccak.Keccak_Input_512: Fatal algorithmic error");
+                    throw new Exception("cryptoprime.KeccakPrime.Keccak_Input_512: Fatal algorithmic error");
                 }
 
                 // Это вычисление нужно для того, чтобы потом записать верно padding
@@ -355,7 +355,7 @@ namespace cryptoprime
 
                 // На всякий случай, проверка на выход за пределы массива
                 if (lastS >= SE || es >= SE)
-                    throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_Input_512: lastS >= SE || es >= SE");
+                    throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_Input_512: lastS >= SE || es >= SE");
 
                  *lastS ^= 0x06;
                  *es    ^= 0x80;
@@ -378,7 +378,7 @@ namespace cryptoprime
             const byte RB = 64;
             if (len > RB || len < 0)
             {
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_InputOverwrite64_512: len > 64 || len < 0");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: len > 64 || len < 0");
             }
 
             byte * lastS  = S;           // Если len = 0, то записываем в первый байт
@@ -415,7 +415,7 @@ namespace cryptoprime
 
                 if (i1 > 1)
                 {
-                    throw new Exception("cryptoprime.keccak.Keccak_InputOverwrite64_512: Fatal algorithmic error");
+                    throw new Exception("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: Fatal algorithmic error");
                 }
             }
 
@@ -424,7 +424,7 @@ namespace cryptoprime
 
             // На всякий случай, проверка на выход за пределы границ матрицы S
             if (lastS >= S + b_size)
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_InputOverwrite64_512: lastS >= S + b_size");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: lastS >= S + b_size");
 
             *lastS ^= len; lastS++;
             *lastS ^= regime;
@@ -443,7 +443,7 @@ namespace cryptoprime
         {
             if (len > RB || len < 0)
             {
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_InputOverwrite64_512: len > 64 || len < 0");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: len > 64 || len < 0");
             }
 
             byte * lastS  = S;           // Если len = 0, то записываем в первый байт
@@ -480,7 +480,7 @@ namespace cryptoprime
 
                 if (i1 > 1)
                 {
-                    throw new Exception("cryptoprime.keccak.Keccak_InputOverwrite64_512: Fatal algorithmic error");
+                    throw new Exception("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: Fatal algorithmic error");
                 }
             }
 
@@ -489,7 +489,7 @@ namespace cryptoprime
 
             // На всякий случай, проверка на выход за пределы границ матрицы S
             if (lastS >= S + b_size)
-                throw new ArgumentOutOfRangeException("cryptoprime.keccak.Keccak_InputOverwrite64_512: lastS >= S + b_size");
+                throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: lastS >= S + b_size");
 
             *lastS ^= len; lastS++;
             *lastS ^= regime;
