@@ -1,0 +1,10 @@
+unix stream
+    path
+        /inRamA/
+
+entropy
+    OS
+        /dev/random
+    standard
+        df
+
