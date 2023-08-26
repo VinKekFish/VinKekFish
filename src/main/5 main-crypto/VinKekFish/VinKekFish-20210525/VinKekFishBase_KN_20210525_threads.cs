@@ -242,7 +242,9 @@ namespace vinkekfish
             waitForDoFunction();                // Ждём конца выполнения предыдущей задачи
 
             CurrentThreeFishBlockNumber = 0;
-            BytesBuilder.CopyTo(Len, Len, st1, st2);
+            BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
+            // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
+            BytesBuilder.CopyTo(Len, Len, st1, st2, CryptoStateLen, CryptoStateLenExtension, 0);
 
             doFunction(ThreadFunction_ThreeFish);
             waitForDoFunction();

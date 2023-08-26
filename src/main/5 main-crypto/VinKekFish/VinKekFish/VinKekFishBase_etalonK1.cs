@@ -1,4 +1,5 @@
 ﻿// TODO: tests
+// Сделать тесты на то, что вспомогательный блок действительно работает
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace cryptoprime.VinKekFish
 {
     /// <summary>Базовая однопоточная реализация VinKekFish для K = 1. Использование для тестирования. См. также descr.md</summary>
     public static unsafe class VinKekFishBase_etalonK1
-    {                                                                                   /// <summary>Размер криптографического состояния в байтах (3200)</summary>
+    {                                                                                   /// <summary>Размер криптографического состояния в байтах (3200). Размер криптографического состояния для выделения памяти другой: см. CryptoStateLenWithExtension</summary>
         public const int  CryptoStateLen          = 3200;                               /// <summary>Размер криптографического состояния в блоках keccak (16)</summary>
         public const int  CryptoStateLenKeccak    = CryptoStateLen / KeccakBlockLen;    /// <summary>Размер криптографического состояния в блоках ThreeFish (25)</summary>
         public const int  CryptoStateLenThreeFish = CryptoStateLen / ThreeFishBlockLen;
@@ -36,6 +37,9 @@ namespace cryptoprime.VinKekFish
         public const int  REDUCED_KEY             = 512;
                                                                                         /// <summary>Это внутренняя константа алгоритма. Не нужна пользователю</summary>
         public const long TWEAK_STEP_NUMBER       = 1253539379;
+                                                                                        /// <summary>Размер удлиннения криптографического состояния - это для расширения ключа, которое здесь просто берётся из следующего блока. Эта часть состояния носит технологический характер: в ней не хранится действующее состояние: это лишь временная копия нулевого блока нулевого подключа ThreeFish (нулевой блок состояния)</summary>
+        public const int  CryptoStateLenExtension     = 8;                              /// <summary>Размер основного криптографического состояния в байтах включая технологическое удлиннение. Используется для выделения блоков состояния</summary>
+        public const int  CryptoStateLenWithExtension = CryptoStateLen + CryptoStateLenExtension;
 
         /// <summary>Поглощение ключа губкой. Полное поглощение, включая криптографию. Пользователю не нужно, т.к. нужно использовать более специфические классы, например, VinKekFish_k1_base_20210419_keyGeneration</summary>
         /// <param name="key">Ключ</param>
@@ -253,7 +257,7 @@ namespace cryptoprime.VinKekFish
             state[2] ^= regime;
         }
 
-        /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak</summary>
+        /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak. В режиме OVERWRITE нужно использовать InputData_Overwrite с dataLen=0</summary>
         public static void NoInputData_ChangeTweak(byte * state, ulong * tweak, byte regime)
         {
             // Приращение tweak перед вводом данных
@@ -271,8 +275,8 @@ namespace cryptoprime.VinKekFish
         /// <param name="tweak">Tweak после ввода данных, 16 байтов (все массивы могут быть в одном, если это удобно). Не изменяется в функции.</param>
         /// <param name="tweakTmp">Дополнительный массив для временного tweak, 16 байтов. Изменяется в функции.</param>
         /// <param name="tweakTmp2">Дополнительный массив для временного tweak, 16 байтов. Изменяется в функции.</param>
-        /// <param name="state">Криптографическое состояние</param>
-        /// <param name="state2">Вспомогательный массив для криптографического состояния</param>
+        /// <param name="state">Криптографическое состояние (размер в байтах CryptoStateLenWithExtension)</param>
+        /// <param name="state2">Вспомогательный массив для криптографического состояния (размер в байтах CryptoStateLenWithExtension)</param>
         /// <param name="tablesForPermutations">Массив таблиц перестановок на каждый раунд. Длина должна быть countOfRounds*4 таблиц (CryptoStateLen*ushort на каждую таблицу)</param>
         /// <param name="b">Вспомогательный массив b для keccak.Keccackf</param>
         /// <param name="c">Вспомогательный массив c для keccak.Keccackf</param>
@@ -342,7 +346,7 @@ namespace cryptoprime.VinKekFish
         */
 
         /// <summary>Применяет ThreeFish поблочно ко всему состоянию алгоритма</summary>
-        /// <param name="beginCryptoState">Начальное криптографическое состояние (инициализированное)</param>
+        /// <param name="beginCryptoState">Начальное криптографическое состояние (инициализированное) (размер CryptoStateLenWithExtension байтов)</param>
         /// <param name="finalCryptoState">Финальное криптографическое состояние (для результата, будет перезатёрто)</param>
         /// <param name="tweak">Базовый tweak для раунда. Не изменяется</param>
         /// <param name="tweakTmp">Дополнительный массив для временного tweak</param>
@@ -357,6 +361,8 @@ namespace cryptoprime.VinKekFish
             byte* key = beginCryptoState;
 
             BytesBuilder.CopyTo(CryptoStateLen, CryptoStateLen, beginCryptoState, finalCryptoState);
+            // Копируем вспомогательный блок для расширения ключа
+            BytesBuilder.CopyTo(CryptoStateLenWithExtension, CryptoStateLenWithExtension, beginCryptoState, beginCryptoState, CryptoStateLen, CryptoStateLenExtension, 0);
 
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];

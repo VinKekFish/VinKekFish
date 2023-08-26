@@ -69,19 +69,23 @@ namespace vinkekfish
             // Криптографическое состояние
             // Копию криптографического состояния
             // 4 tweak (основной и запасные)
-            // new byte[CryptoStateLen * 2 + CryptoTweakLen * 4];
+            // new byte[CryptoStateLenWithExtension * 2 + CryptoTweakLen * 4];
             // место для вспомогательных матриц c и b
-            stateHandle = AllocHGlobal_allocator.AllocMemory(CryptoStateLen * 2 + CryptoTweakLen * 4 + cryptoprime.KeccakPrime.b_size + cryptoprime.KeccakPrime.c_size);
+            stateHandle = AllocHGlobal_allocator.AllocMemory(CryptoStateLenWithExtension * 2 + CryptoTweakLen * 4 + cryptoprime.KeccakPrime.b_size + cryptoprime.KeccakPrime.c_size);
             stateHandle.Clear();
 
             // При изменении не забыть обнулить указатели в ClearState()
-            _state  = stateHandle.NoCopyClone(CryptoStateLen);
-            _state2 = _state  & CryptoStateLen; // Это перегруженная операция сложения, _state2 идёт за массивом _state и имеет длину CryptoStateLen
+            _state  = stateHandle.NoCopyClone(CryptoStateLenWithExtension);
+            _state2 = _state  & CryptoStateLenWithExtension; // Это перегруженная операция, _state2 идёт за массивом _state и имеет длину CryptoStateLenWithExtension
             t0      = _state2 & CryptoTweakLen;
             t1      = t0      & CryptoTweakLen;
             t2      = t1      & CryptoTweakLen;
             _b      = t2      & cryptoprime.KeccakPrime.b_size;
             _c      = _b      & cryptoprime.KeccakPrime.c_size;
+
+            var ctrl = _c     & 0;
+            if (ctrl.array != stateHandle.array + stateHandle.len)
+                throw new Exception("VinKekFish_k1_base_20210419.Init1: ctrl.array != stateHandle.array + stateHandle.len");
 
             _RTables        = RoundsForTables;
             pTablesHandle   = GenStandardPermutationTables(Rounds: _RTables, key: additionalKeyForTables, key_length: additionalKeyForTables_length, OpenInitVector: OpenInitVectorForTables, OpenInitVector_length: OpenInitVectorForTables_length, PreRoundsForTranspose: PreRoundsForTranspose);
