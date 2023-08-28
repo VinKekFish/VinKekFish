@@ -26,7 +26,8 @@ namespace cryptoprime.VinKekFish
         public const int  BLOCK_SIZE              = 512;                                /// <summary>Размер максимального блока для ввода начала ключа: 2048 байтов (16384 бита), для K = 1</summary>
         public const int  MAX_SINGLE_KEY          = 2048;                               /// <summary>Максимально допустимая длина ОВИ (открытого вектора инициализации): 1148 байтов = 9184 битов, для K = 1</summary>
         public const int  MAX_OIV                 = 1148;
-                                                                                        /// <summary>Минимально допустимое количество раундов на поглощение, для K = 1</summary>
+                                                                                        /// <summary>Минимально допустимое количество раундов на поглощение, для K = 1; это нестойкое поглощение, обеспечивающее минимальную диффузию</summary>
+        public const int  MIN_ABSORPTION_ROUNDS_D = 1;                                  /// <summary>Минимально допустимое количество раундов на поглощение, для K = 1</summary>
         public const int  MIN_ABSORPTION_ROUNDS   = 1;                                  /// <summary>Минимально допустимое количество раундов (для любых операций), для K = 1</summary>
         public const int  MIN_ROUNDS              = 4;                                  /// <summary>Нормальное количество раундов, для K = 1</summary>
         public const int  NORMAL_ROUNDS           = 64;                                 /// <summary>Уменьшенное количество раундов, для K = 1</summary>
@@ -38,8 +39,8 @@ namespace cryptoprime.VinKekFish
                                                                                         /// <summary>Это внутренняя константа алгоритма. Не нужна пользователю</summary>
         public const long TWEAK_STEP_NUMBER       = 1253539379;
                                                                                         /// <summary>Размер удлиннения криптографического состояния - это для расширения ключа, которое здесь просто берётся из следующего блока. Эта часть состояния носит технологический характер: в ней не хранится действующее состояние: это лишь временная копия нулевого блока нулевого подключа ThreeFish (нулевой блок состояния)</summary>
-        public const int  CryptoStateLenExtension     = 8;                              /// <summary>Размер основного криптографического состояния в байтах включая технологическое удлиннение. Используется для выделения блоков состояния</summary>
-        public const int  CryptoStateLenWithExtension = CryptoStateLen + CryptoStateLenExtension;
+        public const int  CryptoStateLenExtension     = 8;                              /// <summary>Размер основного криптографического состояния в байтах включая технологическое удлиннение. Используется для выделения блоков состояния. Это размер CryptoStateLen + CryptoStateLenExtension, но выровненный до нечётного количества 64-байтных линий кеша</summary>
+        public const int  CryptoStateLenWithExtension = CryptoStateLen + 64;
 
         /// <summary>Поглощение ключа губкой. Полное поглощение, включая криптографию. Пользователю не нужно, т.к. нужно использовать более специфические классы, например, VinKekFish_k1_base_20210419_keyGeneration</summary>
         /// <param name="key">Ключ</param>

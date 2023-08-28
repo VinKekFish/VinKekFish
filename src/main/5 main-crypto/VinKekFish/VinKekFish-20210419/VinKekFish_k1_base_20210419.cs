@@ -80,12 +80,22 @@ namespace vinkekfish
             t0      = _state2 & CryptoTweakLen;
             t1      = t0      & CryptoTweakLen;
             t2      = t1      & CryptoTweakLen;
-            _b      = t2      & cryptoprime.KeccakPrime.b_size;
+            var tmp = t2      & CryptoTweakLen;     // Это поле не используется; оно для выравнивания на 64-х байтную линию кеша
+            _b      = tmp     & cryptoprime.KeccakPrime.b_size;
             _c      = _b      & cryptoprime.KeccakPrime.c_size;
 
-            var ctrl = _c     & 0;
+            // Проверяем, что мы верно заполнили массив:
+            // конец всех массивов-вхождений должен совпадать с концом массива-контейнера
+            var ctrl = _c & 0;
             if (ctrl.array != stateHandle.array + stateHandle.len)
                 throw new Exception("VinKekFish_k1_base_20210419.Init1: ctrl.array != stateHandle.array + stateHandle.len");
+
+            // Проверяем, что _b выравнен по линии кеша
+            nint tmpb = (nint) _b.array;
+            tmpb &= 63;
+            if (tmpb != 0)
+                throw new Exception("VinKekFish_k1_base_20210419.Init1: fatal error: tmpb != 0");
+
 
             _RTables        = RoundsForTables;
             pTablesHandle   = GenStandardPermutationTables(Rounds: _RTables, key: additionalKeyForTables, key_length: additionalKeyForTables_length, OpenInitVector: OpenInitVectorForTables, OpenInitVector_length: OpenInitVectorForTables_length, PreRoundsForTranspose: PreRoundsForTranspose);

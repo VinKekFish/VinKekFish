@@ -56,11 +56,14 @@ namespace vinkekfish
         public readonly int MAX_OIV_K;                                      /// <summary>Максимальная длина первого блока ключа (это максимально рекомендуемая длина, но можно вводить больше)</summary>
         public readonly int MAX_SINGLE_KEY_K;                               /// <summary>Длина блока ввода/вывода</summary>
         public readonly int BLOCK_SIZE_K;
-                                                                            /// <summary>Минимальное количество раундов для поглощения без выдачи выходных данных, для установленного K</summary>
+                                                                            /// <summary>Минимальное количество раундов для поглощения без выдачи выходных данных, для установленного K. Нестойкое значение: обеспечивается диффузия, но криптостойкость может быть недостаточной</summary>
+        public readonly int MIN_ABSORPTION_ROUNDS_D_K;                                                                    /// <summary>Минимальное количество раундов для поглощения без выдачи выходных данных, для установленного K</summary>
         public readonly int MIN_ABSORPTION_ROUNDS_K;                        /// <summary>Минимальное количество раундов с выдачей выходных данных, для установленного K</summary>
         public readonly int MIN_ROUNDS_K;                                   /// <summary>Нормальное количество раундов, для установленного K</summary>
         public readonly int NORMAL_ROUNDS_K;                                /// <summary>Уменьшенное количество раундов, для установленного K</summary>
-        public readonly int REDUCED_ROUNDS_K;
+        public readonly int REDUCED_ROUNDS_K;                               /// <summary>Усиленное количество раундов</summary>
+        public readonly int EXTRA_ROUNDS_K;                                 /// <summary>Максимально рекомендуемое количество раундов (выше почти бессмысленно)</summary>
+        public readonly int MAX_ROUNDS_K;
 
         /// <summary>Вспомогательные переменные, показывающие, какие состояния сейчас являются целевыми. Изменяются в алгоритме (st2 - вспомогательное/дополнительное; st1 - основное состояние, содержащее актуальную криптографическую информацию)</summary>
         protected volatile byte * st1 = null, st2 = null, st3 = null;
@@ -98,11 +101,21 @@ namespace vinkekfish
             MAX_OIV_K        = K * MAX_OIV;
             MAX_SINGLE_KEY_K = K * MAX_SINGLE_KEY;
 
-            var kr = (K - 1) >> 1;
-            MIN_ABSORPTION_ROUNDS_K = kr + MIN_ABSORPTION_ROUNDS;
-            MIN_ROUNDS_K            = kr + MIN_ROUNDS;
-            REDUCED_ROUNDS_K        = kr + REDUCED_ROUNDS;
-            NORMAL_ROUNDS_K         = kr * 8 + NORMAL_ROUNDS;
+            var ce = (double x) => (int) Math.Ceiling( x );
+
+            // var kr = (K - 1) >> 1;
+            // Рассчитываем константы для рекомендуемого количества раундов
+            MIN_ABSORPTION_ROUNDS_D_K = ce( Math.Log2(K+1) );
+            MIN_ABSORPTION_ROUNDS_K   = ce( K*1.337 - 0.328 );
+            MIN_ROUNDS_K              = ce( K*2.674 );
+            if (MIN_ROUNDS_K < ce(  4.0*Math.Log2(K+1)  ))
+                MIN_ROUNDS_K = ce(  4.0*Math.Log2(K+1)  );
+
+            REDUCED_ROUNDS_K          = ce( K*6.168 );
+            NORMAL_ROUNDS_K           = ce( K*6.168*1.5 );
+            EXTRA_ROUNDS_K            = ce( K*25.0 );
+            MAX_ROUNDS_K              = ce( K*25.0*(2*Math.Log2(K+1)+2) );
+
 
             if (CountOfRounds < 0)
                 CountOfRounds = NORMAL_ROUNDS_K;
