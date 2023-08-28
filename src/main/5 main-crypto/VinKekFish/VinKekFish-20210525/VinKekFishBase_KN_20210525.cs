@@ -90,6 +90,19 @@ namespace vinkekfish
         protected readonly int[]? NumbersOfThreeFishBlocks = null;                           /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
         protected readonly Timer? Timer                    = null;
 
+        /// <summary>Функция для расчёта выравнивания</summary>
+        /// <param name="size">Размер массива для выравнивания</param>
+        /// <param name="alignment">Размер границ, на который выравнивается</param>
+        /// <returns>Выравненное значение size</returns>
+        public static int calcAlignment(int size, int alignment = 64)
+        {
+            var bmod = size % alignment;
+            if (bmod == 0)
+                return size;
+
+            return size - bmod + alignment;
+        }
+
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
@@ -136,14 +149,16 @@ namespace vinkekfish
 
             this.CountOfRounds = CountOfRounds;
             this.K             = K;
-            Len                = K * CryptoStateLen;
+            Len                = K * CryptoStateLen;    // Этот размер уже выравнен на значение, кратное размеру 64-х байтной линии кеша
             LenInThreeFish     = Len / ThreeFishBlockLen;
             LenInKeccak        = Len / KeccakBlockLen;
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
             TweaksArrayLen = CountOfTweaks * CryptoTweakLen * LenInThreeFish;
+            TweaksArrayLen = calcAlignment(TweaksArrayLen);
             MatrixArrayLen = MatrixLen * LenInKeccak;
-            CountOfFinal = K <= 11 ? 2 : 3;
+            MatrixArrayLen = calcAlignment(MatrixArrayLen);
+            CountOfFinal   = K <= 11 ? 2 : 3;
 
             // Вообще говоря, больше 2-х потоков на перестановке может быть не оправдано, однако там всё сложно
             LenInThreadBlock = ThreadCount;
