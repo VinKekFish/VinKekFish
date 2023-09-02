@@ -140,6 +140,11 @@
             <param name="t">Массив для заполнения</param><param name="index">Индекс первого элемента, с которого будет начато заполнение</param>
             <param name="count">Количество элементов для заполнения. count = -1 - заполнять до конца</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.FillByBytes(System.Byte,System.Byte*,System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>Заполняет массив t байтами со значением value</summary><param name="value">Значение для заполнения</param>
+            <param name="t">Массив для заполнения</param><param name="len">Длина массива</param><param name="index">Индекс первого элемента, с которого будет начато заполнение</param>
+            <param name="count">Количество элементов для заполнения. count = -1 - заполнять до конца</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.ToNull(System.Byte[],System.UInt64,System.IntPtr,System.IntPtr)">
             <summary>Обнуляет массив байтов</summary>
             <param name="t">Массив для обнуления</param>
@@ -343,7 +348,7 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.Record.allocator">
             <summary>Аллокатор, используемый для освобождения памяти в Dispose</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.Byte*)">
             <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
@@ -407,6 +412,9 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Finalize">
             <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.Void*">
+            <summary>Возвращает ссылку на массив</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.Byte*">
             <summary>Возвращает ссылку на массив</summary>
@@ -477,6 +485,9 @@
             <summary>Аналог Interlocked.Increment для nint (в классе Interlocked его нет). Выполняет приращение val на единицу</summary>
             <returns>Оригинальное (не изменённое) значение переменной</returns>
         </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.alignmentDegree">
+            <summary>Показатель степени значения выравнивания памяти</summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>
             <param name="len">Длина выделяемого участка памяти</param>
@@ -523,7 +534,7 @@
             BytesBuilderStatic
             BytesBuilderForPointers, реализованный с циклическим буфером
             Класс позволяет собирать большой блок байтов из более мелких
-            Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную)
+            Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную как на чтение, если при нём возможна запись, так и на запись)
             </summary>
         </member>
         <member name="F:cryptoprime.BytesBuilderStatic.size">

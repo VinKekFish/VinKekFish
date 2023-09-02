@@ -39,7 +39,7 @@ namespace vinkekfish
                 countOfRounds = this.CountOfRounds;
 
             var TB = tablesForPermutations!;
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main (at start)");
             // State1Main = true;
 
@@ -48,7 +48,7 @@ namespace vinkekfish
             doThreeFish();
             doPermutation(transpose128);
 
-            BytesBuilder.CopyTo(Len, Len, State2, State1); State1Main = true;
+            BytesBuilder.CopyTo(Len, Len, State2, State1); isState1Main = true;
 
             // Основной шаг алгоритма: раунды
             // Каждая итерация цикла - это полураунд
@@ -63,7 +63,7 @@ namespace vinkekfish
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 // Вычисляем tweak для данного раунда (работаем со старшим 4-хбайтным словом младшего 8-мибайтного слова tweak)
-                // Каждый раунд берёт +2 к старшему 4-хбайтовому слову; +1 - после первого полураунда, и +1 - после второго полураунда
+                // Каждый раунд берёт +2 к старшему 4-хбайтовому слову: +1 - после первого полураунда, и +1 - после второго полураунда
                 Tweaks[2+0] += 0x1_0000_0000U;  // Берём элемент [1], расположение tweak см. по метке :an6c5JhGzyOO
             }
 
@@ -76,7 +76,7 @@ namespace vinkekfish
                 doPermutation(transpose200_8);
             }
 
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main");
 
             isHaveOutputData = CountOfRounds >= MIN_ROUNDS_K;
@@ -88,7 +88,7 @@ namespace vinkekfish
         /// <param name="OpenInitVectorForPermutations">Дополнительный вектор инициализации</param>
         public virtual void Init1(int PreRoundsForTranspose = 8, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null)
         {
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init1: Fatal algorithmic error: !State1Main");
 
             lock (this)
@@ -118,7 +118,7 @@ namespace vinkekfish
             if (RoundsForTailsBlock < 0)
                 RoundsForTailsBlock = REDUCED_ROUNDS_K;
 
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init2: Fatal algorithmic error: !State1Main");
 
 
@@ -142,14 +142,22 @@ namespace vinkekfish
         }
 
         /// <summary>Простая инициализация объекта без ключа для принятия энтропии в дальнейшем</summary>
-        /// <param name="RandomInit">Если True, то состояние может быть проинициализированно какими-либо значениями, например, текущим временем</param>
+        /// <param name="RandomInit">Если True, то tweak инициализируется текущим временем и GC.GetTotalAllocatedBytes и вычисляется его состояние. Если false, то состояние инициализируется нулями</param>
         public virtual void SimpleInit(bool RandomInit = true)
         {
             if (RandomInit)
-            {   // TODO: что здесь такое???
-                /*using var tweak = allocator.AllocMemory(CryptoTweakLen);
-                tweak.Clear();*/
+            {
+                using var tweak = allocator.AllocMemory(CryptoTweakLen);
+
+                tweak.Clear();
+                var tw = (long*) tweak.array;
+                tw[0] = DateTime.Now.Ticks;
+                tw[1] = GC.GetTotalAllocatedBytes();
+                var r = tw[0] & tw[1] & 3;
+                r++;
+
                 Init1();
+                Init2(TweakInit: tweak, RoundsForFirstKeyBlock: 0, RoundsForFinal: (int) r, FinalOverwrite: false);
             }
             else
             {
@@ -168,7 +176,7 @@ namespace vinkekfish
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
         protected virtual void InputKey(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailsBlock = MIN_ROUNDS, bool FinalOverwrite = true)
         {
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputKey: Fatal algorithmic error: !State1Main");
 // TODO: проверить в тестах, что все инициализаторы действительно используются
             if (TweakInit != null && TweakInit.len >= CryptoTweakLen)
@@ -277,7 +285,7 @@ namespace vinkekfish
         {
             if (dataLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException();
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
 
             if (nullPadding)
@@ -316,7 +324,7 @@ namespace vinkekfish
         {
             if (dataLen > BLOCK_SIZE)
                 throw new ArgumentOutOfRangeException();
-            if (!State1Main)
+            if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
 
             XorWithBytes(dataLen, data, State1 + 3);

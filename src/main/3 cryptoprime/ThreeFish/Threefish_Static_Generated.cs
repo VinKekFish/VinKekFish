@@ -1,6 +1,7 @@
 using System;
 // Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)
-// Vinogradov S.V. Generated at 2023 year
+// Vinogradov S.V. Generated at 2020-2023 years
+// ::test:O0s1QcshQ7zCGVMMKZtf:
 namespace CodeGenerated.Cryptoprimes
 {
 	public static unsafe class Threefish_Static_Generated 

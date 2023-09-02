@@ -57,12 +57,14 @@ namespace vinkekfish
             lock (output)
             {
                 isHaveOutputData = false;
+                // Если новые данные уже не смогут поместиться в буфер
                 if (output.Count + outputLen > output.size)
                 {
-                    var freePlace = output.size - output.Count;
-                    output.RemoveBytes(outputLen - freePlace);
+                    // var freePlace = output.size - output.Count;
+                    // output.RemoveBytes(outputLen - freePlace);
+                    throw new ArgumentOutOfRangeException("outputLen", "VinKekFishBase_KN_20210525.doStepAndIO: output.Count + outputLen > output.size");
                 }
-                output.add(State1, outputLen);
+                output.add(this.st1, outputLen);
             }
         }
     }

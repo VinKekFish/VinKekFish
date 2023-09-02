@@ -68,7 +68,10 @@ public partial class Program
         if (ec.resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
+            {
                 Console.Error.WriteLine($"{getTimeString(DateTime.Now)}. Error during tests");
+                Console.Error.WriteLine($"Working dir {Directory.GetCurrentDirectory()}");
+            }
 
             return (int) ec.resultCode;
         }

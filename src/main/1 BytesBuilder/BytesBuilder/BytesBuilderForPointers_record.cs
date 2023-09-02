@@ -34,7 +34,7 @@ namespace cryptoprime
 
             // Конструктор. Не вызывается напрямую
             /// <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
-            public Record()
+            public Record(byte * base_array = null)
             {
                 #if RECORD_DEBUG
                 DebugNum = CurrentDebugNum++;
@@ -315,6 +315,14 @@ namespace cryptoprime
                 Dispose(false);
             }
                                                                                     /// <summary>Возвращает ссылку на массив</summary>
+            public static implicit operator void * (Record? t)
+            {
+                if (t == null)
+                    return null;
+
+                return t.array;
+            }
+                                                                                    /// <summary>Возвращает ссылку на массив</summary>
             public static implicit operator byte * (Record? t)
             {
                 if (t == null)
@@ -347,7 +355,7 @@ namespace cryptoprime
                 var r = new Record()
                 {
                     array     = a.array + len,
-                    len       = a.len - len
+                    len       = a.len   - len
                 };
 
                 r.allocator = new AllocHGlobal_NoCopy(a, r);
@@ -584,18 +592,38 @@ namespace cryptoprime
 
                 return a;
             }
+                                                                                                    /// <summary>Показатель степени значения выравнивания памяти</summary>
+            public byte alignmentDegree = 0;
+
+
+            public AllocHGlobal_AllocatorForUnsafeMemory(byte alignmentDegree = 0)
+            {
+                this.alignmentDegree = alignmentDegree;
+            }
 
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Длина выделяемого участка памяти</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
             public virtual Record AllocMemory(nint len)
             {
+                nint alignmentSize = 1 << alignmentDegree;
+                nint alignmentAnd  = alignmentSize - 1;
+
                 if (len < 1)
                     throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory.ArgumentOutOfRangeException: len must be > 0");
 
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
-                var ptr = Marshal.AllocHGlobal(len);
+                // alignmentSize домножаем на два, чтобы при невыравненной памяти захватить как память в начале (для выравнивания),
+                // так и память в конце - чтобы исключить попадание туда каких-либо других массивов и их конкуренцию за линию кеша
+                var ptr = Marshal.AllocHGlobal(len + alignmentSize*2);
                 var rec = new Record() { len = len, array = (byte *) ptr.ToPointer(), ptr = ptr, allocator = this };
+
+                var bmod = (nint) rec.array & alignmentAnd;
+                if (bmod > 0)
+                {
+                    // Выравниваем array. Сохранять старое значение не надо, т.к. для удаления используется ptr
+                    rec.array += alignmentSize - bmod;
+                }
 
                 InterlockedIncrement_memAllocated();
 

@@ -192,7 +192,7 @@ namespace vinkekfish
 
             doFunction(ThreadFunction_Keccak);
             waitForDoFunction();
-            State1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
+            isState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
         }
 
                                                                                             /// <summary>Массив счётчика блоков для определения текущего блока для обработки keccak. [0] - чётные элементы, [1] - нечётные элементы</summary>
@@ -244,16 +244,21 @@ namespace vinkekfish
             CurrentThreeFishBlockNumber = 0;
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
             // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
-            BytesBuilder.CopyTo(Len, Len, st1, st2, CryptoStateLen, CryptoStateLenExtension, 0);
+            BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, Len, CryptoStateLenExtension, 0);
 
             doFunction(ThreadFunction_ThreeFish);
             waitForDoFunction();
-            State1Main ^= true;
+            isState1Main ^= true;
         }
 
         protected volatile int CurrentThreeFishBlockNumber = 0;
         protected void ThreadFunction_ThreeFish()
         {
+            // В элементах [0;1] массива содержится tweak текущего шага шифрования. В элементах [2;3] - tweak, который изменяется в течении шага (tweak полураунда)   ::an6c5JhGzyOO
+            // var tweaks  = (ulong *) (((byte *) Tweaks) + CountOfTweaks * CryptoTweakLen * index + CryptoTweakLen*2);
+            // Выделяем место для tweak текущего блока
+            var tweak  = stackalloc ulong[3];
+
             do
             {
                 var index  = Interlocked.Increment(ref CurrentThreeFishBlockNumber) - 1;
@@ -263,20 +268,15 @@ namespace vinkekfish
                 }
 
                 var offsetC = ThreeFishBlockLen * index;
-                var offsetK = ThreeFishBlockLen * NumbersOfThreeFishBlocks![index];
+                var offsetK = ThreeFishBlockLen * NumbersOfThreeFishBlocks[index];
                 var offC    = st2 + offsetC;
                 var offK    = st1 + offsetK;
 
+                tweak[0]   = Tweaks[2+0] + (uint) index;     // Берём tweak из элемента [2]
+                tweak[1]   = Tweaks[2+1];
+                tweak[2]   = tweak[0] ^ tweak[1];
 
-                // В элементе [0] массива содержится раундовый tweak. В элементе [1] - tweak, который изменяется в течении шага, [2] - tweak конкретного блока  ::an6c5JhGzyOO
-                var tweaks  = (ulong *) (((byte *) Tweaks) + CountOfTweaks * CryptoTweakLen * index + CryptoTweakLen*2);
-                tweaks[0]   = Tweaks[2+0] + (uint) index;     // Берём tweak из элемента [1]
-                tweaks[1]   = Tweaks[2+1];
-                tweaks[2]   = tweaks[0] ^ tweaks[1];
-// TODO: Кажется, в обеих реаолизациях алгоритма есть проблема с верным вычислением tweak от шага к шагу
-                // BytesBuilder.CopyTo(CryptoTweakLen, CryptoTweakLen, ((byte *) Tweaks) + CryptoTweakLen, (byte *) tweaks);
-
-                Threefish_Static_Generated.Threefish1024_step(key: (ulong *) offK, tweak: tweaks, text: (ulong *) offC);
+                Threefish_Static_Generated.Threefish1024_step(key: (ulong *) offK, tweak: tweak, text: (ulong *) offC);
             }
             while (true);
         }
@@ -293,7 +293,7 @@ namespace vinkekfish
             // Для повышения эффективности работы это делает один поток, а не пул (см. пояснения ThreadFunction_Permutation)
             ThreadFunction_Permutation();
             waitForDoFunction();
-            State1Main ^= true;
+            isState1Main ^= true;
         }
 
         protected volatile int      CurrentPermutationBlockNumber = 0;

@@ -42,6 +42,7 @@ namespace cryptoprime.VinKekFish
         public const int  CryptoStateLenExtension     = 8;                              /// <summary>Размер основного криптографического состояния в байтах включая технологическое удлиннение. Используется для выделения блоков состояния. Это размер CryptoStateLen + CryptoStateLenExtension, но выровненный до нечётного количества 64-байтных линий кеша</summary>
         public const int  CryptoStateLenWithExtension = CryptoStateLen + 64;
 
+
         /// <summary>Поглощение ключа губкой. Полное поглощение, включая криптографию. Пользователю не нужно, т.к. нужно использовать более специфические классы, например, VinKekFish_k1_base_20210419_keyGeneration</summary>
         /// <param name="key">Ключ</param>
         /// <param name="key_length">Длина ключа</param>

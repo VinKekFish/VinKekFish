@@ -407,7 +407,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
                 ulong result = 0;
                 byte  bn     = 0;
-                while (cutoff.cbytes > 0)
+                while (cutoff.cbytes > bn)
                 {
                     result <<= 8;
                     result |= b[bn];

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using cryptoprime;
 using cryptoprime.VinKekFish;
+using static VinKekFish_Utils.Utils;
 
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
@@ -26,11 +27,11 @@ namespace vinkekfish
         protected volatile Record?  tablesForPermutations = null;
 
         /// <summary>Аллокатор для выделения памяти внутри объекта</summary>
-        public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
+        public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory(8);
 
-                                                                            /// <summary>Криптографическое состояние 1. Всегда в начале общего массива</summary>
-        protected byte *  State1 => States!;                                /// <summary>Криптографическое состояние 2</summary>
-        protected byte *  State2 => State1 + Len;
+                                                                            /// <summary>Криптографическое состояние 1. Всегда в начале общего массива. Может быть неактуальным. Для получения состояния нужно использовать st1</summary>
+        protected byte *  State1 = null;                                    /// <summary>Криптографическое состояние 2</summary>
+        protected byte *  State2 = null;
                                                                             /// <summary>Массив матриц b и c на каждый блок Keccak</summary>
         protected byte *  Matrix => State2 + Len;                           /// <summary>Массив tweak - по 4 tweak на каждый блок ThreeFish</summary>
         protected ulong * Tweaks => (ulong *) (Matrix + MatrixArrayLen);
@@ -44,7 +45,8 @@ namespace vinkekfish
         public readonly int CountOfRounds  = 0;                             /// <summary>Коэффициент размера K</summary>
         public readonly int K              = 1;                             /// <summary>Количество заключительных пар перестановок в завершающем преобразовании (2 => 4*keccak, 3 => 6*keccak)</summary>
         public readonly int CountOfFinal   = Int32.MaxValue;
-                                                                            /// <summary>Размер одного криптографического состояния в байтах</summary>
+                                                                            /// <summary>Размер одного криптографического состояния в байтах, включая продление для расширения ключа ThreeFish для последнего блока</summary>
+        public readonly int FullLen        = 0;                             /// <summary>Размер одного криптографического состояния в байтах (логический, без продления состояния для расширения ключа ThreeFish для последнего блока)</summary>
         public readonly int Len            = 0;                             /// <summary>Размер криптографического состояния в блоках ThreeFish</summary>
         public readonly int LenInThreeFish = 0;                             /// <summary>Размер криптографического состояния в блока Keccak</summary>
         public readonly int LenInKeccak    = 0;
@@ -68,7 +70,7 @@ namespace vinkekfish
         /// <summary>Вспомогательные переменные, показывающие, какие состояния сейчас являются целевыми. Изменяются в алгоритме (st2 - вспомогательное/дополнительное; st1 - основное состояние, содержащее актуальную криптографическую информацию)</summary>
         protected volatile byte * st1 = null, st2 = null, st3 = null;
         /// <summary>Устанавливает st1 и st2 на нужные состояния. Если true, то st1 = State1, иначе st1 = State2. State1Main ^= true - переключение состояний между основным и вспомогательным</summary>
-        public bool State1Main
+        public bool isState1Main
         {
             get => st1 == State1;
             set
@@ -87,23 +89,11 @@ namespace vinkekfish
         }
 
         /// <summary>Массив, устанавливающий номера ключевых блоков TreeFish для каждого трансформируемого блока</summary>
-        protected readonly int[]? NumbersOfThreeFishBlocks = null;                           /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
+        protected readonly int[]  NumbersOfThreeFishBlocks;                               /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
         protected readonly Timer? Timer                    = null;
 
-        /// <summary>Функция для расчёта выравнивания</summary>
-        /// <param name="size">Размер массива для выравнивания</param>
-        /// <param name="alignment">Размер границ, на который выравнивается</param>
-        /// <returns>Выравненное значение size</returns>
-        public static int calcAlignment(int size, int alignment = 64)
-        {
-            var bmod = size % alignment;
-            if (bmod == 0)
-                return size;
 
-            return size - bmod + alignment;
-        }
-
-        /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта</summary>
+        /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта. После конструктора необходимо вызвать init1 и init2</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
         /// <param name="ThreadCount">Количество создаваемых потоков. Рекомендуется использовать значение по-умолчанию: 0 (0 == Environment.ProcessorCount)</param>
@@ -149,9 +139,16 @@ namespace vinkekfish
 
             this.CountOfRounds = CountOfRounds;
             this.K             = K;
-            Len                = K * CryptoStateLen;    // Этот размер уже выравнен на значение, кратное размеру 64-х байтной линии кеша
+            FullLen            = K * CryptoStateLen + CryptoStateLenExtension;
+            FullLen            = calcAlignment(FullLen);
+            Len                = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
             LenInThreeFish     = Len / ThreeFishBlockLen;
             LenInKeccak        = Len / KeccakBlockLen;
+
+            if ((Len & 127) > 0 || (Len & 255) == 0)
+            {
+                throw new Exception("VinKekFishBase_KN_20210525: Fatal algorithmic error. (Len & 127) > 0 || (Len & 255) == 0");
+            }
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
             TweaksArrayLen = CountOfTweaks * CryptoTweakLen * LenInThreeFish;
@@ -185,8 +182,10 @@ namespace vinkekfish
                     throw new Exception("VinKekFishBase_KN_20210525: Fatal algorithmic error");
             }
 
-            //                            Состояния      Твики            b и c
-            States = allocator.AllocMemory(Len * 2 + TweaksArrayLen + MatrixArrayLen);
+            //                              Состояния       Твики            b и c
+            States = allocator.AllocMemory(FullLen * 2 + TweaksArrayLen + MatrixArrayLen);
+            State1 = States.array;
+            State2 = State1 + FullLen;
             ClearState();
 
             // ThreadsFunc_Current = ThreadFunction_empty; // Это уже сделано в ClearState
@@ -212,7 +211,7 @@ namespace vinkekfish
                 Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
             }
 
-            State1Main = true;
+            isState1Main = true;
         }
 
         /// <summary>Проверка верности заполнения NumbersOfThreeFishBlocks</summary>

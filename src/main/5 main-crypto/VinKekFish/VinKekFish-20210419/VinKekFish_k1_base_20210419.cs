@@ -45,7 +45,7 @@ namespace vinkekfish
         public bool IsInited1 => isInited1; /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/IsInited2/*' />
         public bool IsInited2 => isInited2;
                                             /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/AllocHGlobal_allocator/*' />
-        public static readonly AllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+        public static readonly AllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory(6);
 
 
         protected volatile bool isHaveOutputData = false;
@@ -55,12 +55,13 @@ namespace vinkekfish
         {
         }
 
+
         /// <summary>Первичная инициализация: генерация таблиц перестановок (перед началом вызывает Clear)</summary>
         /// <param name="RoundsForTables">Количество раундов, под которое генерируются таблицы перестановок</param>
         /// <param name="additionalKeyForTables">Дополнительный ключ: это ключ для таблиц перестановок</param>
         /// <param name="OpenInitVectorForTables">Дополнительный вектор инициализации для перестановок (используется совместно с ключом)</param>
         /// <param name="PreRoundsForTranspose">Количество раундов со стандартными таблицами transpose &lt; (не менее 1)</param>
-        public virtual void Init1(int RoundsForTables, byte * additionalKeyForTables, nint additionalKeyForTables_length, byte * OpenInitVectorForTables = null, nint OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
+        public virtual void Init1(int RoundsForTables, byte * additionalKeyForTables = null, nint additionalKeyForTables_length = 0, byte * OpenInitVectorForTables = null, nint OpenInitVectorForTables_length = 0, int PreRoundsForTranspose = 8)
         {
             Clear();
             GC.Collect();
@@ -86,15 +87,17 @@ namespace vinkekfish
 
             // Проверяем, что мы верно заполнили массив:
             // конец всех массивов-вхождений должен совпадать с концом массива-контейнера
-            var ctrl = _c & 0;
-            if (ctrl.array != stateHandle.array + stateHandle.len)
-                throw new Exception("VinKekFish_k1_base_20210419.Init1: ctrl.array != stateHandle.array + stateHandle.len");
+            // Т.к. массив выравнен до кратного 64-рём размера, то массив может не совпадать на величину до 64-х байтов
+            var ctrl  = _c & 0;
+            var ctrll = ctrl.array - stateHandle.array - stateHandle.len;
+            if (ctrll != 0)
+                throw new Exception($"VinKekFish_k1_base_20210419.Init1: ctrll != 0 ({ctrll})");
 
             // Проверяем, что _b выравнен по линии кеша
             nint tmpb = (nint) _b.array;
             tmpb &= 63;
             if (tmpb != 0)
-                throw new Exception("VinKekFish_k1_base_20210419.Init1: fatal error: tmpb != 0");
+                throw new Exception($"VinKekFish_k1_base_20210419.Init1: fatal error: tmpb != 0 ({tmpb}, {((nint)stateHandle.array&63)})");
 
 
             _RTables        = RoundsForTables;
@@ -113,7 +116,7 @@ namespace vinkekfish
         /// <param name="RoundsForEnd">Количество раундов при широфвании последующих блоков ключа (допустимо 4)</param>
         /// <param name="RoundsForExtendedKey">Количество раундов отбоя ключа (рекомендуется NORMAL_ROUNDS = 64)</param>
         /// <param name="IsEmptyKey">Если key == null, то флаг должен быть установлен. Криптографического преобразования выполняться не будет</param>
-        public virtual void Init2(byte * key, nint key_length, byte[] OpenInitVector, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = REDUCED_ROUNDS, bool IsEmptyKey = false)
+        public virtual void Init2(byte * key, nint key_length, byte[]? OpenInitVector = null, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = REDUCED_ROUNDS, bool IsEmptyKey = false)
         {
             if (!isInited1)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419: Init1 must be executed before Init2");
@@ -213,16 +216,16 @@ namespace vinkekfish
             if (OpenInitVector != null)
                 throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
 
-            nint len1  = VinKekFishBase_etalonK1.CryptoStateLen;
-            nint len2  = VinKekFishBase_etalonK1.CryptoStateLen << 1;
+            const nint len1  = VinKekFishBase_etalonK1.CryptoStateLen;
+            const nint len2  = VinKekFishBase_etalonK1.CryptoStateLen << 1;
 
-            var result = allocator.AllocMemory(Rounds * 4 * len1 * sizeof(ushort));
+            var result = allocator.AllocMemory(Rounds * 4 * len1 * sizeof(ushort));        // +64 - это для того, чтобы удлинить конец, если массив не выравнен.
             var table1 = new ushort[len1];
             var table2 = new ushort[len1];
 
-            for (ushort i = 0; i < table1.Length; i++)
+            for (int i = 0; i < table1.Length; i++)
             {
-                table1[i] = i;
+                table1[i] = (ushort) i;
                 table2[i] = (ushort) (table1.Length - i - 1);
             }
 
@@ -286,7 +289,7 @@ namespace vinkekfish
 
         /// <summary>Выполняет один шаг криптографического преобразования. Это сокращённый вызов step без подготовки tweak. Не использовать напрямую</summary>
         /// <param name="CountOfRounds">Количество раундов</param>
-        protected void DoStep(int CountOfRounds)
+        public void DoStep(int CountOfRounds)
         {
             if (!isInited1 || !isInited2)
                 throw new Exception("VinKekFish_k1_base_20210419.DoStep: !isInited1 || !isInited2");

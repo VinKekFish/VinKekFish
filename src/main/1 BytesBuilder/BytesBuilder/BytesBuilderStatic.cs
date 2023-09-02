@@ -27,7 +27,15 @@ namespace cryptoprime
             if (Size < MIN_SIZE)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.BytesBuilderStatic: Size < MIN_SIZE");
 
-            this.allocator = allocator ?? new AllocHGlobal_AllocatorForUnsafeMemory();
+            // Делаем выравниване
+            byte degree = 0;
+            if (Size >= 4096)
+                degree = 8;
+            else
+            if (Size >= 512)
+                degree = 6;
+
+            this.allocator = allocator ?? new AllocHGlobal_AllocatorForUnsafeMemory(degree);
 
             Resize(Size);
         }

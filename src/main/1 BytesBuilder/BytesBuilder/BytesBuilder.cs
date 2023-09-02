@@ -482,7 +482,16 @@ namespace cryptoprime
             }
 
             if (count <= 0)
-                throw new ArgumentOutOfRangeException("count <= 0");
+                throw new ArgumentOutOfRangeException("count", "count <= 0");
+            if (index < 0)
+                throw new ArgumentOutOfRangeException("index", "index < 0");
+            if (index >= sourceLength)
+                throw new ArgumentOutOfRangeException("index", "index >= sourceLength");
+            if (targetIndex < 0)
+                throw new ArgumentOutOfRangeException("targetIndex", "targetIndex < 0");
+            if (targetIndex >= targetLength)
+                throw new ArgumentOutOfRangeException("targetIndex", "targetIndex >= targetLength");
+
             if (count > maxCout)
                 count = maxCout;
 
@@ -548,6 +557,22 @@ namespace cryptoprime
                 count = checked( (nint) t.LongLength - index );
 
             var ic = index + count;
+            for (nint i = index; i < ic; i++)
+                t[i] = value;
+        }
+
+        /// <summary>Заполняет массив t байтами со значением value</summary><param name="value">Значение для заполнения</param>
+        /// <param name="t">Массив для заполнения</param><param name="len">Длина массива</param><param name="index">Индекс первого элемента, с которого будет начато заполнение</param>
+        /// <param name="count">Количество элементов для заполнения. count = -1 - заполнять до конца</param>
+        unsafe public static void FillByBytes(byte value, byte * t, nint len, nint index = 0, nint count = -1)
+        {
+            if (count < 0)
+                count = checked( len - index );
+
+            var ic = index + count;
+            if (ic > len)
+                throw new AccessViolationException("FillByBytes: index + count > len");
+
             for (nint i = index; i < ic; i++)
                 t[i] = value;
         }

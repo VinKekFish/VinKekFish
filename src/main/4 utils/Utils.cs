@@ -7,7 +7,7 @@
 using cryptoprime;
 using Record = cryptoprime.BytesBuilderForPointers.Record;
 
-public unsafe static class Utils
+public unsafe static partial class Utils
 {
     /// <summary>Сравнивает две записи: well - эталонная запись, подлежит защите</summary>
     /// <param name="well">Эталонная запись, с которой сравнивается запись devil</param>
