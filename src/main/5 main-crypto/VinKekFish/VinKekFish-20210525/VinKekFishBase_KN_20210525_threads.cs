@@ -199,7 +199,6 @@ namespace vinkekfish
         protected volatile int[] CurrentKeccakBlockNumber = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};   // Нули ради того, чтобы больше в этой линии кеша ничего не было
         protected void ThreadFunction_Keccak()
         {
-            // Во всех массивах keccak всегда чётное количество элементов, так что мы их можем обрабатывать, деля на чётные и нечётные
             // Сначала мы обрабатываем чётные, потом - нечётные. Это нужно, чтобы массивы не мешали друг другу, так как их размеры не кратны размеру линии кеша.
             for (int i = 0; i <= 1; i++)
             {
@@ -244,7 +243,7 @@ namespace vinkekfish
             CurrentThreeFishBlockNumber = 0;
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
             // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
-            BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, Len, CryptoStateLenExtension, 0);
+            BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, Len, CryptoStateLenExtension, Len);
 
             doFunction(ThreadFunction_ThreeFish);
             waitForDoFunction();

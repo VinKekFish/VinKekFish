@@ -75,7 +75,7 @@ namespace vinkekfish
                     BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , (byte *) r); r += len1;
                     BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , (byte *) r); r += len1;
                 }
-// TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду
+// TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду?
                 for (; Rounds > 0; Rounds--)
                 {
                     prng.doRandomPermutationForUShorts(table1);

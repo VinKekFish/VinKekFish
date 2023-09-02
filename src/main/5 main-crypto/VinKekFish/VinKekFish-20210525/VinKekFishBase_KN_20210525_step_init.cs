@@ -45,7 +45,7 @@ namespace vinkekfish
 
             // Предварительное преобразование
             doPermutation(transpose128);
-            doThreeFish();
+            //doThreeFish(); // TODO: !!!
             doPermutation(transpose128);
 
             BytesBuilder.CopyTo(Len, Len, State2, State1); isState1Main = true;
@@ -55,10 +55,10 @@ namespace vinkekfish
             countOfRounds <<= 1;
             for (int round = 0; round < countOfRounds; round++)
             {
-                doKeccak();
+                //doKeccak(); // TODO: !!!
                 doPermutation(TB); TB <<= Len;
 
-                doThreeFish();
+                //doThreeFish(); // TODO: !!!
                 doPermutation(TB); TB <<= Len;
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
@@ -70,9 +70,9 @@ namespace vinkekfish
             // После последнего раунда производится заключительное преобразование (заключительная рандомизация) поблочной функцией keccak-f
             for (int i = 0; i < CountOfFinal; i++)
             {
-                doKeccak();
+                //doKeccak(); // TODO: !!!
                 doPermutation(transpose200);
-                doKeccak();
+                //doKeccak(); // TODO: !!!
                 doPermutation(transpose200_8);
             }
 

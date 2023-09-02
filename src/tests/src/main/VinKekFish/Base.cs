@@ -8,7 +8,7 @@ using static cryptoprime.BytesBuilderForPointers;
 
 
 //[TestTagAttribute("inWork")]
-//[TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
+//[TestTagAttribute("keccak", duration: 2000, singleThread: false)]
 public class VinKekFish_test_baseK: Keccak_test_parent
 {
     public VinKekFish_test_baseK(TestConstructor constructor):
@@ -40,6 +40,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
     public void Test()
     {
         var roundsCnt = 128;
+        roundsCnt = 5;
 
         using var k1e   = new VinKekFish_k1_base_20210419();
         using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1,  TimerIntervalMs: -1);
@@ -56,7 +57,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         BytesBuilder.FillByBytes(1, key, key.len);
 
-        k1e .Init1(roundsCnt);
+        k1e .Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
         k1e .Init2(key, key.len);
         k1t1.Init1(roundsCnt);
         k1t1.Init2(key);

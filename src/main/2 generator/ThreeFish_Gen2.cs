@@ -14,7 +14,7 @@ namespace CodeGenerator
         {
             Add("// Only encrypt and only for 1024 threefish (useful for OFB or CFB modes)");
             // Add("// Vinogradov S.V. Generated at " + HelperDateClass.DateToDateString(DateTime.Now));
-            Add("// Vinogradov S.V. Generated at " + DateTime.Now.Year.ToString("D4") + " year");
+            Add("// Vinogradov S.V. Generated at 2020-" + DateTime.Now.Year.ToString("D4") + " years");
             Add("namespace CodeGenerated.Cryptoprimes");
             addBlock();
 
