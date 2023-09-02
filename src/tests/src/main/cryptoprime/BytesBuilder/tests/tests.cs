@@ -4,6 +4,9 @@
 Это тесты для базового класса BytesBuilder
 */
 
+// ::test:VOWNOWU4qu1Al9x07uh0:
+// ::test:EFme5Fl1JymrEF4JVjL4:
+
 namespace cryptoprime_tests;
 
 using System.Text;

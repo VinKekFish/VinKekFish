@@ -1,5 +1,7 @@
 // #define CAN_CREATEFILE_FOR_KECCAK
 
+// ::test:1fRTvWtKthXIXmYoJkBj:
+
 namespace cryptoprime_tests;
 
 using System.Collections.Generic;

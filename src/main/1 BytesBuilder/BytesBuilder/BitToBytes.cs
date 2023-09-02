@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+// ::test:VOWNOWU4qu1Al9x07uh0:
+// ::test:Tv1yP0c8X47nQXOjkXSt:
+
 namespace cryptoprime
 {
     public unsafe static class BitToBytes

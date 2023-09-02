@@ -10,6 +10,8 @@ using alien_SkeinFish;
 using cryptoprime;
 using DriverForTestsLib;
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
+
 namespace main_tests
 {
     // [TestTagAttribute("inWork")]

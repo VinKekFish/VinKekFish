@@ -11,6 +11,8 @@ using cryptoprime;
 using CodeGenerated.Cryptoprimes;
 using DriverForTestsLib;
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
+
 namespace main_tests
 {
     // [TestTagAttribute("inWork")]

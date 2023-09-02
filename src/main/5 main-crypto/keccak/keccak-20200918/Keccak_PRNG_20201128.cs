@@ -1,5 +1,6 @@
 ﻿// TODO: tests
 // © Виноградов С.В. (1984, Мытищи)
+// ::test:bGx3blJD6yexv1d8VgC7:
 
 using cryptoprime;
 using static cryptoprime.KeccakPrime;

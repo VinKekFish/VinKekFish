@@ -5,13 +5,16 @@ using System.Text;
 
 using static cryptoprime.BytesBuilderForPointers;
 
+// ::test:VOWNOWU4qu1Al9x07uh0:
+// ::test:5oshFi0o683L3KZGalTM:
+
 namespace cryptoprime
 {// TODO: Добавить документацию по использованию, можно прямо сюда
     /// <summary>
     /// BytesBuilderStatic
     /// BytesBuilderForPointers, реализованный с циклическим буфером
     /// Класс позволяет собирать большой блок байтов из более мелких
-    /// Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную)
+    /// Класс непотокобезопасный (при его использовании необходимо синхронизировать доступ к классу вручную как на чтение, если при нём возможна запись, так и на запись)
     /// </summary>
     public unsafe partial class BytesBuilderStatic: IDisposable
     {                                                                           /// <summary>Размер циклического буфера. Это максимальный размер хранимых данных. Изменяется функцией Resize</summary>

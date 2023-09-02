@@ -7,6 +7,7 @@ using DriverForTestsLib;
 
 using CodeGenerated.Cryptoprimes;
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
 
 // [TestTagAttribute("inWork")]
 /// <summary>Этот тест проверяет производительность алгоритма ThreeFish (на случай, если она ухудшилась)</summary>

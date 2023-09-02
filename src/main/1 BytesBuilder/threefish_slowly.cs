@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
+
 /*
  * Реализация Trheefish 1024 бита. Реализовано только шифрование
  * Это медленная safe-реализация

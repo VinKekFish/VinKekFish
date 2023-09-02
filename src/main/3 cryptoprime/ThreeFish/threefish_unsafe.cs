@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
+
 using static cryptoprime.threefish_slowly;
 
 /*
@@ -28,9 +30,8 @@ namespace cryptoprime
                 // На случай, если передадут массивы большей длины, мы берём ровно столько, сколько надо
                 BytesBuilder.CopyTo(keyLen, keyLen, k, (byte *) tk);
                 BytesBuilder.CopyTo( twLen,  twLen, t, (byte *) tt);
-//                Prepare((ulong *) k, (ulong *) t, tk, tt);
 
-                // Вычисление расширения ключа и tweak
+                // Вычисление расширения ключа и tweak; это 17-ый элемент ключа
                 tk[16] = threefish_slowly.C240;
                 for (int i = 0; i < threefish_slowly.Nw; i++)
                     tk[16] ^= tk[i];
@@ -38,20 +39,5 @@ namespace cryptoprime
                 tt[2] = tt[0] ^ tt[1];
             }
         }
-/*
-        public const int klen = 128;
-        public const int tlen = 16;
-        public static void Prepare(ulong * key, ulong * tweak, ulong * keye, ulong * tweake)
-        {
-            BytesBuilder.CopyTo(klen, klen, (byte *) key,   (byte *) keye);
-            BytesBuilder.CopyTo(tlen, tlen, (byte *) tweak, (byte *) tweake);
-
-            // Вычисление расширения ключа и tweak
-            keye[threefish_slowly.Nw] = threefish_slowly.C240;
-            for (int i = 0; i < threefish_slowly.Nw; i++)
-                keye[threefish_slowly.Nw] ^= keye[i];
-
-            tweake[2] = tweake[0] ^ tweake[1];
-        }*/
     }
 }

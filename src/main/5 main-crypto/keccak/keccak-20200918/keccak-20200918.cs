@@ -1,5 +1,7 @@
 ﻿using cryptoprime;
 
+// ::test:N9vgPiXnOHBJrgMjXM6o:
+
 namespace maincrypto.keccak;
 
 public unsafe class Keccak_20200918: Keccak_base_20200918

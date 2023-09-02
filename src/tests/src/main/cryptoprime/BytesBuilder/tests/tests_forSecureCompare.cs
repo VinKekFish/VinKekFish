@@ -3,6 +3,10 @@
 Это тесты для класса BytesBuilderForPointers и BytesBuilderForPointers.Record
 */
 
+// ::test:VOWNOWU4qu1Al9x07uh0:
+// ::test:U2ZqhKq1NoPFwcP9yyLB:
+
+
 namespace cryptoprime_tests;
 
 using System.Text;

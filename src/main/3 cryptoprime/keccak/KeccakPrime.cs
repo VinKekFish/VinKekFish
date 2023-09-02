@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+// ::test:1fRTvWtKthXIXmYoJkBj:
+
 /*
  * Это отдельная библиотека, где разрешена оптимизация кода
  * Здесь никто ничего не обнуляет, только раундовые вычисления

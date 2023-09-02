@@ -2,6 +2,8 @@
 // Взят из следующего репозитория https://github.com/nitrocaster/SkeinFish/
 // Копия (кажется, это более оригинальная) есть в репозитории https://github.com/andrewkrug/skeinfish/
 
+// ::test:O0s1QcshQ7zCGVMMKZtf:
+
 /*
 Copyright (c) 2010 Alberto Fajardo
 Permission is hereby granted, free of charge, to any person
