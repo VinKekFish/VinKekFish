@@ -158,29 +158,8 @@ namespace vinkekfish
             CountOfFinal   = K <= 11 ? 2 : 3;
 
             // Вообще говоря, больше 2-х потоков на перестановке может быть не оправдано, однако там всё сложно
-            LenInThreadBlock = ThreadCount;
-            LenThreadBlock   = Len / LenInThreadBlock;
-            if (LenThreadBlock < 512 || Len % LenInThreadBlock > 0)
-            {
-                if (LenThreadBlock < 512)
-                {
-                    LenThreadBlock   = 512;
-                    LenInThreadBlock = Len / LenThreadBlock;
-                }
-
-                // Пытаемся увеличить количество блоков так, чтобы минимальный блок был хотя бы 256, и размер был всегда кратный линии кеша и кратный длине состояния
-                while (Len % LenInThreadBlock > 0 || LenThreadBlock % 64 > 0)
-                {
-                    if (LenThreadBlock <= 256)
-                        break;
-
-                    LenInThreadBlock++;
-                    LenThreadBlock = Len / LenInThreadBlock;
-                }
-
-                if (Len % LenInThreadBlock > 0 || LenThreadBlock % 64 > 0)
-                    throw new Exception("VinKekFishBase_KN_20210525: Fatal algorithmic error");
-            }
+            LenInThreadBlock = 1;
+            LenThreadBlock   = Len;
 
             //                              Состояния       Твики            b и c
             States = allocator.AllocMemory(FullLen * 2 + TweaksArrayLen + MatrixArrayLen);

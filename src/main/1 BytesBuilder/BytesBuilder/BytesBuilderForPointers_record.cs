@@ -607,7 +607,7 @@ namespace cryptoprime
             public virtual Record AllocMemory(nint len)
             {
                 nint alignmentSize = 1 << alignmentDegree;
-                nint alignmentAnd  = alignmentSize - 1;
+                nint alignmentAnd = alignmentSize - 1;
 
                 if (len < 1)
                     throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory.ArgumentOutOfRangeException: len must be > 0");
@@ -615,32 +615,98 @@ namespace cryptoprime
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
                 // alignmentSize домножаем на два, чтобы при невыравненной памяти захватить как память в начале (для выравнивания),
                 // так и память в конце - чтобы исключить попадание туда каких-либо других массивов и их конкуренцию за линию кеша
-                var ptr = Marshal.AllocHGlobal(len + alignmentSize*2);
-                var rec = new Record() { len = len, array = (byte *) ptr.ToPointer(), ptr = ptr, allocator = this };
+                // 128 - дополнительные отступы по 64-ре байта для контрольных значений
+                var ptr = Marshal.AllocHGlobal(len + alignmentSize * 2 + 128);
+                var rec = new Record() { len = len, array = (byte*)ptr.ToPointer(), ptr = ptr, allocator = this };
 
-                var bmod = (nint) rec.array & alignmentAnd;
+                var bmod = (nint)rec.array & alignmentAnd;
                 if (bmod > 0)
                 {
                     // Выравниваем array. Сохранять старое значение не надо, т.к. для удаления используется ptr
                     rec.array += alignmentSize - bmod;
                 }
+                // Делаем отступ для того, чтобы записать туда контрольные значения
+                rec.array += 64;
+                SetControlValues(len, rec);
 
                 InterlockedIncrement_memAllocated();
 
-                #if RECORD_DEBUG
+#if RECORD_DEBUG
                 lock (allocatedRecords)
                     allocatedRecords.Add(rec);
-                #endif
+#endif
 
                 return rec;
+            }
+
+            public static void SetControlValues(nint len, Record rec)
+            {
+                var controlVal = (byte)(len >> 8);
+                if (controlVal == 0)
+                    controlVal = 1;
+
+                var start = rec.array - 1;
+                for (int i = 0; i < 64; i++, controlVal += 7)
+                {
+                    *(start - i) = controlVal;
+                }
+
+                var end = rec.array + len;
+                if (controlVal == 0)
+                    controlVal = 255;
+
+                for (int i = 0; i < 64; i++, controlVal += 7)
+                {
+                    *(end + i) = controlVal;
+                }
+            }
+
+            public enum CheckControlValuesResult { success = 0x55AA36FE, none = 0, ErrorAtStart = 1, ErrorAtEnd = 2 };
+            public static CheckControlValuesResult CheckControlValues(Record rec)
+            {
+                nint len = rec.len;
+                var controlVal = (byte)(len >> 8);
+                if (controlVal == 0)
+                    controlVal = 1;
+
+                var start = rec.array - 1;
+                for (int i = 0; i < 64; i++, controlVal += 7)
+                {
+                    if (*(start - i) != controlVal)
+                        return CheckControlValuesResult.ErrorAtStart;
+                }
+
+                var end = rec.array + len;
+                if (controlVal == 0)
+                    controlVal = 255;
+
+                for (int i = 0; i < 64; i++, controlVal += 7)
+                {
+                    if (*(end + i) != controlVal)
+                    return CheckControlValuesResult.ErrorAtEnd;
+                }
+
+                return CheckControlValuesResult.success;
+            }
+
+            public class RecordControlValuesException: Exception
+            {
+                public RecordControlValuesException(CheckControlValuesResult result, Record rec, string? message = null):
+                    base($"Record.RecordControlValuesException for the rec with len={rec.len} and the check result={result} with a message:\n{message}")
+                {}
             }
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями)</summary>
             /// <param name="recordToFree">Память к освобождению</param>
             public virtual void FreeMemory(Record recordToFree)
             {
+                var checkResult = CheckControlValues(recordToFree);
+
                 Marshal.FreeHGlobal(recordToFree.ptr);
                 InterlockedDecrement_memAllocated();
+
+                if (checkResult != CheckControlValuesResult.success)
+                    throw new RecordControlValuesException(checkResult, recordToFree, $"Record.FreeMemory: CheckControlValues return error {checkResult}");
 
                 #if RECORD_DEBUG
                 lock (allocatedRecords)

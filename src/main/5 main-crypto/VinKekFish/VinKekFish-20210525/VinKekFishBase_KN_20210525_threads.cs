@@ -298,7 +298,7 @@ namespace vinkekfish
         protected volatile int      CurrentPermutationBlockNumber = 0;
         protected volatile ushort * CurrentPermutationTable       = null;
         protected void ThreadFunction_Permutation()
-        {
+        {/*
             do
             {
                 var index  = Interlocked.Increment(ref CurrentPermutationBlockNumber) - 1;
@@ -320,7 +320,12 @@ namespace vinkekfish
                 }
 
             }
-            while (true);
+            while (true);*/
+
+            for (int i = 0; i < Len; i++)
+            {
+                st2[i] = st1[  CurrentPermutationTable[i]  ];
+            }
         }
                                                                     /// <summary>Попусту теребит память: это простая защита от выгрузки памяти в файл подкачки</summary>
         protected void WaitFunction(object state)
