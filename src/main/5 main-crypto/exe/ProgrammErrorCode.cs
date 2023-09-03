@@ -10,6 +10,9 @@ public enum ProgramErrorCode
     errorRegimeArgs
         = 102,
 
+    // Нет правильного аллокатора для памяти    
+    wrongMemoryAllocator = 1,
+
     // Возвращаемы коды для работы в режиме сервиса
     noArgs_Service
         = 10_001,

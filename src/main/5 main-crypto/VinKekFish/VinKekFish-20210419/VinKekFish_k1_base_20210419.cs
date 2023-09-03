@@ -45,7 +45,7 @@ namespace vinkekfish
         public bool IsInited1 => isInited1; /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/IsInited2/*' />
         public bool IsInited2 => isInited2;
                                             /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/AllocHGlobal_allocator/*' />
-        public static readonly AllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory(6);
+        public static readonly AllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
 
 
         protected volatile bool isHaveOutputData = false;

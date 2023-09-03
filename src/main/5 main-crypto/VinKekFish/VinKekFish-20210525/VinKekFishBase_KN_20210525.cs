@@ -27,7 +27,7 @@ namespace vinkekfish
         protected volatile Record?  tablesForPermutations = null;
 
         /// <summary>Аллокатор для выделения памяти внутри объекта</summary>
-        public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory(8);
+        public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
 
                                                                             /// <summary>Криптографическое состояние 1. Всегда в начале общего массива. Может быть неактуальным. Для получения состояния нужно использовать st1</summary>
         protected byte *  State1 = null;                                    /// <summary>Криптографическое состояние 2</summary>
@@ -89,16 +89,17 @@ namespace vinkekfish
         }
 
         /// <summary>Массив, устанавливающий номера ключевых блоков TreeFish для каждого трансформируемого блока</summary>
-        protected readonly int[]  NumbersOfThreeFishBlocks;                               /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
-        protected readonly Timer? Timer                    = null;
+        protected readonly int[]  NumbersOfThreeFishBlocks;                      
+        //                                                                               /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
+        // protected readonly Timer? Timer                    = null; // Таймер нужно подвергнуть Dispose
 
 
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта. После конструктора необходимо вызвать init1 и init2</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
         /// <param name="ThreadCount">Количество создаваемых потоков. Рекомендуется использовать значение по-умолчанию: 0 (0 == Environment.ProcessorCount)</param>
-        /// <param name="TimerIntervalMs">Интервал таймера холостого чтения. Если нет желания использовать таймер, поставьте Timeout.Infinite или любое отрицательное число</param>
-        public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0, int TimerIntervalMs = 500)
+        // /// <param name="TimerIntervalMs">Интервал таймера холостого чтения. Если нет желания использовать таймер, поставьте Timeout.Infinite или любое отрицательное число</param>
+        public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
             BLOCK_SIZE_K     = K * BLOCK_SIZE;
             MAX_OIV_K        = K * MAX_OIV;
@@ -184,12 +185,12 @@ namespace vinkekfish
             }
 
             CheckNumbersOfThreeFishBlocks();
-
+/*
             if (TimerIntervalMs > 0)
             {
                 Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
             }
-
+*/
             isState1Main = true;
         }
 
@@ -274,7 +275,7 @@ namespace vinkekfish
             lock (this)
             {
                 Clear();
-                try     {  output?.Dispose(); input?.Dispose(); inputRecord?.Dispose(); Timer?.Dispose(); }
+                try     {  output?.Dispose(); input?.Dispose(); inputRecord?.Dispose(); }
                 finally {  States .Dispose();  }
 
                 output      = null;

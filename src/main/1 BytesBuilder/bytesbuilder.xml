@@ -488,6 +488,9 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.alignmentDegree">
             <summary>Показатель степени значения выравнивания памяти</summary>
         </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.ControlPaddingSize">
+            <summary>Размер отступов контрольных значений. И левый, и правый отступы имеют одни и те же значения</summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>
             <param name="len">Длина выделяемого участка памяти</param>
@@ -648,6 +651,66 @@
         </member>
         <member name="F:cryptoprime.threefish_slowly.twLen">
             <summary>Длина tweak в байтах</summary>
+        </member>
+        <member name="T:VinKekFish_Utils.Memory">
+            <summary>
+            using static VinKekFish_Utils.Memory;
+            Класс описывает аллокаторы для выделения неуправляемой памяти.
+            Memory.alloc является текущим установленным аллокатором
+            Memory.free  - освобождает память
+            </summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.PAGE_SIZE">
+            <summary>Размер страницы оперативной памяти</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MMAPS_Flags.MAP_PRIVATE">
+            <summary>Этот флаг указывается всегда, если это не shared-память</summary>
+        </member>
+        <member name="T:VinKekFish_Utils.Memory.MemoryLockType">
+            <summary>
+            Этот класс описывает, какой аллокатор используется сейчас для выделения памяти
+            </summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.unknown">
+            <summary>Неопределённый тип аллокатора. Вызвать Memory.Init()</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.errore">
+            <summary>Ошибка при определении аллокатора: выделение памяти запрещено</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.incorrect">
+            <summary>Некорректный аллокатор, но к работе разрешён</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.correct">
+            <summary>Корректный аллокатор. Должен фиксировать в оперативной памяти страницы и выделять выравненные значения (хотя значения выравненные, аллокатор внутри Record может вставлять дополнительные контрольные поля, сбивающие выравнивание)</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.linux">
+            <summary>Используется аллокатор из libc (mmap)</summary>
+        </member>
+        <member name="P:VinKekFish_Utils.Memory.alloc">
+            <summary>Выделяет память. Это текущий абстрагированный аллокатор.</summary>
+        </member>
+        <member name="P:VinKekFish_Utils.Memory.free">
+            <summary>Освобождает память</summary>
+        </member>
+        <member name="M:VinKekFish_Utils.Memory.mmap(System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>
+            Выделяет оперативную память, как описано в man mmap
+            </summary>
+            <param name="addr">Запрашиваемый адрес. 0 - если адрес будет выделять операционная система</param>
+            <param name="length">Длина запрашиваемого пространства (строго больше нуля, выравнивание не требуется)</param>
+            <param name="protection">Что можно делать с памятью. MemoryProtectionType.rw означает, что данную память можно читать и писать</param>
+            <param name="flags">Флаги. MMAPS_Flags</param>
+            <param name="fd"></param>
+            <param name="offset"></param>
+            <returns>В случае неудачи возвращает -1. В случае удачи возвращает адрес выделенного места в памяти</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Memory.munmap(System.IntPtr,System.IntPtr)">
+            <summary>
+            Освобождает выделенные страницы оперативной памяти
+            </summary>
+            <param name="addr">Адрес, полученный из mmap</param>
+            <param name="lenght">Длина участка памяти</param>
+            <returns>В случае успеха возвращает 0</returns>
         </member>
     </members>
 </doc>

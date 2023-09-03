@@ -4,6 +4,8 @@ namespace VinKekFish_console;
 
 using System.Runtime;
 using VinKekFish_EXE;
+using Memory = VinKekFish_Utils.Memory;
+using static VinKekFish_Utils.Memory;
 
 public partial class Program
 {
@@ -27,8 +29,24 @@ public partial class Program
         }
     }
 
-    static ProgramErrorCode Main_ec(string[] args)
+    public static ProgramErrorCode Main_ec(string[] args)
     {
+        // Инициализация аллокатора памяти: проверяем, что он вообще работает
+        VinKekFish_Utils.Memory.Init();
+        if (
+            Memory.memoryLockType.HasFlag(MemoryLockType.errore) ||
+            Memory.memoryLockType.HasFlag(MemoryLockType.unknown)
+            )
+        {
+            Console.Error.WriteLine("Not have right memory allocator");
+            return ProgramErrorCode.wrongMemoryAllocator;
+        }
+        if (!Memory.memoryLockType.HasFlag(MemoryLockType.correct))
+        {
+            Console.Error.WriteLine("Not have right memory allocator. You must disable swap file, if you have");
+        }
+
+        // Далее проверяем аргументы и т.п.
         if (args.Length == 0 || args[0] == "--help" || args[0] == "-h" || args[0] == "-?")
         {
             PrintVersionHeader();

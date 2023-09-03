@@ -155,7 +155,7 @@ unsafe class Program
     // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern int stat(string path, ref StatBuf sb);
-
+// TODO: path, возможно, стоит снабдить дополнительным атрибутом; см. интернет подробнее
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern Linux_PasswdEntry * getpwuid(int uid);
 

@@ -43,9 +43,9 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         roundsCnt = 5;
 
         using var k1e   = new VinKekFish_k1_base_20210419();
-        using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1,  TimerIntervalMs: -1);
-        using var k1t4  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 4,  TimerIntervalMs: -1);
-        using var k1t16 = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 16, TimerIntervalMs: -1);
+        using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1);
+        using var k1t4  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 4);
+        using var k1t16 = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 16);
 
         k1t1 .output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
         k1t4 .output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
@@ -64,8 +64,8 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         k1e  .DoStep(roundsCnt);
         k1t1 .doStepAndIO(roundsCnt);
-        // k1t4 .doStepAndIO(roundsCnt);
-        // k1t16.doStepAndIO(roundsCnt);
+        k1t4 .doStepAndIO(roundsCnt);
+        k1t16.doStepAndIO(roundsCnt);
 
         k1e .outputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);

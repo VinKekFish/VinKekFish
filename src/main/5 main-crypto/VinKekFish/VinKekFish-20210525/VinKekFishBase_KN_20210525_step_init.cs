@@ -38,7 +38,7 @@ namespace vinkekfish
             if (countOfRounds < 0)
                 countOfRounds = this.CountOfRounds;
 
-            var TB = tablesForPermutations!;
+            var TB = (ushort *) tablesForPermutations!.array;
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main (at start)");
             // State1Main = true;
@@ -56,10 +56,10 @@ namespace vinkekfish
             for (int round = 0; round < countOfRounds; round++)
             {
                 //doKeccak(); // TODO: !!!
-                doPermutation(TB); TB <<= Len;
+                doPermutation(TB); TB += Len;
 
                 //doThreeFish(); // TODO: !!!
-                doPermutation(TB); TB <<= Len;
+                doPermutation(TB); TB += Len;
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 // Вычисляем tweak для данного раунда (работаем со старшим 4-хбайтным словом младшего 8-мибайтного слова tweak)

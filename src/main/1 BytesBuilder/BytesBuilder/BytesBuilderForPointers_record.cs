@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using VinKekFish_Utils;
+using static VinKekFish_Utils.Memory;
 
 // #pragma warning disable CA1034 // Nested types should not be visible
 namespace cryptoprime
@@ -592,13 +594,36 @@ namespace cryptoprime
 
                 return a;
             }
+            // Эти значения должны быть readonly, иначе mmap будет получать неверный length
                                                                                                     /// <summary>Показатель степени значения выравнивания памяти</summary>
-            public byte alignmentDegree = 0;
+            public readonly byte alignmentDegree = 0;
+            public readonly nint alignmentSize, alignmentAnd;
 
-
-            public AllocHGlobal_AllocatorForUnsafeMemory(byte alignmentDegree = 0)
+            public AllocHGlobal_AllocatorForUnsafeMemory()
             {
-                this.alignmentDegree = alignmentDegree;
+                Memory.Init();
+
+                this.alignmentDegree = 0;
+                if (Memory.memoryLockType.HasFlag(MemoryLockType.incorrect))
+                    this.alignmentDegree = 6;
+
+                alignmentSize = 1 << alignmentDegree;
+                alignmentAnd = alignmentSize - 1;
+
+                // Обнуляем alignmentSize, чтобы не выделять дополнительные байты памяти, если нет выравнивания
+                if (alignmentAnd == 0)
+                    alignmentSize = 0;
+
+                if (alignmentSize < 0)
+                    throw new ArgumentOutOfRangeException("alignmentSize", "AllocHGlobal_AllocatorForUnsafeMemory: alignmentSize < 0");
+            }
+
+            /// <summary>Размер отступов контрольных значений. И левый, и правый отступы имеют одни и те же значения</summary>
+            public const nint ControlPaddingSize = 64;
+
+            public nint getFullSizeToAllocate(nint len)
+            {
+                return len + alignmentSize * 2 + ControlPaddingSize*2;
             }
 
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
@@ -606,27 +631,27 @@ namespace cryptoprime
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
             public virtual Record AllocMemory(nint len)
             {
-                nint alignmentSize = 1 << alignmentDegree;
-                nint alignmentAnd = alignmentSize - 1;
-
                 if (len < 1)
-                    throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory.ArgumentOutOfRangeException: len must be > 0");
+                    throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory: len must be > 0");
 
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
                 // alignmentSize домножаем на два, чтобы при невыравненной памяти захватить как память в начале (для выравнивания),
                 // так и память в конце - чтобы исключить попадание туда каких-либо других массивов и их конкуренцию за линию кеша
-                // 128 - дополнительные отступы по 64-ре байта для контрольных значений
-                var ptr = Marshal.AllocHGlobal(len + alignmentSize * 2 + 128);
+                // ControlPaddingSize - дополнительные отступы для контрольных значений
+                var ptr = alloc(getFullSizeToAllocate(len));
                 var rec = new Record() { len = len, array = (byte*)ptr.ToPointer(), ptr = ptr, allocator = this };
 
-                var bmod = (nint)rec.array & alignmentAnd;
+                var bmod = ((nint) rec.array) & alignmentAnd;
                 if (bmod > 0)
                 {
                     // Выравниваем array. Сохранять старое значение не надо, т.к. для удаления используется ptr
                     rec.array += alignmentSize - bmod;
+                    if (bmod >= alignmentSize || alignmentSize <= 0)
+                        throw new Exception("Record.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory: fatal error: bmod >= alignmentSize || alignmentSize <= 0");
                 }
+
                 // Делаем отступ для того, чтобы записать туда контрольные значения
-                rec.array += 64;
+                rec.array += ControlPaddingSize;
                 SetControlValues(len, rec);
 
                 InterlockedIncrement_memAllocated();
@@ -645,17 +670,17 @@ namespace cryptoprime
                 if (controlVal == 0)
                     controlVal = 1;
 
-                var start = rec.array - 1;
-                for (int i = 0; i < 64; i++, controlVal += 7)
+                var start = rec.array - 1 + 1;
+                for (nint i = 0; i < ControlPaddingSize; i++, controlVal += 7)
                 {
                     *(start - i) = controlVal;
                 }
 
                 var end = rec.array + len;
                 if (controlVal == 0)
-                    controlVal = 255;
+                    controlVal = 129;
 
-                for (int i = 0; i < 64; i++, controlVal += 7)
+                for (nint i = 0; i < ControlPaddingSize; i++, controlVal += 7)
                 {
                     *(end + i) = controlVal;
                 }
@@ -670,7 +695,7 @@ namespace cryptoprime
                     controlVal = 1;
 
                 var start = rec.array - 1;
-                for (int i = 0; i < 64; i++, controlVal += 7)
+                for (nint i = 0; i < ControlPaddingSize; i++, controlVal += 7)
                 {
                     if (*(start - i) != controlVal)
                         return CheckControlValuesResult.ErrorAtStart;
@@ -678,9 +703,9 @@ namespace cryptoprime
 
                 var end = rec.array + len;
                 if (controlVal == 0)
-                    controlVal = 255;
+                    controlVal = 129;
 
-                for (int i = 0; i < 64; i++, controlVal += 7)
+                for (nint i = 0; i < ControlPaddingSize; i++, controlVal += 7)
                 {
                     if (*(end + i) != controlVal)
                     return CheckControlValuesResult.ErrorAtEnd;
@@ -702,7 +727,8 @@ namespace cryptoprime
             {
                 var checkResult = CheckControlValues(recordToFree);
 
-                Marshal.FreeHGlobal(recordToFree.ptr);
+                // Marshal.FreeHGlobal(recordToFree.ptr);
+                free(recordToFree.ptr, getFullSizeToAllocate(recordToFree.len));
                 InterlockedDecrement_memAllocated();
 
                 if (checkResult != CheckControlValuesResult.success)

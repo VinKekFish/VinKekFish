@@ -53,6 +53,7 @@ namespace vinkekfish
 
             // Каждый раунд расходует по 4 таблицы. Всего раундов не более Rounds.
             // Длина таблицы - len1 (Len) * размер двухбайтового целого
+            // CountOfFinal таблиц заключительного преобразования и 2 таблицы предварительного здесь не учитываются вообще
             var result = allocator.AllocMemory(Rounds * 4 * len2);
             var table1 = new ushort[len1];
             var table2 = new ushort[len1];

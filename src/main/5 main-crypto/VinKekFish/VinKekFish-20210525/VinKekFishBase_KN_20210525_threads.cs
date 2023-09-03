@@ -310,9 +310,6 @@ namespace vinkekfish
                 var table  = CurrentPermutationTable;
                 var offset = LenThreadBlock * index;
 
-                // Должно быть жутко неэффективно при многопоточной реализации, т.к. линии кеша будут пересекаться
-                // TODO: 
-                // Можно было бы сделать так, чтобы потоки писали только в одну линию кеша, проходя по всему массиву и ища свои элементы
                 var e = offset + LenThreadBlock;
                 for (int i = offset; i < e; i++)
                 {
@@ -326,7 +323,7 @@ namespace vinkekfish
             {
                 st2[i] = st1[  CurrentPermutationTable[i]  ];
             }
-        }
+        }/*
                                                                     /// <summary>Попусту теребит память: это простая защита от выгрузки памяти в файл подкачки</summary>
         protected void WaitFunction(object state)
         {
@@ -340,8 +337,7 @@ namespace vinkekfish
                     BlankRead();
             }
         }
-                                                                    /// <summary>Размер страницы оперативной памяти</summary>
-        public const int PAGE_SIZE = 4096;
+
                                                                     /// <summary>Попусту теребит память: это простая защита от выгрузки памяти в файл подкачки. Это плохо, т.к. раз за разом ключ передаётся из памяти в процессор в неизменном виде, что повышает риски перехвата по ПЭМИН простыми средствами.</summary>
         protected void BlankRead()
         {
@@ -356,7 +352,7 @@ namespace vinkekfish
             {
                 var b = a[i];
             }
-        }
+        }*/
     }
 }
 
