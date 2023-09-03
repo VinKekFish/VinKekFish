@@ -671,6 +671,9 @@
             Этот класс описывает, какой аллокатор используется сейчас для выделения памяти
             </summary>
         </member>
+        <member name="F:VinKekFish_Utils.Memory.MemoryLockType.UNINIT">
+            <summary>Непроинициализированный экземпляр класса</summary>
+        </member>
         <member name="F:VinKekFish_Utils.Memory.MemoryLockType.unknown">
             <summary>Неопределённый тип аллокатора. Вызвать Memory.Init()</summary>
         </member>
@@ -687,10 +690,17 @@
             <summary>Используется аллокатор из libc (mmap)</summary>
         </member>
         <member name="P:VinKekFish_Utils.Memory.alloc">
-            <summary>Выделяет память. Это текущий абстрагированный аллокатор.</summary>
+            <summary>Выделяет память. Это текущий абстрагированный аллокатор. Если выделение памяти не прошло успешно, вызывает OutOfMemoryException</summary>
         </member>
         <member name="P:VinKekFish_Utils.Memory.free">
-            <summary>Освобождает память</summary>
+            <summary>Освобождает память, выделенную до этого alloc</summary>
+        </member>
+        <member name="M:VinKekFish_Utils.Memory.AllocMMap(System.IntPtr)">
+            <summary>
+            Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
+            </summary>
+            <param name="len">Размер выделяемого пространства памяти</param>
+            <returns>Указатель на выделенное пространство. Если неуспех, то OutOfMemoryException. Если mprotect не сработал, то Exception</returns>
         </member>
         <member name="M:VinKekFish_Utils.Memory.mmap(System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)">
             <summary>

@@ -51,7 +51,7 @@ namespace vinkekfish
                 }
             }
 
-            step(countOfRounds: countOfRounds);
+            step(askedCountOfRounds: countOfRounds);
 
             if (output != null)
             lock (output)

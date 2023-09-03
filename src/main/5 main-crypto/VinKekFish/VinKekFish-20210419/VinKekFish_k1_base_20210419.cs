@@ -107,6 +107,10 @@ namespace vinkekfish
             GC.Collect();
             GC.WaitForPendingFinalizers();  // Это чтобы сразу получить все проблемные вызовы, связанные с утечками памяти
             isInited1 = true;
+
+            #if SUPER_CHECK_PERMUTATIONS
+            vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(pTablesHandle, RoundsForTables, CryptoStateLen, "after init1");
+            #endif
         }
 
         /// <summary>Вторая инициализация: ввод ключа и ОВИ, обнуление состояния и т.п.</summary>
@@ -115,7 +119,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов при шифровании первого блока ключа (рекомендуется 16-64)</param>
         /// <param name="RoundsForEnd">Количество раундов при широфвании последующих блоков ключа (допустимо 4)</param>
         /// <param name="RoundsForExtendedKey">Количество раундов отбоя ключа (рекомендуется NORMAL_ROUNDS = 64)</param>
-        /// <param name="IsEmptyKey">Если key == null, то флаг должен быть установлен. Криптографического преобразования выполняться не будет</param>
+        /// <param name="IsEmptyKey">Если key == null, то флаг должен быть установлен. Криптографическое преобразование тогда выполняться не будет</param>
         public virtual void Init2(byte * key, nint key_length, byte[]? OpenInitVector = null, int Rounds = NORMAL_ROUNDS, int RoundsForEnd = NORMAL_ROUNDS, int RoundsForExtendedKey = REDUCED_ROUNDS, bool IsEmptyKey = false)
         {
             if (!isInited1)
@@ -128,6 +132,13 @@ namespace vinkekfish
 
             if (!IsEmptyKey || key != null)
             {
+                if (Rounds > InitedPTRounds)
+                    throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.Init2: Rounds > InitedPTRounds");
+                if (RoundsForEnd > InitedPTRounds)
+                    throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.Init2: RoundsForEnd > InitedPTRounds");
+                if (RoundsForEnd > InitedPTRounds && key_length > MAX_SINGLE_KEY)
+                    throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.Init2: RoundsForEnd > RoundsForExtendedKey && key_length > MAX_SINGLE_KEY");
+
                 fixed (byte * oiv = OpenInitVector)
                 {
                     InputKey
@@ -145,6 +156,10 @@ namespace vinkekfish
             GC.WaitForPendingFinalizers();  // Это чтобы сразу получить все проблемные вызовы, связанные с утечками памяти
             isInited2        = true;
             isHaveOutputData = true;
+
+            #if SUPER_CHECK_PERMUTATIONS
+            vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(pTablesHandle, RTables, CryptoStateLen, "after init2");
+            #endif
         }
 
         /// <summary>Очистка всех данных, включая таблицы перестановок. Использовать после окончания использования объекта (либо использовать Dispose)</summary>
@@ -187,6 +202,9 @@ namespace vinkekfish
             stateHandle?.Clear();
         }
 
+        
+        // Эти вещи дублируются в VinKekFish-20210525/VinKekFishBase_KN_20210525_get_pt.cs
+
         /// <summary>Генерирует стандартную таблицу перестановок</summary>
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
@@ -196,7 +214,7 @@ namespace vinkekfish
             GenTables();
 
             if (PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds)
-                throw new ArgumentOutOfRangeException("VinKekFish_base_20210419.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
+                throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
 
             if (allocator == null)
                 allocator = AllocHGlobal_allocator;
@@ -217,9 +235,11 @@ namespace vinkekfish
                 throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
 
             const nint len1  = VinKekFishBase_etalonK1.CryptoStateLen;
-            const nint len2  = VinKekFishBase_etalonK1.CryptoStateLen << 1;
+            const nint len2  = len1 * sizeof(ushort);
 
-            var result = allocator.AllocMemory(Rounds * 4 * len1 * sizeof(ushort));        // +64 - это для того, чтобы удлинить конец, если массив не выравнен.
+            // На каждый раунд приходится по 4-ре таблицы
+            var roundsCheck = 4 * Rounds;
+            var result = allocator.AllocMemory(4 * Rounds * len2);
             var table1 = new ushort[len1];
             var table2 = new ushort[len1];
 
@@ -232,49 +252,48 @@ namespace vinkekfish
             fixed (ushort * Table1 = table1, Table2 = table2)
             {
                 ushort * R = result;
-                ushort * r = R;
+                byte   * r = result;
 
                 for (; PreRoundsForTranspose > 0 && Rounds > 0; Rounds--, PreRoundsForTranspose--)
                 {
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_3200_8, (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128_3200  , (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_3200  , (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128_3200  , (byte *) r); r += len1;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_3200_8, r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128_3200  , r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_3200  , r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128_3200  , r); r += len2;
                 }
 // TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду
                 for (; Rounds > 0; Rounds--)
                 {
                     prng.doRandomPermutationForUShorts(table1);
                     prng.doRandomPermutationForUShorts(table2);
-/*  // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
-#if DEBUG
-                    CheckPermutationTable(table1);
-                    CheckPermutationTable(table2);
-#endif
-*/
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,              (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,              (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200_3200  , (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128_3200  , (byte*)r); r += len1;
+
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,              r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,              r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200_3200  , r); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128_3200  , r); r += len2;
                 }
 
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table1);
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table2);
             }
 
+            #if SUPER_CHECK_PERMUTATIONS
+            vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(result, roundsCheck, CryptoStateLen, "GenStandardPermutationTables");
+            #endif
+
             return result;
         }
 
-#if DEBUG
-        private static void CheckPermutationTable(ushort[] table1)
+//#if DEBUG
+        public static void CheckPermutationTable(ushort* table, nint Length, string message = "")
         {
             bool found;
-            for (int i = 0; i < table1.Length; i++)
+            for (int i = 0; i < Length; i++)
             {
                 found = false;
-                for (int j = 0; j < table1.Length; j++)
+                for (int j = 0; j < Length; j++)
                 {
-                    if (table1[j] == i)
+                    if (table[j] == i)
                     {
                         found = true;
                         break;
@@ -282,10 +301,18 @@ namespace vinkekfish
                 }
 
                 if (!found)
-                    throw new Exception($"DEBUG: doRandomPermutationForUShorts incorrect: value {i} not found");
+                    throw new Exception($"DEBUG: GenStandardPermutationTables incorrect: value {i} not found. {message}");
             }
         }
-#endif
+
+        public static void CheckAllPermutationTables(ushort* table, nint countOfTables, nint Length, string message = "")
+        {
+            for (int i = 0; i < countOfTables; i++, table += Length)
+            {
+                CheckPermutationTable(table, Length, $"(table number: {i}). " + message);
+            }
+        }
+//#endif
 
         /// <summary>Выполняет один шаг криптографического преобразования. Это сокращённый вызов step без подготовки tweak. Не использовать напрямую</summary>
         /// <param name="CountOfRounds">Количество раундов</param>

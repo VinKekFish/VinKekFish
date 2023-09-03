@@ -199,6 +199,8 @@ namespace vinkekfish
         protected volatile int[] CurrentKeccakBlockNumber = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};   // Нули ради того, чтобы больше в этой линии кеша ничего не было
         protected void ThreadFunction_Keccak()
         {
+            byte * mat = stackalloc byte[MatrixLen];
+
             // Сначала мы обрабатываем чётные, потом - нечётные. Это нужно, чтобы массивы не мешали друг другу, так как их размеры не кратны размеру линии кеша.
             for (int i = 0; i <= 1; i++)
             {
@@ -215,7 +217,6 @@ namespace vinkekfish
                     var off1   = st1 + offset;
                     var off2   = st2 + offset;
 
-                    byte * mat = Matrix +  MatrixLen * index;
                     byte * off = off1;
 
                     if (i == 0)
@@ -233,6 +234,8 @@ namespace vinkekfish
                 }
                 while (true);
             }
+
+            BytesBuilder.ToNull(MatrixLen, mat);
         }
 
         /// <summary>Запускает многопоточную поблочную обработку алгоритмом ThreeFish</summary>
@@ -278,6 +281,8 @@ namespace vinkekfish
                 Threefish_Static_Generated.Threefish1024_step(key: (ulong *) offK, tweak: tweak, text: (ulong *) offC);
             }
             while (true);
+
+            BytesBuilder.ToNull(3*sizeof(ulong), (byte*) tweak);
         }
 
         /// <summary>Запускает многопоточную поблочную перестановку</summary>
@@ -298,32 +303,17 @@ namespace vinkekfish
         protected volatile int      CurrentPermutationBlockNumber = 0;
         protected volatile ushort * CurrentPermutationTable       = null;
         protected void ThreadFunction_Permutation()
-        {/*
-            do
-            {
-                var index  = Interlocked.Increment(ref CurrentPermutationBlockNumber) - 1;
-                if (index >= LenInThreadBlock)          // Len всегда кратно LenInThreadBlock, см. конструктор
-                {
-                    break;
-                }
-
-                var table  = CurrentPermutationTable;
-                var offset = LenThreadBlock * index;
-
-                var e = offset + LenThreadBlock;
-                for (int i = offset; i < e; i++)
-                {
-                    st2[i] = st1[  table[i]  ];
-                }
-
-            }
-            while (true);*/
+        {
+            #if SUPER_CHECK_PERMUTATIONS
+            CheckPermutationTable(CurrentPermutationTable, Len, "ThreadFunction_Permutation.kn function");
+            #endif
 
             for (int i = 0; i < Len; i++)
             {
                 st2[i] = st1[  CurrentPermutationTable[i]  ];
             }
-        }/*
+        }
+        /*
                                                                     /// <summary>Попусту теребит память: это простая защита от выгрузки памяти в файл подкачки</summary>
         protected void WaitFunction(object state)
         {

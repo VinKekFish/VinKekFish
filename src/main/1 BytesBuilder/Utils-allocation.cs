@@ -5,6 +5,7 @@ using cryptoprime;
 using Record = cryptoprime.BytesBuilderForPointers.Record;
 using System.Runtime.CompilerServices;
 
+// ::warn:onlylinux:sOq1JvFKRxQyw7FQ:
 
 // find /usr/include -iname "mman.h"
 // cd /usr/include
@@ -66,8 +67,9 @@ public unsafe static class Memory
     /// </summary>
     [Flags]
     public enum MemoryLockType
-    {                                                    /// <summary>Неопределённый тип аллокатора. Вызвать Memory.Init()</summary>
-        unknown   = 0,                                   /// <summary>Ошибка при определении аллокатора: выделение памяти запрещено</summary>
+    {                                                    /// <summary>Непроинициализированный экземпляр класса</summary>
+        UNINIT    = 0,                                   /// <summary>Неопределённый тип аллокатора. Вызвать Memory.Init()</summary>
+        unknown   = 0x4000,                              /// <summary>Ошибка при определении аллокатора: выделение памяти запрещено</summary>
         errore    = 0x8000,                              /// <summary>Некорректный аллокатор, но к работе разрешён</summary>
         incorrect = 0x0001,                              /// <summary>Корректный аллокатор. Должен фиксировать в оперативной памяти страницы и выделять выравненные значения (хотя значения выравненные, аллокатор внутри Record может вставлять дополнительные контрольные поля, сбивающие выравнивание)</summary>
         correct   = 0x0002,                              /// <summary>Используется аллокатор из libc (mmap)</summary>
@@ -75,39 +77,62 @@ public unsafe static class Memory
     };
     public static MemoryLockType memoryLockType = MemoryLockType.unknown;
 
+    public static bool IsError(this MemoryLockType type)
+    {
+        if (type == MemoryLockType.UNINIT)
+            return true;
+        if (type.HasFlag(MemoryLockType.errore))
+            return true;
+        if (type.HasFlag(MemoryLockType.unknown))
+            return true;
+
+        return false;
+    }
+
+    public static bool isCorrect(this MemoryLockType type)
+        => type.HasFlag(MemoryLockType.correct);
+
+
+    public static readonly object sync = new Object();
     public static void Init()
     {
         if (memoryLockType != MemoryLockType.unknown)
             return;
 
-        memoryLockType = MemoryLockType.errore;
-
-        var addr = mmap(
-                        0,
-                        PAGE_SIZE,
-                        (int)MemoryProtectionType.rw,
-                        (int)MMAPS_Flags.MAP_ANONYMOUS | (int)MMAPS_Flags.MAP_LOCKED | (int)MMAPS_Flags.MAP_PRIVATE,
-                        fd:    -1,
-                        offset: 0
-                        );
-
-        if (addr == -1)
+        lock (sync)
         {
-            Console.Error.WriteLine("Error in mmap call. addr == -1");
-            SetHGlobalAllocator();
-            return;
-        }
-        var bt = (byte *) addr.ToPointer();
-        bt[0]  = 0;
+            if (memoryLockType != MemoryLockType.unknown)
+                return;
 
-        if (munmap(addr, PAGE_SIZE) != 0)
-        {
-            Console.Error.WriteLine("Error in munmap call. addr != 0");
-            SetHGlobalAllocator();
-            return;
-        }
+            memoryLockType = MemoryLockType.errore;
 
-        SetLinuxAllocator();
+            var addr = mmap(
+                            0,
+                            PAGE_SIZE,
+                            (int)MemoryProtectionType.rw,
+                            (int)MMAPS_Flags.MAP_ANONYMOUS | (int)MMAPS_Flags.MAP_LOCKED | (int)MMAPS_Flags.MAP_PRIVATE,
+                            fd:    -1,
+                            offset: 0
+                            );
+
+            if (addr == -1)
+            {
+                Console.Error.WriteLine("Error in mmap call. addr == -1");
+                SetHGlobalAllocator();
+                return;
+            }
+            var bt = (byte *) addr.ToPointer();
+            bt[0]  = 0;
+
+            if (munmap(addr, PAGE_SIZE) != 0)
+            {
+                Console.Error.WriteLine("Error in munmap call. addr != 0");
+                SetHGlobalAllocator();
+                return;
+            }
+
+            SetLinuxAllocator();
+        }
     }
 
     private static void SetHGlobalAllocator()
@@ -131,8 +156,8 @@ public unsafe static class Memory
 
     private static allocDelegate? _alloc =  null;
     private static freeDelegate?  _free  =  null;
-                                                                                                                                                            /// <summary>Выделяет память. Это текущий абстрагированный аллокатор.</summary>
-    public  static allocDelegate   alloc => _alloc ?? throw new Exception("Utils.Memory: alloc == null; see Memory.Init()");                                /// <summary>Освобождает память</summary>
+                                                                                                                                                            /// <summary>Выделяет память. Это текущий абстрагированный аллокатор. Если выделение памяти не прошло успешно, вызывает OutOfMemoryException</summary>
+    public  static allocDelegate   alloc => _alloc ?? throw new Exception("Utils.Memory: alloc == null; see Memory.Init()");                                /// <summary>Освобождает память, выделенную до этого alloc</summary>
     public  static freeDelegate    free  => _free  ?? throw new Exception("Utils.Memory:  free == null; see Memory.Init()");
 
     public static nint AllocHGlobal(nint len)
@@ -145,12 +170,27 @@ public unsafe static class Memory
         Marshal.FreeHGlobal(addr);
     }
 
+    public static nint getPadSizeForMMap(nint len)
+    {
+        if (len % PAGE_SIZE == 0)
+            return PAGE_SIZE*2;
+
+        return PAGE_SIZE*3;
+    }
+
+    /// <summary>
+    /// Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
+    /// </summary>
+    /// <param name="len">Размер выделяемого пространства памяти</param>
+    /// <returns>Указатель на выделенное пространство. Если неуспех, то OutOfMemoryException. Если mprotect не сработал, то Exception</returns>
     public static nint AllocMMap(nint len)
     {
+        var pad = getPadSizeForMMap(len);
+        // Выделяем больше памяти, чтобы последнюю страницу заблокировать
         var result = mmap
         (
             0,
-            len,
+            len + pad,      // При изменении этого, исправить и FreeMMap, а также расчёт в этой функции ниже
             (int)MemoryProtectionType.rw,
             (int)MMAPS_Flags.MAP_ANONYMOUS | (int)MMAPS_Flags.MAP_LOCKED | (int)MMAPS_Flags.MAP_PRIVATE,
             fd:    -1,
@@ -160,12 +200,21 @@ public unsafe static class Memory
         if (result == -1)
             throw new OutOfMemoryException();
 
-        return result;
+        // Добавляем последнюю страницу в качестве недоступной ни для чего
+        var size = len + pad;
+        var R    = result + size - 1;       // Это ещё последний байт будет
+        R       -= R % PAGE_SIZE;           // Вычисляем начало страницы, где будет последний байт - это наша последняя страница
+        if (mprotect(R, PAGE_SIZE, (int)MemoryProtectionType.none) != 0)
+            throw new Exception("AllocMMap.mprotect != 0 (last page)");
+        if (mprotect(result, PAGE_SIZE, (int)MemoryProtectionType.none) != 0)
+            throw new Exception("AllocMMap.mprotect != 0 (first page)");
+
+        return result + PAGE_SIZE;
     }
 
     public static void FreeMMap(nint addr, nint len)
     {
-        var result = munmap(addr, len);
+        var result = munmap(addr - PAGE_SIZE, len + getPadSizeForMMap(len));
         if (result != 0)
             throw new Exception("FreeMMap: result != 0");
     }
@@ -192,5 +241,8 @@ public unsafe static class Memory
     /// <returns>В случае успеха возвращает 0</returns>
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern nint munmap(nint addr, nint lenght);
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern nint mprotect(nint addr, nint lenght, nint protection);
 }
 

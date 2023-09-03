@@ -57,9 +57,9 @@ namespace cryptoprime.VinKekFish
         /// <param name="tweakTmp2">Второй вспомогательный массив для хранения tweak (длина CryptoTweakLen)</param>
         /// <param name="Initiated"> При пользовательском вызове всегда false. Если <see langword="false"/>, то state инициализированно, но никакие данные не вводились. Если true, то в state уже вводились данные: например, другой ключ. Если false - идёт перезапись. Если <see langword="true"/> - поглощение через xor</param>
         /// <param name="SecondKey">При пользовательском вызове всегда false. Вторичный отрезок ключа: при рекурсивном вызове этот параметр равен true, означая, что идёт поглощение следующих за первым отрезков ключей</param>
-        /// <param name="R">Количество раундов для первого поглощения</param>
-        /// <param name="RE">Количество раундов для отбоя после поглощения всего ключа (не рекомендуется делать низким)</param>
-        /// <param name="RM">Количество раундов для поглощения дополнительных участков ключа (можно сделать низким, например, REDUCED_ROUNDS)</param>
+        /// <param name="R">Количество раундов для первого поглощения. Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
+        /// <param name="RE">Количество раундов для отбоя после поглощения всего ключа (не рекомендуется делать низким). Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
+        /// <param name="RM">Количество раундов для поглощения дополнительных участков ключа (можно сделать низким, например, REDUCED_ROUNDS). Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
         /// <param name="tablesForPermutations">Таблицы перестановок для всех раундов</param>
         /// <param name="transpose200_3200">Таблица перестановок transpose200_3200, см. GenTables()</param>
         public static void InputKey(byte * key, nint key_length, byte * OIV, nint OIV_length, byte * state, byte * state2, byte * b, byte *c, ulong * tweak, ulong * tweakTmp, ulong * tweakTmp2, bool Initiated, bool SecondKey, int R, int RE, int RM, ushort * tablesForPermutations, ushort * transpose200_3200, ushort * transpose200_3200_8)
@@ -286,13 +286,15 @@ namespace cryptoprime.VinKekFish
         {
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];
+            #if SUPER_CHECK_PERMUTATIONS
+            vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(tablesForPermutations, countOfRounds, CryptoStateLen, "before step");
+            #endif
 
             // Распределение впитывания (Предварительное преобразование)
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
             DoThreefishForAllBlocks(state2, state, tweakTmp, tweakTmp2);
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
             BytesBuilder.CopyTo(CryptoStateLen, CryptoStateLen, state2, state);
-
 
             // Основной шаг алгоритма: раунды
             for (int round = 0; round < countOfRounds; round++)
@@ -324,7 +326,7 @@ namespace cryptoprime.VinKekFish
             // После последнего раунда производится заключительная рандомизация поблочной функцией keccak-f
             for (int i = 0; i < 2; i++)
             {
-                DoKeccakForAllBlocks(state, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
+                DoKeccakForAllBlocks(state,  CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state, state2, CryptoStateLen, transpose200_3200);
                 DoKeccakForAllBlocks(state2, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state2, state, CryptoStateLen, transpose200_3200_8);
@@ -354,7 +356,7 @@ namespace cryptoprime.VinKekFish
         /// <param name="tweakTmp">Дополнительный массив для временного tweak</param>
         public static unsafe void DoThreefishForAllBlocks(byte* beginCryptoState, byte * finalCryptoState, ulong * tweak, ulong * tweakTmp)
         {
-            int len = CryptoStateLenThreeFish;  // len здесь точно рассчитана на K = 1, никак иначе
+            int len = CryptoStateLenThreeFish;  // len здесь точно рассчитана на K = 1, никак иначе; len = 25
             /*
             if ((len & 1) == 0)
                 throw new ArgumentException("'len' must be odd", "len");
@@ -364,7 +366,8 @@ namespace cryptoprime.VinKekFish
 
             BytesBuilder.CopyTo(CryptoStateLen, CryptoStateLen, beginCryptoState, finalCryptoState);
             // Копируем вспомогательный блок для расширения ключа
-            BytesBuilder.CopyTo(CryptoStateLenWithExtension, CryptoStateLenWithExtension, beginCryptoState, beginCryptoState, CryptoStateLen, CryptoStateLenExtension, 0);
+            BytesBuilder.CopyTo(CryptoStateLenWithExtension, CryptoStateLenWithExtension, beginCryptoState, beginCryptoState,
+                                targetIndex: CryptoStateLen, count: CryptoStateLenExtension, index: 0);
 
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];
@@ -381,7 +384,7 @@ namespace cryptoprime.VinKekFish
                 if (j >= len)
                     j = 0;
 
-                add = j << 7; // blockLen * j;
+                add = j * ThreeFishBlockLen;
                 key = beginCryptoState + add;
 
                 Threefish_Static_Generated.Threefish1024_step(key: (ulong *) key, tweak: (ulong *) tweakTmp, text: (ulong *) cur);
@@ -417,10 +420,13 @@ namespace cryptoprime.VinKekFish
              * Например, transpose200 должна быть [0, 200, 400, 600, 800 ...]
              * 
              * */
+            #if SUPER_CHECK_PERMUTATIONS
+            // vinkekfish.VinKekFish_k1_base_20210419.CheckPermutationTable(permutationTable, len, "DoPermutation.k1 function");
+            #endif
 
              for (int i = 0; i < len; i++)
              {
-                target[i] = source[permutationTable[i]];
+                target[i] = source[  permutationTable[i]  ];
              }
         }
 
@@ -438,6 +444,8 @@ namespace cryptoprime.VinKekFish
             {
                 if (transpose128_3200 != null)
                     return;
+                if (CryptoStateLen != 3200 || ThreeFishBlockLen != 128 || KeccakBlockLen != 200)
+                    throw new Exception();
 
                 transpose128_3200    = GenTransposeTable(3200, 128);
                 transpose200_3200    = GenTransposeTable(3200, 200);

@@ -21,24 +21,22 @@ namespace vinkekfish
     /// <remarks>При работе в разных потоках с одним экземпляром объекта использовать для синхронизации отдельно созданный объект либо lock (this). В некоторых случаях, сигналы можно получать через sync</remarks>
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
-        /// <summary>Здесь содержится два состояния, 4 твика на каждый блок TreeFish, матрицы c и b на каждый блок keccak. Матрицы c и b выровнены на 64 байта</summary>
-        protected readonly Record   States;
         /// <summary>Здесь содержатся таблицы перестановок, длина CountOfRounds*4*Len*ushort</summary>
         protected volatile Record?  tablesForPermutations = null;
 
         /// <summary>Аллокатор для выделения памяти внутри объекта</summary>
         public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
 
+        /// <summary>Эти значения содержат записи для State1, State2, Tweaks</summary>
+        protected Record  rState1, rState2, rTweaks;
                                                                             /// <summary>Криптографическое состояние 1. Всегда в начале общего массива. Может быть неактуальным. Для получения состояния нужно использовать st1</summary>
         protected byte *  State1 = null;                                    /// <summary>Криптографическое состояние 2</summary>
         protected byte *  State2 = null;
-                                                                            /// <summary>Массив матриц b и c на каждый блок Keccak</summary>
-        protected byte *  Matrix => State2 + Len;                           /// <summary>Массив tweak - по 4 tweak на каждый блок ThreeFish</summary>
-        protected ulong * Tweaks => (ulong *) (Matrix + MatrixArrayLen);
+                                                                            /// <summary>Массив tweak: тут только пара значений</summary>
+        protected ulong * Tweaks = null;
                                                                             /// <summary>Длина массива Tweaks в байтах</summary>
         public readonly int TweaksArrayLen = 0;                             /// <summary>Количество tweak на один блок ThreeFish</summary>
-        public const    int CountOfTweaks  = 8;                             /// <summary>Длина массива Matrix в байтах</summary>
-        public readonly int MatrixArrayLen = 0;                             /// <summary>Длина одного блока массива Matrix в байтах</summary>
+        public const    int CountOfTweaks  = 8;                             /// <summary>Длина одного блока массива Matrix в байтах (для выделения в стеке для keccak)</summary>
         public const    int MatrixLen      = 256;
 
                                                                             /// <summary>Максимальное количество раундов</summary>
@@ -152,20 +150,22 @@ namespace vinkekfish
             }
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
-            TweaksArrayLen = CountOfTweaks * CryptoTweakLen * LenInThreeFish;
+            TweaksArrayLen = CryptoTweakLen * 2; //CountOfTweaks * CryptoTweakLen * LenInThreeFish;
             TweaksArrayLen = calcAlignment(TweaksArrayLen);
-            MatrixArrayLen = MatrixLen * LenInKeccak;
-            MatrixArrayLen = calcAlignment(MatrixArrayLen);
+            /*MatrixArrayLen = MatrixLen * LenInKeccak;
+            MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
             CountOfFinal   = K <= 11 ? 2 : 3;
 
-            // Вообще говоря, больше 2-х потоков на перестановке может быть не оправдано, однако там всё сложно
+            // Делаем перестановку в один поток, т.к. всё равно он сильно зависит от шины памяти и обращается к общей памяти. Хотя, в целом, это может быть и не так уж и оправдано
             LenInThreadBlock = 1;
             LenThreadBlock   = Len;
 
-            //                              Состояния       Твики            b и c
-            States = allocator.AllocMemory(FullLen * 2 + TweaksArrayLen + MatrixArrayLen);
-            State1 = States.array;
-            State2 = State1 + FullLen;
+            rState1 = allocator.AllocMemory(FullLen);
+            rState2 = allocator.AllocMemory(FullLen);
+            rTweaks = allocator.AllocMemory(TweaksArrayLen);
+            State1  = rState1;
+            State2  = rState2;
+            Tweaks  = rTweaks;
             ClearState();
 
             // ThreadsFunc_Current = ThreadFunction_empty; // Это уже сделано в ClearState
@@ -213,7 +213,7 @@ namespace vinkekfish
             }
         }
 
-        /// <summary>Очистить всё состояние (кроме таблиц перестановок)</summary>
+        /// <summary>Очистить всё состояние (кроме таблиц перестановок) (сброс до состояния после Init1)</summary>
         public virtual void ClearState()
         {
             lock (this)
@@ -221,16 +221,18 @@ namespace vinkekfish
             {
                 isInit2 = false;
                 ThreadsFunc_Current = ThreadFunction_empty;
-                BytesBuilder.ToNull(States!.len, States);
+
+                rState1.Clear();
+                rState2.Clear();
+                rTweaks.Clear();
             }
         }
 
         /// <summary>Очистить вспомогательные массивы, включая второе состояние. Первичное состояние не очищается: объект остаётся инициализированным</summary>
-        /// <remarks>Рекомендуется вызывать после завершения блока вычислений, если новый будет не скоро.</remarks>
+        /// <remarks>Имеет смысл вызывать только после завершения блока вычислений, если новый будет не скоро, чтобы побыстрее очистить вспомогательные данные и они бы никуда не попали для криптоанализа.</remarks>
         public virtual void ClearSecondaryStates()
-        {// TODO: В тестах проверить, что два шага без очистки равны двум шагам с очисткой между ними
-            BytesBuilder.ToNull(targetLength: Len,                             st2);
-            BytesBuilder.ToNull(targetLength: MatrixArrayLen,                  Matrix);
+        {// TODO: В тестах проверить, что два шага алгоритма подряд без очистки равны двум шагам с очисткой между ними
+            BytesBuilder.ToNull(targetLength: FullLen, st2);
             BytesBuilder.ToNull(targetLength: TweaksArrayLen - CryptoTweakLen, ((byte *) Tweaks) + CryptoTweakLen);
         }
 
@@ -276,7 +278,7 @@ namespace vinkekfish
             {
                 Clear();
                 try     {  output?.Dispose(); input?.Dispose(); inputRecord?.Dispose(); }
-                finally {  States .Dispose();  }
+                finally {  rState1.Dispose(); rState2.Dispose(); rTweaks.Dispose();  }
 
                 output      = null;
                 input       = null;

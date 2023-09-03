@@ -623,7 +623,7 @@ namespace cryptoprime
 
             public nint getFullSizeToAllocate(nint len)
             {
-                return len + alignmentSize * 2 + ControlPaddingSize*2;
+                return checked(  len + alignmentSize * 2 + ControlPaddingSize * 2  );
             }
 
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
@@ -670,7 +670,7 @@ namespace cryptoprime
                 if (controlVal == 0)
                     controlVal = 1;
 
-                var start = rec.array - 1 + 1;
+                var start = rec.array - 1;
                 for (nint i = 0; i < ControlPaddingSize; i++, controlVal += 7)
                 {
                     *(start - i) = controlVal;

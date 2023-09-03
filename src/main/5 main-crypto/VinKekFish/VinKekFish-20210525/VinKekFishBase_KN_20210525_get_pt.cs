@@ -14,6 +14,7 @@ using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 
 namespace vinkekfish
 {
+    // Эти вещи дублируются в VinKekFish_k1_base_20210419
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
         
@@ -25,8 +26,11 @@ namespace vinkekfish
         {
             this.GenTables();
 
-            if (PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds)
-                throw new ArgumentOutOfRangeException("VinKekFish_base_20210419.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
+            if (PreRoundsForTranspose > Rounds)
+                PreRoundsForTranspose = Rounds;
+
+            if (PreRoundsForTranspose < 1)
+                throw new ArgumentOutOfRangeException("VinKekFish_KN_base_20210525.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
 
             if (allocator == null)
                 allocator = VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
@@ -49,7 +53,7 @@ namespace vinkekfish
                 throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
 
             nint len1  = Len;
-            nint len2  = Len * sizeof(ushort);
+            nint len2  = len1 * sizeof(ushort);
 
             // Каждый раунд расходует по 4 таблицы. Всего раундов не более Rounds.
             // Длина таблицы - len1 (Len) * размер двухбайтового целого
@@ -67,49 +71,49 @@ namespace vinkekfish
             fixed (ushort * Table1 = table1, Table2 = table2)
             {
                 ushort * R = result;
-                ushort * r = R;
+                byte   * r = result;
 
                 for (; PreRoundsForTranspose > 0 && Rounds > 0; Rounds--, PreRoundsForTranspose--)
                 {
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_8, (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , (byte *) r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , (byte *) r); r += len1;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_8, r); CheckPermutationTable((ushort*)r, len1, "transpose200_8"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable((ushort*)r, len1, "transpose128.1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , r); CheckPermutationTable((ushort*)r, len1, "transpose200.1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable((ushort*)r, len1, "transpose128.2"); r += len2;
                 }
 // TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду?
                 for (; Rounds > 0; Rounds--)
                 {
                     prng.doRandomPermutationForUShorts(table1);
                     prng.doRandomPermutationForUShorts(table2);
-/*  // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
-#if DEBUG
-                    CheckPermutationTable(table1);
-                    CheckPermutationTable(table2);
-#endif
-*/
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,       (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,       (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200, (byte*)r); r += len1;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128, (byte*)r); r += len1;
+                    
+                    // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
+                    /*CheckPermutationTable(Table1, table1.Length);
+                    CheckPermutationTable(Table2, table2.Length);*/
+
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,       r); CheckPermutationTable((ushort*)r, len1, "Table1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,       r); CheckPermutationTable((ushort*)r, len1, "Table2"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200, r); CheckPermutationTable((ushort*)r, len1, "transpose200.3"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128, r); CheckPermutationTable((ushort*)r, len1, "transpose128.3"); r += len2;
                 }
 
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table1);
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table2);
             }
 
+            CheckAllPermutationTables(result, Rounds * 4, len1, "after VinKekFishBase_KN_20210525.GenStandardPermutationTables");
+
             return result;
         }
 
-#if DEBUG
-        private static void CheckPermutationTable(ushort[] table1)
+        public static void CheckPermutationTable(ushort* table, nint Length, string message = "")
         {
             bool found;
-            for (int i = 0; i < table1.Length; i++)
+            for (int i = 0; i < Length; i++)
             {
                 found = false;
-                for (int j = 0; j < table1.Length; j++)
+                for (int j = 0; j < Length; j++)
                 {
-                    if (table1[j] == i)
+                    if (table[j] == i)
                     {
                         found = true;
                         break;
@@ -117,10 +121,18 @@ namespace vinkekfish
                 }
 
                 if (!found)
-                    throw new Exception($"DEBUG: doRandomPermutationForUShorts incorrect: value {i} not found");
+                    throw new Exception($"DEBUG: GenStandardPermutationTables incorrect: value {i} not found. {message}");
             }
         }
-#endif
+
+        public static void CheckAllPermutationTables(ushort* table, nint countOfTables, nint Length, string message = "")
+        {
+            for (int i = 0; i < countOfTables; i++, table += Length)
+            {
+                CheckPermutationTable(table, Length, $"(table number: {i}). " + message);
+            }
+        }
+
 
         public static ushort* transpose128   = null;
         public static ushort* transpose200   = null;

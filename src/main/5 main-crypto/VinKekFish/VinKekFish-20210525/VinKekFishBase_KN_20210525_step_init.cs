@@ -26,17 +26,17 @@ namespace vinkekfish
 
 
         /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish</remarks>
-        /// <param name="countOfRounds">Количество раундов. См. </param>
-        public void step(int countOfRounds = -1)
+        /// <param name="askedCountOfRounds">Количество раундов. См. </param>
+        public void step(int askedCountOfRounds = -1)
         {
-            if (countOfRounds > CountOfRounds)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.step: CountOfRounds > this.CountOfRounds");
+            if (askedCountOfRounds > CountOfRounds)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.step: askedCountOfRounds > this.CountOfRounds");
 
             if (!isInit1)
                 throw new Exception("VinKekFishBase_KN_20210525.step: you must call Init1 (and Init2 too?) before doing this");
 
-            if (countOfRounds < 0)
-                countOfRounds = this.CountOfRounds;
+            if (askedCountOfRounds < 0)
+                askedCountOfRounds = this.CountOfRounds;
 
             var TB = (ushort *) tablesForPermutations!.array;
             if (!isState1Main)
@@ -45,20 +45,20 @@ namespace vinkekfish
 
             // Предварительное преобразование
             doPermutation(transpose128);
-            //doThreeFish(); // TODO: !!!
+            doThreeFish();
             doPermutation(transpose128);
 
             BytesBuilder.CopyTo(Len, Len, State2, State1); isState1Main = true;
 
             // Основной шаг алгоритма: раунды
             // Каждая итерация цикла - это полураунд
-            countOfRounds <<= 1;
-            for (int round = 0; round < countOfRounds; round++)
+            askedCountOfRounds <<= 1;
+            for (int round = 0; round < askedCountOfRounds; round++)
             {
-                //doKeccak(); // TODO: !!!
+                doKeccak();
                 doPermutation(TB); TB += Len;
 
-                //doThreeFish(); // TODO: !!!
+                doThreeFish();
                 doPermutation(TB); TB += Len;
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
@@ -70,9 +70,9 @@ namespace vinkekfish
             // После последнего раунда производится заключительное преобразование (заключительная рандомизация) поблочной функцией keccak-f
             for (int i = 0; i < CountOfFinal; i++)
             {
-                //doKeccak(); // TODO: !!!
+                doKeccak();
                 doPermutation(transpose200);
-                //doKeccak(); // TODO: !!!
+                doKeccak();
                 doPermutation(transpose200_8);
             }
 
@@ -110,13 +110,25 @@ namespace vinkekfish
         public virtual void Init2(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true)
         {
             if (RoundsForFinal < 0)
+            {
                 RoundsForFinal = NORMAL_ROUNDS_K;
+                if (RoundsForFinal > CountOfRounds)
+                    RoundsForFinal = CountOfRounds;
+            }
 
             if (RoundsForFirstKeyBlock < 0)
+            {
                 RoundsForFirstKeyBlock = NORMAL_ROUNDS_K;
+                if (RoundsForFirstKeyBlock > CountOfRounds)
+                    RoundsForFirstKeyBlock = CountOfRounds;
+            }
 
             if (RoundsForTailsBlock < 0)
+            {
                 RoundsForTailsBlock = REDUCED_ROUNDS_K;
+                if (RoundsForTailsBlock > CountOfRounds)
+                    RoundsForTailsBlock = CountOfRounds;
+            }
 
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init2: Fatal algorithmic error: !State1Main");

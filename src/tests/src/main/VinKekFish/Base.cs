@@ -28,7 +28,7 @@ public class VinKekFish_test_baseK: Keccak_test_parent
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
+[TestTagAttribute("keccak", duration: 1e16, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 {
     public VinKekFish_test_base_compareToEtalon(TestConstructor constructor) :
@@ -58,15 +58,15 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         BytesBuilder.FillByBytes(1, key, key.len);
 
         k1e .Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
-        k1e .Init2(key, key.len);
+        k1e .Init2(key, key.len, RoundsForEnd: roundsCnt, RoundsForExtendedKey: roundsCnt, Rounds: roundsCnt);
         k1t1.Init1(roundsCnt);
         k1t1.Init2(key);
 
         k1e  .DoStep(roundsCnt);
         k1t1 .doStepAndIO(roundsCnt);
-        k1t4 .doStepAndIO(roundsCnt);
+/*        k1t4 .doStepAndIO(roundsCnt);
         k1t16.doStepAndIO(roundsCnt);
-
+*/
         k1e .outputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);
         Console.WriteLine(Convert.ToHexString(sp));

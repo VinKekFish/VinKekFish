@@ -24,6 +24,8 @@
     <!-- Этот проект не оптимизируется, т.к. в этом проекте функции должны быть безопасны от тайминг-атак -->
     <Optimize>false</Optimize>
 
+    <!-- Определяем константу, которая требует проверки таблиц перестановок -->
+    <!-- DefineConstants>$(DefineConstants);SUPER_CHECK_PERMUTATIONS;</DefineConstants -->
 
   </PropertyGroup>
 
