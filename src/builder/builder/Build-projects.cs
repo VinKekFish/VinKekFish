@@ -131,6 +131,10 @@ partial class Program
                         + vkf_program.Substring(endIndex);
         File.WriteAllText(vkf_folder + ckf_vFile, vkf_program);
 
+        // Копируем файл с опциями в директорию билда
+        var optionsFilePath = new FileInfo("src/main/5 main-crypto/exe/service/service.options");
+        optionsFilePath.CopyTo("build/service.options", true);
+
         (result, dir) = ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: false, SelfContained: false);
         end_build_for_project_event?.Invoke(result, dir);
 

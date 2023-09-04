@@ -27,8 +27,8 @@ public class VinKekFish_test_baseK: Keccak_test_parent
     }
 }
 
-[TestTagAttribute("inWork")]
-[TestTagAttribute("keccak", duration: 1e16, singleThread: true)]
+//[TestTagAttribute("inWork")]
+[TestTagAttribute("keccak", duration: 60e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 {
     public VinKekFish_test_base_compareToEtalon(TestConstructor constructor) :

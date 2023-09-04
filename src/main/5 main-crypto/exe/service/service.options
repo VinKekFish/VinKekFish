@@ -1,10 +1,13 @@
-unix stream
-    path
-        /inRamA/
+output
+    random
+        unix stream
+            path
+                /inRamA/
 
-entropy
-    OS
-        /dev/random
-    standard
-        df
+input
+    entropy
+        OS
+            /dev/random
+        standard
+            df
 

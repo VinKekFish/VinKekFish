@@ -104,8 +104,6 @@ public unsafe static class Memory
             if (memoryLockType != MemoryLockType.unknown)
                 return;
 
-            memoryLockType = MemoryLockType.errore;
-
             var addr = mmap(
                             0,
                             PAGE_SIZE,

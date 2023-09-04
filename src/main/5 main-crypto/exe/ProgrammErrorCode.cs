@@ -16,4 +16,6 @@ public enum ProgramErrorCode
     // Возвращаемы коды для работы в режиме сервиса
     noArgs_Service
         = 10_001,
+    noOptions_Service
+        = 10_002,
 };
