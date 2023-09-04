@@ -3,7 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
-using VinKekFish_Utils.Options;
+using VinKekFish_Utils.ProgramOptions;
 
 /// <summary>
 /// Класс, реализующий функциональность программы в режиме работы сервиса "service"

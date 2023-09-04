@@ -1,7 +1,7 @@
 // TODO: tests
 using System.Text;
 // TODO: сделать опции для сервиса здесь и переписать получение опций в сервисе через этот класс
-namespace VinKekFish_Utils.Options;
+namespace VinKekFish_Utils.ProgramOptions;
 
 public class Options_Service
 {

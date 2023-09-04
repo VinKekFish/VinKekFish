@@ -1,15 +1,18 @@
 // TODO: tests
 using System.Text;
 
-namespace VinKekFish_Utils.Options;
+namespace VinKekFish_Utils.ProgramOptions;
 
 public class Options
 {
     public readonly Block options;
-    public Options(List<string> optionsStrings)
+    public readonly bool  isAllStrings;
+    public Options(List<string> optionsStrings, bool isAllStrings = false)
     {
+        this.isAllStrings = isAllStrings;
+
         int i = 0;
-        options = new Block(optionsStrings, ref i, 0, true);
+        options = new Block(optionsStrings, ref i, 0, true, isAllStrings: isAllStrings);
     }
 
     public override string ToString()
@@ -56,6 +59,7 @@ public class Options
         public readonly int          startLine;
         public readonly int          endLine;
         public readonly int          blockHeaderIndent;
+        public readonly bool         isAllStrings;
 
         public override string ToString()
         {
@@ -77,9 +81,10 @@ public class Options
             return sb.ToString();
         }
 
-        public Block(List<string> options, ref int currentLine, int blockHeaderIndent, bool isRootBlock = false)
+        public Block(List<string> options, ref int currentLine, int blockHeaderIndent, bool isRootBlock = false, bool isAllStrings = false)
         {
             this.blockHeaderIndent = blockHeaderIndent;
+            this.isAllStrings      = isAllStrings;
             startLine = currentLine;
 
             Name = Parse(options, ref currentLine, blockHeaderIndent, isRootBlock);
@@ -115,14 +120,19 @@ public class Options
                 }
 
                 // Начинается блок определения строки
-                if (tLine == ":string")
+                if (tLine == "::string" || (isAllStrings && !isRootBlock))
                 {
                     blocks.Add(new StringBlock(options, ref currentLine, blockHeaderIndent + tab));
                     currentLine--;
                     continue;
                 }
 
-                blocks.Add(  new Block(options, ref currentLine, blockHeaderIndent + tab)  );
+                if (tLine == ":")
+                {
+                    continue;
+                }
+
+                blocks.Add(  new Block(options, ref currentLine, blockHeaderIndent + tab, isAllStrings: isAllStrings)  );
                 currentLine--;
             }
 
@@ -201,22 +211,40 @@ public class Options
 
     public class StringBlock: Block
     {
-        public readonly string str;
-
         public StringBlock(List<string> options, ref int currentLine, int blockHeaderIndent)
                      :base(options, ref currentLine, blockHeaderIndent)
-        {
-            str = "";
-        }
+        {}
 
         public override string Parse(List<string> options, ref int currentLine, int blockHeaderIndent, bool _ = false)
         {
-            throw new NotImplementedException();
+            var sb = new StringBuilder(64);
+            for (; currentLine < options.Count; currentLine++)
+            {
+                var line  = options[currentLine];
+                var tLine = line.Trim().ToLowerInvariant();
+
+                if (tLine.Length <= 0)
+                {
+                    sb.AppendLine();
+                    continue;
+                }
+
+                // Вычисляем текущую глубину отступов
+                var depth  = CalcIndentationDepth(line);
+                if (depth < blockHeaderIndent)
+                    break;
+
+                var newStr = doIndentationTrim(line, blockHeaderIndent);
+                sb.AppendLine(newStr);
+            }
+
+            var str = sb.ToString();
+            return str.Substring(0, str.Length - 1);    // Удаляем последний перевод строки, чтобы можно было делать переводы только части строк, которые никогда не оканчиваются на перевод строки
         }
 
         public override string ToString()
         {
-            return str;
+            return Name;
         }
     }
 }

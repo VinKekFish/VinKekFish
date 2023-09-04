@@ -55,7 +55,7 @@ partial class Program
             File.Delete(threefish_generated_FileName2);
 
             var pi = Process.Start("build/generator", threefish_generated_FileName1 + " " + threefish_generated_FileName2);
-            pi.WaitForExit(); 
+            pi.WaitForExit();
 
             if (!File.Exists(threefish_generated_FileName1))
             {
@@ -68,7 +68,7 @@ partial class Program
 
             File.Delete(threefish_generated_FileName1_copy);
             File.Delete(threefish_generated_FileName2_copy);
-            File.Copy(threefish_generated_FileName1, threefish_generated_FileName1_copy,  true);
+            File.Copy(threefish_generated_FileName1, threefish_generated_FileName1_copy, true);
             File.Copy(threefish_generated_FileName2, threefish_generated_FileName2_copy, true);
         }
 
@@ -120,21 +120,23 @@ partial class Program
 
 
         // ----------------  vkf: главная консольная программа ----------------
-        var vkf_folder  = "src/main/6 vkf";
-        var ckf_vFile   = "/Program-version.cs";
-        var versionStr  = "public static readonly string ProgramVersion_RiWiWak6ObEcc =";
+        var vkf_folder = "src/main/6 vkf";
+        var ckf_vFile = "/Program-version.cs";
+        var versionStr = "public static readonly string ProgramVersion_RiWiWak6ObEcc =";
         var vkf_program = File.ReadAllText(vkf_folder + ckf_vFile);
-        var index       = vkf_program.IndexOf(versionStr);
-        var endIndex    = vkf_program.IndexOf("\n", startIndex: index);
-            vkf_program = vkf_program.Substring(0, length: index)
-                        + versionStr + "\"" + DateTimeStrings.getDateVersionString(DateTime.Now) + "\";"
-                        + vkf_program.Substring(endIndex);
+        var index = vkf_program.IndexOf(versionStr);
+        var endIndex = vkf_program.IndexOf("\n", startIndex: index);
+        vkf_program = vkf_program.Substring(0, length: index)
+                    + versionStr + "\"" + DateTimeStrings.getDateVersionString(DateTime.Now) + "\";"
+                    + vkf_program.Substring(endIndex);
         File.WriteAllText(vkf_folder + ckf_vFile, vkf_program);
 
         // Копируем файл с опциями в директорию билда
-        var optionsFilePath = new FileInfo("src/main/5 main-crypto/exe/service/service.options");
-        optionsFilePath.CopyTo("build/service.options", true);
+        CopyFiles("src/main/5 main-crypto/exe/service/", "*.options");
+        CopyFiles("src/main/4 utils/languages/locales",  "*.loc", "build/locales");
 
+
+        // Строим проект
         (result, dir) = ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: false, SelfContained: false);
         end_build_for_project_event?.Invoke(result, dir);
 
@@ -159,5 +161,17 @@ partial class Program
         }
 
         return ErrorCode.Success;
+    }
+
+    public static void CopyFiles(string dirPath, string searchPattern, string buildPath = "build")
+    {
+        var optionsFilePath = new DirectoryInfo(dirPath);
+        var fi_options = optionsFilePath.GetFiles(searchPattern, SearchOption.AllDirectories);
+        var destDir    = new DirectoryInfo(buildPath); destDir.Refresh();
+        if (!destDir.Exists)
+            destDir.Create();
+
+        foreach (var optionFile in fi_options)
+            optionFile.CopyTo(Path.Combine(destDir.FullName, optionFile.Name), true);
     }
 }

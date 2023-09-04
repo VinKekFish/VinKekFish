@@ -6,6 +6,7 @@ using System.Runtime;
 using VinKekFish_EXE;
 using Memory = VinKekFish_Utils.Memory;
 using static VinKekFish_Utils.Memory;
+using static VinKekFish_Utils.Language;
 
 public partial class Program
 {
@@ -84,20 +85,24 @@ public partial class Program
 
     public static void PrintVersionHeader()
     {
-        Console.WriteLine($"VinKekFish");
+        Console.WriteLine($"VinKekFish (ВинКекФиш)");
         Console.WriteLine($"Version: {ProgramVersion_RiWiWak6ObEcc}");
         Console.WriteLine("url: https://github.com/VinKekFish/VinKekFish");
-        Console.WriteLine("Author: Vinogradov Sergey Vasilievich, Mitistchy, Moscow Region, Russia; @2020-2020+");
+        Console.WriteLine(L("Current culture: ") + culture.ToString());
+        Console.WriteLine(L("AuthorPresentationString"));
         Console.WriteLine();
     }
 
     public static void PrintHelp()
     {
-        Console.WriteLine("Full help see at the program url (above)");
+        Console.WriteLine(L("Full help see at the program url (above)"));
         Console.WriteLine();
-        Console.WriteLine("1. Password, file or key generation");
-        Console.WriteLine("vkf gen");
-        Console.WriteLine("see 'vkf gen help' for get help about command");
+        Console.WriteLine("vkf service");
+        Console.WriteLine("\t" + L("for execute as service"));
+        Console.WriteLine("vkf auto");
+        Console.WriteLine("\t" + L("for execute without human"));
+        Console.WriteLine("vkf manual");
+        Console.WriteLine("\t" + L("for execute for human friendly"));
         Console.WriteLine();
     }
 }
