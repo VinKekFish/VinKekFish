@@ -28,10 +28,12 @@ namespace cryptoprime.VinKekFish
         public const int  MAX_OIV                 = 1148;
                                                                                         /// <summary>Минимально допустимое количество раундов на поглощение, для K = 1; это нестойкое поглощение, обеспечивающее минимальную диффузию</summary>
         public const int  MIN_ABSORPTION_ROUNDS_D = 1;                                  /// <summary>Минимально допустимое количество раундов на поглощение, для K = 1</summary>
-        public const int  MIN_ABSORPTION_ROUNDS   = 1;                                  /// <summary>Минимально допустимое количество раундов (для любых операций), для K = 1</summary>
+        public const int  MIN_ABSORPTION_ROUNDS   = 2;                                  /// <summary>Минимально допустимое количество раундов (для любых операций), для K = 1</summary>
         public const int  MIN_ROUNDS              = 4;                                  /// <summary>Нормальное количество раундов, для K = 1</summary>
-        public const int  NORMAL_ROUNDS           = 64;                                 /// <summary>Уменьшенное количество раундов, для K = 1</summary>
-        public const int  REDUCED_ROUNDS          = 16;
+        public const int  NORMAL_ROUNDS           = 10;                                 /// <summary>Уменьшенное количество раундов, для K = 1</summary>
+        public const int  REDUCED_ROUNDS          = 7;
+        public const int  EXTRA_ROUNDS            = 25;
+        public const int  MAX_ROUNDS              = 50;
                                                                                         /// <summary>Нормальная длина ключа в байтах (1024 байта = 8192 бита), для K = 1</summary>
         public const int  NORMAL_KEY              = 1024;                               /// <summary>Рекомендованная длина ключа в байтах (2048 байтов = 16384 бита), для K = 1</summary>
         public const int  RECOMMENDED_KEY         = 2048;                               /// <summary>Уменьшенная длина ключа в байтах (512 байтов = 4096 битов) - соответствует номинальной стойкости шифра, для K = 1</summary>
@@ -65,30 +67,30 @@ namespace cryptoprime.VinKekFish
         public static void InputKey(byte * key, nint key_length, byte * OIV, nint OIV_length, byte * state, byte * state2, byte * b, byte *c, ulong * tweak, ulong * tweakTmp, ulong * tweakTmp2, bool Initiated, bool SecondKey, int R, int RE, int RM, ushort * tablesForPermutations, ushort * transpose200_3200, ushort * transpose200_3200_8)
         {
             if (SecondKey && OIV != null)
-                throw new ArgumentException("VinKekFishBase_etalonK1.InputKey: SecondKey && OIV != null");
+                throw new ArgumentException("SecondKey && OIV", "VinKekFishBase_etalonK1.InputKey: SecondKey && OIV != null");
 
             if (SecondKey && RE != 0)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: SecondKey && RE != 0");
+                throw new ArgumentOutOfRangeException("SecondKey && RE", "VinKekFishBase_etalonK1.InputKey: SecondKey && RE != 0");
 
             if (SecondKey != Initiated)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: SecondKey != Initiated");
+                throw new ArgumentOutOfRangeException("SecondKey", "VinKekFishBase_etalonK1.InputKey: SecondKey != Initiated");
 
             if (OIV == null && OIV_length != 0)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: OIV == null && OIV_length != 0");
+                throw new ArgumentOutOfRangeException("OIV", "VinKekFishBase_etalonK1.InputKey: OIV == null && OIV_length != 0");
 
             if (OIV != null && OIV_length > MAX_OIV)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: OIV_length > MAX_OIV");
+                throw new ArgumentOutOfRangeException("OIV_length", "VinKekFishBase_etalonK1.InputKey: OIV_length > MAX_OIV");
 
             if (key == null)
-                throw new ArgumentNullException("VinKekFishBase_etalonK1.InputKey: key == null");
+                throw new ArgumentNullException("key", "VinKekFishBase_etalonK1.InputKey: key == null");
 
             if (key_length <= 0)
-                throw new ArgumentNullException("VinKekFishBase_etalonK1.InputKey: key_length <= 0");
+                throw new ArgumentNullException("key_length", "VinKekFishBase_etalonK1.InputKey: key_length <= 0");
 
-            if (R < MIN_ABSORPTION_ROUNDS)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: R < MIN_ABSORPTION_ROUNDS");
+            if (R < MIN_ABSORPTION_ROUNDS_D)
+                throw new ArgumentOutOfRangeException("R", "VinKekFishBase_etalonK1.InputKey: R < MIN_ABSORPTION_ROUNDS_D");
             if (RE < MIN_ROUNDS && !SecondKey)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_etalonK1.InputKey: RE < MIN_ROUNDS && !SecondKey");
+                throw new ArgumentOutOfRangeException("RE", "VinKekFishBase_etalonK1.InputKey: RE < MIN_ROUNDS && !SecondKey");
 
             var dataLen = key_length;
             var data    = key;
@@ -144,7 +146,7 @@ namespace cryptoprime.VinKekFish
             step
             (
                 countOfRounds: R, tablesForPermutations: tablesForPermutations,
-                tweak: tweak, tweakTmp: tweakTmp, tweakTmp2: tweakTmp2, state: state, state2: state, b: b, c: c
+                tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state, b: b, c: c
             );
 
             if (key_length > dataLen)
@@ -175,7 +177,7 @@ namespace cryptoprime.VinKekFish
                 step
                 (
                     countOfRounds: RE, tablesForPermutations: tablesForPermutations,
-                    tweak: tweak, tweakTmp: tweakTmp, tweakTmp2: tweakTmp2, state: state, state2: state, b: b, c: c
+                    tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state, b: b, c: c
                 );
             }
         }
@@ -276,13 +278,12 @@ namespace cryptoprime.VinKekFish
         /// <param name="countOfRounds">Количество раундов</param>
         /// <param name="tweak">Tweak после ввода данных, 16 байтов (все массивы могут быть в одном, если это удобно). Не изменяется в функции.</param>
         /// <param name="tweakTmp">Дополнительный массив для временного tweak, 16 байтов. Изменяется в функции.</param>
-        /// <param name="tweakTmp2">Дополнительный массив для временного tweak, 16 байтов. Изменяется в функции.</param>
         /// <param name="state">Криптографическое состояние (размер в байтах CryptoStateLenWithExtension)</param>
         /// <param name="state2">Вспомогательный массив для криптографического состояния (размер в байтах CryptoStateLenWithExtension)</param>
         /// <param name="tablesForPermutations">Массив таблиц перестановок на каждый раунд. Длина должна быть countOfRounds*4 таблиц (CryptoStateLen*ushort на каждую таблицу)</param>
         /// <param name="b">Вспомогательный массив b для keccak.Keccackf</param>
         /// <param name="c">Вспомогательный массив c для keccak.Keccackf</param>
-        public static void step(int countOfRounds, ulong * tweak, ulong * tweakTmp, ulong * tweakTmp2, byte * state, byte * state2, ushort * tablesForPermutations, byte* b, byte* c)
+        public static void step(int countOfRounds, ulong * tweak, ulong * tweakTmp, byte * state, byte * state2, ushort * tablesForPermutations, byte* b, byte* c)
         {
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];
@@ -292,7 +293,7 @@ namespace cryptoprime.VinKekFish
 
             // Распределение впитывания (Предварительное преобразование)
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
-            DoThreefishForAllBlocks(state2, state, tweakTmp, tweakTmp2);
+            DoThreefishForAllBlocks(state2, state, tweakTmp);
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
             BytesBuilder.CopyTo(CryptoStateLen, CryptoStateLen, state2, state);
 
@@ -303,7 +304,7 @@ namespace cryptoprime.VinKekFish
                 DoPermutation(state, state2, CryptoStateLen, tablesForPermutations);
                 tablesForPermutations += CryptoStateLen;
 
-                DoThreefishForAllBlocks(state2, state, tweakTmp, tweakTmp2);
+                DoThreefishForAllBlocks(state2, state, tweakTmp);
                 DoPermutation(state, state2, CryptoStateLen, tablesForPermutations);
                 tablesForPermutations += CryptoStateLen;
 
@@ -314,7 +315,7 @@ namespace cryptoprime.VinKekFish
                 DoPermutation(state2, state, CryptoStateLen, tablesForPermutations);
                 tablesForPermutations += CryptoStateLen;
 
-                DoThreefishForAllBlocks(state, state2, tweakTmp, tweakTmp2);
+                DoThreefishForAllBlocks(state, state2, tweakTmp);
                 DoPermutation(state2, state, CryptoStateLen, tablesForPermutations);
                 tablesForPermutations += CryptoStateLen;
 
@@ -353,8 +354,7 @@ namespace cryptoprime.VinKekFish
         /// <param name="beginCryptoState">Начальное криптографическое состояние (инициализированное) (размер CryptoStateLenWithExtension байтов)</param>
         /// <param name="finalCryptoState">Финальное криптографическое состояние (для результата, будет перезатёрто)</param>
         /// <param name="tweak">Базовый tweak для раунда. Не изменяется</param>
-        /// <param name="tweakTmp">Дополнительный массив для временного tweak</param>
-        public static unsafe void DoThreefishForAllBlocks(byte* beginCryptoState, byte * finalCryptoState, ulong * tweak, ulong * tweakTmp)
+        public static unsafe void DoThreefishForAllBlocks(byte* beginCryptoState, byte * finalCryptoState, ulong * tweak)
         {
             int len = CryptoStateLenThreeFish;  // len здесь точно рассчитана на K = 1, никак иначе; len = 25
             /*
@@ -369,9 +369,10 @@ namespace cryptoprime.VinKekFish
             BytesBuilder.CopyTo(CryptoStateLenWithExtension, CryptoStateLenWithExtension, beginCryptoState, beginCryptoState,
                                 targetIndex: CryptoStateLen, count: CryptoStateLenExtension, index: 0);
 
-            tweakTmp[0] = tweak[0];
-            tweakTmp[1] = tweak[1];
-            tweakTmp[2] = tweak[0] ^ tweak[1];
+            var tweakTmp = stackalloc ulong[3];
+            tweakTmp[0]  = tweak[0];
+            tweakTmp[1]  = tweak[1];
+            tweakTmp[2]  = tweak[0] ^ tweak[1];
 
             // getNumberFromRing не вызывается, вместо этого используется самостоятельный расчёт, он должен быть более быстрым
             int j   = len >> 1;

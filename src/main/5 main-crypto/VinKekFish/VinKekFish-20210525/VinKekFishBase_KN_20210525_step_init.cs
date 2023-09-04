@@ -199,6 +199,9 @@ namespace vinkekfish
                 Tweaks[1] = T[1];
             }
 
+            Tweaks[0] += TWEAK_STEP_NUMBER;
+
+
             if (OpenInitializationVector != null)
             {
                 if (OpenInitializationVector.len > MAX_OIV_K)
@@ -257,7 +260,10 @@ namespace vinkekfish
 
             // После инициализации обнуляем часть данных для обеспечения необратимости
             if (FinalOverwrite)
-                BytesBuilder.ToNull(BLOCK_SIZE_K, State1 + 2);
+            {
+                // BytesBuilder.ToNull(BLOCK_SIZE_K, State1 + 2);
+                InputData_Overwrite(null, 0, regime: 255, nullPadding: true);
+            }
 
             step(RoundsForFinal);
         }
@@ -307,6 +313,7 @@ namespace vinkekfish
                     BytesBuilder.ToNull(paddingLen, State1 + 3 + dataLen);
             }
 
+            if (dataLen > 0)
             BytesBuilder.CopyTo(dataLen, Len, data, State1 + 3);
 
             byte len1 = (byte) dataLen;

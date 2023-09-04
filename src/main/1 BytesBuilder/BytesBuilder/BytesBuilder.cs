@@ -482,15 +482,15 @@ namespace cryptoprime
             }
 
             if (count <= 0)
-                throw new ArgumentOutOfRangeException("count", "count <= 0");
+                throw new ArgumentOutOfRangeException("count", "BytesBuilder.CopyTo: count <= 0");
             if (index < 0)
-                throw new ArgumentOutOfRangeException("index", "index < 0");
+                throw new ArgumentOutOfRangeException("index", "BytesBuilder.CopyTo: index < 0");
             if (index >= sourceLength)
-                throw new ArgumentOutOfRangeException("index", "index >= sourceLength");
+                throw new ArgumentOutOfRangeException("index", "BytesBuilder.CopyTo: index >= sourceLength");
             if (targetIndex < 0)
-                throw new ArgumentOutOfRangeException("targetIndex", "targetIndex < 0");
+                throw new ArgumentOutOfRangeException("targetIndex", "BytesBuilder.CopyTo: targetIndex < 0");
             if (targetIndex >= targetLength)
-                throw new ArgumentOutOfRangeException("targetIndex", "targetIndex >= targetLength");
+                throw new ArgumentOutOfRangeException("targetIndex", "BytesBuilder.CopyTo: targetIndex >= targetLength");
 
             if (count > maxCout)
                 count = maxCout;

@@ -39,9 +39,23 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
     public void Test()
     {
-        var roundsCnt = 128;
-        roundsCnt = 5;
+        testByIncorrect();
 
+        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D);
+        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
+        Test(VinKekFishBase_etalonK1.REDUCED_ROUNDS, VinKekFishBase_etalonK1.REDUCED_ROUNDS, 1, 1);
+        Test(VinKekFishBase_etalonK1.NORMAL_ROUNDS,  VinKekFishBase_etalonK1.NORMAL_ROUNDS,  1, 1);
+        Test(VinKekFishBase_etalonK1.EXTRA_ROUNDS,   VinKekFishBase_etalonK1.EXTRA_ROUNDS,   1, 1);
+        Test(VinKekFishBase_etalonK1.MAX_ROUNDS,     VinKekFishBase_etalonK1.MAX_ROUNDS,     1, 1);
+
+        Test(5,   5,   1, 1);
+        Test(8,   8,   1, 1);
+        Test(64 , 64,  1, 1);
+        Test(128, 128, 1, 1);
+    }
+
+    public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock)
+    {
         using var k1e   = new VinKekFish_k1_base_20210419();
         using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1);
         using var k1t4  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 4);
@@ -58,13 +72,13 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         BytesBuilder.FillByBytes(1, key, key.len);
 
         k1e  .Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
-        k1e  .Init2(key, key.len, RoundsForEnd: roundsCnt, RoundsForExtendedKey: roundsCnt >> 1, Rounds: 1);
+        k1e  .Init2(key, key.len, RoundsForEnd: RoundsForFinal, RoundsForExtendedKey: RoundsForTailsBlock, Rounds: RoundsForFirstKeyBlock);
         k1t1 .Init1(roundsCnt);
-        k1t1 .Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
+        k1t1 .Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
         k1t4 .Init1(roundsCnt);
-        k1t4 .Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
+        k1t4 .Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
         k1t16.Init1(roundsCnt);
-        k1t16.Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
+        k1t16.Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
 
         k1e  .DoStep(roundsCnt);
         k1t1 .doStepAndIO(roundsCnt);
@@ -93,15 +107,47 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         if (!out1t1.UnsecureCompare(out1e))
         {
-            throw new Exception("!out1t1.UnsecureCompare(out1e)");
+            throw new Exception($"!out1t1.UnsecureCompare(out1e) {roundsCnt}");
         }
         if (!out1t4.UnsecureCompare(out1e))
         {
-            throw new Exception("!out1t4.UnsecureCompare(out1e)");
+            throw new Exception($"!out1t4.UnsecureCompare(out1e) {roundsCnt}");
         }
         if (!out1t16.UnsecureCompare(out1e))
         {
-            throw new Exception("!out1t16.UnsecureCompare(out1e)");
+            throw new Exception($"!out1t16.UnsecureCompare(out1e) {roundsCnt}");
         }
+    }
+
+    public void testByIncorrect()
+    {
+        bool incorrect = false;
+        try
+        {
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS);
+            incorrect = true;
+            // this.error.Add();
+        }
+        catch
+        {}
+
+        try
+        {
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 1, VinKekFishBase_etalonK1.MAX_ROUNDS);
+            incorrect = true;
+        }
+        catch
+        {}
+
+        try
+        {
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 1);
+            incorrect = true;
+        }
+        catch
+        {}
+
+        if (incorrect)
+            throw new Exception("testByIncorrect");
     }
 }
