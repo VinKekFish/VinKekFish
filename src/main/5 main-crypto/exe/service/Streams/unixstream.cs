@@ -4,6 +4,7 @@ using System.Text;
 using cryptoprime;
 
 namespace VinKekFish_EXE;
+using static VinKekFish_Utils.Language;
 
 /// <summary>
 /// Класс для режима работы как службы
@@ -144,7 +145,7 @@ public class UnixSocketListener: IDisposable
         {
             // connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this);
 
-            var b = new UTF8Encoding().GetBytes("Not implemented\nПока не реализовано\n");
+            var b = new UTF8Encoding().GetBytes(L("Not implemented") + "\n");
             BytesBuilder.CopyTo(b, receiveBuffer);
             connection.Send(receiveBuffer, 0, b.Length, SocketFlags.None);
             Close();

@@ -4,6 +4,7 @@ using System.Runtime;
 namespace VinKekFish_EXE;
 
 using VinKekFish_Utils.ProgramOptions;
+using static VinKekFish_Utils.Language;
 
 /// <summary>
 /// Класс, реализующий функциональность программы в режиме работы сервиса "service"
@@ -25,10 +26,10 @@ public class Regime_Service
                                                 /// <summary>Вывод на экран справочную информацию по параметрам командной строки режима service</summary>
     private static void PrintHelp()
     {
-        Console.WriteLine("Use:");
+        Console.WriteLine(L("Usage:"));
         Console.WriteLine("vkf service pathToConfigFile");
         Console.WriteLine("");
-        Console.WriteLine("See an example of a config file in program packet");
+        Console.WriteLine(L("See an example of a config file in the program packet"));
     }
 
     ~Regime_Service()

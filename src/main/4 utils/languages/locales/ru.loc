@@ -14,4 +14,10 @@ Not have right memory allocator
     Нет в наличии верного аллокатора неуправляемой памяти
 You must disable swap file, if you have
     Необходимо отключить файл подкачки, если он у вас есть (swappoff -a)
+Usage:
+    Использование:
+See an example of a config file in the program packet
+    Смотрите пример конфигурационного файла в программном пакете (service.options)
+Not implemented
+    Пока не реализовано
 :

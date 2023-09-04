@@ -4,6 +4,8 @@ namespace VinKekFish_Utils;
 using System.Globalization;
 using VinKekFish_Utils.ProgramOptions;
 
+// using static VinKekFish_Utils.Language
+
 public class Language
 {
     public static CultureInfo culture  = getParentCulture(Thread.CurrentThread.CurrentCulture);
