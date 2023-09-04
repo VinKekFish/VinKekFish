@@ -277,14 +277,13 @@ namespace vinkekfish
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table2);
             }
 
-            #if SUPER_CHECK_PERMUTATIONS
+            //#if SUPER_CHECK_PERMUTATIONS
             vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(result, roundsCheck, CryptoStateLen, "GenStandardPermutationTables");
-            #endif
+            //#endif
 
             return result;
         }
 
-//#if DEBUG
         public static void CheckPermutationTable(ushort* table, nint Length, string message = "")
         {
             bool found;
@@ -312,7 +311,6 @@ namespace vinkekfish
                 CheckPermutationTable(table, Length, $"(table number: {i}). " + message);
             }
         }
-//#endif
 
         /// <summary>Выполняет один шаг криптографического преобразования. Это сокращённый вызов step без подготовки tweak. Не использовать напрямую</summary>
         /// <param name="CountOfRounds">Количество раундов</param>

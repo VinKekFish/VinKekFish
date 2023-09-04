@@ -105,6 +105,7 @@ namespace vinkekfish
             return result;
         }
 
+        // TODO: Это очень медленный алгоритм проверки. Сделать быстрее
         public static void CheckPermutationTable(ushort* table, nint Length, string message = "")
         {
             bool found;
@@ -122,6 +123,34 @@ namespace vinkekfish
 
                 if (!found)
                     throw new Exception($"DEBUG: GenStandardPermutationTables incorrect: value {i} not found. {message}");
+            }
+        }
+
+        public static void CheckPermutationTable_fast(ushort* table, nint Length, string message = "")
+        {
+            var byteLen = 1 + Length >> 3;
+            var checkA  = new byte[byteLen];
+            fixed (byte * check = checkA)
+            {
+                for (var i = 0; i < byteLen; i++)
+                    check[i] = 0;
+
+                bool found;
+                for (int i = 0; i < Length; i++)
+                {
+                    found = false;
+                    for (int j = 0; j < Length; j++)
+                    {
+                        if (table[j] == i)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                        throw new Exception($"DEBUG: GenStandardPermutationTables incorrect: value {i} not found. {message}");
+                }
             }
         }
 
