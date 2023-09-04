@@ -57,22 +57,34 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         BytesBuilder.FillByBytes(1, key, key.len);
 
-        k1e .Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
-        k1e .Init2(key, key.len, RoundsForEnd: roundsCnt, RoundsForExtendedKey: roundsCnt, Rounds: roundsCnt);
-        k1t1.Init1(roundsCnt);
-        k1t1.Init2(key);
+        k1e  .Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
+        k1e  .Init2(key, key.len, RoundsForEnd: roundsCnt, RoundsForExtendedKey: roundsCnt >> 1, Rounds: 1);
+        k1t1 .Init1(roundsCnt);
+        k1t1 .Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
+        k1t4 .Init1(roundsCnt);
+        k1t4 .Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
+        k1t16.Init1(roundsCnt);
+        k1t16.Init2(key, RoundsForTailsBlock: roundsCnt >> 1, RoundsForFinal: roundsCnt, RoundsForFirstKeyBlock: 1);
 
         k1e  .DoStep(roundsCnt);
         k1t1 .doStepAndIO(roundsCnt);
-/*        k1t4 .doStepAndIO(roundsCnt);
+        k1t4 .doStepAndIO(roundsCnt);
         k1t16.doStepAndIO(roundsCnt);
-*/
+
         k1e .outputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);
         Console.WriteLine(Convert.ToHexString(sp));
 
         using var out1t1 = k1t1 .output.getBytes();
         sp = new ReadOnlySpan<byte>(out1t1, (int) out1t1.len);
+        Console.WriteLine(Convert.ToHexString(sp));
+
+        using var out1t4 = k1t4 .output.getBytes();
+        sp = new ReadOnlySpan<byte>(out1t4, (int) out1t4.len);
+        Console.WriteLine(Convert.ToHexString(sp));
+
+        using var out1t16 = k1t16.output.getBytes();
+        sp = new ReadOnlySpan<byte>(out1t16, (int) out1t16.len);
         Console.WriteLine(Convert.ToHexString(sp));
 
         k1t1  .output.Dispose();
@@ -82,6 +94,14 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         if (!out1t1.UnsecureCompare(out1e))
         {
             throw new Exception("!out1t1.UnsecureCompare(out1e)");
+        }
+        if (!out1t4.UnsecureCompare(out1e))
+        {
+            throw new Exception("!out1t4.UnsecureCompare(out1e)");
+        }
+        if (!out1t16.UnsecureCompare(out1e))
+        {
+            throw new Exception("!out1t16.UnsecureCompare(out1e)");
         }
     }
 }

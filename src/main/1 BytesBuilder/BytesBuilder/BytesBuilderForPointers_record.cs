@@ -364,16 +364,16 @@ namespace cryptoprime
                 return r;
             }
 
-                                                                                    /// <summary>Уменьшает длину записи. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
-            public static Record operator <<(Record a, nint len)
+                                                                                    /// <summary>Уменьшает длину записи на subtracted. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+            public static Record operator <<(Record a, nint subtracted)
             {
-                if (a.len <= len)
+                if (a.len <= subtracted)
                     throw new ArgumentOutOfRangeException("len", "in '<<' operator");
 
                 var r = new Record()
                 {
                     array     = a.array,
-                    len       = a.len - len
+                    len       = a.len - subtracted
                 };
 
                 r.allocator = new AllocHGlobal_NoCopy(a, r);

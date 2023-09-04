@@ -305,7 +305,7 @@ namespace vinkekfish
         protected void ThreadFunction_Permutation()
         {
             #if SUPER_CHECK_PERMUTATIONS
-            CheckPermutationTable(CurrentPermutationTable, Len, "ThreadFunction_Permutation.kn function");
+            CheckPermutationTable_fast(CurrentPermutationTable, Len, "ThreadFunction_Permutation.kn function");
             #endif
 
             for (int i = 0; i < Len; i++)

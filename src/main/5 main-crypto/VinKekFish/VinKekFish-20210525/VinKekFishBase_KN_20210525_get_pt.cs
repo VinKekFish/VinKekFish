@@ -14,10 +14,10 @@ using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 
 namespace vinkekfish
 {
-    // Эти вещи дублируются в VinKekFish_k1_base_20210419
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
-        
+        // Здесь алгоритмы частично скопипащены
+        // ::cp:alg:1LTt5CRnTQjLt3M4JX6Z:2023.09.04
         /// <summary>Генерирует стандартную таблицу перестановок</summary>
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
@@ -58,6 +58,7 @@ namespace vinkekfish
             // Каждый раунд расходует по 4 таблицы. Всего раундов не более Rounds.
             // Длина таблицы - len1 (Len) * размер двухбайтового целого
             // CountOfFinal таблиц заключительного преобразования и 2 таблицы предварительного здесь не учитываются вообще
+            var rCheck = 4 * Rounds;
             var result = allocator.AllocMemory(Rounds * 4 * len2);
             var table1 = new ushort[len1];
             var table2 = new ushort[len1];
@@ -100,12 +101,12 @@ namespace vinkekfish
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table2);
             }
 
-            CheckAllPermutationTables(result, Rounds * 4, len1, "after VinKekFishBase_KN_20210525.GenStandardPermutationTables");
+            CheckAllPermutationTables (result, rCheck, len1, "after VinKekFishBase_KN_20210525.GenStandardPermutationTables");
 
             return result;
         }
 
-        // TODO: Это очень медленный алгоритм проверки. Сделать быстрее
+        // ::cp:alg:S7x1R5lmSapGlHsjoDoZ:2023.09.04
         public static void CheckPermutationTable(ushort* table, nint Length, string message = "")
         {
             bool found;
@@ -126,6 +127,7 @@ namespace vinkekfish
             }
         }
 
+        // ::cp:alg:MTQCE0xzWZWA74kQcmuk:2023.09.04
         public static void CheckPermutationTable_fast(ushort* table, nint Length, string message = "")
         {
             var byteLen = 1 + Length >> 3;
@@ -135,30 +137,34 @@ namespace vinkekfish
                 for (var i = 0; i < byteLen; i++)
                     check[i] = 0;
 
-                bool found;
                 for (int i = 0; i < Length; i++)
                 {
-                    found = false;
-                    for (int j = 0; j < Length; j++)
-                    {
-                        if (table[j] == i)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
+                    var val = table[i];
+                    if (val >= Length)
+                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} is incorrect (too big). {message}");
+                    if (BitToBytes.getBit(check, val))
+                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} found twice. {message}");
 
-                    if (!found)
-                        throw new Exception($"DEBUG: GenStandardPermutationTables incorrect: value {i} not found. {message}");
+                    BitToBytes.setBit(check, val);
+                }
+
+                for (int i = 0; i < Length; i++)
+                {
+                    if (!BitToBytes.getBit(check, i))
+                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {i} not found. {message}");
                 }
             }
         }
 
+        // ::cp:alg:35OvLQRA0EzDC2CAJx7U:2023.09.04
         public static void CheckAllPermutationTables(ushort* table, nint countOfTables, nint Length, string message = "")
         {
             for (int i = 0; i < countOfTables; i++, table += Length)
             {
-                CheckPermutationTable(table, Length, $"(table number: {i}). " + message);
+                CheckPermutationTable_fast(table, Length, $"(table number: {i}). " + message);
+                #if SUPER_CHECK_PERMUTATIONS
+                // CheckPermutationTable(table, Length, "! Attention for error in DEBUG code ! FATAL DEBUG ERROR: CheckAllPermutationTables triggered, but must been CheckPermutationTable_fast. " +  $"(table number: {i}). " + message);
+                #endif
             }
         }
 
