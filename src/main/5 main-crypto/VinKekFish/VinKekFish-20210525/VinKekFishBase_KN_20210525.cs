@@ -15,7 +15,9 @@ using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 
 namespace vinkekfish
 {
-    /// <summary>Основная реализация VinKekFish. Создаёт потоки внутри объекта для многопоточной обработки</summary>
+    // code::docs:m0vbJGmf34Sx5nKnLnpz:
+    /// <summary>Основная реализация VinKekFish. Создаёт потоки внутри объекта для многопоточной обработки
+    /// Описание реализации искать по шаблону docs::docs:m0vbJGmf34Sx5nKnLnpz:</summary>
     /// <remarks>IsDisposed == true означает, что объект более не пригоден для использования.</remarks>
     /// <remarks>Обязательная инициализация вызовом Init1 и Init2</remarks>
     /// <remarks>При работе в разных потоках с одним экземпляром объекта использовать для синхронизации отдельно созданный объект либо lock (this). В некоторых случаях, сигналы можно получать через sync</remarks>
