@@ -32,16 +32,17 @@ public partial class Program
 
     public static ProgramErrorCode Main_ec(string[] args)
     {
+        L("");
         // Инициализация аллокатора памяти: проверяем, что он вообще работает
         VinKekFish_Utils.Memory.Init();
         if (Memory.memoryLockType.IsError())
         {
-            Console.Error.WriteLine($"Not have right memory allocator ({Memory.memoryLockType})");
+            Console.Error.WriteLine(L("Not have right memory allocator") + $" ({Memory.memoryLockType})");
             return ProgramErrorCode.wrongMemoryAllocator;
         }
         if (!Memory.memoryLockType.isCorrect())
         {
-            Console.Error.WriteLine($"Not have right memory allocator ({Memory.memoryLockType}). You must disable swap file, if you have");
+            Console.Error.WriteLine(L("Not have right memory allocator") + $" ({Memory.memoryLockType}). " + L("You must disable swap file, if you have"));
         }
 
         // Далее проверяем аргументы и т.п.

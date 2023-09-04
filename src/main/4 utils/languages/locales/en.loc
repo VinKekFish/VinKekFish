@@ -10,4 +10,8 @@ for execute without human
     for execute from an another program
 for execute for human friendly
     for execute for human friendly
+Not have right memory allocator
+    Not have the right memory allocator
+You must disable swap file, if you have
+    You must disable swap file, if you have (swappoff -a)
 :

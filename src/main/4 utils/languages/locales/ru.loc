@@ -10,4 +10,8 @@ for execute without human
     для запуска из другой программы
 for execute for human friendly
     для дружелюбного к человеку запуска
+Not have right memory allocator
+    Нет в наличии верного аллокатора неуправляемой памяти
+You must disable swap file, if you have
+    Необходимо отключить файл подкачки, если он у вас есть (swappoff -a)
 :
