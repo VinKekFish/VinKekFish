@@ -167,14 +167,16 @@ namespace main_tests
             h1 = BytesBuilder.CloneBytes(ts.Value[1]);
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
-            var tfg = new cryptoprime.Threefish1024(ts.Value[0], twb_null);
-            h2 = BytesBuilder.CloneBytes(ts.Value[1]);
-
-            fixed (ulong * key = tfg.key, tweak = tfg.tweak)
-            fixed (byte * h1b = h2)
+            fixed (byte * tsValue0 = ts.Value[0], twb_null_p = twb_null)
             {
-                ulong * h1u = (ulong *) h1b;
-                Threefish_Static_Generated.Threefish1024_step(key, tweak, h1u);
+                using var tfg = new cryptoprime.Threefish1024(tsValue0, 128, twb_null_p, 16);
+                h2 = BytesBuilder.CloneBytes(ts.Value[1]);
+
+                fixed (byte * h1b = h2)
+                {
+                    ulong * h1u = (ulong *) h1b;
+                    Threefish_Static_Generated.Threefish1024_step(tfg.key, tfg.tweak, h1u);
+                }
             }
 
             if (!BytesBuilder.UnsecureCompare(s0, ts.Value[0]))
@@ -211,14 +213,15 @@ namespace main_tests
 
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
-                 h2 = new byte[128];
-            var tfg = new cryptoprime.Threefish1024(ts.Value[0], ts.Value[1]);
-
-            fixed (ulong * key = tfg.key)
-            fixed (ulong * twp = tfg.tweak)
-            fixed (byte  * h2p = h2)
+            fixed (byte * tsValue0 = ts.Value[0], tsValue1 = ts.Value[1])
             {
-                Threefish_Static_Generated.Threefish1024_step(key, twp, (ulong *) h2p);
+                    h2  = new byte[128];
+                using var tfg = new cryptoprime.Threefish1024(tsValue0, 128, tsValue1, 16);
+
+                fixed (byte  * h2p = h2)
+                {
+                    Threefish_Static_Generated.Threefish1024_step(tfg.key, tfg.tweak, (ulong *) h2p);
+                }
             }
 
 

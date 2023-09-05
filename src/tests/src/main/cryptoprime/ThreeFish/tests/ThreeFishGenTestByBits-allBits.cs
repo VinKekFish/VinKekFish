@@ -180,14 +180,17 @@ namespace main_tests
             h1 = BytesBuilder.CloneBytes(ts.text);
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
-            var tfg = new cryptoprime.Threefish1024(ts.key, ts.tweak);
-            h2 = BytesBuilder.CloneBytes(ts.text);
-
-            fixed (ulong * pkey = tfg.key, ptweak = tfg.tweak)
-            fixed (byte * h2b = h2)
+            fixed (byte * tskey = ts.key, tstweak = ts.tweak)
             {
-                ulong * h2u = (ulong *) h2b;
-                Threefish_Static_Generated.Threefish1024_step(pkey, ptweak, h2u);
+                using var tfg = new cryptoprime.Threefish1024(tskey, 128, tstweak, 16);
+                h2 = BytesBuilder.CloneBytes(ts.text);
+
+                // fixed (ulong * pkey = tfg.key, ptweak = tfg.tweak)
+                fixed (byte * h2b = h2)
+                {
+                    ulong * h2u = (ulong *) h2b;
+                    Threefish_Static_Generated.Threefish1024_step(tfg.key, tfg.tweak, h2u);
+                }
             }
 
             if (!BytesBuilder.UnsecureCompare(h1, h2))

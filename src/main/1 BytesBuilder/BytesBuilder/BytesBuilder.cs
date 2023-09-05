@@ -712,6 +712,25 @@ namespace cryptoprime
             }
         }
 
+        /// <summary>Преобразует 8-хбайтовое целое в 8 байта в target по индексу start</summary>
+        /// <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
+        /// <param name="target">Массив для записи</param>
+        /// <param name="len">Длина массива target</param>
+        /// <param name="start">Начальный индекс для записи числа</param>
+        public unsafe static void ULongToBytes(ulong data, byte* target, nint len, nint start = 0)
+        {
+            if (start < 0 || start + 8 > len)
+                throw new IndexOutOfRangeException("ULongToBytes");
+            if (target == null)
+                throw new ArgumentNullException("target", "BytesBuilder.ULongToBytes");
+
+            for (nint i = start; i < start + 8; i++)
+            {
+                *(target + i) = (byte) data;
+                data >>= 8;
+            }
+        }
+
         /// <summary>Получает 8-мибайтовое целое число из массива. Младший байт по младшему индексу</summary>
         /// <param name="data">Полученное число</param>
         /// <param name="target">Массив с числом</param>
@@ -729,6 +748,26 @@ namespace cryptoprime
                     data <<= 8;
                     data += *(t + i);
                 }
+            }
+        }
+
+        /// <summary>Получает 8-мибайтовое целое число из массива. Младший байт по младшему индексу</summary>
+        /// <param name="data">Полученное число</param>
+        /// <param name="target">Массив с числом</param>
+        /// <param name="len">Длина массива target</param>
+        /// <param name="start">Начальный элемент, по которому расположено число</param>
+        public unsafe static void BytesToULong(out ulong data, byte* target, nint len, nint start = 0)
+        {
+            data = 0;
+            if (start < 0 || start + 8 > len)
+                throw new IndexOutOfRangeException("BytesToULong");
+            if (target == null)
+                throw new ArgumentNullException("target", "BytesBuilder.BytesToULong");
+
+            for (nint i = start + 8 - 1; i >= start; i--)
+            {
+                data <<= 8;
+                data += *(target + i);
             }
         }
 

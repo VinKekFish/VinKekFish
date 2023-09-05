@@ -177,10 +177,24 @@
             <param name="target">Массив для записи, может быть null</param>
             <param name="start">Начальный индекс для записи числа</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.ULongToBytes(System.UInt64,System.Byte*,System.IntPtr,System.IntPtr)">
+            <summary>Преобразует 8-хбайтовое целое в 8 байта в target по индексу start</summary>
+            <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
+            <param name="target">Массив для записи</param>
+            <param name="len">Длина массива target</param>
+            <param name="start">Начальный индекс для записи числа</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.BytesToULong(System.UInt64@,System.Byte[],System.IntPtr)">
             <summary>Получает 8-мибайтовое целое число из массива. Младший байт по младшему индексу</summary>
             <param name="data">Полученное число</param>
             <param name="target">Массив с числом</param>
+            <param name="start">Начальный элемент, по которому расположено число</param>
+        </member>
+        <member name="M:cryptoprime.BytesBuilder.BytesToULong(System.UInt64@,System.Byte*,System.IntPtr,System.IntPtr)">
+            <summary>Получает 8-мибайтовое целое число из массива. Младший байт по младшему индексу</summary>
+            <param name="data">Полученное число</param>
+            <param name="target">Массив с числом</param>
+            <param name="len">Длина массива target</param>
             <param name="start">Начальный элемент, по которому расположено число</param>
         </member>
         <member name="M:cryptoprime.BytesBuilder.BytesToUInt(System.UInt32@,System.Byte[],System.IntPtr)">
@@ -404,11 +418,11 @@
             <summary>Очищает и освобождает выделенную область памяти</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Free">
-            <summary>Вызывает Dispose()</summary>
+            <summary>Вызывает Dispose(true)</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Dispose(System.Boolean)">
             <summary>Очищает массив и освобождает выделенную под него память</summary>
-            <param name="disposing"></param>
+            <param name="disposing">true, если вызов происходит из-вне деструктора</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Finalize">
             <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
@@ -654,7 +668,7 @@
         </member>
         <member name="T:VinKekFish_Utils.Memory">
             <summary>
-            using static VinKekFish_Utils.Memory;
+            Не использовать напрямую. Использовать AllocHGlobal_AllocatorForUnsafeMemory
             Класс описывает аллокаторы для выделения неуправляемой памяти.
             Memory.alloc является текущим установленным аллокатором
             Memory.free  - освобождает память

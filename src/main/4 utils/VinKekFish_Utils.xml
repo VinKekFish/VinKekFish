@@ -37,5 +37,11 @@
             <param name="len2">Длина подмассива для сравнивания</param>
             <returns><see langword="true"/>, если массивы совпадают.</returns>
         </member>
+        <member name="M:VinKekFish_Utils.Utils.ArrayToHex(System.Byte*,System.IntPtr)">
+            <summary>Переводит массив в строковое представление для удобства отладки</summary>
+            <param name="buffer">Массив для перевода в строковое представление</param>
+            <param name="len">Длина массива</param>
+            <returns>Строка, закодированная в шестнадцатиричном виде</returns>
+        </member>
     </members>
 </doc>

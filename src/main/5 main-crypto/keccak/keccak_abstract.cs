@@ -2,6 +2,9 @@
 using static cryptoprime.KeccakPrime;
 using cryptoprime;
 
+using Memory = VinKekFish_Utils.Memory;
+using static cryptoprime.BytesBuilderForPointers;
+
 // В этой сборке специально не включаются оптимизации: хрен знает, что они тут сделают
 // С оптимизациями могут быть проблемы с очисткой памяти. Сами функции очистки вынесены в другую библиотеку, с оптимизациями
 namespace maincrypto.keccak;
@@ -16,12 +19,13 @@ namespace maincrypto.keccak;
 /// </summary>
 public unsafe abstract class Keccak_abstract: IDisposable
 {
+    public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
     /// <summary>Создаёт объект для использования с примитивом keccak</summary>
     /// <param name="noInit">Если true, то не будет делать инициализацию полей нулями</param>
     public Keccak_abstract(bool noInit = false)
     {
-        StatePtr = Marshal.AllocHGlobal(StateLen);
-        State    = (byte *) StatePtr.ToPointer();
+        StatePtr = allocator.AllocMemory(StateLen); //Marshal.AllocHGlobal(StateLen);
+        State    = StatePtr.array;
         getStatesArray();
 
         if (!noInit)
@@ -45,8 +49,9 @@ public unsafe abstract class Keccak_abstract: IDisposable
     // Здесь сначала идёт B, потом C, потом S.
     // При перезаписи после конца массивов B или C с высокой вероятностью пострадает S, что даст возможность тестам сделать своё дело
     /// <summary> Не нужно конечному пользователю. Внутреннее состояние keccak. Используйте Slong, Blong, Clong для того, чтобы разбить его на указатели</summary>
-    protected byte*  State    = null;
-    protected IntPtr StatePtr = default;            // Константы объявлены в cryptoprime.KeccakPrime
+    protected byte*   State    = null;
+    protected Record? StatePtr;                     //  Константы объявлены в cryptoprime.KeccakPrime
+                                                    /// <summary>Общая длина состояния keccak, включая вспомогательные матрицы. Это значение используется для выделения памяти.</summary>
     protected int    StateLen = (S_len2 + S_len + S_len2) << 3;
 
     public abstract Keccak_abstract Clone();
@@ -115,9 +120,10 @@ public unsafe abstract class Keccak_abstract: IDisposable
 
         Clear(false);
 
-        Marshal.FreeHGlobal(StatePtr);
+        // Marshal.FreeHGlobal(StatePtr);
+        StatePtr?.Free();
+        StatePtr = null;
         State    = null;
-        StatePtr = default;
         B        = null;
         C        = null;
         S        = null;

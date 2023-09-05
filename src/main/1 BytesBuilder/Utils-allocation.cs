@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 // egrep -ri 'MAP_ANONYMOUS' .
 
 /// <summary>
-/// using static VinKekFish_Utils.Memory;
+/// Не использовать напрямую. Использовать AllocHGlobal_AllocatorForUnsafeMemory
 /// Класс описывает аллокаторы для выделения неуправляемой памяти.
 /// Memory.alloc является текущим установленным аллокатором
 /// Memory.free  - освобождает память

@@ -254,14 +254,14 @@ namespace cryptoprime
                 Dispose(true);
             }
 
-            /// <summary>Вызывает Dispose()</summary>
+            /// <summary>Вызывает Dispose(true)</summary>
             public void Free()
             {
-                Dispose();
+                Dispose(true);
             }
 
             /// <summary>Очищает массив и освобождает выделенную под него память</summary>
-            /// <param name="disposing"></param>
+            /// <param name="disposing">true, если вызов происходит из-вне деструктора</param>
             protected virtual void Dispose(bool disposing)
             {
                 if (isDisposed)
@@ -269,7 +269,11 @@ namespace cryptoprime
                     if (disposing == false)
                         return;
 
-                    throw new Exception("BytesBuilderForPointers.Record Dispose() executed twice");
+                    var msg = "BytesBuilderForPointers.Record Dispose() executed twice";
+                    if (doExceptionOnDisposeTwiced)
+                        throw new Exception(msg);
+                    else
+                        Console.WriteLine(msg);
                 }
                 else
                     GC.SuppressFinalize(this);
@@ -308,8 +312,17 @@ namespace cryptoprime
                 // .NET может избегать вызова десктруктора, а исключение может быть не залогировано при завершении программы.
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
-                    throw new Exception("BytesBuilderForPointers.Record ~Record() executed with a not disposed Record");
+                {
+                    var msg = "BytesBuilderForPointers.Record ~Record() executed with a not disposed Record";
+                    if (doExceptionOnDisposeInDestructor)
+                        throw new Exception(msg);
+                    else
+                        Console.Error.WriteLine(msg);
+                }
             }
+
+            public static bool doExceptionOnDisposeInDestructor = true;
+            public static bool doExceptionOnDisposeTwiced       = true;
 
             /// <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
             ~Record()

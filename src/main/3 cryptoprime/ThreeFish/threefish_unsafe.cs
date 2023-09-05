@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static cryptoprime.BytesBuilderForPointers;
 
 // ::test:O0s1QcshQ7zCGVMMKZtf:
 
@@ -13,31 +13,56 @@ using static cryptoprime.threefish_slowly;
  * */
 namespace cryptoprime
 {
-    // Threefish 1024 bits realization with optimization
-    // Реализация Threefish 1024 бита с оптимизацией
-    public unsafe class Threefish1024
+    // Threefish 1024 bits realization with optimization. Helper class for Threefish_Static_Generated
+    // Реализация Threefish 1024 бита с оптимизацией - вспомогательный класс для Threefish_Static_Generated
+    public unsafe class Threefish1024: IDisposable
     {
-        public readonly ulong[] tweak = new ulong[3];
-        public readonly ulong[] key   = new ulong[threefish_slowly.Nw + 1];
-        public Threefish1024(byte[] Key, byte[] Tweak)
+        public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+
+        protected readonly Record memory = allocator.AllocMemory(3*sizeof(ulong) + (threefish_slowly.Nw + 1)*sizeof(ulong));
+        public    readonly ulong * tweak;
+        public    readonly ulong * key;
+        /// <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
+        /// <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
+        /// <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
+        public Threefish1024(byte* Key, nint kLen, byte* Tweak, nint tLen)
         {
-            if (Key  .Length < keyLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: Key  .Length < keyLen");
-            if (Tweak.Length <  twLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: Tweak.Length <  twLen");
+            if (Key == null || Tweak == null) throw new ArgumentNullException("cryptoprime.Threefish1024.Threefish1024: Key == null || Tweak == null");
 
-            fixed (byte  * k  = Key,      t  = Tweak)
-            fixed (ulong * tk = this.key, tt = this.tweak)
-            {
-                // На случай, если передадут массивы большей длины, мы берём ровно столько, сколько надо
-                BytesBuilder.CopyTo(keyLen, keyLen, k, (byte *) tk);
-                BytesBuilder.CopyTo( twLen,  twLen, t, (byte *) tt);
+            tweak = (ulong*)memory.array;
+            key = (ulong*)(memory.array + 3 * sizeof(ulong));
 
-                // Вычисление расширения ключа и tweak; это 17-ый элемент ключа
-                tk[16] = threefish_slowly.C240;
-                for (int i = 0; i < threefish_slowly.Nw; i++)
-                    tk[16] ^= tk[i];
+            if (kLen < keyLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: kLen < keyLen");
+            if (tLen < twLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: tLen <  twLen");
 
-                tt[2] = tt[0] ^ tt[1];
-            }
+            ulong* tk = this.key, tt = this.tweak;
+
+            // На случай, если передадут массивы большей длины, мы берём ровно столько, сколько надо
+            BytesBuilder.CopyTo(keyLen, keyLen, Key, (byte*)tk);
+            BytesBuilder.CopyTo(twLen, twLen, Tweak, (byte*)tt);
+
+            // Вычисление расширения ключа и tweak; это 17-ый элемент ключа
+            genExpandedKey(tk);
+
+            tt[2] = tt[0] ^ tt[1];
+        }
+
+        public static void genExpandedKey(ulong* tk)
+        {
+            tk[16] = threefish_slowly.C240;
+            for (int i = 0; i < threefish_slowly.Nw; i++)
+                tk[16] ^= tk[i];
+        }
+
+        public void Dispose()
+        {
+            if (memory.array != null)
+                memory.Free();
+        }
+
+        ~Threefish1024()
+        {
+            Dispose();
         }
     }
 }

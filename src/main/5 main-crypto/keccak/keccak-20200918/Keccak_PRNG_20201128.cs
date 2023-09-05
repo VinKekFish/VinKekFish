@@ -17,7 +17,7 @@ namespace maincrypto.keccak;
 /// <summary>Криптостойкий ГПСЧ</summary>
 public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 {                                                                                                       /// <summary>Главный аллокатор: используется для однократного выделения памяти под вспомогательные буферы inputTo и outputBuffer</summary>
-    public readonly AllocatorForUnsafeMemoryInterface allocator             = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();      /// <summary>Аллокатор для использования в многократных операциях по выделению памяти при сохранении данных или их преобразовании</summary>
+    public readonly AllocatorForUnsafeMemoryInterface curAllocator          = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();      /// <summary>Аллокатор для использования в многократных операциях по выделению памяти при сохранении данных или их преобразовании</summary>
     public          AllocatorForUnsafeMemoryInterface allocatorForSaveBytes = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory(); // new BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory();
     // Fixed работает раза в 3 медленнее почему-то
 
@@ -36,7 +36,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         }
 
         if (allocator != null)
-            this.allocator = allocator;
+            this.curAllocator = allocator;
 
         inputTo      = AllocMemory(InputSize);
         outputBuffer = AllocMemory(InputSize);
@@ -55,7 +55,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                                                                     /// <summary>Выделение памяти с помощью allocator</summary><param name="len">Размер выделяемого участка памяти</param><returns>Record, инкапсулирующий выделенный участок памяти</returns>
     public Record AllocMemory(nint len)
     {
-        return allocator.AllocMemory(len);
+        return curAllocator.AllocMemory(len);
     }
                                                                     /// <summary>Выделение памяти с помощью AllocMemoryForSaveBytes</summary><param name="len">Размер выделяемого участка памяти</param><returns>Record, инкапсулирующий выделенный участок памяти</returns>
     public Record AllocMemoryForSaveBytes(nint len)
@@ -66,7 +66,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <summary>Клонирует внутреннее состояние объекта и аллокаторы. Вход и выход не копируются</summary><returns></returns>
     public override Keccak_abstract Clone()
     {
-        var result = new Keccak_PRNG_20201128(allocator: allocator);
+        var result = new Keccak_PRNG_20201128(allocator: curAllocator);
 
         result.allocatorForSaveBytes = this.allocatorForSaveBytes;
 
@@ -109,7 +109,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
-        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, allocator));
+        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, curAllocator));
         // InputBytesImmediately(notException: true);
     }
 
@@ -122,7 +122,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
-        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, 0, len, allocator));
+        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, 0, len, curAllocator));
         // InputBytesImmediately(notException: true);
     }
 
@@ -162,7 +162,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
             if (OIV_length <= 0)
                 throw new ArgumentOutOfRangeException("Keccak_PRNG_20201128.InputKeyAndStep: OIV_length <= 0");
 
-            INPUT.addWithCopy(OIV, OIV_length, allocator);
+            INPUT.addWithCopy(OIV, OIV_length, curAllocator);
             InputBytesImmediately();
             if (inputReady <= 0)
                 throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: inputReady != true with OIV != null after first input");
@@ -179,7 +179,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         calcStep(false, Overwrite: false, inputAlways: true, regime: 2);
 
         // Вводим ключ
-        INPUT.addWithCopy(key, key_length, allocator);
+        INPUT.addWithCopy(key, key_length, curAllocator);
         InputBytesImmediately();
         while (inputReady > 0)
             calcStep(Overwrite: false, regime: 3);

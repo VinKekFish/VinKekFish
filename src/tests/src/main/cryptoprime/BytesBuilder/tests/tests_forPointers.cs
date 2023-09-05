@@ -16,6 +16,8 @@ using DriverForTestsLib;
 using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
+
+[TestTagAttribute("very_slow")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 40*1e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет, работает ли IDisposable - удаляется ли выделенная память</summary>

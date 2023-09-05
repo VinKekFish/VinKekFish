@@ -144,7 +144,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
                             this.error.Add(testError);
                         }
 
-                        using var rec = k.allocator.AllocMemory(eRec.len);
+                        using var rec = k.curAllocator.AllocMemory(eRec.len);
                         k.output!.getBytesAndRemoveIt(rec);
                         if (!rec.UnsecureCompare(eRec))
                         lock (this)

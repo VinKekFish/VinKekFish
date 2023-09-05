@@ -67,7 +67,7 @@
         </member>
         <member name="M:cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512(System.Byte*,System.Byte,System.Byte*,System.Byte)">
             <summary>
-            Эта конструкция разработана по мотивам keccak Overwrite, но немного от неё отличается. Здесь нет padding, нет framebit. Длина вводится xor с внутренним состоянием.
+            Эта конструкция разработана по мотивам keccak Overwrite, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием.
             </summary>
             <param name="message">64 байта или менее для ввода с помощью перезаписи</param>
             <param name="len">длина массива message, 64 или менее</param>
@@ -76,7 +76,7 @@
         </member>
         <member name="M:cryptoprime.KeccakPrime.Keccak_Input64_512(System.Byte*,System.Byte,System.Byte*,System.Byte)">
             <summary>
-            Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Длина вводится xor с внутренним состоянием.
+            Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием.
             </summary>
             <param name="message">64 байта или менее для ввода с помощью перезаписи</param>
             <param name="len">длина массива message, 64 или менее</param>
@@ -95,6 +95,11 @@
             <param name="message">Сообщение для хеширования</param>
             <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
             <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
+        </member>
+        <member name="M:cryptoprime.Threefish1024.#ctor(System.Byte*,System.IntPtr,System.Byte*,System.IntPtr)">
+            <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
+            <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
+            <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
         </member>
         <member name="M:CodeGenerated.Cryptoprimes.Threefish_Static_Generated.Threefish1024_step(System.UInt64*,System.UInt64*,System.UInt64*)">
             <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>

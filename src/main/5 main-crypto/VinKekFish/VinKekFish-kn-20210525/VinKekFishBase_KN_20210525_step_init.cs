@@ -86,10 +86,14 @@ namespace vinkekfish
         /// <param name="PreRoundsForTranspose">Количество раундов, которое будет происходить со стандартными таблицами (не зависящими от ключа)</param>
         /// <param name="keyForPermutations">Дополнительный ключ: ключ для определения таблиц перестановок. Не должен зависеть от основного ключа<para>Пользователь должен обеспечить, чтобы при разглашении дополнительного ключа основной оставался бы неизвестным. Можно добавить при инициализации после основного ключа, но этот ключ, считается менее защищённым, чем основной</para></param>
         /// <param name="OpenInitVectorForPermutations">Дополнительный вектор инициализации</param>
-        public virtual void Init1(int PreRoundsForTranspose = 8, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null)
+        public virtual void Init1(int PreRoundsForTranspose = 0, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null)
         {
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init1: Fatal algorithmic error: !State1Main");
+
+            // Устанавливаем PreRoundsForTranspose по-умолчанию
+            if (PreRoundsForTranspose <= 0)
+                PreRoundsForTranspose = this.MIN_ABSORPTION_ROUNDS_K;
 
             lock (this)
             {
