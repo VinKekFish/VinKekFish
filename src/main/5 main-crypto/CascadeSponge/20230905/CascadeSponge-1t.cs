@@ -14,12 +14,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 {
                                                                 /// <summary>Ширина каскадной губки</summary>
     public readonly nint   wide;                                /// <summary>Высота каскадной губки</summary>
-    public readonly nint   tall;                                /// <summary>Параметр W - коэффициент, уменьшающий значение ввода и вывода из каждой губки</summary>
-    public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество байтов, которое можно за один шаг ввести или вывести из каждой губки keccak с учётом ограничений каскада</summary>
+    public readonly nint   tall;                                /// <summary>Параметр W - коэффициент, уменьшающий количество внешних данных для ввода и вывода из каждой губки</summary>
+    public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество внешних (пользовательских) байтов, которое можно за один шаг ввести или вывести из каждой внешней губки keccak с учётом ограничений каскада</summary>
     public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи</summary>
     public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
-    public readonly nint   ReserveConnectionFullLen;            /// <summary>Минимальная ширина губки (2). Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
-    public readonly nint   maxDataLen;                          /// <summary>Максимальная длина данных, вводимая за один раз</summary>
+    public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая за один раз</summary>
+    public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (2). Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
     public const nint MinWide = 2;                              /// <summary>Минимальная высота каскадной губки (3)</summary>
     public const nint MinTall = 3;                              /// <summary>Максимальное количество байтов, которое можно ввести/вывести в губку вне каскада. Реальное количество байтов, доступное для пользовательского ввода - Wn</summary>
     public const byte MaxInputForKeccak = 64;
@@ -31,6 +31,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                                                                 /// <summary>Стойкость шифрования в байтах. Это tall*MaxInputForKeccak</summary>
     public    readonly nint   strenghtInBytes = 0;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи</summary>
     public    readonly nint   countOfThreeFish;
+                                                                /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после вывода информации в шаге в режиме повышенной стойкости</summary>
+    public    readonly nint   countStepsForKeyGeneration;
 
     /// <summary>Создаёт каскадную губку с заданными параметрами</summary>
     /// <param name="wide">Ширина каскадной губки, не менее MinWide</param>
@@ -75,10 +77,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         W  = Math.Log2(tall+1);
         Wn = (nint) Math.Floor((double) MaxInputForKeccak / (double) W);
-        maxDataLen               = Wn*wide;
-        ReserveConnectionLen     = MaxInputForKeccak*wide;
-        ReserveConnectionFullLen = ReserveConnectionLen + 8;
-        strenghtInBytes          = tall*MaxInputForKeccak;
+        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall)+tall  );
+        maxDataLen                 = Wn*wide;
+        ReserveConnectionLen       = MaxInputForKeccak*wide;
+        ReserveConnectionFullLen   = ReserveConnectionLen + 8;
+        strenghtInBytes            = tall*MaxInputForKeccak;
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen);
         fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen);
@@ -93,14 +96,16 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Console.WriteLine(this);
     }
 
+    protected bool isThreeFishInitialized = false;
+
     /// <summary>Позволяет установить ключи и твики для ThreeFish обратной связи</summary>
     /// <param name="keys">Ключи, каждый ключ по 128-мь байтов. В конце массива должно быть магическое число MagicNumber_ReverseConnectionLink_forInput</param>
     /// <param name="tweaks">Твики, каждый твик по 16-ть байтов. В конце массива должно быть магическое число MagicNumber_ReverseConnectionLink_forInput</param>
     /// <param name="countOfKeys">Общее количество ключей и твиков</param>
     public void setThreeFishKeysAndTweak(byte * keys, byte * tweaks, int countOfKeys)
     {
-        CheckMagicNumber(keys,   "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys",   countOfKeys*128);
-        CheckMagicNumber(tweaks, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: tweaks", countOfKeys*16);
+        CheckMagicNumber(keys, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys", countOfKeys * 128);
+        CheckMagicNumber(tweaks, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: tweaks", countOfKeys * 16);
 
         if (countOfKeys < countOfThreeFish)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: countOfKeys < countOfThreeFish");
@@ -108,22 +113,37 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var rc = reverseCrypto!.array;
         for (int i = 0; i < countOfThreeFish; i++)
         {
-            BytesBuilder.CopyTo(128, 128, keys,   rc); rc += 192; keys   += 128;
-            BytesBuilder.CopyTo(16,  16,  tweaks, rc); rc += 64;  tweaks += 16;
+            BytesBuilder.CopyTo(128, 128, keys, rc); rc += 192; keys += 128;
+            BytesBuilder.CopyTo(16, 16, tweaks, rc); rc += 64; tweaks += 16;
         }
 
-        ulong * rcu;
-        rc  = reverseCrypto!.array;
+        ExpandThreeFish();
+    }
+
+    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом. Это уменьшает стойкость алгоритма</summary>
+    public void InitEmptyThreeFish()
+    {
+        ExpandThreeFish();
+    }
+
+    protected void ExpandThreeFish()
+    {
+        byte* rc;
+        ulong* rcu;
+        rc = reverseCrypto!.array;
         for (int i = 0; i < countOfThreeFish; i++)
         {
-            Threefish1024.genExpandedKey((ulong *) rc); rc += 192;
+            Threefish1024.genExpandedKey((ulong*)rc); rc += 192;
 
-            rcu = (ulong *) rc;
+            rcu = (ulong*)rc;
             rcu[2] = rcu[0] ^ rcu[1];
             rc += 64;
         }
+
+        isThreeFishInitialized = true;
     }
-// TODO: Если ThreeFish не проинициализирован, хотя бы нулями, то нужно выдавать исключение
+
+    // TODO: Если ThreeFish не проинициализирован, хотя бы нулями, то нужно выдавать исключение
     public nint CalcMinWide(nint tall)
     {
         return (nint) Math.Ceiling(  Math.Log2(tall+1)  );
