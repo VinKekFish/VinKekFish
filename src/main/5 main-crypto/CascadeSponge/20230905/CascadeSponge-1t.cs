@@ -34,8 +34,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                                                                 /// <summary>Стойкость шифрования в байтах. Это tall*MaxInputForKeccak</summary>
     public    readonly nint   strenghtInBytes = 0;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи</summary>
     public    readonly nint   countOfThreeFish;
-                                                                /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после вывода информации в шаге в режиме повышенной стойкости</summary>
-    public    readonly nint   countStepsForKeyGeneration;
+                                                                /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после ввода/вывода информации в шаге в генерации ключей</summary>
+    public    readonly nint   countStepsForKeyGeneration;       /// <summary>Количество шагов губки, которое пропускается после ввода/вывода информации в режиме повышенной стойкости (это меньше, чем countStepsForKeyGeneration)</summary>
+    public    readonly nint   countStepsForHardening;
 
     protected nint _countOfProcessedSteps = 0;                          /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
     public    nint  countOfProcessedSteps => _countOfProcessedSteps;
@@ -87,6 +88,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             throw new CascadeSpongeException("CascadeSponge_1t_20230905: Wn <= 0. tall > 2^63 ???");
 
         countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );
+        countStepsForHardening     = (nint) Math.Ceiling(  Math.Log2(tall+1)  );
         maxDataLen                 = Wn*wide;
         ReserveConnectionLen       = MaxInputForKeccak*wide;
         ReserveConnectionFullLen   = ReserveConnectionLen + 8;

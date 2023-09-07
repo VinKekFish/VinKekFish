@@ -178,17 +178,27 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         }
     }
 
-    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254.</summary>
+    // code::docs:CJXTMlFBHbtxFNSpqeC8:
+    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
     /// <param name="key">Ключ шифрования</param>
-    /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся.</param>
+    /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2.</param>
-    public void setupKeyAndOIV(Record key, Record OIV, int InitThreeFishByCascade_stepToKeyConst = 0)
+    public void initKeyAndOIV(Record key, Record? OIV, int InitThreeFishByCascade_stepToKeyConst)
     {
-        if (lastRegime == 254)
-            throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 254");
+        if (OIV is not null)
+        {
+            if (lastRegime == 254)
+                throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 254 (OIV is not null)");
 
-        step(0, 0, OIV, OIV.len, regime: 254);
-        step(1, regime: 0);
+            step(0, 0, OIV, OIV.len,     regime: 254);
+            step(countStepsForHardening, regime: 0);
+        }
+        else
+        {
+            if (lastRegime == 255)
+                throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 255 (OIV==null)");
+        }
+
         step(0, countStepsForKeyGeneration, key, key.len, regime: 255);
         step(1, inputRegime: overwrite);
         step(countStepsForKeyGeneration, regime: 5);

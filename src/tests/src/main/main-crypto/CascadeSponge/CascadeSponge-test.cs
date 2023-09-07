@@ -2,7 +2,7 @@ namespace cryptoprime_tests;
 
 using cryptoprime;
 using DriverForTestsLib;
-
+using maincrypto.keccak;
 using vinkekfish;
 
 // tests::docs:rQN6ZzeeepyOpOnTPKAT:
@@ -23,23 +23,21 @@ public unsafe class CascadeSponge_BaseTest : TestTask
 
         try
         {
-            var dlen  = cascade.maxDataLen;
-            var data  = new byte[dlen];
-            fixed (byte * a = data)
-            {
-                // Инициализируем массивы данных - имитируем синхропосылку и ключ простыми значениями
-                for (int i = 0; i < dlen; i++)
-                    a[i] = (byte) i;
+                  var dlen = cascade.maxDataLen;
+            using var data = Keccak_abstract.allocator.AllocMemory(dlen);
+            byte * a = data;
+            // Инициализируем массивы данных - имитируем синхропосылку и ключ простыми значениями
+            for (int i = 0; i < dlen; i++)
+                a[i] = (byte) i;
 
-                // Вводим данные и делаем шаг. Имитируем, что вводим синхропосылку и ключ
-                for (int i = 0; i < cascade.countStepsForKeyGeneration; i++)
-                    cascade.step(1, a, dlen);
+            // Вводим данные и делаем шаг. Имитируем, что вводим синхропосылку и ключ
+            for (int i = 0; i < cascade.countStepsForKeyGeneration; i++)
+                cascade.step(1, 0, a, dlen);
 
-                cascade.InitThreeFishByCascade(true);
+            cascade.initKeyAndOIV(data, data, 2);
 
-                var msg = VinKekFish_Utils.Utils.ArrayToHex(cascade.lastOutput, cascade.maxDataLen);
-                Console.WriteLine(msg);
-            }
+            var msg = VinKekFish_Utils.Utils.ArrayToHex(cascade.lastOutput, cascade.maxDataLen);
+            Console.WriteLine(msg);
         }
         finally
         {
