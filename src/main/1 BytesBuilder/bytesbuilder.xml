@@ -362,7 +362,10 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.Record.allocator">
             <summary>Аллокатор, используемый для освобождения памяти в Dispose</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.Byte*)">
+        <member name="F:cryptoprime.BytesBuilderForPointers.Record.Name">
+            <summary>Имя записи. Используется в отладочных целях.</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.String)">
             <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">

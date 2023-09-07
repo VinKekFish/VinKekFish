@@ -23,12 +23,13 @@ namespace cryptoprime
             public GCHandle handle = default;                           /// <summary>Данные для удаления, если этот массив выделен с помощью AllocHGlobal_AllocatorForUnsafeMemory</summary>
             public IntPtr   ptr    = default;
                                                                         /// <summary>Аллокатор, используемый для освобождения памяти в Dispose</summary>
-            public AllocatorForUnsafeMemoryInterface? allocator = null;
+            public AllocatorForUnsafeMemoryInterface? allocator = null; /// <summary>Имя записи. Используется в отладочных целях.</summary>
+            public string?  Name   = null;
 
             // Отладочный код
             #if RECORD_DEBUG
             /// <summary>Имя записи для отладки</summary>
-            public        string? DebugName = null;
+            public        string? StackTraceString = null;
                                                                 /// <summary>Номер записи для отладки</summary>
             public        nint   DebugNum  = 0;                 /// <summary>Следующий номер записи для отладки</summary>
             public static nint   CurrentDebugNum = 0;
@@ -36,12 +37,14 @@ namespace cryptoprime
 
             // Конструктор. Не вызывается напрямую
             /// <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
-            public Record(byte * base_array = null)
+            public Record(string? Name = null)
             {
+                this.Name = Name;
+
                 #if RECORD_DEBUG
                 DebugNum = CurrentDebugNum++;
                 // if (DebugNum == 7)
-                DebugName = new System.Diagnostics.StackTrace(true).ToString();
+                StackTraceString = new System.Diagnostics.StackTrace(true).ToString();
                 #endif
             }
 
@@ -269,7 +272,7 @@ namespace cryptoprime
                     if (disposing == false)
                         return;
 
-                    var msg = "BytesBuilderForPointers.Record Dispose() executed twice";
+                    var msg = $"BytesBuilderForPointers.Record Dispose() executed twice. For Record with Name: {Name}";
                     if (doExceptionOnDisposeTwiced)
                         throw new Exception(msg);
                     else
@@ -313,7 +316,7 @@ namespace cryptoprime
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
                 {
-                    var msg = "BytesBuilderForPointers.Record ~Record() executed with a not disposed Record";
+                    var msg = $"BytesBuilderForPointers.Record ~Record() executed with a not disposed Record. For Record with Name: {Name}";
                     if (doExceptionOnDisposeInDestructor)
                         throw new Exception(msg);
                     else
@@ -745,7 +748,7 @@ namespace cryptoprime
                 InterlockedDecrement_memAllocated();
 
                 if (checkResult != CheckControlValuesResult.success)
-                    throw new RecordControlValuesException(checkResult, recordToFree, $"Record.FreeMemory: CheckControlValues return error {checkResult}");
+                    throw new RecordControlValuesException(checkResult, recordToFree, $"Record.FreeMemory: CheckControlValues return error {checkResult}. For Record with Name: {recordToFree.Name}");
 
                 #if RECORD_DEBUG
                 lock (allocatedRecords)

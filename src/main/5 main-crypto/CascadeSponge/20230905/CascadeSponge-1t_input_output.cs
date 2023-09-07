@@ -11,7 +11,7 @@ using System.Text;
 using static VinKekFish_Utils.Utils;
 using static CodeGenerated.Cryptoprimes.Threefish_Static_Generated;
 
-// code::docs:rQN6ZzeeepyOpOnTPKAT:  Это главный файл реализации
+// code::docs:rQN6ZzeeepyOpOnTPKAT:
 
 /// <summary>
 /// Это однопоточный эталон для тестирования каскадной губки
@@ -69,6 +69,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                     dataLenToInput = dataLen - cur;
             }
             // Вводим данные из-вне в буфер
+            if (dataLenToInput > 0)
             BytesBuilder.CopyTo(dataLenToInput, MaxInputForKeccak, data + cur, buffer);
 
             // Определяем, нужно ли вводить данные из обратной связи
@@ -122,7 +123,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>
-    protected void transposeOutput(byte * data)
+    protected void transposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
     {
         var buffer = stackalloc byte[(int)ReserveConnectionLen];
         BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, data, buffer);
@@ -131,11 +132,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         for (int i = 0; i < ReserveConnectionLen; i++)
         {
             data[i] = buffer[j];
-            j += MaxInputForKeccak;
+            j += transposeStep;
             if (j >= ReserveConnectionLen)
                 j = ++k;
         }
 
+        if (transposeStep == MaxInputForKeccak)
         if (k != MaxInputForKeccak)
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905.transposeOutput: k != MaxInputForKeccak ({k} != {MaxInputForKeccak})");
 

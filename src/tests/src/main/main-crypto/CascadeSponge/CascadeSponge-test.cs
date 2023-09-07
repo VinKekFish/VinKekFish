@@ -27,13 +27,16 @@ public unsafe class CascadeSponge_BaseTest : TestTask
             var data  = new byte[dlen];
             fixed (byte * a = data)
             {
-                // Инициализируем массивы данных
+                // Инициализируем массивы данных - имитируем синхропосылку и ключ простыми значениями
                 for (int i = 0; i < dlen; i++)
                     a[i] = (byte) i;
 
-                // Вводим данные и делаем шаг
-                for (int i = 0; i < 27; i++)
-                cascade.step(1, a, dlen);
+                // Вводим данные и делаем шаг. Имитируем, что вводим синхропосылку и ключ
+                for (int i = 0; i < cascade.countStepsForKeyGeneration; i++)
+                    cascade.step(1, a, dlen);
+
+                cascade.InitThreeFishByCascade(true);
+
                 var msg = VinKekFish_Utils.Utils.ArrayToHex(cascade.lastOutput, cascade.maxDataLen);
                 Console.WriteLine(msg);
             }

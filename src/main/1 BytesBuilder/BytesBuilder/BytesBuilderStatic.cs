@@ -41,8 +41,9 @@ namespace cryptoprime
             if (Count > Size)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.Resize: Count > Size");
 
-            var newRegion = allocator?.AllocMemory(Size) ?? throw new ArgumentNullException("BytesBuilderStatic.Resize");
-            var oldRegion = region;
+            var newRegion  = allocator?.AllocMemory(Size) ?? throw new ArgumentNullException("BytesBuilderStatic.Resize");
+            newRegion.Name = "BytesBuilderStatic.region";
+            var oldRegion  = region;
 
             if (oldRegion != null)
             {

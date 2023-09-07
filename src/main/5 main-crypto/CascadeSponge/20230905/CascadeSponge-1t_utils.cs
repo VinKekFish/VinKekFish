@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using static CascadeSponge_1t_20230905.InputRegime;
 using System.Text;
 
-// code::docs:rQN6ZzeeepyOpOnTPKAT:  Это главный файл реализации
+// code::docs:rQN6ZzeeepyOpOnTPKAT:
 
 /// <summary>
 /// Это однопоточный эталон для тестирования каскадной губки

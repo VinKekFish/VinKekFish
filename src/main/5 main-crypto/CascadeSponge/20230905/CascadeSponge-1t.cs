@@ -18,21 +18,27 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество внешних (пользовательских) байтов, которое можно за один шаг ввести или вывести из каждой внешней губки keccak с учётом ограничений каскада</summary>
     public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи</summary>
     public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
-    public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая за один раз</summary>
+    public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая из-вне за один раз или выводимая во-вне (пользователю) за один раз (за один шаг). Это длина данных уже со всей каскадной губки</summary>
     public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (2). Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
-    public const nint MinWide = 2;                              /// <summary>Минимальная высота каскадной губки (3)</summary>
-    public const nint MinTall = 3;                              /// <summary>Максимальное количество байтов, которое можно ввести/вывести в губку вне каскада. Реальное количество байтов, доступное для пользовательского ввода - Wn</summary>
-    public const byte MaxInputForKeccak = 64;
-                                                                /// <summary>Значение для инкремента счётчика обратной связи. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
-    public const long CounterIncrement = 3148241843069173559;
-                                                                /// <summary>Вывод для пользователя. Заполняется при вызове step (точнее, после вызова outputAllData)</summary>
-    public    readonly Record lastOutput;                       /// <summary>Полный вывод всех губок (транспонированный для обратной связи и вывода)</summary>
-    protected readonly Record fullOutput;
+    public const    nint   MinWide = 2;                         /// <summary>Минимальная высота каскадной губки (3)</summary>
+    public const    nint   MinTall = 3;                         /// <summary>Максимальное количество байтов, которое можно ввести/вывести в губку вне каскада. Эта константа никогда не изменяется и зависит от построения алгоритма keccak. Реальное количество байтов, доступное для пользовательского ввода/вывода из каждой губки - Wn. Общее количество байтов, доступных для ввода/вывода из всей губки - maxDataLen.</summary>
+    public const    byte   MaxInputForKeccak = 64;
+                                                                /// <summary>Не нужно пользователю. Значение для инкремента счётчика обратной связи. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
+    public const    ulong  CounterIncrement   = 3148241843069173559; /// <summary>Не нужно пользователю. Значение для инкремента tweak при пустой инициализации. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
+    public const    ulong  TweakInitIncrement = 2743445726634853529; /// <summary>Не нужно пользователю. Значение для инкремента key при пустой инициализации. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(63, 1024*80) [ https://github.com/hellman/libnum ]</summary>
+    public const    ulong  KeyInitIncrement   = 7825219255190903851;
+                                                                /// <summary>Выходные данные для пользователя. Заполняется при вызове step (точнее, после вызова outputAllData)</summary>
+    public    readonly Record lastOutput;                       /// <summary>Полный вывод всех губок. Массив используется для формирования пользовательского вывода lastOutput, для вычисления ThreeFish на месте, ввода обратной связи.</summary>
+    protected readonly Record fullOutput;                       /// <summary>Если true, значит в lastOutput есть данные после шага. false говорит о том, что кто-то сбросил этот флаг и данные из lastOutput использовать уже нельзя.</summary>
+    public             bool   haveOutput = false;
                                                                 /// <summary>Стойкость шифрования в байтах. Это tall*MaxInputForKeccak</summary>
     public    readonly nint   strenghtInBytes = 0;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи</summary>
     public    readonly nint   countOfThreeFish;
                                                                 /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после вывода информации в шаге в режиме повышенной стойкости</summary>
     public    readonly nint   countStepsForKeyGeneration;
+
+    protected nint _countOfProcessedSteps = 0;                          /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
+    public    nint  countOfProcessedSteps => _countOfProcessedSteps;
 
     /// <summary>Создаёт каскадную губку с заданными параметрами</summary>
     /// <param name="wide">Ширина каскадной губки, не менее MinWide</param>
@@ -77,7 +83,10 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         W  = Math.Log2(tall+1);
         Wn = (nint) Math.Floor((double) MaxInputForKeccak / (double) W);
-        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall)+tall  );
+        if (Wn <= 0)
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905: Wn <= 0. tall > 2^63 ???");
+
+        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );
         maxDataLen                 = Wn*wide;
         ReserveConnectionLen       = MaxInputForKeccak*wide;
         ReserveConnectionFullLen   = ReserveConnectionLen + 8;
@@ -93,6 +102,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         countOfThreeFish = wide >> 1;
         reverseCrypto    = Keccak_abstract.allocator.AllocMemory(256*countOfThreeFish);
 
+        // На всякий случай, сразу же инициализируем ключи и твики ThreeFish, чтобы их можно было дальше использовать
+        InitEmptyThreeFish();
+
         // Console.WriteLine(this);
     }
 
@@ -104,8 +116,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="countOfKeys">Общее количество ключей и твиков</param>
     public void setThreeFishKeysAndTweak(byte * keys, byte * tweaks, int countOfKeys)
     {
-        CheckMagicNumber(keys, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys", countOfKeys * 128);
-        CheckMagicNumber(tweaks, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: tweaks", countOfKeys * 16);
+        CheckMagicNumber(keys,   "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys",   countOfKeys * threefish_slowly.keyLen);
+        CheckMagicNumber(tweaks, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: tweaks", countOfKeys * threefish_slowly.twLen);
 
         if (countOfKeys < countOfThreeFish)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: countOfKeys < countOfThreeFish");
@@ -113,19 +125,64 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var rc = reverseCrypto!.array;
         for (int i = 0; i < countOfThreeFish; i++)
         {
-            BytesBuilder.CopyTo(128, 128, keys, rc); rc += 192; keys += 128;
-            BytesBuilder.CopyTo(16, 16, tweaks, rc); rc += 64; tweaks += 16;
+            BytesBuilder.CopyTo(threefish_slowly.keyLen, threefish_slowly.keyLen, keys,   rc); rc += 192; keys   += threefish_slowly.keyLen;
+            BytesBuilder.CopyTo(threefish_slowly.twLen,  threefish_slowly.twLen,  tweaks, rc); rc += 64;  tweaks += threefish_slowly.twLen;
         }
 
         ExpandThreeFish();
     }
 
-    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом. Это уменьшает стойкость алгоритма</summary>
-    public void InitEmptyThreeFish()
+    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом и твиками (вызывает InitEmptyThreeFishTweaks). Это уменьшает стойкость алгоритма. В данном случае, tweak инициализируется константами с помощью вызова InitEmptyThreeFishTweaks, ключи с помощью InitEmptyThreeFishKeys. Лучше вместо этого использовать InitThreeFishByCascade.</summary>
+    public void InitEmptyThreeFish(ulong emptyKeyInitValue = KeyInitIncrement, ulong emptyTweakInitValue = TweakInitIncrement)
     {
+        InitEmptyThreeFishTweaks(emptyTweakInitValue);
+        InitEmptyThreeFishKeys  (emptyKeyInitValue);
+    }
+
+    // code::docs:Wt74dfPfEIcGzPN5Jrxe:
+    /// <summary>Инициализирует твики ThreeFish константами. Не портит ключи, если пользователь их проинициализировал.</summary>
+    /// <param name="emptyTweakInitValue">Простое значение для инициализации начального твика</param>
+    public void InitEmptyThreeFishTweaks(ulong emptyTweakInitValue = TweakInitIncrement)
+    {
+        var   rc  = reverseCrypto!.array + 192;    // Сразу выполняем переход на твики
+        ulong tw0 = emptyTweakInitValue;
+        for (ulong i = 0; i < (ulong) countOfThreeFish; i++)
+        {
+            var tw = (ulong*)rc;
+            rc += 256;
+
+            tw[0] = tw0;
+            tw0  += TweakInitIncrement;
+            // Если произошло переполнение
+            if (tw0 < tw[0])
+                tw[1] += 1;
+        }
+
         ExpandThreeFish();
     }
 
+    /// <summary>Инициализирует ключи ThreeFish константами, если пользователь не хочет их проинициализировать. Не портит твики, если пользователь их проинициализировал.</summary>
+    /// <param name="emptyKeyInitValue">Простое значение для инициализации ключей</param>
+    public void InitEmptyThreeFishKeys(ulong emptyKeyInitValue = KeyInitIncrement)
+    {
+        var   rc  = reverseCrypto!.array + 0;    // Сразу выполняем переход на ключи
+        ulong key = emptyKeyInitValue;
+        for (ulong i = 0; i < (ulong) countOfThreeFish; i++)
+        {
+            var rck = (ulong*)rc;
+            rc += 256;
+
+            for (int j = 0; j < threefish_slowly.Nw; j++)
+            {
+                rck[j] = key;
+                key   += KeyInitIncrement;
+            }
+        }
+
+        ExpandThreeFish();
+    }
+
+    /// <summary>Проводит расширение ключей и твиков ThreeFish обратной связи. При изменении только ключей или только твиков не повредит неизменённые ключи или твики (они будут перевычисленны в те же значения)</summary>
     protected void ExpandThreeFish()
     {
         byte* rc;
