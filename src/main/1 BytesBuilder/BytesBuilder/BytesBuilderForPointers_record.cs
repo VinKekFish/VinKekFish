@@ -518,8 +518,9 @@ namespace cryptoprime
         {
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Размер выделяемого блока памяти</param>
+            /// <param name="RecordName">Имя записи: для отладочных целей</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
-            public Record AllocMemory(nint len);
+            public Record AllocMemory(nint len, string? RecordName = null);
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями). Должен вызываться автоматически в Record</summary>
             /// <param name="recordToFree">Память к освобождению</param>
@@ -547,7 +548,7 @@ namespace cryptoprime
                     sourceRecord.inLinks.Add(newRecord);
             }
 
-            public Record AllocMemory(nint len)
+            public Record AllocMemory(nint len, string? RecordName = null)
             {
                 throw new NotImplementedException();
             }
@@ -644,8 +645,9 @@ namespace cryptoprime
 
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Длина выделяемого участка памяти</param>
+            /// <param name="RecordName">Имя структуры. Для отладки, может быть null.</param>
             /// <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
-            public virtual Record AllocMemory(nint len)
+            public virtual Record AllocMemory(nint len, string? RecordName = null)
             {
                 if (len < 1)
                     throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory: len must be > 0");
@@ -655,7 +657,7 @@ namespace cryptoprime
                 // так и память в конце - чтобы исключить попадание туда каких-либо других массивов и их конкуренцию за линию кеша
                 // ControlPaddingSize - дополнительные отступы для контрольных значений
                 var ptr = alloc(getFullSizeToAllocate(len));
-                var rec = new Record() { len = len, array = (byte*)ptr.ToPointer(), ptr = ptr, allocator = this };
+                var rec = new Record() { len = len, array = (byte*)ptr.ToPointer(), ptr = ptr, allocator = this, Name = RecordName };
 
                 var bmod = ((nint) rec.array) & alignmentAnd;
                 if (bmod > 0)
@@ -779,9 +781,9 @@ namespace cryptoprime
         {
             public ConcurrentDictionary<Record, string> allocatedRecords_Debug = new ConcurrentDictionary<Record, string>(Environment.ProcessorCount, 1024);
 
-            public override Record AllocMemory(nint len)
+            public override Record AllocMemory(nint len, string? RecordName = null)
             {
-                var result = base.AllocMemory(len);
+                var result = base.AllocMemory(len, RecordName);
 
                 allocatedRecords_Debug.TryAdd(  result, new System.Diagnostics.StackTrace(true).ToString()  );
 
@@ -801,10 +803,12 @@ namespace cryptoprime
         public class Fixed_AllocatorForUnsafeMemory : AllocatorForUnsafeMemoryInterface
         {
             /// <summary>Выделяет память с помощью сборщика мусора, а потом фиксирует её. Это работает медленнее раза в 3, чем AllocHGlobal_AllocatorForUnsafeMemory</summary>
-            public Record AllocMemory(nint len)
+            public Record AllocMemory(nint len, string? RecordName = null)
             {
-                var b = new byte[len];
-                return FixMemory(b);
+                var b  = new byte[len];
+                var r  = FixMemory(b);
+                r.Name = RecordName;
+                return r;
             }
 
             /// <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями)</summary>

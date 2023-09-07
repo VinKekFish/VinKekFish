@@ -45,7 +45,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="wide">Ширина каскадной губки, не менее MinWide</param>
     /// <param name="tall">Высота каскадной губки, не менее MinTall</param>
     /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов). _tall должен быть равен нулю, если этот параметр используется</param>
-    public CascadeSponge_1t_20230905(nint _wide = 0, nint _tall = 0, nint _strenghtInBytes = -1)
+    public CascadeSponge_1t_20230905(nint _strenghtInBytes = 192, nint _wide = 0, nint _tall = 0)
     {
         // Если параметры заданы путём стойкости, то рассчитываем необходимые параметры
         if (_strenghtInBytes > 0)
@@ -94,15 +94,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         ReserveConnectionFullLen   = ReserveConnectionLen + 8;
         strenghtInBytes            = tall*MaxInputForKeccak;
 
-        lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen);
-        fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen);
+        lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
+        fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
         BytesBuilder.ToNull(maxDataLen,               lastOutput);
         BytesBuilder.ToNull(ReserveConnectionFullLen, fullOutput);
         BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
 
         // Для выравнивания, считаем, что на один ThreeFish приходится 256 байтов. Это используется в setThreeFishKeysAndTweak
         countOfThreeFish = wide >> 1;
-        reverseCrypto    = Keccak_abstract.allocator.AllocMemory(256*countOfThreeFish);
+        reverseCrypto    = Keccak_abstract.allocator.AllocMemory(256*countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
 
         // На всякий случай, сразу же инициализируем ключи и твики ThreeFish, чтобы их можно было дальше использовать
         InitEmptyThreeFish();

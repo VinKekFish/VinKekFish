@@ -24,6 +24,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     public nint step(nint countOfSteps = 1, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
+        haveOutput = false;         // На всякий случай устанавливаем значение в false. Если где что упадёт, это не даст дальше работать в некоторых функциях
         if (!isThreeFishInitialized)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: !isThreeFishInitialized. See ThreeFish key initialization for reverse connection");
 
@@ -47,24 +48,31 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             if (curDataLen > maxDataLen)
                 curDataLen = maxDataLen;
 
-            step(data, curDataLen, regime, inputRegime);
+            step_once(data, curDataLen, regime, inputRegime);
             data        += curDataLen;
             dataLen     -= curDataLen;
             dataUsedLen += curDataLen;
 
+            // Дополнительный шаг для восполнения упущенной обратной связи
+            // Этот дополнительный шаг реализует требования к двойному шагу после ввода данных
+            if (curDataLen > 0)
+                step_once(null, 0, regime, inputRegime);
+
             for (int M = 0; M < ArmoringSteps; M++)
-                step(null, 0, regime, inputRegime);
+                step_once(null, 0, regime, inputRegime);
         }
+
+        haveOutput = true;
 
         return dataUsedLen;
     }
 
-    /// <summary>Выполняет одиночный шаг</summary>
+    /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет!</summary>
     /// <param name="data">Дата для ввода</param>
     /// <param name="dataLen">Данные для ввода. не более чем maxDataLen</param>
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: xor или overwrite (перезапись)</param>
-    protected void step(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    protected void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, fullOutput, inputRegime);
@@ -111,7 +119,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
         _countOfProcessedSteps++;
-        haveOutput = true;
         lastRegime = regime;
     }
 
@@ -182,11 +189,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
     /// <param name="key">Ключ шифрования</param>
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
-    /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2.</param>
+    /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     public void initKeyAndOIV(Record key, Record? OIV, int InitThreeFishByCascade_stepToKeyConst)
     {
         if (OIV is not null)
         {
+            if (key.array == OIV.array)
+                throw new CascadeSpongeException("InitThreeFishByCascade: key.array == OIV.array");
+
             if (lastRegime == 254)
                 throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 254 (OIV is not null)");
 

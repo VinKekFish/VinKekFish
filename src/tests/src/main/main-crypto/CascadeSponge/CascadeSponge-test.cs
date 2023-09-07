@@ -34,7 +34,7 @@ public unsafe class CascadeSponge_BaseTest : TestTask
             for (int i = 0; i < cascade.countStepsForKeyGeneration; i++)
                 cascade.step(1, 0, a, dlen);
 
-            cascade.initKeyAndOIV(data, data, 2);
+            cascade.initKeyAndOIV(data, null, 2);
 
             var msg = VinKekFish_Utils.Utils.ArrayToHex(cascade.lastOutput, cascade.maxDataLen);
             Console.WriteLine(msg);

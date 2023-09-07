@@ -471,9 +471,10 @@
         <member name="T:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface">
             <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.AllocMemory(System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.AllocMemory(System.IntPtr,System.String)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>
             <param name="len">Размер выделяемого блока памяти</param>
+            <param name="RecordName">Имя записи: для отладочных целей</param>
             <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.FreeMemory(cryptoprime.BytesBuilderForPointers.Record)">
@@ -508,9 +509,10 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.ControlPaddingSize">
             <summary>Размер отступов контрольных значений. И левый, и правый отступы имеют одни и те же значения</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr,System.String)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>
             <param name="len">Длина выделяемого участка памяти</param>
+            <param name="RecordName">Имя структуры. Для отладки, может быть null.</param>
             <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory.FreeMemory(cryptoprime.BytesBuilderForPointers.Record)">
@@ -526,7 +528,7 @@
         <member name="T:cryptoprime.BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory">
             <summary>Выделяет память для массива с помощью его фиксации: то есть используется обычный сборщик мусора и GCHandle.Alloc</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory.AllocMemory(System.IntPtr,System.String)">
             <summary>Выделяет память с помощью сборщика мусора, а потом фиксирует её. Это работает медленнее раза в 3, чем AllocHGlobal_AllocatorForUnsafeMemory</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory.FreeMemory(cryptoprime.BytesBuilderForPointers.Record)">
