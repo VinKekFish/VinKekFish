@@ -82,17 +82,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         );
 
 
-        W  = Math.Log2(tall+1);
+        W  = Math.Log2(tall)+1;
         Wn = (nint) Math.Floor((double) MaxInputForKeccak / (double) W);
         if (Wn <= 0)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905: Wn <= 0. tall > 2^63 ???");
 
-        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );
-        countStepsForHardening     = (nint) Math.Ceiling(  Math.Log2(tall+1)  );
         maxDataLen                 = Wn*wide;
         ReserveConnectionLen       = MaxInputForKeccak*wide;
         ReserveConnectionFullLen   = ReserveConnectionLen + 8;
         strenghtInBytes            = tall*MaxInputForKeccak;
+
+        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );
+        countStepsForHardening     = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
         fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
@@ -205,7 +206,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     // TODO: Если ThreeFish не проинициализирован, хотя бы нулями, то нужно выдавать исключение
     public nint CalcMinWide(nint tall)
     {
-        return (nint) Math.Ceiling(  Math.Log2(tall+1)  );
+        return (nint) Math.Ceiling(  Math.Log2(tall)+1  );
     }
 
     /// <summary>Каскад губок keccak. Первый индекс - высота, второй - ширина</summary>
