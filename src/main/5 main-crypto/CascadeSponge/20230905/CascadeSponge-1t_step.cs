@@ -38,6 +38,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 countOfSteps++;
         }
 
+        if (countOfSteps <= 0)
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: fatal algorithmic error (send message to VinKekFish developer): countOfSteps <= 0");
         if (dataLen > maxDataLen*countOfSteps)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: dataLen > maxDataLen*countOfSteps");
 

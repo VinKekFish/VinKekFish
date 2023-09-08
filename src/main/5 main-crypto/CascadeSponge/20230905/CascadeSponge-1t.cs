@@ -19,9 +19,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи</summary>
     public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
     public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая из-вне за один раз или выводимая во-вне (пользователю) за один раз (за один шаг). Это длина данных уже со всей каскадной губки</summary>
-    public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (2). Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
-    public const    nint   MinWide = 2;                         /// <summary>Минимальная высота каскадной губки (3)</summary>
-    public const    nint   MinTall = 3;                         /// <summary>Максимальное количество байтов, которое можно ввести/вывести в губку вне каскада. Эта константа никогда не изменяется и зависит от построения алгоритма keccak. Реальное количество байтов, доступное для пользовательского ввода/вывода из каждой губки - Wn. Общее количество байтов, доступных для ввода/вывода из всей губки - maxDataLen.</summary>
+    public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (4). Ширина губки всегда должна быть чётной. Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
+    public const    nint   MinWide = 4;                         /// <summary>Минимальная высота каскадной губки (4)</summary>
+    public const    nint   MinTall = 4;                         /// <summary>Максимальное количество байтов, которое можно ввести/вывести в губку вне каскада. Эта константа никогда не изменяется и зависит от построения алгоритма keccak. Реальное количество байтов, доступное для пользовательского ввода/вывода из каждой губки - Wn. Общее количество байтов, доступных для ввода/вывода из всей губки - maxDataLen.</summary>
     public const    byte   MaxInputForKeccak = 64;
                                                                 /// <summary>Не нужно пользователю. Значение для инкремента счётчика обратной связи. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
     public const    ulong  CounterIncrement   = 3148241843069173559; /// <summary>Не нужно пользователю. Значение для инкремента tweak при пустой инициализации. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
@@ -41,21 +41,94 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     protected nint _countOfProcessedSteps = 0;                          /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
     public    nint  countOfProcessedSteps => _countOfProcessedSteps;
 
+    /// <summary>Создаёт каскадную губку (каскад) по заданной целевой стойкости и длине блока</summary>
+    /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов)</param>
+    /// <param name="targetBlockLen">Длина выходного блока в байтах</param>
+    public static CascadeSponge_1t_20230905 getCascade(nint _strenghtInBytes, nint targetBlockLen)
+    {
+        nint _wide = 0;
+        CalcCascadeParameters(_strenghtInBytes, targetBlockLen, _tall: out nint _tall, _wide: ref _wide);
+
+        return new CascadeSponge_1t_20230905(_tall: _tall, _wide: _wide);
+    }
+
+    // CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: out nint _wide);
+    /// <summary>Вычисляет требуемые параметры каскада по заданной целевой стойкости и длине блока</summary>
+    /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов)</param>
+    /// <param name="targetBlockLen">Длина выходного блока в байтах</param>
+    /// <param name="_wide">Требуемая ширина</param>
+    /// <param name="_tall"></param>
+    public static void CalcCascadeParameters(nint _strenghtInBytes, nint targetBlockLen, out nint _tall, ref nint _wide)
+    {
+        _tall = CalcTallAndWideByStrenght(_strenghtInBytes, ref _wide);
+        (var W, var Wn) = CalcW(_tall);
+        nint Mx = Wn * _wide;
+
+        if (Mx < targetBlockLen)
+        {
+            _wide = targetBlockLen / Wn;
+            if ((_wide & 1) > 0)
+                _wide++;
+
+            Mx = Wn * _wide;
+            if (Mx < targetBlockLen)
+                _wide += 2;
+        }
+
+        // Если _wide слишком широкий, получаем всё заново, но с запасом по стойкости
+        if (_wide > _tall)
+        {
+            _tall = _wide;
+            CalcCascadeParameters(MaxInputForKeccak*_tall, targetBlockLen, _tall: out _tall, _wide: ref _wide);
+        }
+
+        // Для проверки вычисляем новую длину выходного блока
+        (W, Wn) = CalcW(_tall);
+        Mx = Wn * _wide;
+
+        if (Mx < targetBlockLen)
+        {
+            _wide += 2;
+            CalcCascadeParameters(MaxInputForKeccak*_tall, targetBlockLen, _tall: out _tall, _wide: ref _wide);
+        }
+
+        if (Mx < targetBlockLen || (_wide & 1) > 0)
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.getCascade: fatal algorithmic error: Mx < targetBlockLen || (_wide & 1) > 0");
+    }
+
+    /// <summary>Вычисляет коэффициент запаса W и максимальный вход/выход одной губки Wn</summary>
+    /// <param name="_tall">Высота губки</param>
+    /// <returns>Возвращает кортеж: коэффициент запаса W, максимальная длина ввода/вывода из одной губки (подгубки) Wn</returns>
+    public static (double W, nint Wn) CalcW(nint _tall)
+    {
+        double W  = Math.Log2(_tall) + 1.0;
+        nint   Wn = (nint) Math.Floor((double) MaxInputForKeccak / (double) W);
+
+        if (Wn <= 0)
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.CalcW: Wn <= 0. tall >= 2^63 ???");
+
+        return (W, Wn);
+    }
+
     /// <summary>Создаёт каскадную губку с заданными параметрами</summary>
-    /// <param name="wide">Ширина каскадной губки, не менее MinWide</param>
-    /// <param name="tall">Высота каскадной губки, не менее MinTall</param>
-    /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов). _tall должен быть равен нулю, если этот параметр используется</param>
+    /// <param name="_wide">Ширина каскадной губки, не менее MinWide. Всегда должна быть чётной</param>
+    /// <param name="_tall">Высота каскадной губки, не менее MinTall</param>
+    /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов)</param>
     public CascadeSponge_1t_20230905(nint _strenghtInBytes = 192, nint _wide = 0, nint _tall = 0)
     {
+        if ((_wide & 1) > 0)
+            _wide++;
+
         // Если параметры заданы путём стойкости, то рассчитываем необходимые параметры
         if (_strenghtInBytes > 0)
         {
-            if (_tall > 0)
-                throw new CascadeSpongeException("CascadeSponge_1t_20230905: _strenghtInBytes > 0 && _tall > 0");
+            nint wd = 0;
+            nint tl = CalcTallAndWideByStrenght(_strenghtInBytes, ref wd);
 
-            _tall = (nint) Math.Ceiling(  (double) _strenghtInBytes / (double) MaxInputForKeccak  );
-            if (_wide == 0)
-                _wide = CalcMinWide(_tall);
+            if (tl > _tall)
+                _tall = tl;
+            if (wd > _wide)
+                _wide = wd;
         }
 
         this.wide = _wide;
@@ -66,13 +139,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (tall == 0)
             tall = MinTall;
         if (wide < MinWide)
-            throw new CascadeSpongeException($"wide < MinWide ({wide} < {MinWide})");
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: wide < MinWide ({wide} < {MinWide})");
         if (tall < MinTall)
-            throw new CascadeSpongeException($"tall < MinTall ({tall} < {MinTall})");
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: tall < MinTall ({tall} < {MinTall})");
         if (wide > tall)
-            throw new CascadeSpongeException($"wide > tall ({wide} > {tall})");
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: wide > tall ({wide} > {tall})");
         if (wide < CalcMinWide(this.tall))
-            throw new CascadeSpongeException($"wide < CalcMinWide ({wide} < {CalcMinWide(tall)})");
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: wide < CalcMinWide ({wide} < {CalcMinWide(tall)})");
+        if ((_wide & 1) > 0)
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: (_wide & 1) > 0 ({wide})");
 
         CascadeKeccak = new Keccak_20200918[tall, wide];
         forAllKeccaks
@@ -82,10 +157,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         );
 
 
-        W  = Math.Log2(tall)+1;
-        Wn = (nint) Math.Floor((double) MaxInputForKeccak / (double) W);
-        if (Wn <= 0)
-            throw new CascadeSpongeException("CascadeSponge_1t_20230905: Wn <= 0. tall > 2^63 ???");
+        (W, Wn) = CalcW(tall);
 
         maxDataLen                 = Wn*wide;
         ReserveConnectionLen       = MaxInputForKeccak*wide;
@@ -109,6 +181,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         InitEmptyThreeFish();
 
         // Console.WriteLine(this);
+    }
+
+    public static nint CalcTallAndWideByStrenght(nint _strenghtInBytes, ref nint _wide)
+    {
+        nint _tall = (nint)Math.Ceiling((double)_strenghtInBytes / (double)MaxInputForKeccak);
+        if (_tall < MinTall)
+            _tall = MinTall;
+
+        if (_wide == 0)
+            _wide = CalcMinWide(_tall);
+
+        return _tall;
     }
 
     protected bool isThreeFishInitialized = false;
@@ -149,16 +233,19 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     {
         var   rc  = reverseCrypto!.array + 192;    // Сразу выполняем переход на твики
         ulong tw0 = emptyTweakInitValue;
+        ulong tw1 = 0;
         for (ulong i = 0; i < (ulong) countOfThreeFish; i++)
         {
             var tw = (ulong*)rc;
             rc += 256;
 
             tw[0] = tw0;
+            tw[1] = tw1;
+
             tw0  += TweakInitIncrement;
             // Если произошло переполнение
             if (tw0 < tw[0])
-                tw[1] += 1;
+                tw1 += 1;
         }
 
         ExpandThreeFish();
@@ -203,10 +290,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         isThreeFishInitialized = true;
     }
 
-    // TODO: Если ThreeFish не проинициализирован, хотя бы нулями, то нужно выдавать исключение
-    public nint CalcMinWide(nint tall)
+    // code::cp:num:iaV4PVmCjh9eUIuXIy34:
+    public static nint CalcMinWide(nint tall)
     {
-        return (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+        var wide = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+        if ((wide & 1) > 0)
+            wide++;
+
+        return wide;
     }
 
     /// <summary>Каскад губок keccak. Первый индекс - высота, второй - ширина</summary>

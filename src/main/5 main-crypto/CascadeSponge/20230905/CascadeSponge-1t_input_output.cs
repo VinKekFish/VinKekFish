@@ -49,7 +49,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var Nnf = (double) dataLen / (double) wide;
         var Nn  = (nint) Math.Ceiling(Nnf);
         if (Nn > Wn)
-            throw new CascadeSpongeException($"InputData: Nn > Wn ({Nn} > {Nn}). Nn must be <= Wn");
+            throw new CascadeSpongeException($"InputData: Nn > Wn ({Nn} > {Wn}). Nn must be <= Wn");
 
         var input = KeccakPrime.Keccak_Input64_512;
         if (inputRegime == overwrite)
@@ -86,7 +86,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Console.WriteLine(ArrayToHex(buffer, (int) MaxInputForKeccak));
 
             input(buffer, (byte) (dataLenToInput + rcd_len), getInputLayer(w).S, regime);
-            cur            += dataLenToInput;
+            cur += dataLenToInput;
         }
 
         BytesBuilder.ToNull(MaxInputForKeccak, buffer);
@@ -119,11 +119,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         // Выполняем преобразование обратной связи
         doThreeFish(data);
-        transposeOutput(data);
+        transposeOutput(data, 128);
     }
 
     /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>
-    protected void transposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
+    public void transposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
     {
         var buffer = stackalloc byte[(int)ReserveConnectionLen];
         BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, data, buffer);
