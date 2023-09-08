@@ -25,6 +25,7 @@ public unsafe class CascadeSponge_BaseTest : TestTask
         {
                   var dlen = cascade.maxDataLen;
             using var data = Keccak_abstract.allocator.AllocMemory(dlen);
+
             byte * a = data;
             // Инициализируем массивы данных - имитируем синхропосылку и ключ простыми значениями
             for (int i = 0; i < dlen; i++)
