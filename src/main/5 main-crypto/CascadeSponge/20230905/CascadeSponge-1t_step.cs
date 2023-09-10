@@ -140,7 +140,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 2");
 
         haveOutput  = false;     // Сбрасываем, чтобы если случилась ошибка, флаг был бы сброшен и не дал бы дальше работать
-        var needLen = ReserveConnectionLen + countOfThreeFish*threefish_slowly.twLen;
+        var needLen = countOfThreeFish*threefish_slowly.keyLen + countOfThreeFish*threefish_slowly.twLen;
         var buffer  = new BytesBuilderStatic(needLen + maxDataLen);                     // Берём длину с запасом на один шаг, чтобы не считать лишние данные
 
         if (lastRegime == 1)
@@ -216,7 +216,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         step(1, inputRegime: overwrite);
         step(countStepsForKeyGeneration, regime: 5);
 
-        if (InitThreeFishByCascade_stepToKeyConst >= 2)
+        if (InitThreeFishByCascade_stepToKeyConst != 0)
             InitThreeFishByCascade(InitThreeFishByCascade_stepToKeyConst);
     }
 }

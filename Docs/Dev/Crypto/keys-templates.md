@@ -16,6 +16,7 @@ entry::шаблон означает, что это непосредственн
     code::docs:_CODE_:      программный код
     tests::docs:_CODE_:     тесты
     links::docs:_CODE_:     другие ссылки
+    example::docs:_CODE_:   пример
 
 
 ::warn:*:_CODE_:

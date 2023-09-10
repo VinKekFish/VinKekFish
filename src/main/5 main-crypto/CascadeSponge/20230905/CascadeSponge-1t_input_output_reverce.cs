@@ -97,8 +97,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.outputAllData");
 
-        CheckMagicNumber(fullOutput, "CascadeSponge_1t_20230905.outputAllData: magic != MagicNumber_ReverseConnectionLink_forInput");
-        CheckMagicNumber(  rcOutput, "CascadeSponge_1t_20230905.outputAllData: magic != MagicNumber_ReverseConnectionLink_forInput");
+        CheckMagicNumber(fullOutput, "CascadeSponge_1t_20230905.outputAllData.fullOutput: magic != MagicNumber_ReverseConnectionLink_forInput");
+        CheckMagicNumber(  rcOutput, "CascadeSponge_1t_20230905.outputAllData.rcOutput:   magic != MagicNumber_ReverseConnectionLink_forInput");
 
         var data = fullOutput.array;
         for (nint w = 0; w < wide; w++)

@@ -1,3 +1,4 @@
+#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -9,11 +10,110 @@ using static CodeGenerated.Cryptoprimes.Threefish_Static_Generated;
 using static VinKekFish_Utils.Utils;
 
 using static cryptoprime.KeccakPrime;
+using static cryptoprime.BytesBuilderForPointers;
 
-// tests::docs:rQN6ZzeeepyOpOnTPKAT:
+// example::docs:rQN6ZzeeepyOpOnTPKAT:
 
+// Ниже можно посмотреть на простейший способ создания каскада
 [TestTagAttribute("inWork")]
-[TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
+[TestTagAttribute("CascadeSponge", duration: 210e3, singleThread: false)]
+public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
+{
+    public CascadeSponge_1t_20230905_exampleTest(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {
+        #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        this.parentSaver.canCreateFile = true;
+        #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        #endif
+
+        this.doneFunc = () =>
+        {
+            var s = (this.parentSaver as Saver);
+            this.Name = s?.primaryTaskName + "\n" + s?.cascade;
+        };
+    }
+
+    public override DirectoryInfo setDirForFiles()
+    {
+        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+    }
+
+    protected unsafe class Saver: SaverParent
+    {
+        public string primaryTaskName = "";
+        public CascadeSponge_1t_20230905? cascade;
+        public override List<string> ExecuteTest(AutoSaveTestTask task)
+        {
+            primaryTaskName = task.Name;
+            List<string> lst = new List<string>(16);
+
+            const int maxKeyLen = 1024*256/8;
+            var  key = stackalloc byte[maxKeyLen];
+            var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_exampleTest.Record" };
+            for (int i = 0; i < maxKeyLen; i += 2)
+            {
+                key[i + 0] = (byte) i;
+                key[i + 1] = (byte) (i >> 8);
+            }
+
+            // Инициализация губки стойкостью 1536 битов (192 байта)
+            // Сразу же инициализируем ключи ThreeFish от основного ключа
+            var cascade1 = new CascadeSponge_1t_20230905(192);
+            cascade1.initKeyAndOIV(rkey, null, 2);
+
+            // Получаем от губки информацию с одного шага из cascade1.lastOutput
+            lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
+            cascade1.Dispose();
+
+
+            // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три
+            var cascade2 = new CascadeSponge_1t_20230905(192);
+            cascade2.initKeyAndOIV(rkey, null, 3);
+            lst.Add(ArrayToHex(cascade2.lastOutput, cascade2.maxDataLen));
+            cascade2.Dispose();
+
+            // Без инициализации ThreeFish
+            var cascade3 = new CascadeSponge_1t_20230905(192);
+            cascade3.initKeyAndOIV(rkey, null, 0);
+            lst.Add(ArrayToHex(cascade3.lastOutput, cascade3.maxDataLen));
+            cascade3.Dispose();
+
+
+            // Эти три каскада были проинициализированы по разному, хотя и одним и тем же ключом.
+            // Поэтому, данные от них не могут совпадать
+            if (lst[0] == lst[1] || lst[0] == lst[2] || lst[1] == lst[2])
+                throw new Exception("lst[0] == lst[1] || lst[0] == lst[2] || lst[1] == lst[2]");
+
+            var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8, 1024*256/8};
+
+            foreach (var len in lens)
+            {
+                cascade1 = new CascadeSponge_1t_20230905(len); this.cascade = cascade1;
+                cascade1.initKeyAndOIV(rkey, null, 2);
+                lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
+                cascade1.Dispose();
+                this.cascade = null;
+            };
+
+            cascade1 = new CascadeSponge_1t_20230905(_wide: 4, _tall: 4); this.cascade = cascade1;
+            cascade1.initKeyAndOIV(rkey, null, 3);
+            cascade1.step(1024);
+            lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
+            cascade1.Dispose();
+
+            rkey.Dispose();
+            this.cascade = null;
+
+            Console.WriteLine("end");
+
+            return lst;
+        }
+    }
+}
+
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 500, singleThread: false)]
 public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 {
     public CascadeSponge_20230905_BaseTest(TestConstructor constructor) :
@@ -30,11 +130,11 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
         // Проверка расчёта параметров каскадной губки
         nint _wide = 0;
         CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: ref _wide);
-        if (_tall != 42 || _wide != 42) throw new Exception($"CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: out nint _wide): _tall != 47 || _wide != 46. {_tall} {_wide}");
+        if (_tall != 42 || _wide != 42) throw new Exception($"CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: out nint _wide): _tall != 42 || _wide != 42. {_tall} {_wide}");
         //Console.WriteLine(_tall);Console.WriteLine(_wide);
         _wide = 0;
         CascadeSponge_1t_20230905.CalcCascadeParameters(11*1024, 404, _tall: out _tall, _wide: ref _wide);
-        if (_tall != 176 || _wide != 58) throw new Exception($"CascadeSponge_1t_20230905.CalcCascadeParameters(11*1024, 404, _tall: out nint _tall, _wide: out nint _wide): _tall != 176 || _wide != 58. {_tall} {_wide}");
+        if (_tall != 176 || _wide != 176) throw new Exception($"CascadeSponge_1t_20230905.CalcCascadeParameters(11*1024, 404, _tall: out nint _tall, _wide: out nint _wide): _tall != 176 || _wide != 176. {_tall} {_wide}");
         // Console.WriteLine(_tall);Console.WriteLine(_wide);
 
 
@@ -74,8 +174,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             if (21 != cascade.Wn || dlen != 21 * 4 - 1 || cascade.countOfThreeFish_RC != 2)
                 throw new Exception($"CascadeSponge_20230905_BaseTest: 21 != cascade.Wn || dlen != 83 || cascade.countOfThreeFish != 2. {cascade.Wn} {dlen} {cascade}");
 
-            // var mdl    = 72;  // maxDataLen  24*3
-            // wide = 3
+            // wide = 4
             var output = stackalloc byte[64 * 4];
             var revcon = stackalloc byte[64 * 4];
             var buff   = stackalloc byte[64 * 4];

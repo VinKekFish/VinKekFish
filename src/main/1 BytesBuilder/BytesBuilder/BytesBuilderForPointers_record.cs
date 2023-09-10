@@ -36,7 +36,7 @@ namespace cryptoprime
             #endif
 
             // Конструктор. Не вызывается напрямую
-            /// <summary>Этот метод вызывать не надо. Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
+            /// <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
             public Record(string? Name = null)
             {
                 this.Name = Name;

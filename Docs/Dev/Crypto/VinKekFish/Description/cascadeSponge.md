@@ -46,8 +46,8 @@ keccak2
 Дополнительные требования
 1) В каскаде строго не менее 3-х губок для любой схемы шифрования.
 
-countStepsForKeyGeneration= 2\*k\*log(k)+1
-countStepsForHardening    = 1+log(k)
+countStepsForKeyGeneration= 1+log(k)
+countStepsForHardening    = 2
 
 #### Инициализация с вводом ключа и синхропосылки опосредованно (в самую верхнюю губку):
 1. W=1+log(k)

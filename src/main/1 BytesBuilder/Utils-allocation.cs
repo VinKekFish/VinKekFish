@@ -202,10 +202,12 @@ public unsafe static class Memory
         var size = len + pad;
         var R    = result + size - 1;       // Это ещё последний байт будет
         R       -= R % PAGE_SIZE;           // Вычисляем начало страницы, где будет последний байт - это наша последняя страница
-        if (mprotect(R, PAGE_SIZE, (int)MemoryProtectionType.none) != 0)
-            throw new Exception("AllocMMap.mprotect != 0 (last page)");
-        if (mprotect(result, PAGE_SIZE, (int)MemoryProtectionType.none) != 0)
-            throw new Exception("AllocMMap.mprotect != 0 (first page)");
+        var en   = mprotect(R, PAGE_SIZE, (int)MemoryProtectionType.none);
+        if (en != 0)
+            throw new Exception($"AllocMMap.mprotect != 0 (last page) ({en})");
+            en   = mprotect(result, PAGE_SIZE, (int)MemoryProtectionType.none);
+        if (en != 0)
+            throw new Exception($"AllocMMap.mprotect != 0 (first page) ({en})");
 
         return result + PAGE_SIZE;
     }

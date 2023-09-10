@@ -113,7 +113,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Создаёт каскадную губку с заданными параметрами</summary>
-    /// <param name="_wide">Ширина каскадной губки, не менее MinWide. Всегда должна быть чётной</param>
+    /// <param name="_wide">Ширина каскадной губки, не менее MinWide и не менее CalcMinWide. Всегда должна быть чётной. Чем больше ширина, тем больше выход данных губки за один шаг.</param>
     /// <param name="_tall">Высота каскадной губки, не менее MinTall</param>
     /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов)</param>
     public CascadeSponge_1t_20230905(nint _strenghtInBytes = 192, nint _wide = 0, nint _tall = 0)
@@ -166,8 +166,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         ReserveConnectionFullLen   = ReserveConnectionLen + 8;
         strenghtInBytes            = tall*MaxInputForKeccak;
 
-        countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );
-        countStepsForHardening     = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+        // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
+        countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+        countStepsForHardening     = (nint) 2;
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
         fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
@@ -195,7 +196,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             _tall = MinTall;
 
         if (_wide == 0)
-            _wide = CalcMinWide(_tall);
+        {
+            // _wide = CalcMinWide(_tall);
+            _wide = _tall - 1;
+            if ((_wide & 1) > 0)
+                _wide++;
+        }
 
         return _tall;
     }
