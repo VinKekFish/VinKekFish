@@ -93,33 +93,44 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Получает в массив data выход с нижнего слоя каскадной губки. Заполняет массив this.lastOutput пользовательским выводом</summary>
-    /// <param name="data">Массив, длиной ReserveConnectionFullLen, включая завершающее магическое число MagicNumber_ReverseConnectionLink_forInput</param>
-    protected void outputAllData(byte * data)
+    protected void outputAllData()
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.outputAllData");
-        if (data == null)
-            throw new CascadeSpongeException("CascadeSponge_1t_20230905.outputAllData");
 
-        CheckMagicNumber(data, "CascadeSponge_1t_20230905.outputAllData: magic != MagicNumber_ReverseConnectionLink_forInput");
+        CheckMagicNumber(fullOutput, "CascadeSponge_1t_20230905.outputAllData: magic != MagicNumber_ReverseConnectionLink_forInput");
+        CheckMagicNumber(  rcOutput, "CascadeSponge_1t_20230905.outputAllData: magic != MagicNumber_ReverseConnectionLink_forInput");
 
-        var dt = data;
+        var data = fullOutput.array;
         for (nint w = 0; w < wide; w++)
         {
             var keccak = getOutputLayer(w);
             KeccakPrime.Keccak_Output_512(data, MaxInputForKeccak, keccak.S);
             data += MaxInputForKeccak;
         }
-        data = dt;
 
         // Транспонируем состояние в data, чтобы перемешать блоки
-        transposeOutput(data);
+        transposeOutput(fullOutput);
+        // Копируем fullOutput в rcOutput, чтобы использовать fullOutput для дальнейшего заключительного преобразования
+        BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, fullOutput, rcOutput);
+
+        // Console.WriteLine();
+        // Console.WriteLine("outputAllData: before ThreeFish"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+
+        // Выполняем преобразование обратной связи и заключительное преобразование
+        doThreeFish(fullOutput, this.threefishCrypto!.array + countOfThreeFish_RC*256);     // Заключительное преобразование для выхода
+        doThreeFish(  rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
+
+        // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+
+        transposeOutput(fullOutput, 128);
+        transposeOutput(  rcOutput, 128);
+
+        // Console.WriteLine("outputAllData:  rc after ThreeFish +t"); Console.WriteLine(ArrayToHex(  rcOutput, ReserveConnectionLen));
+        // Console.WriteLine("outputAllData: out after ThreeFish +t"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+        // Console.WriteLine();
 
         // Копируем начало вывода нижних губок в массив пользовательского вывода
-        BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, data, lastOutput);
-
-        // Выполняем преобразование обратной связи
-        doThreeFish(data);
-        transposeOutput(data, 128);
+        BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, fullOutput, lastOutput);
     }
 
     /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>
@@ -128,8 +139,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var buffer = stackalloc byte[(int)ReserveConnectionLen];
         BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, data, buffer);
 
-        int j = 0, k = 0;
-        for (int i = 0; i < ReserveConnectionLen; i++)
+        nint j = 0, k = 0;
+        for (nint i = 0; i < ReserveConnectionLen; i++)
         {
             data[i] = buffer[j];
             j += transposeStep;
@@ -145,17 +156,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Сделать поблочное преобразование ThreeFish1024 для массива обратной связи (указан в параметре data)</summary>
-    /// <param name="data">Массив обратной связи</param>
-    protected void doThreeFish(byte * data)
+    /// <param name="data">Массив для шифрования, длиной ReserveConnectionLen. Заканчивается магическим числом</param>
+    /// <param name="threefishCrypto">Массив ключей и твиков. Первыми в this.threefishCrypto идут ключи для обратной связи.</param>
+    protected void doThreeFish(byte * data, byte * threefishCrypto)
     {
         CheckMagicNumber(data, "CascadeSponge_1t_20230905.doThreeFish: magic != MagicNumber_ReverseConnectionLink_forInput");
 
         ulong tw;
 
-        var keys   = (ulong *)  this.reverseCrypto;
-        var tweaks = (ulong *) (this.reverseCrypto!.array + 192);
+        var keys   = (ulong *)  threefishCrypto;
+        var tweaks = (ulong *) (threefishCrypto + 192);
         var dt     = (ulong *) data;
-        for (int i = 0; i < countOfThreeFish; i++)
+        for (nint i = 0; i < countOfThreeFish_RC; i++)
         {
             Threefish1024_step(keys, tweaks, dt);
             tw = tweaks[0] + CounterIncrement;
@@ -170,12 +182,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             tweaks += threefish_slowly.Nw*2;
             dt     += threefish_slowly.Nw;          // Шаг следования блоков данных - 128 байтов
         }
-
-        /* Если ThreeFish не покрывает все блоки,
-        то он начинает с начальных блоков - именно они известны противнику.
-        Конечные блоки и так неизвестны противнику,
-        поэтому ThreeFish, в таком случае, их не изменяет
-        */
     }
 
     /// <summary>Проверяет наличие в массиве, размером ReserveConnectionFullLen (ReserveConnectionLen + 8 байтов магического числа), наличие верного магического числа MagicNumber_ReverseConnectionLink_forInput. Если числа нет, выдаёт исключение CascaseSpongeException(message)</summary><param name="data">Массив для проверки</param><param name="message">Сообщение для выдачи исключения</param>

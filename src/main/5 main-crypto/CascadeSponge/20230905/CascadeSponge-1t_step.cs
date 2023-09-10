@@ -74,10 +74,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="dataLen">Данные для ввода. не более чем maxDataLen</param>
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: xor или overwrite (перезапись)</param>
+    /// <param name="calcOut">Если false, то выход не рассчитывается</param>
     protected void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         // Вводим данные, включая обратную связь, в верхний слой губки
-        InputData(data, dataLen, regime, fullOutput, inputRegime);
+        InputData(data, dataLen, regime, rcOutput, inputRegime);
 
         var buffer = stackalloc byte[(int) ReserveConnectionLen];
         var input = KeccakPrime.Keccak_Input64_512;
@@ -117,7 +118,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         }
 
         // Последний уровень губки, включая преобразование обратной связи
-        outputAllData(fullOutput);
+        outputAllData();
 
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
         _countOfProcessedSteps++;
@@ -159,14 +160,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 while (buffer.Count < needLen);
 
                 // Копируем значения ключей
-                var rc = reverseCrypto!.array + 0;    // Сразу выполняем переход на ключи
+                var rc = threefishCrypto!.array + 0;    // Сразу выполняем переход на ключи
                 for (int i = 0; i < countOfThreeFish; i++, rc += 256)
                 {
                     buffer.getBytesAndRemoveIt(rc, threefish_slowly.keyLen);
                 }
 
                 // Копируем значения твиков
-                rc = reverseCrypto!.array + 192;    // Сразу выполняем переход на твики
+                rc = threefishCrypto!.array + 192;    // Сразу выполняем переход на твики
                 for (int i = 0; i < countOfThreeFish; i++, rc += 256)
                 {
                     buffer.getBytesAndRemoveIt(rc, threefish_slowly.twLen);
