@@ -176,6 +176,9 @@ public unsafe static class Memory
         return PAGE_SIZE*3;
     }
 
+    private static volatile nint _allocatedMemory = 0;
+    public  static          nint  allocatedMemory => _allocatedMemory;
+
     /// <summary>
     /// Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
     /// </summary>
@@ -209,14 +212,21 @@ public unsafe static class Memory
         if (en != 0)
             throw new Exception($"AllocMMap.mprotect != 0 (first page) ({en})");
 
+        lock (sync)
+            _allocatedMemory += size;
+
         return result + PAGE_SIZE;
     }
 
     public static void FreeMMap(nint addr, nint len)
     {
-        var result = munmap(addr - PAGE_SIZE, len + getPadSizeForMMap(len));
+        var size   = len + getPadSizeForMMap(len);
+        var result = munmap(addr - PAGE_SIZE, size);
         if (result != 0)
             throw new Exception("FreeMMap: result != 0");
+
+        lock (sync)
+            _allocatedMemory -= size;
     }
 
     /// <summary>

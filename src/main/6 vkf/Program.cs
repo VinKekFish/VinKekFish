@@ -27,6 +27,11 @@ public partial class Program
                 GC.WaitForFullGCApproach();
                 GC.WaitForPendingFinalizers();
             }
+
+            if (VinKekFish_Utils.Memory.allocatedMemory != 0)
+            {
+                Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0"));
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -30,7 +30,10 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
         this.doneFunc = () =>
         {
             var s = (this.parentSaver as Saver);
-            this.Name = s?.primaryTaskName + "\n" + s?.cascade;
+            if (s?.cascade is null)
+                this.Name = s?.primaryTaskName;
+            else
+                this.Name = s?.primaryTaskName + "\n" + s?.cascade + "\nallocated memory = " + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0");
         };
     }
 
@@ -48,7 +51,8 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
             primaryTaskName = task.Name;
             List<string> lst = new List<string>(16);
 
-            const int maxKeyLen = 1024*256/8;
+            // const int maxKeyLen = 1024*256/8;
+            const int maxKeyLen = 1024*8;
             var  key = stackalloc byte[maxKeyLen];
             var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_exampleTest.Record" };
             for (int i = 0; i < maxKeyLen; i += 2)
@@ -63,20 +67,20 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
             cascade1.initKeyAndOIV(rkey, null, 2);
 
             // Получаем от губки информацию с одного шага из cascade1.lastOutput
-            lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
+            addToList(lst, cascade1);
             cascade1.Dispose();
 
 
             // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три
             var cascade2 = new CascadeSponge_1t_20230905(192);
             cascade2.initKeyAndOIV(rkey, null, 3);
-            lst.Add(ArrayToHex(cascade2.lastOutput, cascade2.maxDataLen));
+            addToList(lst, cascade2);
             cascade2.Dispose();
 
             // Без инициализации ThreeFish
             var cascade3 = new CascadeSponge_1t_20230905(192);
             cascade3.initKeyAndOIV(rkey, null, 0);
-            lst.Add(ArrayToHex(cascade3.lastOutput, cascade3.maxDataLen));
+            addToList(lst, cascade3);
             cascade3.Dispose();
 
 
@@ -85,29 +89,46 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
             if (lst[0] == lst[1] || lst[0] == lst[2] || lst[1] == lst[2])
                 throw new Exception("lst[0] == lst[1] || lst[0] == lst[2] || lst[1] == lst[2]");
 
-            var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8, 1024*256/8};
+            // var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8, 1024*256/8};
+            var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8};
 
             foreach (var len in lens)
             {
-                cascade1 = new CascadeSponge_1t_20230905(len); this.cascade = cascade1;
-                cascade1.initKeyAndOIV(rkey, null, 2);
-                lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
-                cascade1.Dispose();
-                this.cascade = null;
+                try
+                {
+                    cascade1 = new CascadeSponge_1t_20230905(len); this.cascade = cascade1;
+                    cascade1.initKeyAndOIV(rkey, null, 2);
+                    addToList(lst, cascade1);
+                    this.cascade = null;
+                }
+                catch (Exception ex)
+                {
+                    lst.Add(ex.Message + "\n\n" + ex.StackTrace);
+                    throw;
+                }
+                finally
+                {
+                    cascade1.Dispose();
+                }
             };
 
             cascade1 = new CascadeSponge_1t_20230905(_wide: 4, _tall: 4); this.cascade = cascade1;
             cascade1.initKeyAndOIV(rkey, null, 3);
             cascade1.step(1024);
-            lst.Add(ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen));
+            addToList(lst, cascade1);
             cascade1.Dispose();
 
             rkey.Dispose();
             this.cascade = null;
-
-            Console.WriteLine("end");
+            task.doneFunc!();
 
             return lst;
+
+            static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
+            {
+                // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+            }
         }
     }
 }

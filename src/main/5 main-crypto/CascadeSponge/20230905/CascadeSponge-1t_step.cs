@@ -93,7 +93,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             // Если это не последний уровень губки
             if (layer == tall - 1)
-                continue;
+                break;
 
             var buff = buffer;
             // Выводим во временный буфер выход со всех губок этого уровня

@@ -20,4 +20,6 @@ See an example of a config file in the program packet
     See an example of a config file in the program packet (service.options)
 Not implemented
     Not implemented
+Error: leaked memory in mmap: 
+    Error: leaked memory in mmap: 
 :

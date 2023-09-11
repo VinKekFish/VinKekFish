@@ -20,4 +20,6 @@ See an example of a config file in the program packet
     Смотрите пример конфигурационного файла в программном пакете (service.options)
 Not implemented
     Пока не реализовано
+Error: leaked memory in mmap: 
+    Ошибка: утечка памяти в mmap: 
 :
