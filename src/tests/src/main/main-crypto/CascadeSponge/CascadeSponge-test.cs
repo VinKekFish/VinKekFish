@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -16,8 +16,8 @@ using static cryptoprime.BytesBuilderForPointers;
 
 // Ниже можно посмотреть на простейший способ создания каскада
 
-[TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 22e3, singleThread: false)]
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 620, singleThread: false)]
 public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 {
     public CascadeSponge_1t_20230905_simpleTest(TestConstructor constructor):
@@ -84,8 +84,8 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 }
 
 
-[TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 205e3, singleThread: false)]
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 210e3, singleThread: false)]
 public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 {
     public CascadeSponge_1t_20230905_exampleTest(TestConstructor constructor):

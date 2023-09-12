@@ -729,6 +729,10 @@
             <param name="len">Размер выделяемого пространства памяти</param>
             <returns>Указатель на выделенное пространство. Если неуспех, то OutOfMemoryException. Если mprotect не сработал, то Exception</returns>
         </member>
+        <member name="M:VinKekFish_Utils.Memory.formatException(System.Exception)">
+            <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
+            <param name="ex">Исключение</param>
+        </member>
         <member name="M:VinKekFish_Utils.Memory.DeallocateAtBreakage">
             <summary>Это - функция аварийной очистки памяти. Если в конце программы allocatedMemory != 0, то можно вызвать эту функцию, сообщив пользователю об ошибке (и очистив всю память; в том числе, память перезаписывается нулями).</summary>
         </member>

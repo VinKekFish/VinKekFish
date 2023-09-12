@@ -26,6 +26,12 @@ class Program
             }
         );
 /*
+        VinKekFish_Utils.Memory.alloc(1);
+        VinKekFish_Utils.Memory.alloc(1);
+        VinKekFish_Utils.Memory.DeallocateAtBreakage();
+*/
+        VinKekFish_Utils.Memory.DeallocateAtBreakage();
+/*
         // Принудительно пытаемся вызвать деструкторы более агрессивно, чем делали это ранее
         for (int i = 0; i < byte.MaxValue; i++)
         {

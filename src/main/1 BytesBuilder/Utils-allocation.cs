@@ -257,6 +257,8 @@ public unsafe static class Memory
         }
     }
 
+    /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
+    /// <param name="ex">Исключение</param>
     public static string formatException(Exception ex)
     {
         var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
@@ -279,11 +281,13 @@ public unsafe static class Memory
     /// <summary>Это - функция аварийной очистки памяти. Если в конце программы allocatedMemory != 0, то можно вызвать эту функцию, сообщив пользователю об ошибке (и очистив всю память; в том числе, память перезаписывается нулями).</summary>
     public static void DeallocateAtBreakage()
     {
-        foreach (var mem in VinKekFish_Utils.Memory.allocatedRegions)
+        while (VinKekFish_Utils.Memory.allocatedRegions.Count > 0)
         try
         {
-            free(mem.Key, mem.Value);
-            Console.Error.WriteLine($"ERROR: Memory successfully cleaned in DeallocateAtBreakage ({mem.Value} bytes)");
+            var memKey = VinKekFish_Utils.Memory.allocatedRegions.Keys[0];
+            var len    = VinKekFish_Utils.Memory.allocatedRegions[memKey];
+            free(memKey, len);
+            Console.Error.WriteLine($"ERROR: Memory successfully cleaned in DeallocateAtBreakage ({len} bytes)");
         }
         catch (Exception ex)
         {
