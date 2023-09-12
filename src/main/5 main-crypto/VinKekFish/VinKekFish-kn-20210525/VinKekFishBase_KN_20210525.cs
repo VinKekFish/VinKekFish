@@ -141,7 +141,7 @@ namespace vinkekfish
             this.CountOfRounds = CountOfRounds;
             this.K             = K;
             FullLen            = K * CryptoStateLen + CryptoStateLenExtension;
-            FullLen            = calcAlignment(FullLen);
+            FullLen            = (int) calcAlignment(FullLen);
             Len                = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
             LenInThreeFish     = Len / ThreeFishBlockLen;
             LenInKeccak        = Len / KeccakBlockLen;
@@ -153,7 +153,7 @@ namespace vinkekfish
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
             TweaksArrayLen = CryptoTweakLen * 2; //CountOfTweaks * CryptoTweakLen * LenInThreeFish;
-            TweaksArrayLen = calcAlignment(TweaksArrayLen);
+            TweaksArrayLen = (int) calcAlignment(TweaksArrayLen);
             /*MatrixArrayLen = MatrixLen * LenInKeccak;
             MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
             CountOfFinal   = K <= 11 ? 2 : 3;
@@ -290,7 +290,13 @@ namespace vinkekfish
             }
 
             if (!dispose)
-                throw new Exception("VinKekFishBase_KN_20210525.Dispose: you must call Dispose() after use");
+            {
+                var emsg = "VinKekFishBase_KN_20210525.Dispose: you must call Dispose() after use";
+                if (Record.doExceptionOnDisposeInDestructor)
+                    throw new Exception(emsg);
+                else
+                    Console.Error.WriteLine(emsg);
+            }
         }
                                                                                             /// <summary></summary>
         ~VinKekFishBase_KN_20210525()

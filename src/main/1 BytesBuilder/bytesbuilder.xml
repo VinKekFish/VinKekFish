@@ -276,6 +276,11 @@
             <param name="allocator">Аллокатор для выделения памяти для копирования</param>
             <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.addWithCopy(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Int32)">
+            <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
+            <param name="allocator">Аллокатор для выделения памяти для копирования</param>
+            <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.addWithoutCopy(System.Byte*@,System.IntPtr,System.Int32)">
             <summary>Добавляет блок данных без копирования в объект</summary><param name="bytesToAdded">Добавляемый блок данных, указатель перезаписывается нулём с целью избежания ошибочного использования. <para>Обратите внимание, что при изменении из-вне блока данных могут измениться данные и внутри объекта</para><para>При удалении блока данных в этом буфере исходные данные будут перезатёрты нулями!</para></param>
             <param name="len">Длина добавляемого массива</param>
@@ -616,7 +621,7 @@
             <summary>Длина данных, приходящихся на левый сегмент данных</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.add(System.Byte*,System.IntPtr)">
-            <summary>Добавляет блок в объект</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
+            <summary>Добавляет блок в буфер</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.add(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Добавляет массив в сохранённые значения</summary>
@@ -714,12 +719,18 @@
         <member name="P:VinKekFish_Utils.Memory.free">
             <summary>Освобождает память, выделенную до этого alloc</summary>
         </member>
+        <member name="F:VinKekFish_Utils.Memory.allocatedRegions">
+            <summary>Представляет выделенные mmap фрагменты памяти: &lt;Пользовательский указатель, Пользовательская длина&gt;</summary>
+        </member>
         <member name="M:VinKekFish_Utils.Memory.AllocMMap(System.IntPtr)">
             <summary>
             Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
             </summary>
             <param name="len">Размер выделяемого пространства памяти</param>
             <returns>Указатель на выделенное пространство. Если неуспех, то OutOfMemoryException. Если mprotect не сработал, то Exception</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Memory.DeallocateAtBreakage">
+            <summary>Это - функция аварийной очистки памяти. Если в конце программы allocatedMemory != 0, то можно вызвать эту функцию, сообщив пользователю об ошибке (и очистив всю память; в том числе, память перезаписывается нулями).</summary>
         </member>
         <member name="M:VinKekFish_Utils.Memory.mmap(System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)">
             <summary>

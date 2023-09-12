@@ -160,12 +160,28 @@ public unsafe static class Memory
 
     public static nint AllocHGlobal(nint len)
     {
-        return Marshal.AllocHGlobal(len);
+        lock (sync)
+        {
+            var result = Marshal.AllocHGlobal(len);
+
+            _allocatedMemory += len;
+            allocatedRegions.Add(result, len);
+
+            return result;
+        }
     }
 
     public static void FreeHGlobal(nint addr, nint len)
     {
-        Marshal.FreeHGlobal(addr);
+        BytesBuilder.ToNull(len, (byte *) addr);
+
+        lock (sync)
+        {
+            Marshal.FreeHGlobal(addr);
+
+            _allocatedMemory -= len;
+            allocatedRegions.Remove(addr);
+        }
     }
 
     public static nint getPadSizeForMMap(nint len)
@@ -178,6 +194,9 @@ public unsafe static class Memory
 
     private static volatile nint _allocatedMemory = 0;
     public  static          nint  allocatedMemory => _allocatedMemory;
+
+    /// <summary>Представляет выделенные mmap фрагменты памяти: &lt;Пользовательский указатель, Пользовательская длина&gt;</summary>
+    private static SortedList<nint, nint> allocatedRegions = new SortedList<nint, nint>(256);
 
     /// <summary>
     /// Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
@@ -212,21 +231,64 @@ public unsafe static class Memory
         if (en != 0)
             throw new Exception($"AllocMMap.mprotect != 0 (first page) ({en})");
 
+        result += PAGE_SIZE;
         lock (sync)
+        {
             _allocatedMemory += size;
+            allocatedRegions.Add(result, len);
+        }
 
-        return result + PAGE_SIZE;
+        return result;
     }
 
     public static void FreeMMap(nint addr, nint len)
     {
         var size   = len + getPadSizeForMMap(len);
-        var result = munmap(addr - PAGE_SIZE, size);
-        if (result != 0)
-            throw new Exception("FreeMMap: result != 0");
+        BytesBuilder.ToNull(size - PAGE_SIZE*2, (byte *) addr);
 
         lock (sync)
+        {
+            var result = munmap(addr - PAGE_SIZE, size);
+            if (result != 0)
+                throw new Exception("FreeMMap: result != 0");
+
             _allocatedMemory -= size;
+            allocatedRegions.Remove(addr);
+        }
+    }
+
+    public static string formatException(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
+
+        sb.AppendLine("----------------------------------------------------------------");
+        sb.AppendLine(ex.Message);
+        sb.AppendLine(ex.StackTrace);
+        if (ex.InnerException is not null)
+        {
+            sb.AppendLine("Inner exception");
+            sb.AppendLine(formatException(ex.InnerException));
+        }
+
+        sb.AppendLine("----------------------------------------------------------------");
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    /// <summary>Это - функция аварийной очистки памяти. Если в конце программы allocatedMemory != 0, то можно вызвать эту функцию, сообщив пользователю об ошибке (и очистив всю память; в том числе, память перезаписывается нулями).</summary>
+    public static void DeallocateAtBreakage()
+    {
+        foreach (var mem in VinKekFish_Utils.Memory.allocatedRegions)
+        try
+        {
+            free(mem.Key, mem.Value);
+            Console.Error.WriteLine($"ERROR: Memory successfully cleaned in DeallocateAtBreakage ({mem.Value} bytes)");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(formatException(ex));
+        }
     }
 
     /// <summary>

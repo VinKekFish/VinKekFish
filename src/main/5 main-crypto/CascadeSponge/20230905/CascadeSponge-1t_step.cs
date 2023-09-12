@@ -17,13 +17,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 {
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
     /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
-    /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration</param>
+    /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
     /// <param name="data">Данные для ввода, не более maxDataLen на один шаг</param>
     /// <param name="dataLen">Количество данных для ввода</param>
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
-    public nint step(nint countOfSteps = 1, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    public nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
+        ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
+
         haveOutput = false;         // На всякий случай устанавливаем значение в false. Если где что упадёт, это не даст дальше работать в некоторых функциях
         if (!isThreeFishInitialized)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: !isThreeFishInitialized. See ThreeFish key initialization for reverse connection");
@@ -31,11 +33,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (countOfSteps < 1)
         {
             if (dataLen <= 0 || data == null)
-                throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: countOfSteps < 1 && dataLen <= 0");
-
-            countOfSteps = dataLen / maxDataLen;
-            if (dataLen % maxDataLen > 0)
-                countOfSteps++;
+            {
+                countOfSteps = 1;
+            }
+            else
+            {
+                countOfSteps = dataLen / maxDataLen;
+                if (dataLen % maxDataLen > 0)
+                    countOfSteps++;
+            }
         }
 
         if (countOfSteps <= 0)
@@ -85,11 +91,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (inputRegime == overwrite)
             input = KeccakPrime.Keccak_InputOverwrite64_512;
 
+        byte * S, B, C;
         for (nint layer = 0; layer < tall; layer++)
         {
             // Рассчитываем для данного уровня все данные
             for (nint i = 0; i < wide; i++)
-                CascadeKeccak[layer, i]!.CalcStep();
+            {
+                getKeccakS(layer, i, S: out S, B: out B, C: out C);
+                KeccakPrime.Keccackf(a: (ulong *) S, c: (ulong *) C, b: (ulong *) B);
+            }
 
             // Если это не последний уровень губки
             if (layer == tall - 1)
@@ -99,8 +109,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Выводим во временный буфер выход со всех губок этого уровня
             for (nint i = 0; i < wide; i++)
             {
-                var keccak = CascadeKeccak[layer, i]!;
-                KeccakPrime.Keccak_Output_512(buff, MaxInputForKeccak, keccak.S);
+                getKeccakS(layer, i, S: out S, B: out B, C: out C);
+                KeccakPrime.Keccak_Output_512(buff, MaxInputForKeccak, S: S);
                 buff += MaxInputForKeccak;
             }
 
@@ -110,9 +120,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             buff = buffer;
             for (nint i = 0; i < wide; i++)
             {
-                var keccak = CascadeKeccak[layer+1, i]!;
+                getKeccakS(layer+1, i, S: out S, B: out B, C: out C);
 
-                input(buff, MaxInputForKeccak, keccak.S, regime);
+                input(buff, MaxInputForKeccak, S, regime);
                 buff += MaxInputForKeccak;
             }
         }
@@ -172,6 +182,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 {
                     buffer.getBytesAndRemoveIt(rc, threefish_slowly.twLen);
                 }
+
+                buffer.Clear();
 
                 // Расширяем ключи и твики как надо
                 ExpandThreeFish();

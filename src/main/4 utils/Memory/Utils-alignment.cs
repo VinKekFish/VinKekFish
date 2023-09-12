@@ -10,7 +10,7 @@ public unsafe static partial class Utils
     /// <param name="size">Размер массива для выравнивания</param>
     /// <param name="alignment">Размер границ, на который выравнивается</param>
     /// <returns>Выравненное значение size</returns>
-    public static int calcAlignment(int size, int alignment = 64)
+    public static nint calcAlignment(nint size, int alignment = 64)
     {
         var bmod = size % alignment;
         if (bmod == 0)

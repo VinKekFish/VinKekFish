@@ -244,7 +244,7 @@ namespace cryptoprime
             }
         }
 
-        /// <summary>Добавляет блок в объект</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
+        /// <summary>Добавляет блок в буфер</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
         public void add(byte * bytesToAdded, nint len)
         {
             if (count + len > size)

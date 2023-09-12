@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -15,8 +15,77 @@ using static cryptoprime.BytesBuilderForPointers;
 // example::docs:rQN6ZzeeepyOpOnTPKAT:
 
 // Ниже можно посмотреть на простейший способ создания каскада
+
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 210e3, singleThread: false)]
+[TestTagAttribute("CascadeSponge", duration: 22e3, singleThread: false)]
+public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
+{
+    public CascadeSponge_1t_20230905_simpleTest(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {
+        #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        this.parentSaver.canCreateFile = true;
+        #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        #endif
+    }
+
+    public override DirectoryInfo setDirForFiles()
+    {
+        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+    }
+
+    protected unsafe class Saver: SaverParent
+    {
+        public CascadeSponge_1t_20230905? cascade;
+        public override List<string> ExecuteTest(AutoSaveTestTask task)
+        {
+            List<string> lst = new List<string>(16);
+
+            const int maxKeyLen = 65536;
+            var  key = stackalloc byte[maxKeyLen];
+            var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_simpleTest.Record" };
+            for (int i = 0; i < maxKeyLen; i += 2)
+            {
+                key[i + 0] = (byte) i;
+                key[i + 1] = (byte) (i >> 8);
+            }
+
+            const int DataLen = 512;
+            var data = stackalloc byte[DataLen];
+            for (int i = 0; i < 1024; i += 1)
+            {
+                data[i + 0] = (byte) (i*3);
+            }
+
+            // Инициализация губки минимальной стойкости
+            // Сразу же инициализируем ключи ThreeFish от основного ключа
+            using var cascade1 = new CascadeSponge_1t_20230905();
+            cascade1.initKeyAndOIV(rkey, null, 3);
+
+            // Вводим некоторые данные для шифрования или хеширования
+            cascade1.step(data: data, dataLen: DataLen);
+
+            // Получаем от губки информацию с одного шага из cascade1.lastOutput
+            addToList(lst, cascade1);
+
+            rkey.Dispose();
+            this.cascade = null;
+            task.doneFunc!();
+
+            return lst;
+
+            static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
+            {
+                // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+            }
+        }
+    }
+}
+
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 205e3, singleThread: false)]
 public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 {
     public CascadeSponge_1t_20230905_exampleTest(TestConstructor constructor):
@@ -31,7 +100,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
         {
             var s = (this.parentSaver as Saver);
             if (s?.cascade is null)
-                this.Name = s?.primaryTaskName;
+                this.Name = s?.primaryTaskName ?? "";
             else
                 this.Name = s?.primaryTaskName + "\n" + s?.cascade + "\nallocated memory = " + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0");
         };
@@ -51,8 +120,10 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
             primaryTaskName = task.Name;
             List<string> lst = new List<string>(16);
 
-            // const int maxKeyLen = 1024*256/8;
-            const int maxKeyLen = 1024*8;
+            using var bb = new BytesBuilderForPointers();
+
+            const int maxKeyLen = 1024*256/8;
+            // const int maxKeyLen = 1024;
             var  key = stackalloc byte[maxKeyLen];
             var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_exampleTest.Record" };
             for (int i = 0; i < maxKeyLen; i += 2)
@@ -61,25 +132,40 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
                 key[i + 1] = (byte) (i >> 8);
             }
 
+            Record.doExceptionOnDisposeInDestructor = false;
+
+            const int DataLen = 512;
+            var data = stackalloc byte[DataLen];
+            for (int i = 0; i < 1024; i += 1)
+            {
+                data[i + 0] = (byte) (i*3);
+            }
+
             // Инициализация губки стойкостью 1536 битов (192 байта)
             // Сразу же инициализируем ключи ThreeFish от основного ключа
             var cascade1 = new CascadeSponge_1t_20230905(192);
             cascade1.initKeyAndOIV(rkey, null, 2);
+
+            // Вводим некоторые данные для шифрования или хеширования
+            cascade1.step(data: data, dataLen: DataLen, regime: 2, ArmoringSteps: 2);
+            bb.addWithCopy(cascade1.lastOutput);        // Берём данные с выхода
 
             // Получаем от губки информацию с одного шага из cascade1.lastOutput
             addToList(lst, cascade1);
             cascade1.Dispose();
 
 
-            // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три
+            // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три (более сложно для криптоанализа)
             var cascade2 = new CascadeSponge_1t_20230905(192);
             cascade2.initKeyAndOIV(rkey, null, 3);
+            cascade2.step(data: data, dataLen: DataLen);
             addToList(lst, cascade2);
             cascade2.Dispose();
 
             // Без инициализации ThreeFish
             var cascade3 = new CascadeSponge_1t_20230905(192);
             cascade3.initKeyAndOIV(rkey, null, 0);
+            cascade3.step(data: data, dataLen: DataLen);
             addToList(lst, cascade3);
             cascade3.Dispose();
 
@@ -98,6 +184,8 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
                 {
                     cascade1 = new CascadeSponge_1t_20230905(len); this.cascade = cascade1;
                     cascade1.initKeyAndOIV(rkey, null, 2);
+                    cascade1.step(data: data, dataLen: DataLen);
+                    bb.addWithCopy(cascade1.lastOutput);        // Берём данные с выхода
                     addToList(lst, cascade1);
                     this.cascade = null;
                 }
@@ -112,12 +200,42 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
                 }
             };
 
-            cascade1 = new CascadeSponge_1t_20230905(_wide: 4, _tall: 4); this.cascade = cascade1;
-            cascade1.initKeyAndOIV(rkey, null, 3);
-            cascade1.step(1024);
+            cascade1 = new CascadeSponge_1t_20230905(1024*256/8); this.cascade = cascade1;
+            var cuttedKey = rkey << cascade1.maxDataLen*2;          // Делаем ключ поменьше, чтобы можно было меньше ждать
+            cascade1.InitEmptyThreeFish(1, 2);
+            cascade1.step(regime: 1);
+            while (bb.Count < cascade1.fullLengthOfThreeFishKeys + 8)        // 8 - чисто, чтобы не напрягаться
+            {
+                cascade1.step(regime: 2);
+                bb.addWithCopy(cascade1.lastOutput);
+            }
+            using var tkeys = bb.getBytes();
+            BytesBuilder.ULongToBytes        // Устанавливаем магическое число
+            (
+                CascadeSponge_1t_20230905.MagicNumber_ReverseConnectionLink_forInput,
+                tkeys,
+                tkeys.len, cascade1.fullLengthOfThreeFishKeys
+            );
+
+            cascade1.initKeyAndOIV(cuttedKey, null, 0);
+            cascade1.setThreeFishKeysAndTweak(tkeys, null, cascade1.countOfThreeFish);
+            cascade1.step(data: data, dataLen: DataLen, regime: 255);
             addToList(lst, cascade1);
             cascade1.Dispose();
 
+
+
+            cascade1 = new CascadeSponge_1t_20230905(_wide: 4, _tall: 4); this.cascade = cascade1;
+            cascade1.initKeyAndOIV(rkey, null, 3);
+            cascade1.step(data: data, dataLen: DataLen);
+            cascade1.step(1024);
+            cascade1.step(data: data, dataLen: DataLen);
+            cascade1.step(data: data, dataLen: DataLen);
+            addToList(lst, cascade1);
+            cascade1.Dispose();
+
+
+            cuttedKey.Dispose();
             rkey.Dispose();
             this.cascade = null;
             task.doneFunc!();

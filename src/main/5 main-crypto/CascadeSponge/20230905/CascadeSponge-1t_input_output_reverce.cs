@@ -85,7 +85,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             // Console.WriteLine(ArrayToHex(buffer, (int) MaxInputForKeccak));
 
-            input(buffer, (byte) (dataLenToInput + rcd_len), getInputLayer(w).S, regime);
+            input(buffer, (byte) (dataLenToInput + rcd_len), getInputLayerS(w), regime);
             cur += dataLenToInput;
         }
 
@@ -103,8 +103,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var data = fullOutput.array;
         for (nint w = 0; w < wide; w++)
         {
-            var keccak = getOutputLayer(w);
-            KeccakPrime.Keccak_Output_512(data, MaxInputForKeccak, keccak.S);
+            var S = getOutputLayerS(w);
+            KeccakPrime.Keccak_Output_512(data, MaxInputForKeccak, S: S);
             data += MaxInputForKeccak;
         }
 

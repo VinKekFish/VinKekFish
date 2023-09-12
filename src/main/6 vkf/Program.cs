@@ -18,19 +18,35 @@ public partial class Program
         }
         finally
         {
-            // Пытаемся искусственно спровоцировать вызов деструкторов
-            GCSettings.LatencyMode = GCLatencyMode.Batch;
-            for (int i = 0; i < 2; i++)
+            try
             {
-                GC.Collect();
-                GC.WaitForFullGCComplete();
-                GC.WaitForFullGCApproach();
-                GC.WaitForPendingFinalizers();
+                // Пытаемся искусственно спровоцировать вызов деструкторов
+                GCSettings.LatencyMode = GCLatencyMode.Batch;
+                for (int i = 0; i < 2; i++)
+                {
+                    try
+                    {
+                        GC.Collect();
+                        GC.WaitForFullGCComplete();
+                        GC.WaitForFullGCApproach();
+                        GC.WaitForPendingFinalizers();
+                    }
+                    catch (Exception iex)
+                    {
+                        Console.Error.WriteLine(formatException(iex));
+                        i--;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(formatException(ex));
             }
 
             if (VinKekFish_Utils.Memory.allocatedMemory != 0)
             {
                 Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0"));
+                DeallocateAtBreakage();
             }
         }
     }

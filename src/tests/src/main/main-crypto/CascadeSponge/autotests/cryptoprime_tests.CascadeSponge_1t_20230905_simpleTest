@@ -1,0 +1,24 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			16
+		
+		Count:		System.Int32		.enumerableObject.Count
+			1
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     4/4, 4 007
+A960A0D5F7181F49A651A41699D8D6F359690DF6962CA80B13FCAD21F67FD1EC8CFADFF271632D62B7031C05FDA23ABC0D5F713F922D430DCE163375D11C9BC39666D859D4684595639174D23286896079BF3C82
+
+		[:String]
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 

@@ -4,7 +4,7 @@
         <name>4 utils</name>
     </assembly>
     <members>
-        <member name="M:VinKekFish_Utils.Utils.calcAlignment(System.Int32,System.Int32)">
+        <member name="M:VinKekFish_Utils.Utils.calcAlignment(System.IntPtr,System.Int32)">
             <summary>Функция для расчёта выравнивания</summary>
             <param name="size">Размер массива для выравнивания</param>
             <param name="alignment">Размер границ, на который выравнивается</param>

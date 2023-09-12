@@ -35,7 +35,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                                                                 /// <summary>Стойкость шифрования в байтах. Это tall*MaxInputForKeccak</summary>
     public    readonly nint   strenghtInBytes = 0;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи. Реально ключей в два раза больше</summary>
     public    readonly nint   countOfThreeFish_RC;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи и для шифрования выхода</summary>
-    public    readonly nint   countOfThreeFish;
+    public    readonly nint   countOfThreeFish;                 /// <summary>Полная длина всех ключей ThreeFish в байтах. Равна countOfThreeFish * threefish_slowly.keyLen</summary>
+    public    readonly nint   fullLengthOfThreeFishKeys;
                                                                 /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после ввода/вывода информации в шаге в генерации ключей</summary>
     public    readonly nint   countStepsForKeyGeneration;       /// <summary>Количество шагов губки, которое пропускается после ввода/вывода информации в режиме повышенной стойкости (это меньше, чем countStepsForKeyGeneration)</summary>
     public    readonly nint   countStepsForHardening;
@@ -151,12 +152,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if ((_wide & 1) > 0)
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905: (_wide & 1) > 0 ({wide})");
 
-        CascadeKeccak = new Keccak_20200918[tall, wide];
-        forAllKeccaks
-        (
-            (nint i, nint j) =>
-                CascadeKeccak[i, j] = new Keccak_20200918()
-        );
+        try
+        {
+
+        // Выделяем под губки память сразу для всех губок, иначе, с учётом защитный полей, получается очень много памяти выделяется
+        keccakStateLen = (KeccakPrime.S_len2 + KeccakPrime.S_len + KeccakPrime.S_len2) << 3;
+        keccakStateLen = VinKekFish_Utils.Utils.calcAlignment(keccakStateLen, 128);  // На всякий случай, берём выравнивание 128-мь байтов, хотя 64-ре вполне достаточно (здесь достаточно выравнивания на границу линии кеша)
+        keccakStatesLayerLen = keccakStateLen * wide;
+        keccakStatesFullLen  = keccakStateLen * tall * wide;
+        keccaks = Keccak_abstract.allocator.AllocMemory(keccakStatesFullLen, "CascadeSponge_1t_20230905.keccaks");
+        keccaks.Clear();
+
+        // Проверяем, что расчёт длин верный
+        if (keccakStatesLayerLen*tall != keccakStatesFullLen)
+            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: fatal algorithmic error: keccakStatesLayerLen*tall != keccakStatesFullLen");
 
 
         (W, Wn) = CalcW(tall);
@@ -168,7 +177,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
         countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
-        countStepsForHardening     = (nint) 2;
+        countStepsForHardening     = (nint) 1;
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
         fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
@@ -183,10 +192,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         countOfThreeFish    = wide;
         threefishCrypto     = Keccak_abstract.allocator.AllocMemory(256*countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
 
+        fullLengthOfThreeFishKeys = countOfThreeFish * threefish_slowly.keyLen;
+
         // На всякий случай, сразу же инициализируем ключи и твики ThreeFish, чтобы их можно было дальше использовать
         InitEmptyThreeFish();
 
         // Console.WriteLine(this);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
     }
 
     public static nint CalcTallAndWideByStrenght(nint _strenghtInBytes, ref nint _wide)
@@ -210,21 +227,30 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
     /// <summary>Позволяет установить ключи и твики для ThreeFish обратной связи</summary>
     /// <param name="keys">Ключи, каждый ключ по 128-мь байтов. Количество ключей - countOfThreeFish (countOfThreeFish_RC для обратной связи и столько же для шифрования выхода). Первыми идут ключи для обратной связи, потом - для заключительного преобразования. В конце массива должно быть магическое число MagicNumber_ReverseConnectionLink_forInput</param>
-    /// <param name="tweaks">Твики, каждый твик по 16-ть байтов (по одному твику на ключ). В конце массива должно быть магическое число MagicNumber_ReverseConnectionLink_forInput</param>
-    /// <param name="countOfKeys">Общее количество ключей и твиков</param>
-    public void setThreeFishKeysAndTweak(byte * keys, byte * tweaks, int countOfKeys)
+    /// <param name="tweaks">Может быть null. Твики, каждый твик по 16-ть байтов (по одному твику на ключ). В конце массива должно быть магическое число MagicNumber_ReverseConnectionLink_forInput</param>
+    /// <param name="countOfKeys">Общее количество ключей и твиков. Не менее countOfThreeFish. Полная длина массива ключей - fullLengthOfThreeFishKeys</param>
+    public void setThreeFishKeysAndTweak(byte * keys, byte * tweaks, nint countOfKeys)
     {
-        CheckMagicNumber(keys,   "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys",   countOfKeys * threefish_slowly.keyLen);
+        ObjectDisposedCheck("CascadeSponge_1t_20230905.setThreeFishKeysAndTweak");
+
+        if (tweaks != null)
         CheckMagicNumber(tweaks, "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: tweaks", countOfKeys * threefish_slowly.twLen);
+        CheckMagicNumber(keys,   "CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: keys",   countOfKeys * threefish_slowly.keyLen);
 
         if (countOfKeys < countOfThreeFish)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.setThreeFishKeysAndTweak: countOfKeys < countOfThreeFish");
 
         var rc = threefishCrypto!.array;
-        for (int i = 0; i < countOfThreeFish; i++)
+        for (nint i = 0; i < countOfThreeFish; i++)
         {
             BytesBuilder.CopyTo(threefish_slowly.keyLen, threefish_slowly.keyLen, keys,   rc); rc += 192; keys   += threefish_slowly.keyLen;
-            BytesBuilder.CopyTo(threefish_slowly.twLen,  threefish_slowly.twLen,  tweaks, rc); rc += 64;  tweaks += threefish_slowly.twLen;
+
+            if (tweaks != null)
+            {
+                BytesBuilder.CopyTo(threefish_slowly.twLen,  threefish_slowly.twLen,  tweaks, rc); rc += 64;  tweaks += threefish_slowly.twLen;
+            }
+            else
+                rc += 64;
         }
 
         ExpandThreeFish();
@@ -244,6 +270,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="emptyTweakInitValue">Простое значение для инициализации начального твика. Дальше движение по твикам идёт с инкрементом на TweakInitIncrement</param>
     public void InitEmptyThreeFishTweaks(ulong emptyTweakInitValue = TweakInitIncrement)
     {
+        ObjectDisposedCheck("CascadeSponge_1t_20230905.InitEmptyThreeFishTweaks");
+
         var   rc  = threefishCrypto!.array + 192;    // Сразу выполняем переход на твики
         ulong tw0 = emptyTweakInitValue;
         ulong tw1 = 0;
@@ -268,6 +296,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="emptyKeyInitValue">Простое значение для инициализации ключей</param>
     public void InitEmptyThreeFishKeys(ulong emptyKeyInitValue = KeyInitIncrement)
     {
+        ObjectDisposedCheck("CascadeSponge_1t_20230905.InitEmptyThreeFishKeys");
+
         var   rc  = threefishCrypto!.array + 0;    // Сразу выполняем переход на ключи
         ulong key = emptyKeyInitValue;
         for (ulong i = 0; i < (ulong) countOfThreeFish; i++)
@@ -313,10 +343,42 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         return wide;
     }
 
-    /// <summary>Каскад губок keccak. Первый индекс - высота, второй - ширина</summary>
-    protected Keccak_20200918?[,] CascadeKeccak;
-    protected Keccak_20200918 getInputLayer (nint i) => CascadeKeccak[0,      i]!;
-    protected Keccak_20200918 getOutputLayer(nint i) => CascadeKeccak[tall-1, i]!;
+    /// <summary>Получает матрицу S состояния губки keccak на входном слое</summary>
+    /// <param name="i">Номер матрицы на входном слое</param>
+    protected byte * getInputLayerS (nint i)
+    {
+        getKeccakS(0, i, S: out byte * S, C: out byte * C, B: out byte * B);
+
+        return S;
+    }
+
+    /// <summary>Получает матрицу S состояния губки keccak на выходном слое</summary>
+    /// <param name="i">Номер матрицы на входном слое</param>
+    protected byte * getOutputLayerS(nint i)
+    {
+        getKeccakS(tall-1, i, S: out byte * S, C: out byte * C, B: out byte * B);
+
+        return S;
+    }
+                                                      /// <summary>Каскад губок keccak. Первый индекс - высота, второй - ширина</summary>
+    protected Record keccaks;                         /// <summary>Выравненный размер одиночной губки каскада</summary>
+    protected nint   keccakStateLen       = 0;        /// <summary>Размер состояний одиночных губок одного слоя</summary>
+    protected nint   keccakStatesLayerLen = 0;        /// <summary>Полный размер состояний всех одиночных губок</summary>
+    protected nint   keccakStatesFullLen  = 0;
+
+    /// <summary>Получает матрицы S, C, B состояния keccak.</summary>
+    /// <param name="h">Номер слоя каскада (высота)</param>
+    /// <param name="w">Номер столбца каскада</param>
+    /// <param name="S">Матрица S</param>
+    /// <param name="C">Вектор C</param>
+    /// <param name="B">Матрица B</param>
+    public void getKeccakS(nint h, nint w, out byte * S, out byte * C, out byte * B)
+    {
+        var State = keccaks.array + h*keccakStatesLayerLen + w*keccakStateLen;
+            B     = State;
+            C     = B + (KeccakPrime.S_len2 << 3);
+            S     = C + (KeccakPrime.S_len  << 3);
+    }
 
     /// <summary>Массив ключей и твиков ThreeFish. Первыми идут ключи обратной связи, потом ключи заключительного преобразования.</summary>
     protected Record?  threefishCrypto;
@@ -337,23 +399,21 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     {
         var d = isDisposed;
         if (isDisposed)
+        {
+            if (!fromDestructor)
+                throw new CascadeSpongeException("CascadeSponge_1t_20230905: Dispose executed twiced");
+
             return;
+        }
 
-        if (lastOutput.array is not null)
+        if (lastOutput is not null && lastOutput.array is not null)
             lastOutput.Dispose();
-        if (fullOutput.array is not null)
+        if (fullOutput is not null && fullOutput.array is not null)
             fullOutput.Dispose();
-        if (  rcOutput.array is not null)
-            rcOutput.Dispose();
-
-        forAllKeccaks
-        (
-            (nint i, nint j) =>
-            {
-                CascadeKeccak[i, j]?.Dispose();
-                CascadeKeccak[i, j] = null;
-            }
-        );
+        if (rcOutput is not null && rcOutput.array is not null)
+            rcOutput  .Dispose();
+        if (keccaks is not null && keccaks.array is not null)
+            keccaks   .Dispose();
 
         threefishCrypto?.Dispose();
         threefishCrypto = null;
@@ -361,14 +421,21 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         isDisposed = true;
         if (fromDestructor && !d)
         {
-            throw new CascadeSpongeException("Object not disposed correctly (Dispose from destructor)");
+            var emsg = "CascadeSponge_1t_20230905: Object not disposed correctly (Dispose from destructor)";
+            if (Record.doExceptionOnDisposeInDestructor)
+                throw new CascadeSpongeException(emsg);
+            else
+                Console.Error.WriteLine(emsg);
         }
     }
 }
+
+/*
 /// <summary>
 /// Класс для тестирования, открывающий некоторые защищённые члены
 /// </summary>
 public class CascadeSponge_1t_public_for_test: CascadeSponge_1t_20230905
 {
-    public Keccak_20200918?[,] CascadeKeccak_public => CascadeKeccak;
+    // public Keccak_20200918?[,] CascadeKeccak_public => CascadeKeccak;
 }
+*/

@@ -46,6 +46,20 @@ namespace cryptoprime
             add(rec, index);
         }
 
+        /// <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
+        /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
+        /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
+        public void addWithCopy(Record bytesToAdded, AllocatorForUnsafeMemoryInterface? allocator = null, int index = -1)
+        {
+            var rec = CloneBytes(
+                                bytesToAdded, 0, bytesToAdded.len,
+                                allocator ?? bytesToAdded.allocator ??
+                                throw new ArgumentNullException("BytesBuilderForPointers.addWithCopy: allocator = null")
+                                );
+
+            add(rec, index);
+        }
+
         /// <summary>Добавляет блок данных без копирования в объект</summary><param name="bytesToAdded">Добавляемый блок данных, указатель перезаписывается нулём с целью избежания ошибочного использования. <para>Обратите внимание, что при изменении из-вне блока данных могут измениться данные и внутри объекта</para><para>При удалении блока данных в этом буфере исходные данные будут перезатёрты нулями!</para></param>
         /// <param name="len">Длина добавляемого массива</param>
         /// <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
