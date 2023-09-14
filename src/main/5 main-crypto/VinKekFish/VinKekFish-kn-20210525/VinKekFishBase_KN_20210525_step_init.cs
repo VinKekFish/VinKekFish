@@ -101,6 +101,8 @@ namespace vinkekfish
                 tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len);
                 isInit1    = true;
             }
+Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(tablesForPermutations, tablesForPermutations.len));
         }
 
         /// <summary>Вторая инициализация (полная инициализация): инициализация внутреннего состояния ключём</summary>

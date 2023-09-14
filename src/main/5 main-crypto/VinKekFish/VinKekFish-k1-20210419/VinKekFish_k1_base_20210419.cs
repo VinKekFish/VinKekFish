@@ -106,6 +106,8 @@ namespace vinkekfish
             #if SUPER_CHECK_PERMUTATIONS
             vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(pTablesHandle, RoundsForTables, CryptoStateLen, "after init1");
             #endif
+
+            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(pTablesHandle, pTablesHandle.len & 63));
         }
 
         /// <summary>Вторая инициализация: ввод ключа и ОВИ, обнуление состояния и т.п.</summary>
