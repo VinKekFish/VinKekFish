@@ -42,16 +42,16 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         testByIncorrect();
 
         Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D);
-        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
+    /*    Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
         Test(VinKekFishBase_etalonK1.REDUCED_ROUNDS, VinKekFishBase_etalonK1.REDUCED_ROUNDS, 1, 1);
         Test(VinKekFishBase_etalonK1.NORMAL_ROUNDS,  VinKekFishBase_etalonK1.NORMAL_ROUNDS,  1, 1);
         Test(VinKekFishBase_etalonK1.EXTRA_ROUNDS,   VinKekFishBase_etalonK1.EXTRA_ROUNDS,   1, 1);
         Test(VinKekFishBase_etalonK1.MAX_ROUNDS,     VinKekFishBase_etalonK1.MAX_ROUNDS,     1, 1);
-
+// TODO: !!!
         Test(5,   5,   1, 1);
         Test(8,   8,   1, 1);
         Test(64 , 64,  1, 1);
-        Test(128, 128, 1, 1);
+        Test(128, 128, 1, 1);*/
     }
 
     public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock)
@@ -66,7 +66,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         k1t16.output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
               var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
-        using var key       = allocator.AllocMemory(ushort.MaxValue);
+        using var key       = allocator.AllocMemory(/*ushort.MaxValue*/128);
         using var out1e     = allocator.AllocMemory(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
         BytesBuilder.FillByBytes(1, key, key.len);

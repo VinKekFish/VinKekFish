@@ -123,6 +123,8 @@ namespace cryptoprime.VinKekFish
 
             tweak[0] += TWEAK_STEP_NUMBER;
 
+            // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex((byte*) tweak, 256));
+
             if (!SecondKey)
             {
                 tweak[1] += (ulong) key_length;

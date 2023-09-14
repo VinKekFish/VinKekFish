@@ -43,6 +43,9 @@ namespace vinkekfish
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main (at start)");
             // State1Main = true;
 
+            Tweaks[2+0] = Tweaks[0+0];
+            Tweaks[2+1] = Tweaks[0+1];
+
             // Предварительное преобразование
             doPermutation(transpose128);
             doThreeFish();
@@ -101,8 +104,8 @@ namespace vinkekfish
                 tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len);
                 isInit1    = true;
             }
-Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(tablesForPermutations, tablesForPermutations.len));
+
+            // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(tablesForPermutations, Math.Min(tablesForPermutations.len, 256)));
         }
 
         /// <summary>Вторая инициализация (полная инициализация): инициализация внутреннего состояния ключём</summary>
@@ -148,6 +151,8 @@ Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailsBlock: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
                 isInit2 = true;
             }
+Console.WriteLine("n !!!!!!!!!!");
+            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(st1, 256));
         }
                                                             /// <summary></summary>
         protected virtual void StartThreads()
@@ -207,7 +212,6 @@ Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
             Tweaks[0] += TWEAK_STEP_NUMBER;
 
-
             if (OpenInitializationVector != null)
             {
                 if (OpenInitializationVector.len > MAX_OIV_K)
@@ -232,6 +236,7 @@ Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 byte len2 = (byte) (dt >> 8);
                 State1[0] ^= len1;
                 State1[1] ^= len2;
+                Tweaks[1] += (ulong) dt;
 
                 BytesBuilder.CopyTo(dt, MAX_SINGLE_KEY_K, key, State1 + 2);
                 keyLen -= dt;

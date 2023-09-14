@@ -107,7 +107,7 @@ namespace vinkekfish
             vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(pTablesHandle, RoundsForTables, CryptoStateLen, "after init1");
             #endif
 
-            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(pTablesHandle, pTablesHandle.len & 63));
+            // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(pTablesHandle, Math.Min(pTablesHandle.len, 256)));
         }
 
         /// <summary>Вторая инициализация: ввод ключа и ОВИ, обнуление состояния и т.п.</summary>
@@ -148,6 +148,8 @@ namespace vinkekfish
                     );
                 }
             }
+
+            // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(this._state, 256));
 
             GC.Collect();
             GC.WaitForPendingFinalizers();  // Это чтобы сразу получить все проблемные вызовы, связанные с утечками памяти
