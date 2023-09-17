@@ -70,6 +70,13 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 step_once(null, 0, regime, inputRegime);
         }
 
+        // Выполняем заключительное преобразование для отбивки обратной связи от выхода
+        doThreeFish    (fullOutput, this.threefishCrypto!.array + countOfThreeFish_RC*256);     // Заключительное преобразование для выхода
+        transposeOutput(fullOutput, 128);
+
+        // Копируем начало вывода нижних губок в массив пользовательского вывода
+        BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, fullOutput, lastOutput);
+
         haveOutput = true;
 
         return dataUsedLen;

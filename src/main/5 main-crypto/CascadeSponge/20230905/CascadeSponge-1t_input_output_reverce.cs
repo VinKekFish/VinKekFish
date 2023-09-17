@@ -116,21 +116,16 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Console.WriteLine();
         // Console.WriteLine("outputAllData: before ThreeFish"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
 
-        // Выполняем преобразование обратной связи и заключительное преобразование
-        doThreeFish(fullOutput, this.threefishCrypto!.array + countOfThreeFish_RC*256);     // Заключительное преобразование для выхода
-        doThreeFish(  rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
+        // Выполняем преобразование обратной связи
+        doThreeFish(rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
 
         // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
 
-        transposeOutput(fullOutput, 128);
-        transposeOutput(  rcOutput, 128);
+        transposeOutput(rcOutput, 128);
 
         // Console.WriteLine("outputAllData:  rc after ThreeFish +t"); Console.WriteLine(ArrayToHex(  rcOutput, ReserveConnectionLen));
         // Console.WriteLine("outputAllData: out after ThreeFish +t"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
         // Console.WriteLine();
-
-        // Копируем начало вывода нижних губок в массив пользовательского вывода
-        BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, fullOutput, lastOutput);
     }
 
     /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>

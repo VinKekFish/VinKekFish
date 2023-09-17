@@ -416,8 +416,8 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             BytesBuilder.CopyTo(256, 256, revcon, buff);
             Threefish1024_step(TFl +  0, TFl +  0 + 24, (ulong*) output);       // Обратная связь
             Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
-            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод
-            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
+//            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
+//            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
 
             // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
 
@@ -440,7 +440,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[32 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[32 + 25] += 0;  // Здесь всё ещё нет переполнения
             TFl[32 + 26] = TFl[32 + 24] ^ TFl[32 + 25];
-
+/*          Вывод не делался - твики остаются неизменными
             TFl[64 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[64 + 25] += 0;
             TFl[64 + 26] = TFl[64 + 24] ^ TFl[64 + 25];
@@ -448,7 +448,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[96 + 24] += CascadeSponge_1t_20230905.CounterIncrement; // 10973782906539414116 + 3148241843069173559 = 14122024749608587675
             TFl[96 + 25] += 0;  // Здесь всё ещё нет переполнения
             TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
-
+*/
             BytesBuilder.CopyTo(256, 256, revcon, output);
             BytesBuilder.CopyTo(256, 256, revcon, buff);
             Threefish1024_step(TFl +  0, TFl +  0 + 24, (ulong*) output);       // Обратная связь
