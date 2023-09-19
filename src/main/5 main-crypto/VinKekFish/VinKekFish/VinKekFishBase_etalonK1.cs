@@ -148,7 +148,7 @@ namespace cryptoprime.VinKekFish
             step
             (
                 countOfRounds: R, tablesForPermutations: tablesForPermutations,
-                tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state, b: b, c: c
+                tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state2, b: b, c: c
             );
 
             if (key_length > dataLen)
@@ -179,7 +179,7 @@ namespace cryptoprime.VinKekFish
                 step
                 (
                     countOfRounds: RE, tablesForPermutations: tablesForPermutations,
-                    tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state, b: b, c: c
+                    tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state2, b: b, c: c
                 );
             }
         }
@@ -302,6 +302,8 @@ namespace cryptoprime.VinKekFish
             // Основной шаг алгоритма: раунды
             for (int round = 0; round < countOfRounds; round++)
             {
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2}", "k1");   // TODO: !!!
+
                 DoKeccakForAllBlocks(state, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state, state2, CryptoStateLen, tablesForPermutations);
                 tablesForPermutations += CryptoStateLen;
@@ -312,6 +314,8 @@ namespace cryptoprime.VinKekFish
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 tweakTmp[0] += 0x1_0000_0000U;
+
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2+1}", "k1");   // TODO: !!!
 
                 DoKeccakForAllBlocks(state2, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state2, state, CryptoStateLen, tablesForPermutations);
@@ -325,6 +329,8 @@ namespace cryptoprime.VinKekFish
                 // Каждый раунд берёт +2 к старшему 4-хбайтовому слову; +1 - после первой половины, и +1 - после второй половины
                 tweakTmp[0] += 0x1_0000_0000U;
             }
+
+            VinKekFish_Utils.Utils.MsgToFile($"final", "k1");   // TODO: !!!
 
             // После последнего раунда производится заключительная рандомизация поблочной функцией keccak-f
             for (int i = 0; i < 2; i++)
@@ -393,6 +399,7 @@ namespace cryptoprime.VinKekFish
                 Threefish_Static_Generated.Threefish1024_step(key: (ulong *) key, tweak: (ulong *) tweakTmp, text: (ulong *) cur);
 
                 tweakTmp[0] += 1;
+                tweakTmp[2]  = tweakTmp[0] ^ tweakTmp[1];
             }
         }
 
@@ -427,10 +434,14 @@ namespace cryptoprime.VinKekFish
             // vinkekfish.VinKekFish_k1_base_20210419.CheckPermutationTable(permutationTable, len, "DoPermutation.k1 function");
             #endif
 
-             for (int i = 0; i < len; i++)
-             {
+            for (int i = 0; i < len; i++)
+            {
                 target[i] = source[  permutationTable[i]  ];
-             }
+            }
+
+            // TODO: !!!
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) permutationTable, len*2, "k1");
+            VinKekFish_Utils.Utils.ArrayToFile(target, len, "k1");
         }
 
         public static ushort* transpose128_3200    = null;

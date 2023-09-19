@@ -356,7 +356,7 @@ namespace vinkekfish
             step
             (
                 countOfRounds: CountOfRounds, tablesForPermutations: pTablesHandle!,
-                tweak: t0!, tweakTmp: t1!, state: _state!, state2: _state!, b: _b!, c: _c!
+                tweak: t0!, tweakTmp: t1!, state: _state!, state2: _state2!, b: _b!, c: _c!
             );
 
             isHaveOutputData = true;

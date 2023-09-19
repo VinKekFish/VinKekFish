@@ -43,5 +43,25 @@
             <param name="len">Длина массива</param>
             <returns>Строка, закодированная в шестнадцатиричном виде</returns>
         </member>
+        <member name="M:VinKekFish_Utils.Utils.getLogFileName(System.String)">
+            <summary>Получает имя лог-файла в файловой системе для ArrayToFile</summary>
+            <param name="logName">Логическое имя лог-файла</param>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.ArrayToFile(System.Byte*,System.IntPtr,System.String)">
+            <summary>Записывает массив в файл</summary>
+            <param name="buffer">Массив для логирования</param>
+            <param name="len">Длина массива</param>
+            <param name="logName">Логическое имя лог-файла</param>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.ArrayToFile(System.Byte[],System.String)">
+            <summary>Записывает массив в файл</summary>
+            <param name="buffer">Массив для логирования</param>
+            <param name="logName">Логическое имя лог-файла</param>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.ArrayToFile(System.Int32[],System.String)">
+            <summary>Записывает массив в файл</summary>
+            <param name="buffer">Массив для логирования</param>
+            <param name="logName">Логическое имя лог-файла</param>
+        </member>
     </members>
 </doc>

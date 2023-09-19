@@ -58,6 +58,8 @@ namespace vinkekfish
             askedCountOfRounds <<= 1;
             for (int round = 0; round < askedCountOfRounds; round++)
             {
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round}", "KN");   // TODO: !!!
+
                 doKeccak();
                 doPermutation(TB); TB += Len;
 
@@ -69,6 +71,8 @@ namespace vinkekfish
                 // Каждый раунд берёт +2 к старшему 4-хбайтовому слову: +1 - после первого полураунда, и +1 - после второго полураунда
                 Tweaks[2+0] += 0x1_0000_0000U;  // Берём элемент [1], расположение tweak см. по метке :an6c5JhGzyOO
             }
+
+            VinKekFish_Utils.Utils.MsgToFile($"final", "KN");   // TODO: !!!
 
             // После последнего раунда производится заключительное преобразование (заключительная рандомизация) поблочной функцией keccak-f
             for (int i = 0; i < CountOfFinal; i++)
@@ -101,7 +105,7 @@ namespace vinkekfish
             lock (this)
             {
                 Clear();
-                tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len);
+                tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len, PreRoundsForTranspose: PreRoundsForTranspose);
                 isInit1    = true;
             }
 
@@ -151,8 +155,6 @@ namespace vinkekfish
                 InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailsBlock: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
                 isInit2 = true;
             }
-Console.WriteLine("n !!!!!!!!!!");
-            Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(st1, 256));
         }
                                                             /// <summary></summary>
         protected virtual void StartThreads()
@@ -217,7 +219,7 @@ Console.WriteLine("n !!!!!!!!!!");
                 if (OpenInitializationVector.len > MAX_OIV_K)
                     throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.InputKey: OpenInitializationVector > MAX_OIV");
 
-                byte len1 = (byte) OpenInitializationVector.len;
+                byte len1 = (byte)  OpenInitializationVector.len;
                 byte len2 = (byte) (OpenInitializationVector.len >> 8);
 
                 BytesBuilder.CopyTo(OpenInitializationVector.len, MAX_OIV_K, OpenInitializationVector, State1 + MAX_SINGLE_KEY_K + 2);

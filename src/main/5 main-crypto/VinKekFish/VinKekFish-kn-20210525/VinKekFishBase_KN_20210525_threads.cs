@@ -246,7 +246,7 @@ namespace vinkekfish
             CurrentThreeFishBlockNumber = 0;
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
             // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
-            BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, Len, CryptoStateLenExtension, Len);
+            BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, targetIndex: Len, count: CryptoStateLenExtension, index: 0);
 
             doFunction(ThreadFunction_ThreeFish);
             waitForDoFunction();
@@ -298,6 +298,10 @@ namespace vinkekfish
             ThreadFunction_Permutation();
             waitForDoFunction();
             isState1Main ^= true;
+
+            // TODO: !!!
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) CurrentPermutationTable, this.Len*2, "KN");
+            VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");
         }
 
         protected volatile int      CurrentPermutationBlockNumber = 0;

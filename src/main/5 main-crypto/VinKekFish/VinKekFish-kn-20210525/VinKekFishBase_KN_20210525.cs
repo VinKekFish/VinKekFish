@@ -89,7 +89,7 @@ namespace vinkekfish
         }
 
         /// <summary>Массив, устанавливающий номера ключевых блоков TreeFish для каждого трансформируемого блока</summary>
-        protected readonly int[]  NumbersOfThreeFishBlocks;                      
+        protected readonly int[] NumbersOfThreeFishBlocks;                      
         //                                                                               /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
         // protected readonly Timer? Timer                    = null; // Таймер нужно подвергнуть Dispose
 
