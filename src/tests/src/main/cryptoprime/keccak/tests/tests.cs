@@ -235,7 +235,7 @@ public class Keccak_sha_3_512_test_performance: TestTask
             );
 
 
-            const double maxK = 1.02;
+            const double maxK = 1.00;
 
             var k = st_etalon.TotalMilliseconds / st.TotalMilliseconds;
             this.Name += $" ({countBlocksForOneSecond:N0}; {k/maxK:F3})";
