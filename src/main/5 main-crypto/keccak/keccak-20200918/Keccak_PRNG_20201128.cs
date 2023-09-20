@@ -190,7 +190,8 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (INPUT.countOfBlocks > 0 || inputReady > 0)
         {
             INPUT.Clear();
-            Clear(true);
+            // Clear(true);
+            Clear();
             throw new ArgumentException("Keccak_PRNG_20201128.InputKeyAndStep: fatal algorithmic error. INPUT.countOfBlocks > 0", nameof(key));
         }
     }

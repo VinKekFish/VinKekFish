@@ -17,6 +17,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using static cryptoprime.BytesBuilderForPointers.Record;
 
 
+// Это не делаем, т.к. очень медленно. Если нужно исполить тест, нужно раскомментировать оба атрибута
 [TestTagAttribute("very_slow")]
 [TestTagAttribute("BytesBuilder_ForPointers", duration: 40*1e3, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
@@ -71,7 +72,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_par
 
 
 // [TestTagAttribute("inWork")]
-[TestTagAttribute("BytesBuilder_ForPointers", duration: 8500d)]
+[TestTagAttribute("BytesBuilder_ForPointers", duration: 8500d, singleThread: true)]
 /// <summary>Тест для BytesBuilderForPointers.Record
 /// Проверяет некоторые функции (создание, клонирование)</summary>
 public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_parent
@@ -110,7 +111,8 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
             }
 
             Check32Array(256*1024);           lst.Add(b);
-            Check32Array(1024 * 1024 * 1024);
+            // Check32Array(1024 * 1024 * 1024);    // Не всегда ему хватает памяти
+            Check32Array(1024 * 1024 * 384);
 
             return lst;
 

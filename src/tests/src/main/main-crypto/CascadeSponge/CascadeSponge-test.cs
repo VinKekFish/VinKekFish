@@ -18,6 +18,73 @@ using static cryptoprime.BytesBuilderForPointers;
 
 // [TestTagAttribute("inWork")]
 [TestTagAttribute("CascadeSponge", duration: 620, singleThread: false)]
+public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
+{
+    public CascadeSponge_1t_20230905_simpleTest2(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {
+        #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        this.parentSaver.canCreateFile = true;
+        #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+        #endif
+    }
+
+    public override DirectoryInfo setDirForFiles()
+    {
+        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+    }
+
+    protected unsafe class Saver: SaverParent
+    {
+        public CascadeSponge_1t_20230905? cascade;
+        public override List<string> ExecuteTest(AutoSaveTestTask task)
+        {
+            List<string> lst = new List<string>(16);
+
+            const int maxKeyLen = 8192;
+            var  key = stackalloc byte[maxKeyLen];
+            var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_simpleTest.Record" };
+            for (int i = 0; i < maxKeyLen; i += 2)
+            {
+                key[i + 0] = (byte) i;
+                key[i + 1] = (byte) (i >> 8);
+            }
+
+            const int DataLen = 1024;
+            var data = stackalloc byte[DataLen];
+            for (int i = 0; i < DataLen; i += 1)
+            {
+                data[i + 0] = (byte) (i*5);
+            }
+
+            // Инициализация губки минимальной стойкости
+            // Сразу же инициализируем ключи ThreeFish от основного ключа
+            using var cascade1 = new CascadeSponge_1t_20230905();
+            cascade1.initKeyAndOIV(rkey, null, 0);
+
+            // Вводим некоторые данные для шифрования или хеширования
+            cascade1.step(data: data, dataLen: DataLen);
+
+            // Получаем от губки информацию с одного шага из cascade1.lastOutput
+            addToList(lst, cascade1);
+
+            rkey.Dispose();
+            this.cascade = null;
+            task.doneFunc!();
+
+            return lst;
+
+            static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
+            {
+                // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+            }
+        }
+    }
+}
+
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 620, singleThread: false)]
 public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 {
     public CascadeSponge_1t_20230905_simpleTest(TestConstructor constructor):
@@ -52,7 +119,7 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 
             const int DataLen = 512;
             var data = stackalloc byte[DataLen];
-            for (int i = 0; i < 1024; i += 1)
+            for (int i = 0; i < DataLen; i += 1)
             {
                 data[i + 0] = (byte) (i*3);
             }

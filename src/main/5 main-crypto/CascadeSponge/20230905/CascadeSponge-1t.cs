@@ -37,8 +37,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public    readonly nint   countOfThreeFish_RC;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи и для шифрования выхода</summary>
     public    readonly nint   countOfThreeFish;                 /// <summary>Полная длина всех ключей ThreeFish в байтах. Равна countOfThreeFish * threefish_slowly.keyLen</summary>
     public    readonly nint   fullLengthOfThreeFishKeys;
-                                                                /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после ввода/вывода информации в шаге в генерации ключей</summary>
-    public    readonly nint   countStepsForKeyGeneration;       /// <summary>Количество шагов губки, которое пропускается после ввода/вывода информации в режиме повышенной стойкости (это меньше, чем countStepsForKeyGeneration)</summary>
+                                                                /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после ввода/вывода информации в шаге в генерации ключей. Пользователь может вводить это как параметр основного количества шагов в функции step (или как параметр ArmoringSteps; там можно вычесть 1) при генерации важных данных, таких как ключи шифрования.</summary>
+    public    readonly nint   countStepsForKeyGeneration;       /// <summary>Количество шагов губки, которое пропускается после ввода/вывода информации в режиме повышенной стойкости (это меньше, чем countStepsForKeyGeneration). Пользователь может вводить это как параметр ArmoringSteps в функции step для усиления криптостойкости сгенерированных данных, например, при шифровании важных данных, или один раз как основное количество холостых шагов перед вычислением имитовставки после шифрования</summary>
     public    readonly nint   countStepsForHardening;
 
     protected nint _countOfProcessedSteps = 0;                          /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
@@ -176,8 +176,10 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         strenghtInBytes            = tall*MaxInputForKeccak;
 
         // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
-        countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
-        countStepsForHardening     = (nint) 1;
+        // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+        // countStepsForHardening     = (nint) 1;
+        countStepsForKeyGeneration    = (nint) Math.Ceiling(  2*Math.Log2(tall) + 1  );
+        countStepsForHardening        = (nint) Math.Ceiling(  Math.Log2(tall)  );
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
         fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
