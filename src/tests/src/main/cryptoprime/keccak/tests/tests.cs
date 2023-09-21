@@ -197,6 +197,11 @@ public class Keccak_sha_3_512_test_performance: TestTask
             const int blocksCount = 1024;
             const int iterCount   = 1024;
 
+            // На всякий случай, чтобы GC не мешал работе теста
+            GC.Collect();
+            GC.WaitForFullGCComplete();
+            GC.WaitForPendingFinalizers();
+
             var msg = new byte[KeccakPrime.r_512b * blocksCount];  // blocksCount вхождений блока keccak
 
             var countBlocksForOneSecond = 0d;
