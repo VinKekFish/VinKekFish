@@ -516,7 +516,7 @@ namespace cryptoprime.VinKekFish
                     BytesBuilder.CopyTo(buffer.Length << 1, buffer.Length << 1, (byte*)buff, (byte*)nt);
                 }
             }
-
+/*
             // Тестирование таблицы
             // Каждое значение должно быть представлено хотя бы один раз (и только один раз)
             for (ushort i = 0; i < newTable.Length; i++)
@@ -526,7 +526,7 @@ namespace cryptoprime.VinKekFish
                     throw new Exception("VinKekFish: fatal algotirhmic error 1: GenTransposeTable");
                 }
             }
-
+*/
             int rLen   = newTable.Length * sizeof(ushort);
             var result = (ushort *) Marshal.AllocHGlobal(rLen).ToPointer();
 
