@@ -227,6 +227,9 @@ namespace vinkekfish
                 rState1.Clear();
                 rState2.Clear();
                 rTweaks.Clear();
+
+                output?.Clear();
+                isHaveOutputData = false;
             }
         }
 
@@ -265,14 +268,31 @@ namespace vinkekfish
                                                                             /// <summary>См. IsDisposed</summary>
         protected bool isDisposed =  false;                                 /// <summary>Если true, объект уничтожен и не пригоден к дальнейшему использованию</summary>
         public    bool IsDisposed => isDisposed;                            /// <summary>Очищает объект и освобождает все выделенные под него ресурсы</summary>
-        protected virtual void Dispose(bool dispose = true)
+        protected virtual void Dispose(bool fromDispose = true)
         {
             IsEnded = true;
             // lock (sync) Monitor.PulseAll(sync);
             // Свойство IsEnded уже вызывает PulseAll
 
             if (isDisposed)
+            {
+                Record.errorsInDispose = true;
+
+                var msg = "VinKekFishBase_KN_20210525: Dispose executed twiced";
+                if (fromDispose)
+                {
+                    if (Record.doExceptionOnDisposeTwiced)
+                    {
+                        throw new Exception(msg);
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine(msg);
+                    }
+                }
+
                 return;
+            }
 
             waitForDoFunction();
 
@@ -289,8 +309,10 @@ namespace vinkekfish
                 isDisposed = true;
             }
 
-            if (!dispose)
+            if (!fromDispose)
             {
+                Record.errorsInDispose = true;
+
                 var emsg = "VinKekFishBase_KN_20210525.Dispose: you must call Dispose() after use";
                 if (Record.doExceptionOnDisposeInDestructor)
                     throw new Exception(emsg);

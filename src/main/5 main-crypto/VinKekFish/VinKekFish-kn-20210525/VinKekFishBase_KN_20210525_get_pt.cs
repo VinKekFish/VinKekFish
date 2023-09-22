@@ -76,10 +76,10 @@ namespace vinkekfish
 
                 for (; PreRoundsForTranspose > 0 && Rounds > 0; Rounds--, PreRoundsForTranspose--)
                 {
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_8, r); CheckPermutationTable((ushort*)r, len1, "transpose200_8"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable((ushort*)r, len1, "transpose128.1"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , r); CheckPermutationTable((ushort*)r, len1, "transpose200.1"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable((ushort*)r, len1, "transpose128.2"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200_8, r); CheckPermutationTable_fast((ushort*)r, len1, "transpose200_8"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable_fast((ushort*)r, len1, "transpose128.1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , r); CheckPermutationTable_fast((ushort*)r, len1, "transpose200.1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable_fast((ushort*)r, len1, "transpose128.2"); r += len2;
                 }
 // TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду?
                 for (; Rounds > 0; Rounds--)
@@ -91,10 +91,10 @@ namespace vinkekfish
                     /*CheckPermutationTable(Table1, table1.Length);
                     CheckPermutationTable(Table2, table2.Length);*/
 
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,       r); CheckPermutationTable((ushort*)r, len1, "Table1"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,       r); CheckPermutationTable((ushort*)r, len1, "Table2"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200, r); CheckPermutationTable((ushort*)r, len1, "transpose200.3"); r += len2;
-                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128, r); CheckPermutationTable((ushort*)r, len1, "transpose128.3"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table1,       r); CheckPermutationTable_fast((ushort*)r, len1, "Table1"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)Table2,       r); CheckPermutationTable_fast((ushort*)r, len1, "Table2"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose200, r); CheckPermutationTable_fast((ushort*)r, len1, "transpose200.3"); r += len2;
+                    BytesBuilder.CopyTo(len2, len2, (byte*)transpose128, r); CheckPermutationTable_fast((ushort*)r, len1, "transpose128.3"); r += len2;
                 }
 
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table1);
@@ -131,28 +131,26 @@ namespace vinkekfish
         public static void CheckPermutationTable_fast(ushort* table, nint Length, string message = "")
         {
             var byteLen = 1 + Length >> 3;
-            var checkA  = new byte[byteLen];
-            fixed (byte * check = checkA)
+            var check   = stackalloc byte[(int) byteLen];
+
+            for (var i = 0; i < byteLen; i++)
+                check[i] = 0;
+
+            for (int i = 0; i < Length; i++)
             {
-                for (var i = 0; i < byteLen; i++)
-                    check[i] = 0;
+                var val = table[i];
+                if (val >= Length)
+                    throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} is incorrect (too big, Length={Length}). {message}");
+                if (BitToBytes.getBit(check, val))
+                    throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} found twice. {message}");
 
-                for (int i = 0; i < Length; i++)
-                {
-                    var val = table[i];
-                    if (val >= Length)
-                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} is incorrect (too big). {message}");
-                    if (BitToBytes.getBit(check, val))
-                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} found twice. {message}");
+                BitToBytes.setBit(check, val);
+            }
 
-                    BitToBytes.setBit(check, val);
-                }
-
-                for (int i = 0; i < Length; i++)
-                {
-                    if (!BitToBytes.getBit(check, i))
-                        throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {i} not found. {message}");
-                }
+            for (int i = 0; i < Length; i++)
+            {
+                if (!BitToBytes.getBit(check, i))
+                    throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {i} not found. {message}");
             }
         }
 
@@ -168,10 +166,10 @@ namespace vinkekfish
             }
         }
 
-
-        public static ushort* transpose128   = null;
-        public static ushort* transpose200   = null;
-        public static ushort* transpose200_8 = null;
+        // Эти таблицы теперь не статические, т.к. для каждого K эти таблицы разные
+        public ushort* transpose128   = null;
+        public ushort* transpose200   = null;
+        public ushort* transpose200_8 = null;
 
         public void GenTables()
         {
@@ -197,10 +195,10 @@ namespace vinkekfish
                 throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[8] != 1600");
             if (transpose200[LenInKeccak] != 1)
                 throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[LenInKeccak] != 1");
-            if (transpose200[400] != 25)
-                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[400] != 25");
-            if (transpose200_8[2800] != 07)
-                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200_8[2800] != 07");
+            if (transpose200[LenInKeccak*LenInThreeFish] != LenInThreeFish)
+                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[LenInKeccak*LenInThreeFish] != LenInThreeFish");
+            if (transpose200_8[200*(LenInKeccak - K*2)] != 07)
+                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200_8[200*(LenInKeccak - K*2)] != 07");
         }
     }
 }

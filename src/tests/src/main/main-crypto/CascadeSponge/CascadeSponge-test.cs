@@ -330,9 +330,6 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 
     public void Test()
     {
-        BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor = false;
-        BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced       = false;
-
         // Проверка расчёта параметров каскадной губки
         nint _wide = 0;
         CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: ref _wide);

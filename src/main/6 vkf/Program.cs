@@ -8,10 +8,17 @@ using Memory = VinKekFish_Utils.Memory;
 using static VinKekFish_Utils.Memory;
 using static VinKekFish_Utils.Language;
 
+
 public partial class Program
 {
     public static int Main(string[] args)
     {
+        // Ниже, после возврата из программы, просто проверим Record.errorsInDispose
+        // Если надо - выдадим ошибку. Плюс, в stderr всё равно выдастся сообщение, если где-то забыта память
+        cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor = false;
+        cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced       = false;
+
+        // Переходим к выполнению основной программы и обработке ошибок
         try
         {
             return (int) Main_ec(args);
@@ -22,6 +29,7 @@ public partial class Program
             {
                 // Пытаемся искусственно спровоцировать вызов деструкторов
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
+                int cnt = 1024;
                 for (int i = 0; i < 2; i++)
                 {
                     try
@@ -34,13 +42,20 @@ public partial class Program
                     catch (Exception iex)
                     {
                         Console.Error.WriteLine(formatException(iex));
-                        i--;
+                        if (cnt > 0)
+                            i--;
+                        cnt--;
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(formatException(ex));
+            }
+
+            if (cryptoprime.BytesBuilderForPointers.Record.errorsInDispose)
+            {
+                Console.Error.WriteLine(L("Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose"));
             }
 
             if (VinKekFish_Utils.Memory.allocatedMemory != 0)

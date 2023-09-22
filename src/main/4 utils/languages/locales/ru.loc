@@ -21,5 +21,7 @@ See an example of a config file in the program packet
 Not implemented
     Пока не реализовано
 Error: leaked memory in mmap: 
-    Ошибка: утечка памяти в mmap: 
+    Ошибка при завершении работы программы: обнаружена утечка памяти в mmap: 
+Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+    Ошибка при завершении работы программы: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
 :

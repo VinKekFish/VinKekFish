@@ -428,6 +428,9 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Free">
             <summary>Вызывает Dispose(true)</summary>
         </member>
+        <member name="P:cryptoprime.BytesBuilderForPointers.Record.errorsInDispose">
+            <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено.</summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Dispose(System.Boolean)">
             <summary>Очищает массив и освобождает выделенную под него память</summary>
             <param name="disposing">true, если вызов происходит из-вне деструктора</param>

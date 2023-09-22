@@ -263,6 +263,18 @@ namespace cryptoprime
                 Dispose(true);
             }
 
+            protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено.</summary>
+            public    static          bool  errorsInDispose
+            {
+                get => _errorsInDispose;
+                set
+                {
+                    _errorsInDispose = true;
+                    if (!value)
+                        throw new ArgumentOutOfRangeException("Record: errorsInDispose can be set only to true");
+                }
+            }
+
             /// <summary>Очищает массив и освобождает выделенную под него память</summary>
             /// <param name="disposing">true, если вызов происходит из-вне деструктора</param>
             protected virtual void Dispose(bool disposing)
@@ -272,6 +284,7 @@ namespace cryptoprime
                     if (disposing == false)
                         return;
 
+                    errorsInDispose = true;
                     var msg = $"BytesBuilderForPointers.Record Dispose() executed twice. For Record with Name: {Name}";
                     if (doExceptionOnDisposeTwiced)
                         throw new Exception(msg);
@@ -316,6 +329,8 @@ namespace cryptoprime
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
                 {
+                    errorsInDispose = true;
+
                     var msg = $"BytesBuilderForPointers.Record ~Record() executed with a not disposed Record. For Record with Name: {Name}";
                     if (doExceptionOnDisposeInDestructor)
                         throw new Exception(msg);
@@ -773,7 +788,15 @@ namespace cryptoprime
             ~AllocHGlobal_AllocatorForUnsafeMemory()
             {
                 if (_memAllocated > 0)
-                    throw new Exception("~AllocHGlobal_AllocatorForUnsafeMemory: Allocator have memory this not been freed");
+                {
+                    Record.errorsInDispose = true;
+                    var msg = "~AllocHGlobal_AllocatorForUnsafeMemory: Allocator have memory this not been freed";
+
+                    if (Record.doExceptionOnDisposeInDestructor)
+                        throw new Exception(msg);
+                    else
+                        Console.Error.WriteLine(msg);
+                }
             }
         }
 

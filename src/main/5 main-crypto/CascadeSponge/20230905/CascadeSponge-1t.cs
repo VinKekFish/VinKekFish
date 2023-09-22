@@ -1,6 +1,7 @@
 // TODO: tests
 namespace vinkekfish;
 
+using System.Diagnostics.Tracing;
 using cryptoprime;
 using maincrypto.keccak;
 using static cryptoprime.BytesBuilderForPointers;
@@ -402,8 +403,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var d = isDisposed;
         if (isDisposed)
         {
+            Record.errorsInDispose = true;
+
+            var msg = "CascadeSponge_1t_20230905: Dispose executed twiced";
             if (!fromDestructor)
-                throw new CascadeSpongeException("CascadeSponge_1t_20230905: Dispose executed twiced");
+            {
+                if (Record.doExceptionOnDisposeTwiced)
+                {
+                    throw new CascadeSpongeException(msg);
+                }
+                else
+                {
+                    Console.Error.WriteLine(msg);
+                }
+            }
 
             return;
         }
@@ -423,6 +436,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         isDisposed = true;
         if (fromDestructor && !d)
         {
+            Record.errorsInDispose = true;
+
             var emsg = "CascadeSponge_1t_20230905: Object not disposed correctly (Dispose from destructor)";
             if (Record.doExceptionOnDisposeInDestructor)
                 throw new CascadeSpongeException(emsg);

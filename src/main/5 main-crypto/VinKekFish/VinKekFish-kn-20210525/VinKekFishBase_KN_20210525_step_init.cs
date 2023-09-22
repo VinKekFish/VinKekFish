@@ -26,7 +26,7 @@ namespace vinkekfish
 
 
         /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish</remarks>
-        /// <param name="askedCountOfRounds">Количество раундов. См. </param>
+        /// <param name="askedCountOfRounds">Количество раундов.</param>
         public void step(int askedCountOfRounds = -1)
         {
             if (askedCountOfRounds > CountOfRounds)
@@ -153,6 +153,7 @@ namespace vinkekfish
                 StartThreads();
 
                 InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailsBlock: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
+                output?.Clear();
                 isInit2 = true;
             }
         }

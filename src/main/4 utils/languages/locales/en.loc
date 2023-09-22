@@ -21,5 +21,7 @@ See an example of a config file in the program packet
 Not implemented
     Not implemented
 Error: leaked memory in mmap: 
-    Error: leaked memory in mmap: 
+    Error at the end of the program: leaked memory in mmap: 
+Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+    Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
 :

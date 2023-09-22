@@ -8,6 +8,11 @@ class Program
 {
     static void Main(string[] args)
     {
+        // Эти исключения иногда мешают ловить ошибки, сбрасывая весь DriverForTests
+        // Вместо исключений предусмотрена проверка после тестов значения errorsInDispose
+        BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced       = false;
+        BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor = false;
+
         var driver = new DriverForTests();
 
         var tc = new MainTestConstructor();
@@ -25,6 +30,14 @@ class Program
                 doKeepLogFile            = false // || true
             }
         );
+
+        // Проверяем, что все деструкторы Record отработали без ошибок
+        if (BytesBuilderForPointers.Record.errorsInDispose)
+        {
+            Console.WriteLine("!!! ERROR !!!");
+            Console.WriteLine("BytesBuilderForPointers.Record.errorsInDispose is true");
+        }
+
 /*
         VinKekFish_Utils.Memory.alloc(1);
         VinKekFish_Utils.Memory.alloc(1);

@@ -16,8 +16,8 @@ namespace vinkekfish
 {
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
-        /// <summary>Сюда выводятся данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (перезаписать null), либо в Displose автоматически. Если ёмкости не хватает, новые данные перезаписывают старые</summary>
-        public    BytesBuilderStatic? output      = null;    /// <summary>Отсюда вводятся в криптографическое состояние данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (перезаписать null), либо в Displose автоматически</summary>
+        /// <summary>Сюда выводятся данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (вызвать Dispose и перезаписать в null указатель), либо в Displose автоматически. Если ёмкости не хватает, новые данные перезаписывают старые.</summary>
+        public    BytesBuilderStatic? output      = null;    /// <summary>Отсюда вводятся в криптографическое состояние данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (вызвать Dispose и перезаписать в null указатель), либо в Displose автоматически</summary>
         public    BytesBuilderStatic? input       = null;
         protected Record?             inputRecord = null;
 
@@ -30,7 +30,9 @@ namespace vinkekfish
                 outputLen = BLOCK_SIZE_K;
             else
             if (outputLen > BLOCK_SIZE_K)
-                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStep: outputLen > BLOCK_SIZE_K");
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: outputLen > BLOCK_SIZE_K");
+            if (countOfRounds < MIN_ROUNDS_K)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: countOfRounds < MIN_ROUNDS_K");
 
             if (input != null)
             lock (input)
@@ -56,13 +58,16 @@ namespace vinkekfish
             if (output != null)
             lock (output)
             {
+                if (!isHaveOutputData)
+                    throw new Exception("VinKekFishBase_KN_20210525.doStepAndIO: !isHaveOutputData");
+
                 isHaveOutputData = false;
                 // Если новые данные уже не смогут поместиться в буфер
                 if (output.Count + outputLen > output.size)
                 {
-                    // var freePlace = output.size - output.Count;
-                    // output.RemoveBytes(outputLen - freePlace);
-                    throw new ArgumentOutOfRangeException("outputLen", "VinKekFishBase_KN_20210525.doStepAndIO: output.Count + outputLen > output.size");
+                    var freePlace = output.size - output.Count;
+                    output.RemoveBytes(outputLen - freePlace);
+                    // throw new ArgumentOutOfRangeException("outputLen", "VinKekFishBase_KN_20210525.doStepAndIO: output.Count + outputLen > output.size");
                 }
                 output.add(this.st1, outputLen);
             }

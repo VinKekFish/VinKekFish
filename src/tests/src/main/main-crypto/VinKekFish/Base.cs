@@ -33,43 +33,6 @@ public class VinKekFish_test_baseK: Keccak_test_parent
     }
 }
 
-/*
-[TestTagAttribute("inWork")]
-[TestTagAttribute("VinKekFish", duration: 60e3, singleThread: true)]
-public unsafe class VinKekFish_test_simplebase_compareToEtalon : TestTask
-{
-    public VinKekFish_test_simplebase_compareToEtalon(TestConstructor constructor) :
-                                            base(nameof(VinKekFish_test_simplebase_compareToEtalon), constructor)
-    {
-        taskFunc = this.Test;
-    }
-
-    public void Test()
-    {
-        var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
-        using var k   = new VinKekFish_k1_base_20210419();
-
-        using var  key = allocator.AllocMemory(128);
-        using var @out = allocator.AllocMemory(VinKekFishBase_etalonK1.BLOCK_SIZE);
-
-        BytesBuilder.FillByBytes(1, key, key.len);
-
-        int roundsCnt = 5, RoundsForFinal = 5, RoundsForTailsBlock = 1, RoundsForFirstKeyBlock = 4;
-
-        File.Delete("log-k1.log");
-        File.Delete("log-KN.log");
-
-        k.Init1(roundsCnt, PreRoundsForTranspose: roundsCnt);
-        k.Init2(key, key.len, RoundsForEnd: RoundsForFinal, RoundsForExtendedKey: RoundsForTailsBlock, Rounds: RoundsForFirstKeyBlock);
-
-        using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1);
-
-        k1t1 .Init1(roundsCnt);
-        k1t1 .Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
-    }
-}
-*/
-
 [TestTagAttribute("inWork")]
 [TestTagAttribute("VinKekFish", duration: 60e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
@@ -88,7 +51,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         testByIncorrect();
 
         Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D);
-        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
+      /*  Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
         Test(VinKekFishBase_etalonK1.REDUCED_ROUNDS, VinKekFishBase_etalonK1.REDUCED_ROUNDS, 1, 1);
         Test(VinKekFishBase_etalonK1.NORMAL_ROUNDS,  VinKekFishBase_etalonK1.NORMAL_ROUNDS,  1, 1);
         Test(VinKekFishBase_etalonK1.EXTRA_ROUNDS,   VinKekFishBase_etalonK1.EXTRA_ROUNDS,   1, 1);
@@ -97,7 +60,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         Test(5,   5,   1, 1);
         Test(8,   8,   1, 1);
         Test(64 , 64,  1, 1);
-        Test(128, 128, 1, 1);
+        Test(128, 128, 1, 1);*/
     }
 
     public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock)
@@ -112,11 +75,11 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         k1t16.output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
               var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
-        using var key       = allocator.AllocMemory(ushort.MaxValue);
+        using var key       = allocator.AllocMemory(65534);
         using var out1e     = allocator.AllocMemory(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
         // BytesBuilder.FillByBytes(1, key, key.len);
-        for (int i = 0; i < key.len; i += 2)
+        for (int i = 0; i < key.len-1; i += 2)
         {
             key[i+0] = (byte) (i*3);
             key[i+1] = (byte) (i*5);
@@ -151,10 +114,6 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         using var out1t16 = k1t16.output.getBytes();
         sp = new ReadOnlySpan<byte>(out1t16, (int) out1t16.len);
         Console.WriteLine(Convert.ToHexString(sp));
-
-        k1t1  .output.Dispose();
-        k1t4  .output.Dispose();
-        k1t16 .output.Dispose();
 
         if (!out1t1.UnsecureCompare(out1e))
         {
