@@ -34,7 +34,7 @@ public class VinKekFish_test_baseK: Keccak_test_parent
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("VinKekFish", duration: 60e3, singleThread: true)]
+[TestTagAttribute("VinKekFish", duration: 15e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 {
     public VinKekFish_test_base_compareToEtalon(TestConstructor constructor) :
@@ -48,34 +48,42 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         File.Delete("log-k1.log");
         File.Delete("log-KN.log");
 
+        var keyLen = 128;
+        ConstantRoundsTests(keyLen);
+        keyLen = VinKekFishBase_etalonK1.CryptoStateLen + VinKekFishBase_etalonK1.BLOCK_SIZE * 2 + 2;  // Длина ключа должна быть чётной, т.к. мы дальше инициализируем ключ так, как будто его длина чётная
+        ConstantRoundsTests(keyLen);
+
         testByIncorrect();
-
-        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D);
-      /*  Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1);
-        Test(VinKekFishBase_etalonK1.REDUCED_ROUNDS, VinKekFishBase_etalonK1.REDUCED_ROUNDS, 1, 1);
-        Test(VinKekFishBase_etalonK1.NORMAL_ROUNDS,  VinKekFishBase_etalonK1.NORMAL_ROUNDS,  1, 1);
-        Test(VinKekFishBase_etalonK1.EXTRA_ROUNDS,   VinKekFishBase_etalonK1.EXTRA_ROUNDS,   1, 1);
-        Test(VinKekFishBase_etalonK1.MAX_ROUNDS,     VinKekFishBase_etalonK1.MAX_ROUNDS,     1, 1);
-
-        Test(5,   5,   1, 1);
-        Test(8,   8,   1, 1);
-        Test(64 , 64,  1, 1);
-        Test(128, 128, 1, 1);*/
     }
 
-    public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock)
+    private void ConstantRoundsTests(int keyLen)
+    {
+        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, keyLen);
+        Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1, keyLen);
+        Test(VinKekFishBase_etalonK1.REDUCED_ROUNDS, VinKekFishBase_etalonK1.REDUCED_ROUNDS, 1, 1, keyLen);
+        Test(VinKekFishBase_etalonK1.NORMAL_ROUNDS,  VinKekFishBase_etalonK1.NORMAL_ROUNDS,  1, 1, keyLen);
+        Test(VinKekFishBase_etalonK1.EXTRA_ROUNDS,   VinKekFishBase_etalonK1.EXTRA_ROUNDS,   1, 1, keyLen);
+        Test(VinKekFishBase_etalonK1.MAX_ROUNDS,     VinKekFishBase_etalonK1.MAX_ROUNDS,     1, 1, keyLen);
+
+        Test(  5,   5, 1, 1, keyLen);
+        Test(  8,   8, 1, 1, keyLen);
+        Test( 64,  64, 1, 1, keyLen);
+        Test(128, 128, 1, 1, keyLen);
+    }
+
+    public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock, int keyLen)
     {
         using var k1e   = new VinKekFish_k1_base_20210419();
         using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1);
-        using var k1t4  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 4);
-        using var k1t16 = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 16);
+        using var k1t4  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: Environment.ProcessorCount);
+        using var k1t16 = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: Environment.ProcessorCount*4);
 
         k1t1 .output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
         k1t4 .output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
         k1t16.output  = new BytesBuilderStatic(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
               var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
-        using var key       = allocator.AllocMemory(65534);
+        using var key       = allocator.AllocMemory(keyLen);
         using var out1e     = allocator.AllocMemory(VinKekFishBase_etalonK1.BLOCK_SIZE);
 
         // BytesBuilder.FillByBytes(1, key, key.len);
@@ -101,31 +109,27 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         k1e .outputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);
-        Console.WriteLine(Convert.ToHexString(sp));
 
         using var out1t1 = k1t1 .output.getBytes();
         sp = new ReadOnlySpan<byte>(out1t1, (int) out1t1.len);
-        Console.WriteLine(Convert.ToHexString(sp));
 
         using var out1t4 = k1t4 .output.getBytes();
         sp = new ReadOnlySpan<byte>(out1t4, (int) out1t4.len);
-        Console.WriteLine(Convert.ToHexString(sp));
 
         using var out1t16 = k1t16.output.getBytes();
         sp = new ReadOnlySpan<byte>(out1t16, (int) out1t16.len);
-        Console.WriteLine(Convert.ToHexString(sp));
 
         if (!out1t1.UnsecureCompare(out1e))
         {
-            throw new Exception($"!out1t1.UnsecureCompare(out1e) {roundsCnt}");
+            throw new Exception($"!out1t1.UnsecureCompare(out1e) {roundsCnt}, {keyLen}");
         }
         if (!out1t4.UnsecureCompare(out1e))
         {
-            throw new Exception($"!out1t4.UnsecureCompare(out1e) {roundsCnt}");
+            throw new Exception($"!out1t4.UnsecureCompare(out1e) {roundsCnt}, {keyLen}");
         }
         if (!out1t16.UnsecureCompare(out1e))
         {
-            throw new Exception($"!out1t16.UnsecureCompare(out1e) {roundsCnt}");
+            throw new Exception($"!out1t16.UnsecureCompare(out1e) {roundsCnt}, {keyLen}");
         }
     }
 
@@ -134,7 +138,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         int incorrect = 0;
         try
         {
-            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS);
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 128);
             incorrect += 1;
             // this.error.Add();
         }
@@ -143,7 +147,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         try
         {
-            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 1, VinKekFishBase_etalonK1.MAX_ROUNDS);
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 0, VinKekFishBase_etalonK1.MAX_ROUNDS, 128);
             incorrect += 2;
         }
         catch
@@ -151,7 +155,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         try
         {
-            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 1);
+            Test(VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, VinKekFishBase_etalonK1.MAX_ROUNDS, 0, 128);
             incorrect += 4;
         }
         catch

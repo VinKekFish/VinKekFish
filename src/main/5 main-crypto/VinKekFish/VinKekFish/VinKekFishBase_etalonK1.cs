@@ -58,21 +58,20 @@ namespace cryptoprime.VinKekFish
         /// <param name="tweakTmp">Вспомогательный массив для хранения tweak (длина CryptoTweakLen)</param>
         /// <param name="tweakTmp2">Второй вспомогательный массив для хранения tweak (длина CryptoTweakLen)</param>
         /// <param name="Initiated"> При пользовательском вызове всегда false. Если <see langword="false"/>, то state инициализированно, но никакие данные не вводились. Если true, то в state уже вводились данные: например, другой ключ. Если false - идёт перезапись. Если <see langword="true"/> - поглощение через xor</param>
-        /// <param name="SecondKey">При пользовательском вызове всегда false. Вторичный отрезок ключа: при рекурсивном вызове этот параметр равен true, означая, что идёт поглощение следующих за первым отрезков ключей</param>
+        /// <param name="ExtendedKey">При пользовательском вызове всегда false. Вторичный отрезок ключа: при рекурсивном вызове этот параметр равен true, означая, что идёт поглощение следующих за первым отрезков ключей</param>
         /// <param name="R">Количество раундов для первого поглощения. Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
         /// <param name="RE">Количество раундов для отбоя после поглощения всего ключа (не рекомендуется делать низким). Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
         /// <param name="RM">Количество раундов для поглощения дополнительных участков ключа (можно сделать низким, например, REDUCED_ROUNDS). Таблицы перестановок должны быть проинициализированны для нужного количества раундов</param>
         /// <param name="tablesForPermutations">Таблицы перестановок для всех раундов</param>
-        /// <param name="transpose200_3200">Таблица перестановок transpose200_3200, см. GenTables()</param>
-        public static void InputKey(byte * key, nint key_length, byte * OIV, nint OIV_length, byte * state, byte * state2, byte * b, byte *c, ulong * tweak, ulong * tweakTmp, ulong * tweakTmp2, bool Initiated, bool SecondKey, int R, int RE, int RM, ushort * tablesForPermutations, ushort * transpose200_3200, ushort * transpose200_3200_8)
+        public static void InputKey(byte * key, nint key_length, byte * OIV, nint OIV_length, byte * state, byte * state2, byte * b, byte *c, ulong * tweak, ulong * tweakTmp, ulong * tweakTmp2, bool Initiated, bool ExtendedKey, int R, int RE, int RM, ushort * tablesForPermutations)
         {
-            if (SecondKey && OIV != null)
+            if (ExtendedKey && OIV != null)
                 throw new ArgumentException("SecondKey && OIV", "VinKekFishBase_etalonK1.InputKey: SecondKey && OIV != null");
 
-            if (SecondKey && RE != 0)
+            if (ExtendedKey && RE != 0)
                 throw new ArgumentOutOfRangeException("SecondKey && RE", "VinKekFishBase_etalonK1.InputKey: SecondKey && RE != 0");
 
-            if (SecondKey != Initiated)
+            if (ExtendedKey != Initiated)
                 throw new ArgumentOutOfRangeException("SecondKey", "VinKekFishBase_etalonK1.InputKey: SecondKey != Initiated");
 
             if (OIV == null && OIV_length != 0)
@@ -89,20 +88,19 @@ namespace cryptoprime.VinKekFish
 
             if (R < MIN_ABSORPTION_ROUNDS_D)
                 throw new ArgumentOutOfRangeException("R", "VinKekFishBase_etalonK1.InputKey: R < MIN_ABSORPTION_ROUNDS_D");
-            if (RE < MIN_ROUNDS && !SecondKey)
+            if (RE < MIN_ROUNDS && !ExtendedKey)
                 throw new ArgumentOutOfRangeException("RE", "VinKekFishBase_etalonK1.InputKey: RE < MIN_ROUNDS && !SecondKey");
+
 
             var dataLen = key_length;
             var data    = key;
-            if (SecondKey)
+            if (ExtendedKey)
             {
                 if (dataLen > BLOCK_SIZE)
                     dataLen = BLOCK_SIZE;
 
-                for (nint i = 0; i < dataLen; i++, data++)
-                {
-                    state[i+2] ^= *data;
-                }
+                InputData_Xor(data, state, dataLen, tweak, regime: 0);
+                data += dataLen;
             }
             else
             {
@@ -113,21 +111,14 @@ namespace cryptoprime.VinKekFish
                 {
                     state[i+2] = *data;
                 }
-            }
 
-            byte len1 = (byte) dataLen;
-            byte len2 = (byte) (dataLen >> 8);
+                byte len1 = (byte) dataLen;
+                byte len2 = (byte) (dataLen >> 8);
 
-            state[0] ^= len1;
-            state[1] ^= len2;
-
-            tweak[0] += TWEAK_STEP_NUMBER;
-
-            // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex((byte*) tweak, 256));
-
-            if (!SecondKey)
-            {
-                tweak[1] += (ulong) key_length;
+                state[0] ^= len1;
+                state[1] ^= len2;
+                tweak[0] += TWEAK_STEP_NUMBER;
+                tweak[1] += (ulong) dataLen;
 
                 if (OIV != null && OIV_length > 0)
                 {
@@ -139,7 +130,7 @@ namespace cryptoprime.VinKekFish
 
                     for (nint i = 0; i < OIV_length; i++, OIV++)
                     {
-                        state[i+2052] = *((byte *) OIV);
+                        state[i+2052] = *OIV;
                     }
                 }
             }
@@ -158,8 +149,8 @@ namespace cryptoprime.VinKekFish
                     key:        data,
                     key_length: key_length - dataLen,
 
-                    SecondKey:  true,
-                    Initiated:  true,
+                    ExtendedKey:  true,
+                    Initiated:    true,
 
                     OIV:        null,
                     OIV_length: 0,
@@ -168,12 +159,12 @@ namespace cryptoprime.VinKekFish
                     RM:         RM,
                     RE:         0,
 
-                    state: state, state2: state2, tweak: tweak, tweakTmp: tweakTmp, tweakTmp2: tweakTmp2, b: b, c: c, tablesForPermutations: tablesForPermutations, transpose200_3200: transpose200_3200, transpose200_3200_8: transpose200_3200_8
+                    state: state, state2: state2, tweak: tweak, tweakTmp: tweakTmp, tweakTmp2: tweakTmp2, b: b, c: c, tablesForPermutations: tablesForPermutations
                 );
             }
 
             // Завершаем ввод ключа отбоем. Т.к. вызов функции рекурсивный, отбой происходит только в самой верхней функции - SecondKey = false
-            if (!SecondKey)
+            if (!ExtendedKey)
             {
                 InputData_Overwrite(data: null, state: state, dataLen: 0, tweak: tweak, regime: 255);
                 step
@@ -194,7 +185,7 @@ namespace cryptoprime.VinKekFish
         public static void InputData_Overwrite(byte * data, byte * state, ulong dataLen, ulong * tweak, byte regime, bool nullPaddding = true)
         {
             if (dataLen > BLOCK_SIZE)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("dataLen", "InputData_Overwrite: dataLen > BLOCK_SIZE");
 
             ulong i = 0;
             for (; i < dataLen; i++, data++)
@@ -289,9 +280,13 @@ namespace cryptoprime.VinKekFish
         {
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];
+
             #if SUPER_CHECK_PERMUTATIONS
             vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(tablesForPermutations, countOfRounds, CryptoStateLen, "before step");
             #endif
+
+            VinKekFish_Utils.Utils.MsgToFile($"round started {countOfRounds}", "k1");   // TODO: !!!
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) tweakTmp, 16, "k1");   // TODO: !!!
 
             // Распределение впитывания (Предварительное преобразование)
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
@@ -433,6 +428,8 @@ namespace cryptoprime.VinKekFish
             #if SUPER_CHECK_PERMUTATIONS
             // vinkekfish.VinKekFish_k1_base_20210419.CheckPermutationTable(permutationTable, len, "DoPermutation.k1 function");
             #endif
+
+            VinKekFish_Utils.Utils.ArrayToFile(source, len, "k1");  // TODO: !!!
 
             for (int i = 0; i < len; i++)
             {

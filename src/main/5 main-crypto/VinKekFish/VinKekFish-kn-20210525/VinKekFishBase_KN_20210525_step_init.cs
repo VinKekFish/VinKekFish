@@ -46,6 +46,9 @@ namespace vinkekfish
             Tweaks[2+0] = Tweaks[0+0];
             Tweaks[2+1] = Tweaks[0+1];
 
+            VinKekFish_Utils.Utils.MsgToFile($"round started {askedCountOfRounds}", "KN");   // TODO: !!!
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) Tweaks, 16, "KN");   // TODO: !!!
+
             // Предварительное преобразование
             doPermutation(transpose128);
             doThreeFish();
@@ -119,7 +122,7 @@ namespace vinkekfish
         /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ</param>
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
         /// <param name="RoundsForTailsBlock">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
-        /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
+        /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость - это рекомендуется и это по умолчанию)</param>
         public virtual void Init2(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true)
         {
             if (RoundsForFinal < 0)
@@ -152,7 +155,7 @@ namespace vinkekfish
                 ClearState();
                 StartThreads();
 
-                InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailsBlock: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
+                InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailBlocks: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
                 output?.Clear();
                 isInit2 = true;
             }
@@ -164,6 +167,13 @@ namespace vinkekfish
             {
                 if (t.ThreadState != ThreadState.Running && t.ThreadState != ThreadState.WaitSleepJoin)
                     t.Start();
+            }
+
+            // Ожидаем запуска потоков
+            lock (sync)
+            while (ThreadsExecuted < ThreadCount && !isEnded)
+            {
+                Monitor.Wait(sync);
             }
         }
 
@@ -192,18 +202,26 @@ namespace vinkekfish
             }
         }
 
-        /// <summary>Функция ввода ключа. Используйте Init2 вместо этой функции</summary>
+        /// <summary>Функция ввода ключа. Используйте Init2 вместо этой функции. Эта функция вызывается в начале использования для инициализации. После начала использования она испортит губку.</summary>
         /// <param name="key">Основной ключ алгоритма</param>
         /// <param name="OpenInitializationVector">Основной ОВИ (открытый вектор инициализации), не более чем MAX_OIV_K байтов</param>
         /// <param name="TweakInit">Инициализатор Tweak (дополнительная синхропосылка), может быть null или инициализирован нулями</param>
         /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ</param>
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
-        /// <param name="RoundsForTailsBlock">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
+        /// <param name="RoundsForTailBlocks">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
-        protected virtual void InputKey(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailsBlock = MIN_ROUNDS, bool FinalOverwrite = true)
+        protected virtual void InputKey(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailBlocks = MIN_ROUNDS, bool FinalOverwrite = true)
         {
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputKey: Fatal algorithmic error: !State1Main");
+
+            if (RoundsForFinal < MIN_ROUNDS_K)
+                throw new ArgumentOutOfRangeException("RoundsForFinal", $"VinKekFishBase_KN_20210525.InputKey: RoundsForFinal < MIN_ROUNDS_K ({RoundsForFinal} < {MIN_ROUNDS_K})");
+            if (RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K)
+                throw new ArgumentOutOfRangeException("RoundsForFirstKeyBlock", $"VinKekFishBase_KN_20210525.InputKey: RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForFirstKeyBlock} < {MIN_ABSORPTION_ROUNDS_D_K})");
+            if (RoundsForTailBlocks < MIN_ABSORPTION_ROUNDS_D_K)
+                throw new ArgumentOutOfRangeException("RoundsForTailsBlock", $"VinKekFishBase_KN_20210525.InputKey: RoundsForTailsBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForTailBlocks} < {MIN_ABSORPTION_ROUNDS_D_K})");
+
 // TODO: проверить в тестах, что все инициализаторы действительно используются
             if (TweakInit != null && TweakInit.len >= CryptoTweakLen)
             {
@@ -255,21 +273,14 @@ namespace vinkekfish
             {
                 dt = keyLen;
                 if (dt > BLOCK_SIZE_K)
-                {
                     dt = BLOCK_SIZE_K;
-                }
 
-                byte len1 = (byte) dt;
-                byte len2 = (byte) (dt >> 8);
-                State1[0] ^= len1;
-                State1[1] ^= len2;
-
-                XorWithBytes(dt, TailOfKey, State1 + 2);
+                InputData_Xor(TailOfKey, dt, regime: 0);
 
                 keyLen    -= dt;
                 TailOfKey += dt;
 
-                step(RoundsForTailsBlock);
+                step(RoundsForTailBlocks);
             }
 
             // После инициализации обнуляем часть данных для обеспечения необратимости
@@ -289,6 +300,7 @@ namespace vinkekfish
         public static void XorWithBytes(long len, byte * s, byte * t)
         {
             var len8 = len >> 3;
+                len -= len8 << 3;
             var s8   = (ulong*) s;
             var t8   = (ulong*) t;
 
@@ -298,7 +310,6 @@ namespace vinkekfish
                 t8++; s8++; len8--;
             }
 
-            len -= len8 << 3;
             s = (byte *) s8;
             t = (byte *) t8;
             while (len > 0)
@@ -307,7 +318,7 @@ namespace vinkekfish
                 t++; s++; len--;
             }
         }
-// TODO: Сделать ввод через xor параллельным
+
         /// <summary>Вводит данные путём перезаписывания внешней части криптографического состояния (вместо xor). Это режим работы OVERWRITE</summary>
         /// <param name="data">Данные для ввода, не более BLOCK_SIZE_K байтов</param>
         /// <param name="dataLen">Длина вводимых данных</param>
@@ -316,7 +327,7 @@ namespace vinkekfish
         public void InputData_Overwrite(byte * data, nint dataLen, byte regime, bool nullPadding = true)
         {
             if (dataLen > BLOCK_SIZE_K)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Overwrite: dataLen > BLOCK_SIZE_K");
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
 

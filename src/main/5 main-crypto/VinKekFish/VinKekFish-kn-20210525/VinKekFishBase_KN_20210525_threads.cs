@@ -34,8 +34,8 @@ namespace vinkekfish
                                                                                     /// <summary>Исключения, свершившиеся при исполнении задач</summary>
         protected readonly ConcurrentQueue <Exception> ThreadsTask_Errors      = new ConcurrentQueue<Exception>();      /// <summary>Количество исключений, свершившихся при выполнении задач</summary>
         protected volatile int                         ThreadsTask_ErrorsCount = 0;
-                                                                                    /// <summary>Количество потоков, которое не находися в ожидании.</summary><remarks>Обязательно в lock (sync)</remarks>
-        protected volatile int           ThreadsInFunc   = 0;                       /// <summary>Количество запущенных потоков</summary>
+                                                                                    /// <summary>Количество потоков, которое не находися в ожидании.</summary><remarks>Даже читать обязательно в lock (sync)</remarks>
+        protected volatile int           ThreadsInFunc   = 0;                       /// <summary>Количество запущенных потоков (в том числе, ожидающих постановки задачи)</summary>
         protected volatile int           ThreadsExecuted = 0;
 
         /// <summary>Завершено ли использование объекта (сигнал потокам к завершению). Можно установить только в true</summary>
@@ -80,6 +80,9 @@ namespace vinkekfish
             {
                 Interlocked.Increment(ref ThreadsExecuted);
                 int Task_CountOfTasks;
+
+                lock (sync)
+                    Monitor.PulseAll(sync);
 
                 while (!isEnded)
                 {
@@ -169,7 +172,7 @@ namespace vinkekfish
             lock (sync)
             {
                 if (ThreadsExecutedForTask > 0 || ThreadsExecuted <= 0 || IsEnded)
-                    throw new Exception("VinKekFishBase_KN_20210525.doFunction: ThreadsExecutedForTask > 0 || ThreadsExecuted <= 0 || IsEnded");
+                    throw new Exception($"VinKekFishBase_KN_20210525.doFunction: ThreadsExecutedForTask > 0 || ThreadsExecuted <= 0 || IsEnded ({ThreadsExecutedForTask}, {ThreadsExecuted}, {IsEnded})");
 
                 ThreadsFunc_Current = ThreadFunc;
 
@@ -292,6 +295,8 @@ namespace vinkekfish
 
             CurrentPermutationBlockNumber = 0;
             this.CurrentPermutationTable  = CurrentPermutationTable;
+
+            VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");    // TODO: !!!
 
             // doFunction(ThreadFunction_Permutation);
             // Для повышения эффективности работы это делает один поток, а не пул (см. пояснения ThreadFunction_Permutation)

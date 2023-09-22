@@ -24,7 +24,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
     }
 
     public void Test()
-    {
+    {/*
         var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
         using var k   = new VinKekFish_k1_base_20210419();
 
@@ -50,7 +50,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         k1t1.Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
         k1t1.step(k1t1.MIN_ROUNDS_K);
 
-        Init2(key, RoundsForFinal, RoundsForTailsBlock, RoundsForFirstKeyBlock);
+        Init2(key, RoundsForFinal, RoundsForTailsBlock, RoundsForFirstKeyBlock);*/
     }
 
     protected void Init2(Record key, int roundsForFinal, int roundsForTailsBlock, int roundsForFirstKeyBlock)

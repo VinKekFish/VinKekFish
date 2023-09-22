@@ -10,6 +10,7 @@ using static cryptoprime.BytesBuilderForPointers;
 // #nullable disable
 
 using maincrypto.keccak;
+using System.Diagnostics;
 
 namespace vinkekfish
 {
@@ -127,6 +128,7 @@ namespace vinkekfish
             if (pTablesHandle == null)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419: Init1 must be executed before Init2 (pTables == null)");
 
+
             if (!IsEmptyKey || key != null)
             {
                 if (Rounds > InitedPTRounds)
@@ -143,16 +145,17 @@ namespace vinkekfish
                         key: key, key_length: key_length, OIV: oiv, OpenInitVector == null ? 0 : (nint) OpenInitVector.LongLength,
                         state: _state!, state2: _state2!, b: _b!, c: _c!,
                         tweak: t0!, tweakTmp: t1!, tweakTmp2: t2!,
-                        Initiated: false, SecondKey: false,
-                        R: Rounds, RE: RoundsForEnd, RM: RoundsForExtendedKey, tablesForPermutations: pTablesHandle, transpose200_3200: _transpose200_3200!, transpose200_3200_8: _transpose200_3200_8!
+                        Initiated: false, ExtendedKey: false,
+                        R: Rounds, RE: RoundsForEnd, RM: RoundsForExtendedKey, tablesForPermutations: pTablesHandle
                     );
                 }
             }
 
             // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(this._state, 256));
-
+/*
             GC.Collect();
             GC.WaitForPendingFinalizers();  // Это чтобы сразу получить все проблемные вызовы, связанные с утечками памяти
+*/
             isInited2        = true;
             isHaveOutputData = true;
 

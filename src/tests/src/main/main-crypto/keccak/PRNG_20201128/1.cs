@@ -12,7 +12,7 @@ using maincrypto.keccak;
 using Record = cryptoprime.BytesBuilderForPointers.Record;
 using System.Text;
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("keccak", duration: 1e16, singleThread: false)]
 public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
 {
