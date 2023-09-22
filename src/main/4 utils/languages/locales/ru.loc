@@ -24,4 +24,6 @@ Error: leaked memory in mmap:
     Ошибка при завершении работы программы: обнаружена утечка памяти в mmap: 
 Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
     Ошибка при завершении работы программы: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+Unhandled Exception occured
+    Возникла необработанная исключительная ситуация
 :

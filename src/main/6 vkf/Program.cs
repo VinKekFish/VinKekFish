@@ -18,6 +18,8 @@ public partial class Program
         cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor = false;
         cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced       = false;
 
+        AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+
         // Переходим к выполнению основной программы и обработке ошибок
         try
         {
@@ -64,6 +66,16 @@ public partial class Program
                 DeallocateAtBreakage();
             }
         }
+    }
+
+    protected static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+    {
+        var ex = e.ExceptionObject as Exception;
+
+        if (ex == null)
+            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + e.ExceptionObject.ToString());
+        else
+            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + formatException(ex));
     }
 
     public static ProgramErrorCode Main_ec(string[] args)

@@ -24,4 +24,6 @@ Error: leaked memory in mmap:
     Error at the end of the program: leaked memory in mmap: 
 Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
     Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+Unhandled Exception occured
+    Unhandled Exception occured
 :
