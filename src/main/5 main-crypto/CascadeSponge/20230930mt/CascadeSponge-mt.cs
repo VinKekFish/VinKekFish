@@ -12,7 +12,7 @@ using static CascadeSponge_1t_20230905;
 // ::cp:alg:a7L6XjXsuwWGVxwJSN1x.main:20230930
 
 /// <summary>
-/// Это многопоточная реализация каскадной губки. Почти не имеет смысла использовать при wide < 32. Не стоит устанавливать ThreadsCount в слишком большую величину, т.к. производительность от этого может даже ухудшиться.
+/// Это многопоточная реализация каскадной губки. Не имеет смысла использовать при wide < 8.
 /// </summary>
 public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905, IDisposable
 {
@@ -23,7 +23,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
     /// <param name="_wide">Ширина каскадной губки, не менее MinWide и не менее CalcMinWide. Всегда должна быть чётной. Чем больше ширина, тем больше выход данных губки за один шаг.</param>
     /// <param name="_tall">Высота каскадной губки, не менее MinTall</param>
     /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов)</param>
-    /// <param name="ThreadsCount">Количество потоков, которое будет обрабатывать губку. Не стоит устанавливать ThreadsCount в слишком большую величину, т.к. производительность от этого может даже ухудшиться.</param>
+    /// <param name="ThreadsCount">Количество потоков, которое будет обрабатывать губку.</param>
     public CascadeSponge_mt_20230930(nint _strenghtInBytes = 192, nint _wide = 0, nint _tall = 0, nint ThreadsCount = -1):
             base(_strenghtInBytes, _wide, _tall)
     {
@@ -32,8 +32,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
             ThreadsCount = Environment.ProcessorCount;
         }
 
-        if (ThreadsCount > wide)
-            ThreadsCount = wide;
+        if (ThreadsCount > wide >> 1)
+            ThreadsCount = wide >> 1;
 
         debug_t = new int[ThreadsCount];
 

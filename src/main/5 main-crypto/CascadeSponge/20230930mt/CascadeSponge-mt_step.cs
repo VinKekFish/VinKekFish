@@ -18,12 +18,6 @@ using static CascadeSponge_1t_20230905;
 /// </summary>
 public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 {
-    public class StepProgress
-    {                                           /// <summary>Сколько шагов нужно выполнить всего</summary>
-        public nint allSteps   = 0;              /// <summary>Сколько шагов уже закончено</summary>
-        public nint endedSteps = 0;
-    }
-
     protected volatile byte regime = 0;
 
     /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет!</summary>

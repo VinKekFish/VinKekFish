@@ -20,6 +20,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
     protected volatile Keccak_Input_Delegate input = KeccakPrime.Keccak_Input64_512;
 
+    public class StepProgress
+    {                                           /// <summary>Сколько шагов нужно выполнить всего</summary>
+        public nint allSteps   = 0;              /// <summary>Сколько шагов уже закончено</summary>
+        public nint endedSteps = 0;
+    }
+
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
     /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
     /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
@@ -27,7 +33,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="dataLen">Количество данных для ввода</param>
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
-    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
 
@@ -54,6 +60,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (dataLen > maxDataLen*countOfSteps)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: dataLen > maxDataLen*countOfSteps");
 
+        if (progress is not null)
+        {
+            progress.allSteps   = countOfSteps;
+            progress.endedSteps = 0;
+        }
+
         nint curDataLen, dataUsedLen = 0;
         for (int stepNum = 0; stepNum < countOfSteps; stepNum++)
         {
@@ -73,6 +85,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             for (int M = 0; M < ArmoringSteps; M++)
                 step_once(null, 0, regime, inputRegime);
+
+            if (progress is not null)
+                progress.endedSteps++;
         }
 
         // Выполняем заключительное преобразование для отбивки обратной связи от выхода

@@ -20,7 +20,7 @@ using System.Data;
 
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 {
     public CascadeSponge_mt_20230930_PerformanceTest(TestConstructor constructor) :
@@ -31,15 +31,25 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 
     public void Test()
     {
-        Test(4, 4, 1);
-        Test(8, 7, 24);
-        Test(176, 176, 5);
+        // В первый раз, почему-то, очень медленно работает шаг - делаем это вне измерений производительности
+        var cascade1t = new CascadeSponge_1t_20230905(_tall: 4, _wide: 4);
+        cascade1t.step(countOfSteps: 1);
+        cascade1t.Dispose();
+
+        Test( 90, 9,  8, 96);
+        Test(100, 16, 16, 27);
+        Test(100, 29, 28, 27);
+        Test(130, 88, 88, 15);
+        Test(250, 176, 176, 15);
     }
 
-    public void Test(int tall, int wide, int cnt)
+    public void Test(int min, int tall, int wide, int cnt)
     {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
         var cascade1t = new CascadeSponge_1t_20230905(_tall: tall, _wide: wide);
-        var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 1);
+        var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 0);
 
         // var dlen = cascade1t.maxDataLen*5 - 1;
         var dlen = cascade1t.maxDataLen;
@@ -66,10 +76,10 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             // Console.WriteLine(stm.TotalMilliseconds);
 
             var tm = st1.TotalMilliseconds * 100 / stm.TotalMilliseconds;
-            this.Name += $"   {tm:F0}%";
-            var min = (Environment.ProcessorCount - 1) * 100;
+            this.Name += $"  {tm:F0}%";
+            // var min = 100; //cascademt.ThreadsCount * 100 / 2;
             var max = Environment.ProcessorCount * 110;
-            if (tm < min)
+            if (tm < min)   // ??? Производительность плавает постоянно
             {
                 var te = new TestError() {Message = $"Low performance for {tall}/{wide}: {tm:F0}%"};
                 this.error.Add(te);

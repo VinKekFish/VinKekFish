@@ -2,6 +2,7 @@
 using DriverForTestsLib;
 using cryptoprime;
 using cryptoprime_tests;
+using System.Runtime;
 
 namespace tests;
 class Program
@@ -12,6 +13,8 @@ class Program
         // Вместо исключений предусмотрена проверка после тестов значения errorsInDispose
         BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced       = false;
         BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor = false;
+
+        GCSettings.LatencyMode = GCLatencyMode.Batch;
 
         var driver = new DriverForTests();
 
