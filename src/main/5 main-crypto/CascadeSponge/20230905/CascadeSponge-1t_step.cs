@@ -7,6 +7,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using static CascadeSponge_1t_20230905.InputRegime;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
+// ::cp:alg:a7L6XjXsuwWGVxwJSN1x.step:20230930
 
 // Описание шага шифрования, инициализации ключей ThreeFish через губку, а также инициализации губки ключом шифрования и синхропосылкой (открытым вектором инициализации)
 
@@ -22,7 +23,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="dataLen">Количество данных для ввода</param>
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
-    public nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
 
@@ -88,7 +89,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: xor или overwrite (перезапись)</param>
     /// <param name="calcOut">Если false, то выход не рассчитывается</param>
-    protected void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    protected virtual void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, rcOutput, inputRegime);

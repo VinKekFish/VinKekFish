@@ -160,7 +160,7 @@ namespace vinkekfish
                 isInit2 = true;
             }
         }
-                                                            /// <summary></summary>
+                                                            /// <summary>Запускает все потоки</summary>
         protected virtual void StartThreads()
         {
             foreach (var t in threads!)

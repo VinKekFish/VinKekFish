@@ -289,7 +289,7 @@ namespace cryptoprime
                     if (doExceptionOnDisposeTwiced)
                         throw new Exception(msg);
                     else
-                        Console.WriteLine(msg);
+                        Console.Error.WriteLine(msg);
                 }
                 else
                     GC.SuppressFinalize(this);

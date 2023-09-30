@@ -10,23 +10,13 @@ using static CascadeSponge_1t_20230905.InputRegime;
 using System.Text;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
+// ::cp:alg:a7L6XjXsuwWGVxwJSN1x.utils:20230930
 
 /// <summary>
 /// Это однопоточный эталон для тестирования каскадной губки
 /// </summary>
 public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 {
-    /// <summary>Делегат для функции forAllKeccaks</summary>
-    /// <param name="tall">Номер губки по высоте</param>
-    /// <param name="wide">Номер губки по широте</param>
-    public delegate void doForKeccak(nint tall, nint wide);
-                                                                    /// <summary>Вызывает func для каждой губки keccak внутри каскада губок</summary><param name="func">Функция, которую необходимо вызвать для каждой губки keccak</param>
-    public void forAllKeccaks(doForKeccak func)
-    {
-        for (nint j = 0; j < tall; j++)
-        for (nint i = 0; i < wide; i++)
-            func(j, i);
-    }
                                                                     /// <summary>Проверяет, что объект не удалён. Если объект удалён (isDisposed==true), вызывает ObjectDisposedException</summary><param name="message">Сообщение для исключения ObjectDisposedException</param><param name="objectName">Имя объекта для исключения ObjectDisposedException</param>
     public void ObjectDisposedCheck(string message, string objectName = "CascadeSponge_1t")
     {

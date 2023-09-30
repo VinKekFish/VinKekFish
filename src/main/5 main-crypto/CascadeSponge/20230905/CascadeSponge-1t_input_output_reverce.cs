@@ -12,6 +12,7 @@ using static VinKekFish_Utils.Utils;
 using static CodeGenerated.Cryptoprimes.Threefish_Static_Generated;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
+// ::cp:alg:a7L6XjXsuwWGVxwJSN1x.io:20230930
 
 /// <summary>
 /// Это однопоточный эталон для тестирования каскадной губки

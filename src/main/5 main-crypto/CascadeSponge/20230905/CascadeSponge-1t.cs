@@ -8,6 +8,9 @@ using static cryptoprime.BytesBuilderForPointers;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:  Это главный файл реализации
 
+// ::cp:alg:a7L6XjXsuwWGVxwJSN1x.main:20230930
+
+
 /// <summary>
 /// Это однопоточный эталон для тестирования каскадной губки
 /// </summary>
@@ -403,11 +406,10 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var d = isDisposed;
         if (isDisposed)
         {
-            Record.errorsInDispose = true;
-
             var msg = "CascadeSponge_1t_20230905: Dispose executed twiced";
             if (!fromDestructor)
             {
+                Record.errorsInDispose = true;
                 if (Record.doExceptionOnDisposeTwiced)
                 {
                     throw new CascadeSpongeException(msg);
