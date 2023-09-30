@@ -6,6 +6,7 @@ using cryptoprime;
 using maincrypto.keccak;
 using static cryptoprime.BytesBuilderForPointers;
 using static CascadeSponge_1t_20230905;
+using System.Text;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
 
@@ -24,7 +25,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     public       object ThreadsStart = new object();
     public       object ThreadsStop  = new object();
 
-    public readonly nint ThreadsNum = 0;
+    public readonly nint ThreadsCount = 0;
 
     /// <summary>Посылает сигнал на останов всех потоков. Каскадная губка не должна быть в это время в функции step или step_once</summary>
     protected virtual void doThreadsDispose()
@@ -33,6 +34,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         for (nint i = 0; i < ThreadsFunc.Length; i++)
             ThreadsFunc[i] = EndTask;
 
+        Event.Set();
         lock (ThreadsStart)
         Monitor.PulseAll(ThreadsStart);
 
@@ -53,15 +55,23 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         // lock (this)
     }
 
+    protected ManualResetEvent Event = new ManualResetEvent(false);
+
+
     /// <summary>Функция, выполняемая потоками</summary>
     protected virtual void ThreadsFunction(nint ThreadIndex)
     {
         while (ThreadsFunc[ThreadIndex] != EndTask)
         {
-            lock (ThreadsStart)
+            /*lock (ThreadsStart)
             {
                 if (ThreadsFunc[ThreadIndex] == EmptyTaskSlot)
                     Monitor.Wait(ThreadsStart);      // Здесь может быть получение сигнала в холостую
+            }*/
+            if (ThreadsFunc[ThreadIndex] == EmptyTaskSlot)
+            {
+                Thread.Sleep(0);        // Event внутри цикла никогда не сбрасывается, так что немного экономим мощности
+                Event.WaitOne();
             }
 
             if (ThreadsFunc[ThreadIndex] == EndTask)
@@ -80,24 +90,67 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         }
     }
 
-    protected volatile int KeccakThreadNumber = 0;
+    public int[] debug_t;
+                                                            /// <summary>Текущий номер последнего необработанного индекса губки нужного слоя</summary>
+    protected volatile int KeccakNumberForThreads = 0;
     /// <summary>Функция преобразования keccak</summary>
     protected void Thread_keccak(nint ThreadIndex)
     {
         ThreadsFunc[ThreadIndex] = EmptyTaskSlot;
-Console.WriteLine("start: " + ThreadIndex);
-        byte * S, B, C;
+
+        byte * S, B, C, sb, sb2, buff = stackalloc byte[MaxInputForKeccak];
+        byte * st = (byte *) stepBuffer;
         try
         {
             while (true)
             {
-                var index = Interlocked.Increment(ref KeccakThreadNumber) - 1;
+                var index = Interlocked.Increment(ref KeccakNumberForThreads) - 1;
 
                 if (index >= wide)
                     break;
-Console.WriteLine(ThreadIndex);
+
+                // debug_t[ThreadIndex]++;
+
+                if (curStepBuffer < 0)
+                {
+                    sb2 = st;
+                    sb  = st + ReserveConnectionLen;
+                }
+                else
+                {
+                    sb  = st;
+                    sb2 = st + ReserveConnectionLen;
+                }
+
                 getKeccakS(ThreadsLayer, index, S: out S, B: out B, C: out C);
+                if (ThreadsLayer > 0)
+                {
+                    var si = index*MaxInputForKeccak;
+                    nint j = 0, i = 0, bi = 0;
+
+                    j   = si / wide;
+                    i   = si % wide;
+                    i  *= MaxInputForKeccak;
+                    i  += j;
+
+                    for (; bi < MaxInputForKeccak; bi++)
+                    {
+                        buff[bi++] = sb[i];
+
+                        i += MaxInputForKeccak;
+                        if (i >= ReserveConnectionLen)
+                        {
+                            i = ++j;
+                        }
+                    }
+
+                    input(buff, MaxInputForKeccak, S, regime);
+                }
+
                 KeccakPrime.Keccackf(a: (ulong*)S, c: (ulong*)C, b: (ulong*)B);
+
+                if (ThreadsLayer < tall-1)
+                KeccakPrime.Keccak_Output_512(sb2 + MaxInputForKeccak*index, MaxInputForKeccak, S: S);
             }
         }
         catch
@@ -106,11 +159,28 @@ Console.WriteLine(ThreadIndex);
         }
         finally
         {
+            // Event.Reset();
             var te = Interlocked.Decrement(ref ThreadsExecuted);
 
-            if (te <= 0)
+            // if (te <= 0)
             lock (ThreadsStop)
-                Monitor.PulseAll(ThreadsStop);
+                Monitor.Pulse(ThreadsStop);
         }
+    }
+
+    protected virtual void Clear_Debug_t()
+    {
+        for (nint i = 0; i < debug_t.Length; i++)
+            debug_t[i] = 0;
+    }
+
+    protected virtual string toString_Debug_t()
+    {
+        var sb = new StringBuilder();
+
+        foreach (var t in debug_t)
+            sb.Append($"{t, 3} ");
+
+        return sb.ToString();
     }
 }

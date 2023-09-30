@@ -20,7 +20,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public readonly nint   wide;                                /// <summary>Высота каскадной губки</summary>
     public readonly nint   tall;                                /// <summary>Параметр W - коэффициент, уменьшающий количество внешних данных для ввода и вывода из каждой губки</summary>
     public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество внешних (пользовательских) байтов, которое можно за один шаг ввести или вывести из каждой внешней губки keccak с учётом ограничений каскада</summary>
-    public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи</summary>
+    public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи. Это же полный размер данных, передаваемых между разными уровнями каскада keccak.</summary>
     public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
     public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая из-вне за один раз или выводимая во-вне (пользователю) за один раз (за один шаг). Это длина данных уже со всей каскадной губки</summary>
     public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (4). Ширина губки всегда должна быть чётной. Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
@@ -144,7 +144,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (wide == 0)
             wide = MinWide;
         if (tall == 0)
+        {
             tall = MinTall;
+            if (tall < wide)
+                tall = wide;
+        }
         if (wide < MinWide)
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905: wide < MinWide ({wide} < {MinWide})");
         if (tall < MinTall)
