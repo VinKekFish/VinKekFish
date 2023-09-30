@@ -16,6 +16,10 @@ using static CascadeSponge_1t_20230905.InputRegime;
 /// </summary>
 public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 {
+    public delegate void Keccak_Input_Delegate(byte * message, byte len, byte * S, byte regime);
+
+    protected volatile Keccak_Input_Delegate input = KeccakPrime.Keccak_Input64_512;
+
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
     /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
     /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
@@ -95,9 +99,10 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         InputData(data, dataLen, regime, rcOutput, inputRegime);
 
         var buffer = stackalloc byte[(int) ReserveConnectionLen];
-        var input = KeccakPrime.Keccak_Input64_512;
         if (inputRegime == overwrite)
             input = KeccakPrime.Keccak_InputOverwrite64_512;
+        else
+            input = KeccakPrime.Keccak_Input64_512;
 
         byte * S, B, C;
         for (nint layer = 0; layer < tall; layer++)

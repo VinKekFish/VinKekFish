@@ -29,14 +29,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
     {
         if (ThreadsCount <= 0)
         {
-            ThreadsCount = 1; // Environment.ProcessorCount;
-/*
-            // Функции вычисляются слишком быстро - много потоков не нужно
-            if (wide / ThreadsCount < 4)
-                ThreadsCount = wide / 4;
-
-            if (ThreadsCount <= 1)
-                ThreadsCount = 2;*/
+            ThreadsCount = Environment.ProcessorCount;
         }
 
         if (ThreadsCount > wide)

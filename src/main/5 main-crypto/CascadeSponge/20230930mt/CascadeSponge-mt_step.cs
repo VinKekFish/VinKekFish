@@ -24,9 +24,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         public nint endedSteps = 0;
     }
 
-    public delegate void Keccak_Input_Delegate(byte * message, byte len, byte * S, byte regime);
-
-    protected volatile Keccak_Input_Delegate input = KeccakPrime.Keccak_Input64_512;
     protected volatile byte regime = 0;
 
     /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет!</summary>

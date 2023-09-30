@@ -135,7 +135,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
                     for (; bi < MaxInputForKeccak; bi++)
                     {
-                        buff[bi++] = sb[i];
+                        buff[bi] = sb[i];
 
                         i += MaxInputForKeccak;
                         if (i >= ReserveConnectionLen)
@@ -159,10 +159,9 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         }
         finally
         {
-            // Event.Reset();
             var te = Interlocked.Decrement(ref ThreadsExecuted);
 
-            // if (te <= 0)
+            if (te <= 0)
             lock (ThreadsStop)
                 Monitor.Pulse(ThreadsStop);
         }
