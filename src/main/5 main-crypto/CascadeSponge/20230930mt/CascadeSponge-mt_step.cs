@@ -63,10 +63,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
             lock (ThreadsStop)      // Ждём выполнения задач (и запускаем задачи)
             {
-                /*lock (ThreadsStart)
-                    Monitor.PulseAll(ThreadsStart);*/
-                // Event.Set();
-
                 Thread_keccak(ThreadsCount-1);
 
                 while (ThreadsExecuted > 0)
@@ -82,23 +78,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             }
 
             // Console.WriteLine(  toString_Debug_t()  );
-
-            // Если это не последний уровень губки
-            if (layer == tall - 1)
-                break;
-/*
-            // buffer инициализируется с помощью потоков, а затем уже подвергается транспонированию
-            transposeOutput(buffer);
-
-            // Вводим данные на уровень ниже
-            var buff = buffer;
-            for (nint i = 0; i < wide; i++)
-            {
-                getKeccakS(layer+1, i, S: out S, B: out B, C: out C);
-
-                input(buff, MaxInputForKeccak, S, regime);
-                buff += MaxInputForKeccak;
-            }*/
         }
         Event.Reset();
 

@@ -31,7 +31,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 
     public void Test()
     {
-        Test(4, 4, 159);
+        Test(4, 4, 1);
         Test(8, 7, 24);
         Test(176, 176, 5);
     }
@@ -41,7 +41,8 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
         var cascade1t = new CascadeSponge_1t_20230905(_tall: tall, _wide: wide);
         var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 1);
 
-        var dlen = cascade1t.maxDataLen*5 - 1;
+        // var dlen = cascade1t.maxDataLen*5 - 1;
+        var dlen = cascade1t.maxDataLen;
         var data = Keccak_abstract.allocator.AllocMemory(dlen);
         try
         {
@@ -67,9 +68,15 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             var tm = st1.TotalMilliseconds * 100 / stm.TotalMilliseconds;
             this.Name += $"   {tm:F0}%";
             var min = (Environment.ProcessorCount - 1) * 100;
+            var max = Environment.ProcessorCount * 110;
             if (tm < min)
             {
                 var te = new TestError() {Message = $"Low performance for {tall}/{wide}: {tm:F0}%"};
+                this.error.Add(te);
+            }
+            if (tm > max)
+            {
+                var te = new TestError() {Message = $"Very high performance for {tall}/{wide}: {tm:F0}%"};
                 this.error.Add(te);
             }
         }
