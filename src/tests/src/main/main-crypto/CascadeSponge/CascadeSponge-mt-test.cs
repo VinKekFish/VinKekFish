@@ -14,13 +14,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using System.Data.Common;
 using System.Data;
 
-// example::docs:rQN6ZzeeepyOpOnTPKAT:
-
-// Ниже можно посмотреть на простейший способ создания каскада
-
-
-[TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+// Это базовый класс, он сам не выполняется. Реализации смотреть ниже
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 {
     public CascadeSponge_mt_20230930_PerformanceTest(TestConstructor constructor) :
@@ -28,6 +22,8 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     {
         taskFunc  = Test;
         this.Name = this.GetType().Name;
+        while (this.Name.Length < "CascadeSponge_mt_20230930_PerformanceTest_176".Length)
+            this.Name += " ";
     }
 
     public virtual void Test()
@@ -71,7 +67,9 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             // Console.WriteLine(stm.TotalMilliseconds);
 
             var tm = st1.TotalMilliseconds * 100 / stm.TotalMilliseconds;
-            this.Name += $"  {tm:F0}% {cnt/stm.TotalMilliseconds:F0}";
+            var   cntPerSecond = (int) (cnt * 1000.0 / stm.TotalMilliseconds);
+            var bytePerSecornd = cntPerSecond * cascademt.maxDataLen;
+            this.Name += $" {(int)tm,3}% {cntPerSecond,4}, {$"{bytePerSecornd:#,0}",7}";
             // var min = 100; //cascademt.ThreadsCount * 100 / 2;
             var max = Environment.ProcessorCount * 110;
             if (tm < min)   // ??? Производительность плавает постоянно
@@ -96,7 +94,22 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 200, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_4(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test( 90, 4,  4, 96);
+    }
+}
+
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 300, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_9(TestConstructor constructor) :
@@ -110,7 +123,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 200, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_16(TestConstructor constructor) :
@@ -124,7 +137,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_29(TestConstructor constructor) :
@@ -138,7 +151,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 600, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_88(TestConstructor constructor) :
@@ -152,7 +165,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 2200, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_176 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_176(TestConstructor constructor) :
