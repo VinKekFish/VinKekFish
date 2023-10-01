@@ -24,23 +24,18 @@ using System.Data;
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 {
     public CascadeSponge_mt_20230930_PerformanceTest(TestConstructor constructor) :
-                                            base(nameof(CascadeSponge_mt_20230930_PerformanceTest), constructor)
+                                            base("", constructor)
     {
-        taskFunc = Test;
+        taskFunc  = Test;
+        this.Name = this.GetType().Name;
     }
 
-    public void Test()
+    public virtual void Test()
     {
         // В первый раз, почему-то, очень медленно работает шаг - делаем это вне измерений производительности
         var cascade1t = new CascadeSponge_1t_20230905(_tall: 4, _wide: 4);
         cascade1t.step(countOfSteps: 1);
         cascade1t.Dispose();
-
-        Test( 90, 9,  8, 96);
-        Test(100, 16, 16, 27);
-        Test(100, 29, 28, 27);
-        Test(130, 88, 88, 15);
-        Test(250, 176, 176, 15);
     }
 
     public void Test(int min, int tall, int wide, int cnt)
@@ -76,7 +71,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             // Console.WriteLine(stm.TotalMilliseconds);
 
             var tm = st1.TotalMilliseconds * 100 / stm.TotalMilliseconds;
-            this.Name += $"  {tm:F0}%";
+            this.Name += $"  {tm:F0}% {cnt/stm.TotalMilliseconds:F0}";
             // var min = 100; //cascademt.ThreadsCount * 100 / 2;
             var max = Environment.ProcessorCount * 110;
             if (tm < min)   // ??? Производительность плавает постоянно
@@ -99,3 +94,73 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     }
 }
 
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_9(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test( 90, 9,  8, 96);
+    }
+}
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_16(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test(100, 16, 16, 27);
+    }
+}
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_29(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test(100, 29, 28, 27);
+    }
+}
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_88(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test(130, 88, 88, 15);
+    }
+}
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("CascadeSponge", duration: 1500, singleThread: true)]
+public unsafe class CascadeSponge_mt_20230930_PerformanceTest_176 : CascadeSponge_mt_20230930_PerformanceTest
+{
+    public CascadeSponge_mt_20230930_PerformanceTest_176(TestConstructor constructor) :
+                                            base(constructor)
+    {}
+
+    public override void Test()
+    {
+        Test(250, 176, 176, 15);
+    }
+}
