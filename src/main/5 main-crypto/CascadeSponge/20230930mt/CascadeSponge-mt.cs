@@ -8,6 +8,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using static CascadeSponge_1t_20230905;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:  Это главный файл многопоточной реализации
+// code::docs:zp7BtuFYcRWs29lwOSWY:  Это главный файл многопоточной реализации
 
 // ::cp:alg:a7L6XjXsuwWGVxwJSN1x.main:20230930
 
@@ -61,6 +62,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
                 doThreadsDispose();
                 stepBuffer?.Dispose();
                 stepBuffer = null;
+
+                Event.Close();
             }
         }
         finally
