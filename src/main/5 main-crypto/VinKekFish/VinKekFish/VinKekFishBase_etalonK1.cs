@@ -99,7 +99,7 @@ namespace cryptoprime.VinKekFish
                 if (dataLen > BLOCK_SIZE)
                     dataLen = BLOCK_SIZE;
 
-                InputData_Xor(data, state, dataLen, tweak, regime: 0);
+                InputData_Overwrite(data, state, dataLen, tweak, regime: 0);
                 data += dataLen;
             }
             else
@@ -182,12 +182,12 @@ namespace cryptoprime.VinKekFish
         /// <param name="tweak">Указатель на tweak (для соответствующего изменения tweak)</param>
         /// <param name="regime">Счётчик режима ввода</param>
         /// <param name="nullPaddding">Если <see langword="true"/>, то если данных меньше, чем BLOCK_SIZE, оставшиеся байты будут перезатёрты нулями, обеспечивая необратимость. Иначе остальные байты останутся неизменными</param>
-        public static void InputData_Overwrite(byte * data, byte * state, ulong dataLen, ulong * tweak, byte regime, bool nullPaddding = true)
+        public static void InputData_Overwrite(byte * data, byte * state, nint dataLen, ulong * tweak, byte regime, bool nullPaddding = true)
         {
             if (dataLen > BLOCK_SIZE)
                 throw new ArgumentOutOfRangeException("dataLen", "InputData_Overwrite: dataLen > BLOCK_SIZE");
 
-            ulong i = 0;
+            nint i = 0;
             for (; i < dataLen; i++, data++)
             {
                 state[i+3] = *data;

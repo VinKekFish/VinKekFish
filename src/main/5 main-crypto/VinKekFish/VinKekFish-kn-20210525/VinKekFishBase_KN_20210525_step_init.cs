@@ -241,7 +241,7 @@ namespace vinkekfish
                 byte len1 = (byte)  OpenInitializationVector.len;
                 byte len2 = (byte) (OpenInitializationVector.len >> 8);
 
-                BytesBuilder.CopyTo(OpenInitializationVector.len, MAX_OIV_K, OpenInitializationVector, State1 + MAX_SINGLE_KEY_K + 2);
+                BytesBuilder.CopyTo(OpenInitializationVector.len, MAX_OIV_K, OpenInitializationVector, State1 + MAX_SINGLE_KEY_K + 2 + 2);
                 State1[MAX_SINGLE_KEY_K + 2 + 0] ^= len1;
                 State1[MAX_SINGLE_KEY_K + 2 + 1] ^= len2;
             }
@@ -275,7 +275,7 @@ namespace vinkekfish
                 if (dt > BLOCK_SIZE_K)
                     dt = BLOCK_SIZE_K;
 
-                InputData_Xor(TailOfKey, dt, regime: 0);
+                InputData_Overwrite(TailOfKey, dt, regime: 0);
 
                 keyLen    -= dt;
                 TailOfKey += dt;
@@ -286,7 +286,6 @@ namespace vinkekfish
             // После инициализации обнуляем часть данных для обеспечения необратимости
             if (FinalOverwrite)
             {
-                // BytesBuilder.ToNull(BLOCK_SIZE_K, State1 + 2);
                 InputData_Overwrite(null, 0, regime: 255, nullPadding: true);
             }
 

@@ -510,18 +510,18 @@ namespace cryptoprime
                 get
                 {
                     if (index >= len)
-                        throw new ArgumentOutOfRangeException("index >= len");
+                        throw new ArgumentOutOfRangeException($"index >= len ({index} >= {len})");
                     if (index < 0)
-                        throw new ArgumentOutOfRangeException("index >= len");
+                        throw new ArgumentOutOfRangeException($"index < 0 ({index} < 0)");
 
                     return this.array[index];
                 }
                 set
                 {
                     if (index >= len)
-                        throw new ArgumentOutOfRangeException("index >= len");
+                        throw new ArgumentOutOfRangeException($"index >= len ({index} >= {len})");
                     if (index < 0)
-                        throw new ArgumentOutOfRangeException("index >= len");
+                        throw new ArgumentOutOfRangeException($"index < 0 ({index} < 0)");
 
                     this.array[index] = value;
                 }

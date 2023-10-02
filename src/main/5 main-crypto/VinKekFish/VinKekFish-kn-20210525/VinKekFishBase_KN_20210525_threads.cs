@@ -305,7 +305,7 @@ namespace vinkekfish
             isState1Main ^= true;
 
             // TODO: !!!
-            VinKekFish_Utils.Utils.ArrayToFile((byte *) CurrentPermutationTable, this.Len*2, "KN");
+            // VinKekFish_Utils.Utils.ArrayToFile((byte *) CurrentPermutationTable, this.Len*2, "KN");
             VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");
         }
 

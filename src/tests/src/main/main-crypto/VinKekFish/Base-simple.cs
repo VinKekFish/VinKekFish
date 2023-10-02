@@ -25,6 +25,9 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
     public void Test()
     {
+        File.Delete("log-KN.log");
+        File.Delete("log-KNe.log");
+
         var allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
 
         using var  key = allocator.AllocMemory(8192); // 2048*3+2048   // Здесь должно быть чётное значение, т.к. ниже инициализация этого требует
@@ -68,6 +71,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         k.Init2
         (
             key,
+            OpenInitializationVector: OIV,
             TweakInit: tweak,
             RoundsForTailsBlock:    RoundsForTailsBlock,
             RoundsForFinal:         RoundsForFinal,
@@ -101,11 +105,44 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         for (int i = 0; i < 6144; i++)
             state[2+i] = key[i];
 
-        TW[0]  = tweak[0];
-        TW[1]  = tweak[1];
+        TW[0]  = ((ulong *) tweak)[0];
+        TW[1]  = ((ulong *) tweak)[1];
         TW[0] += 1253539379;
         TW[1] += 8192;
 
         TW[2]  = TW[0] ^ TW[1];
+
+        VinKekFish_Utils.Utils.MsgToFile($"round started 4", "KNe");
+        VinKekFish_Utils.Utils.ArrayToFile((byte *) TW, 16, "KNe");
+        transpose128(state);
+    }
+
+    private void transpose128(Record state)
+    {
+        VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
+
+        var buff = stackalloc byte[9600];
+
+        buff[0]   = state[0];
+        buff[128] = state[1];
+        buff[256] = state[2];
+        buff[384] = state[3];
+        buff[512] = state[4];
+        buff[640] = state[5];
+
+        int j = 768;
+        for (int i = 6; i < 9600; i++)
+        {
+            buff[i] = state[j];
+            j += 128;
+            if (j >= 9600)
+            {
+                j -= 9600;
+                j++;
+            }
+        }
+
+        BytesBuilder.CopyTo(9600, 9600, buff, state);
+        VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
     }
 }
