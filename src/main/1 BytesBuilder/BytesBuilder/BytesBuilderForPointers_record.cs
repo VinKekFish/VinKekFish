@@ -263,7 +263,7 @@ namespace cryptoprime
                 Dispose(true);
             }
 
-            protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено.</summary>
+            protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
             public    static          bool  errorsInDispose
             {
                 get => _errorsInDispose;
@@ -339,7 +339,8 @@ namespace cryptoprime
                 }
             }
 
-            public static bool doExceptionOnDisposeInDestructor = true;
+                                                                                        /// <summary>Если true, то в деструкторе могут быть сгенерированны исключения, если объект не был освобождён ранее. В противном случае, будет только установлен флаг errorsInDispose</summary>
+            public static bool doExceptionOnDisposeInDestructor = true;                 /// <summary>Если true, то может быть вызвано исключение при повторном вызове Dispose. В противном случае, будет только установлен флаг errorsInDispose</summary>
             public static bool doExceptionOnDisposeTwiced       = true;
 
             /// <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>

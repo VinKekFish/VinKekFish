@@ -20,7 +20,23 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 {
     protected volatile byte regime = 0;
 
-    /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет!</summary>
+    public override nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    {
+        nint result = -1;
+        try
+        {
+            Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
+            result = base.step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+        }
+        finally
+        {
+            Event.Reset();
+        }
+
+        return result;
+    }
+
+    /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет! Event.Set() и Event.Reset() выполняются вызывающей функцией "step"</summary>
     /// <param name="data">Дата для ввода</param>
     /// <param name="dataLen">Данные для ввода. не более чем maxDataLen</param>
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
@@ -28,6 +44,9 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="calcOut">Если false, то выход не рассчитывается</param>
     protected override void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
+        if (ThreadsError)
+            throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted (in the function start)");
+
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, rcOutput, inputRegime);
 
@@ -38,7 +57,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         else
             input = KeccakPrime.Keccak_Input64_512;
 
-        Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
         curStepBuffer = 1;
 
         for (nint layer = 0; layer < tall; layer++)
@@ -46,9 +64,11 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             // Рассчитываем для данного уровня все данные
             ThreadsLayer           = layer;
             ThreadsExecuted        = (int) ThreadsCount; // На один больше, чем Threads.Length
-            KeccakNumberForThreads = 0;                 // Устанавливаем счётчик выполненной работы: это текущий номер последнего необработанного индекса губки нужного слоя
+            // KeccakNumberForThreads = 0;                 // Устанавливаем счётчик выполненной работы: это текущий номер последнего необработанного индекса губки нужного слоя
 
             // Clear_Debug_t();
+            if (ThreadsError)
+                throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted (in a start of tasks)");
 
             // После того, как подготовили данные для заданий, ставим задания потокам
             // Если поставим перед - потоки сразу начнут выполнение и сделают всё некорректно
@@ -59,7 +79,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             {
                 Thread_keccak(ThreadsCount-1);
 
-                while (ThreadsExecuted > 0)
+                while (ThreadsExecuted > 0 && !ThreadsError)
                     Monitor.Wait(ThreadsStop);
 
                 // Event.Reset();  // Именно здесь, т.к. потоки могут не начаться до того, как будет ожидание ThreadsStop
@@ -67,13 +87,10 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             }
 
             if (ThreadsError)
-            {
                 throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted");
-            }
 
             // Console.WriteLine(  toString_Debug_t()  );
         }
-        Event.Reset();
 
         // Последний уровень губки, включая преобразование обратной связи
         outputAllData();

@@ -35,6 +35,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
 
         if (ThreadsCount > wide >> 1)
             ThreadsCount = wide >> 1;
+        if (ThreadsCount > Environment.ProcessorCount)
+            ThreadsCount = Environment.ProcessorCount;
 
         debug_t = new int[ThreadsCount];
 
@@ -63,7 +65,13 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
                 stepBuffer?.Dispose();
                 stepBuffer = null;
 
-                Event.Close();
+                if (ThreadsExecuted <= 0)
+                    Event.Close();
+                else
+                {
+                    Record.errorsInDispose = true;
+                    Console.Error.WriteLine("CascadeSponge_mt_20230930.Dispose: ThreadsExecuted > 0");
+                }
             }
         }
         finally

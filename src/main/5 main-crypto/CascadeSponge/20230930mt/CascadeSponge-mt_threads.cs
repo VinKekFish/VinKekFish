@@ -22,7 +22,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
     public const nint   EndTask       = -7;
     public const nint   EmptyTaskSlot = -1;
-    public       object ThreadsStart = new object();
     public       object ThreadsStop  = new object();
 
     public readonly nint ThreadsCount = 0;
@@ -30,19 +29,55 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <summary>Посылает сигнал на останов всех потоков. Каскадная губка не должна быть в это время в функции step или step_once</summary>
     protected virtual void doThreadsDispose()
     {
+        // Блокируем возможность для других потоков начать шаг (хотя если шаг начат, то он может продолжаться)
         ThreadsError = true;
+
+        // Ждём завершения задач потоков; если потоки не хотят завершаться, продолжаем дальше
+        if (ThreadsExecuted > 0)
+        {
+            Record.errorsInDispose = true;
+            Console.Error.WriteLine("CascadeSponge_mt_20230930.doThreadsDispose: ThreadsExecuted > 0");
+
+            lock (ThreadsStop)
+            {
+                Monitor.PulseAll(ThreadsStop);      // Завершаем шаг, если так неповезло, что он, всё-таки, идёт (будит поток шага с установленным флагом ThreadsError)
+                if (ThreadsExecuted > 0)
+                    Monitor.Wait(ThreadsStop, 70);
+
+                if (ThreadsExecuted > 0)
+                {
+                    Monitor.PulseAll(ThreadsStop);
+                    Monitor.Wait(ThreadsStop, 250);
+                }
+            }
+        }
+
+        // Посылаем потокам нужный сигнал и ждём
+        ThreadsExecuted = Threads.Length;
+        SetEndTaskForAllThreads();
+        Event.Set();
+
+        var cnt = 0;
+        while (ThreadsExecuted > 0 && cnt < 5)
+        {
+            Thread.Sleep(cnt * 50);
+            cnt++;
+
+            SetEndTaskForAllThreads();
+            Event.Set();
+        }
+
+        lock (ThreadsStop)
+            Monitor.PulseAll(ThreadsStop);
+    }
+
+    private void SetEndTaskForAllThreads()
+    {
         for (nint i = 0; i < ThreadsFunc.Length; i++)
             ThreadsFunc[i] = EndTask;
-
-        Event.Set();
-        lock (ThreadsStart)
-        Monitor.PulseAll(ThreadsStart);
-
-        ThreadsExecuted = 0;
-        lock (ThreadsStop)
-        Monitor.PulseAll(ThreadsStop);
     }
-                                                            /// <summary>Запускает все потоки</summary>
+
+    /// <summary>Запускает все потоки</summary>
     protected virtual void StartThreads()
     {
         foreach (var t in Threads!)
@@ -63,11 +98,6 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     {
         while (ThreadsFunc[ThreadIndex] != EndTask)
         {
-            /*lock (ThreadsStart)
-            {
-                if (ThreadsFunc[ThreadIndex] == EmptyTaskSlot)
-                    Monitor.Wait(ThreadsStart);      // Здесь может быть получение сигнала в холостую
-            }*/
             if (ThreadsFunc[ThreadIndex] == EmptyTaskSlot)
             {
                 Thread.Sleep(0);        // Event внутри цикла никогда не сбрасывается, так что немного экономим мощности
@@ -75,7 +105,13 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             }
 
             if (ThreadsFunc[ThreadIndex] == EndTask)
+            {
+                Interlocked.Decrement(ref ThreadsExecuted);
+                lock (ThreadsStop)
+                    Monitor.PulseAll(ThreadsStop);
+
                 return;
+            }
 
             switch (ThreadsFunc[ThreadIndex])
             {
@@ -91,24 +127,22 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     }
 
     public int[] debug_t;
-                                                            /// <summary>Текущий номер последнего необработанного индекса губки нужного слоя</summary>
-    protected volatile int KeccakNumberForThreads = 0;
+    //                                                        /// <summary>Текущий номер последнего необработанного индекса губки нужного слоя</summary>
+    //protected volatile int KeccakNumberForThreads = 0;
     /// <summary>Функция преобразования keccak</summary>
     protected void Thread_keccak(nint ThreadIndex)
     {
         ThreadsFunc[ThreadIndex] = EmptyTaskSlot;
 
+        nint index = ThreadIndex;
+
         byte * S, B, C, sb, sb2, buff = stackalloc byte[MaxInputForKeccak];
         byte * st = (byte *) stepBuffer;
         try
         {
-            while (true)
+            for (; index < wide; index += ThreadsCount)
             {
-                var index = Interlocked.Increment(ref KeccakNumberForThreads) - 1;
-
-                if (index >= wide)
-                    break;
-
+                // var index = Interlocked.Increment(ref KeccakNumberForThreads) - 1;
                 // debug_t[ThreadIndex]++;
 
                 if (curStepBuffer < 0)
@@ -163,7 +197,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
             if (te <= 0)
             lock (ThreadsStop)
-                Monitor.Pulse(ThreadsStop);
+                Monitor.PulseAll(ThreadsStop);
         }
     }
 

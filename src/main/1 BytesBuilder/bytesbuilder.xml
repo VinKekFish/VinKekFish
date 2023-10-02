@@ -429,11 +429,17 @@
             <summary>Вызывает Dispose(true)</summary>
         </member>
         <member name="P:cryptoprime.BytesBuilderForPointers.Record.errorsInDispose">
-            <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено.</summary>
+            <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Dispose(System.Boolean)">
             <summary>Очищает массив и освобождает выделенную под него память</summary>
             <param name="disposing">true, если вызов происходит из-вне деструктора</param>
+        </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor">
+            <summary>Если true, то в деструкторе могут быть сгенерированны исключения, если объект не был освобождён ранее. В противном случае, будет только установлен флаг errorsInDispose</summary>
+        </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeTwiced">
+            <summary>Если true, то может быть вызвано исключение при повторном вызове Dispose. В противном случае, будет только установлен флаг errorsInDispose</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Finalize">
             <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
