@@ -118,7 +118,7 @@ namespace cryptoprime.VinKekFish
                 state[0] ^= len1;
                 state[1] ^= len2;
                 tweak[0] += TWEAK_STEP_NUMBER;
-                tweak[1] += (ulong) dataLen;
+                tweak[1] += (ulong) key_length;
 
                 if (OIV != null && OIV_length > 0)
                 {

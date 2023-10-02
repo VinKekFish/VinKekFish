@@ -325,5 +325,13 @@ namespace vinkekfish
         {
             Dispose(false);
         }
+
+        /// <summary>Функция для отладки. Выполняет сравнение криптографического состояния с заданным с помощью VinKekFish_Utils.Utils.SecureCompareFast</summary>
+        /// <param name="state">Массив для сравнения</param>
+        /// <returns>true, если состояния равны</returns>
+        public bool debug_compareState(Record state)
+        {
+            return VinKekFish_Utils.Utils.SecureCompareFast(Len, state.len, st1, state);
+        }
     }
 }

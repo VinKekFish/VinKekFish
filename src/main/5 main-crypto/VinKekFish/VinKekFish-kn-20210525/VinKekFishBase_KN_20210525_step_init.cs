@@ -103,7 +103,7 @@ namespace vinkekfish
 
             // Устанавливаем PreRoundsForTranspose по-умолчанию
             if (PreRoundsForTranspose <= 0)
-                PreRoundsForTranspose = this.MIN_ABSORPTION_ROUNDS_K;
+                PreRoundsForTranspose = this.MIN_ABSORPTION_ROUNDS_D_K;
 
             lock (this)
             {
@@ -152,7 +152,7 @@ namespace vinkekfish
 
             lock (this)
             {
-                ClearState();
+                ClearState();       // Здесь должны быть обнулены и tweak
                 StartThreads();
 
                 InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailBlocks: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
@@ -257,7 +257,7 @@ namespace vinkekfish
                 byte len2 = (byte) (dt >> 8);
                 State1[0] ^= len1;
                 State1[1] ^= len2;
-                Tweaks[1] += (ulong) dt;
+                Tweaks[1] += (ulong) keyLen;
 
                 BytesBuilder.CopyTo(dt, MAX_SINGLE_KEY_K, key, State1 + 2);
                 keyLen -= dt;
@@ -366,10 +366,10 @@ namespace vinkekfish
         /// <param name="regime">Режим шифрования (это определяемое пользователем байтовое поле, вводимое во внешную часть криптографического состояния)</param>
         public void InputData_Xor(byte * data, long dataLen, byte regime)
         {
-            if (dataLen > BLOCK_SIZE)
-                throw new ArgumentOutOfRangeException();
+            if (dataLen > BLOCK_SIZE_K*0)
+                throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Xor: dataLen > BLOCK_SIZE_K");
             if (!isState1Main)
-                throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
+                throw new Exception("VinKekFishBase_KN_20210525.InputData_Xor: Fatal algorithmic error: !State1Main");
 
             XorWithBytes(dataLen, data, State1 + 3);
 

@@ -28,7 +28,7 @@ unsafe class Program
             }
 
             var dt  = DateTime.Now.Ticks;
-            // Utils.SecureCompareSpeed(er, br);
+            // Utils.SecureCompareFast(er, br);
             Utils.SecureCompare(er, br);
             // SecureCompareBad(er, br, 0, 0, er.len, br.len);
             var dt2 = DateTime.Now.Ticks;

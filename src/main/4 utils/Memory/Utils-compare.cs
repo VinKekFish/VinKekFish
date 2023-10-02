@@ -35,9 +35,9 @@ public unsafe static partial class Utils
     /// <param name="r1">Первый массив</param>
     /// <param name="r2">Второй массив</param>
     /// <returns><see langword="true"/>, если массивы совпадают.</returns>
-    public unsafe static bool SecureCompareSpeed(Record r1, Record r2)
+    public unsafe static bool SecureCompareFast(Record r1, Record r2)
     {
-        return SecureCompareSpeed(r1, r2, 0, 0, r1.len, r2.len);
+        return SecureCompareFast(r1, r2, 0, 0, r1.len, r2.len);
     }
 
     /// <summary>Безопасно сравнивает два массива. Функция немного хуже, но раз в 5 быстрее, чем SecureCompare</summary>
@@ -48,7 +48,7 @@ public unsafe static partial class Utils
     /// <param name="len1">Длина подмассива для сравнивания</param>
     /// <param name="len2">Длина подмассива для сравнивания</param>
     /// <returns><see langword="true"/>, если массивы совпадают.</returns>
-    public unsafe static bool SecureCompareSpeed(Record r1, Record r2, nint start1, nint start2, nint len1, nint len2)
+    public unsafe static bool SecureCompareFast(Record r1, Record r2, nint start1, nint start2, nint len1, nint len2)
     {
         var len = len1;
         if (len > len2)
@@ -68,6 +68,29 @@ public unsafe static partial class Utils
 
         V |= len1 ^ len2;
 
+        return V == 0;
+    }
+// TODO: tests
+    /// <summary>езопасно сравнивает два массива. Функция немного хуже, но раз в 5 быстрее, чем SecureCompare</summary>
+    /// <param name="len1">Длина массива r1</param>
+    /// <param name="len2">Длина массива r2</param>
+    /// <param name="r1">Массив для сравнения</param>
+    /// <param name="r2">Второй массив для сравнения</param>
+    /// <returns>true, если значения равны</returns>
+    public static bool SecureCompareFast(nint len1, nint len2, byte* r1, byte* r2)
+    {
+        var len = len1;
+        if (len > len2)
+            len = len2;
+
+        byte * End1 = r1 + len;
+        nint V = 0;
+        for (; r1 < End1; r1++, r2++)
+        {
+            V |= *r1 ^ *r2;
+        }
+
+        V |= len1 ^ len2;
         return V == 0;
     }
 }

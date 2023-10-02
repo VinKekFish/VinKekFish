@@ -51,16 +51,16 @@ public unsafe class SecureCompare_test: BytesBuilder_test_parent
                 {
                     var a = (rb >> s) << i;
                     var c = (rb << i) >> s;
-                    if (SecureCompareSpeed(re, a))
+                    if (SecureCompareFast(re, a))
                         throw new Exception("1.1a");
                     if (SecureCompare(re, a))
                         throw new Exception("1.1b");
-                    if (!SecureCompareSpeed(re, a, s, 0, a.len, a.len))
+                    if (!SecureCompareFast(re, a, s, 0, a.len, a.len))
                         throw new Exception("1.2a");
-                    if (!SecureCompareSpeed(a, re, 0, s, a.len, a.len))
+                    if (!SecureCompareFast(a, re, 0, s, a.len, a.len))
                         throw new Exception("1.2b");
 
-                    if (!SecureCompareSpeed(a, a))
+                    if (!SecureCompareFast(a, a))
                         throw new Exception("1.3a");
                     if (!SecureCompare(a, a))
                         throw new Exception("1.3b");
@@ -68,9 +68,9 @@ public unsafe class SecureCompare_test: BytesBuilder_test_parent
                         throw new Exception("1.3c");
                     if (!SecureCompare(c, a))
                         throw new Exception("1.3d");
-                    if (!SecureCompareSpeed(a, c))
+                    if (!SecureCompareFast(a, c))
                         throw new Exception("1.3e");
-                    if (!SecureCompareSpeed(c, a))
+                    if (!SecureCompareFast(c, a))
                         throw new Exception("1.3f");
                 }
             }
