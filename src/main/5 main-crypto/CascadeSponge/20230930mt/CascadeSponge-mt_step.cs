@@ -75,12 +75,15 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             for (nint i = 0; i < ThreadsFunc.Length; i++)
                 ThreadsFunc[i] = 1;       // Ставим на выполнение keccak потокам
 
-            lock (ThreadsStop)      // Ждём выполнения задач (и запускаем задачи)
+            // lock (ThreadsStop)      // Ждём выполнения задач (и запускаем задачи)
             {
                 Thread_keccak(ThreadsCount-1);
 
                 while (ThreadsExecuted > 0 && !ThreadsError)
-                    Monitor.Wait(ThreadsStop);
+                {
+                    // Monitor.Wait(ThreadsStop);
+                    // Thread.Sleep(0);
+                }
 
                 // Event.Reset();  // Именно здесь, т.к. потоки могут не начаться до того, как будет ожидание ThreadsStop
                 curStepBuffer *= -1;

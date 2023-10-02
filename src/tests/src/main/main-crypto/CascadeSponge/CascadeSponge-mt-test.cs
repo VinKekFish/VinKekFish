@@ -1,5 +1,5 @@
 // #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-// #define inWork_With_CascadeSponge_mt
+#define inWork_With_CascadeSponge_mt
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -96,7 +96,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
-[TestTagAttribute("CascadeSponge", duration: 200, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_4(TestConstructor constructor) :
@@ -105,7 +105,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_
 
     public override void Test()
     {
-        Test( 90, 4,  4, 96);
+        Test( 90, 4,  4, 192);
     }
 }
 
@@ -113,7 +113,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
-[TestTagAttribute("CascadeSponge", duration: 300, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 600, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_9(TestConstructor constructor) :
@@ -122,14 +122,14 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_
 
     public override void Test()
     {
-        Test( 90, 9,  8, 96);
+        Test( 90, 9,  8, 128);
     }
 }
 
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
-[TestTagAttribute("CascadeSponge", duration: 200, singleThread: true)]
+[TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge_mt_20230930_PerformanceTest
 {
     public CascadeSponge_mt_20230930_PerformanceTest_16(TestConstructor constructor) :
@@ -138,7 +138,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge
 
     public override void Test()
     {
-        Test(100, 16, 16, 27);
+        Test(100, 16, 16, 96);
     }
 }
 
@@ -154,7 +154,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge
 
     public override void Test()
     {
-        Test(100, 29, 28, 27);
+        Test(100, 29, 28, 64);
     }
 }
 
