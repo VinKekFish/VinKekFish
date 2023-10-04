@@ -47,6 +47,8 @@ namespace cryptoprime
             tt[2] = tt[0] ^ tt[1];
         }
 
+        /// <summary>Сгенерировать расширение ключа</summary>
+        /// <param name="tk">Ключ с дополнительным 8-мибайтовым словом для расширения (слово расширения в конце)</param>
         public static void genExpandedKey(ulong* tk)
         {
             tk[16] = threefish_slowly.C240;

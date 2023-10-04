@@ -101,6 +101,10 @@
             <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
             <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
         </member>
+        <member name="M:cryptoprime.Threefish1024.genExpandedKey(System.UInt64*)">
+            <summary>Сгенерировать расширение ключа</summary>
+            <param name="tk">Ключ с дополнительным 8-мибайтовым словом для расширения (слово расширения в конце)</param>
+        </member>
         <member name="M:CodeGenerated.Cryptoprimes.Threefish_Static_Generated.Threefish1024_step(System.UInt64*,System.UInt64*,System.UInt64*)">
             <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>
             <param name="key">Key for cipher (128 bytes)</param>

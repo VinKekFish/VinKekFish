@@ -7,6 +7,7 @@ using cryptoprime.VinKekFish;
 using static cryptoprime.BytesBuilderForPointers;
 
 using static VinKekFish_Utils.Utils;
+using CodeGenerated.Cryptoprimes;
 
 /*
 Конкретная проверка развёрнутой реализацией для конкретных значений параметров
@@ -65,7 +66,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         twu[0] = 4843377040061051741;
         twu[1] = 6387661195837588921;
         twu[2] = 123456789; // Это нигде не участвует, т.к. расширение твика вычисляется из первых двух слов твика
-        TW[0]  = 0; TW[1] = 0; TW[2] = 0;
+        TW[0]  = 0; TW[1] = 0; TW[2] = 0;       // Делаем заготовку для tweak непосредственно при вычислениях
 
         k.Init1(roundsCnt);
         k.Init2
@@ -114,9 +115,14 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         VinKekFish_Utils.Utils.MsgToFile($"round started 4", "KNe");
         VinKekFish_Utils.Utils.ArrayToFile((byte *) TW, 16, "KNe");
+
+        // Осуществляем предварительное преобразование
+        transpose128(state);
+        ThreeFish(state, TW, 0);
         transpose128(state);
     }
 
+    // Выполняет преобразование для перестановок, в частности, самое первое транспонирование перед ThreeFish предварительного преобразования
     private void transpose128(Record state)
     {
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
@@ -144,5 +150,51 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         BytesBuilder.CopyTo(9600, 9600, buff, state);
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
+    }
+
+    private void ThreeFish(Record state, ulong* TW, ulong numberOfSemiround)
+    {
+        var st2  = stackalloc byte[9600];
+        var twi  = stackalloc ulong[3];
+
+        twi[0]  = TW[0]; twi[1] = TW[1];
+        twi[0] += numberOfSemiround << 32;  // 32 - старшее 4-хбайтовое слово; идёт сложение с номером полураунда
+
+        BytesBuilder.CopyTo(9600, 9600, state, st2);
+
+        for (ulong i = 0; i < 75; i++)
+            ThreeFishBlock(state, st2, twi, i);
+    }
+
+    /// <summary>Преобразует один блок преобразованием ThreeFish</summary>
+    /// <param name="state">Состояние для изменения</param>
+    /// <param name="state2">Первоначальное состояние. Не подвергается изменению</param>
+    /// <param name="TW">Твик для данного полураунда</param>
+    /// <param name="i">i - номер блока ThreeFish во внутреннем состоянии</param>
+    private static void ThreeFishBlock(Record state, byte * state2, ulong* TW, ulong i)
+    {
+        var ekey = stackalloc byte[128 + 8];
+        var text = stackalloc byte[128 + 8];
+
+        var j = i + 37;
+        if (j >= 75)
+            j -= 75;
+
+        var twi  = stackalloc ulong[3];
+        twi[0]   = TW[0]; twi[1] = TW[1];
+        twi[0]  += i;
+        twi[2]   = twi[0] ^ twi[1];
+
+        var ckey = state2       + 128 * j;
+        var pt1  = state .array + 128 * i;
+        var pt2  = state2       + 128 * i;
+
+        BytesBuilder.CopyTo(128, 128, pt2,  text);      // Копируем блок для шифрования в отдельный массив, чтобы случайно ничего не испортить внутри тестов
+        BytesBuilder.CopyTo(128, 128, ckey, ekey);
+        Threefish1024.genExpandedKey((ulong*)ekey);
+
+        Threefish_Static_Generated.Threefish1024_step((ulong*)ekey, twi, (ulong*)text);
+
+        BytesBuilder.CopyTo(128, 128, text, pt1);
     }
 }
