@@ -83,7 +83,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         Init2(state, OIV, tweak, TW, key, RoundsForFinal, RoundsForTailsBlock, RoundsForFirstKeyBlock);
 
 
-        k.step(k.MIN_ROUNDS_K);
+        // k.step(k.MIN_ROUNDS_K);
     }
 
     protected void Init2(Record state, Record oiv, Record tweak, ulong * TW, Record key, int roundsForFinal, int roundsForTailsBlock, int roundsForFirstKeyBlock)
@@ -129,12 +129,13 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         var buff = stackalloc byte[9600];
 
-        buff[0]   = state[0];
-        buff[128] = state[1];
-        buff[256] = state[2];
-        buff[384] = state[3];
-        buff[512] = state[4];
-        buff[640] = state[5];
+        // На всякий случай дублируем перестановки, чтобы точно знать, хотя бы что у нас в начале
+        buff[0] = state[0];
+        buff[1] = state[128];
+        buff[2] = state[256];
+        buff[3] = state[384];
+        buff[4] = state[512];
+        buff[5] = state[640];
 
         int j = 768;
         for (int i = 6; i < 9600; i++)
@@ -175,23 +176,27 @@ public unsafe class VinKekFish_test_simplebase : TestTask
     {
         var ekey = stackalloc byte[128 + 8];
         var text = stackalloc byte[128 + 8];
-
-        var j = i + 37;
-        if (j >= 75)
-            j -= 75;
-
         var twi  = stackalloc ulong[3];
+
         twi[0]   = TW[0]; twi[1] = TW[1];
         twi[0]  += i;
         twi[2]   = twi[0] ^ twi[1];
 
+        var j = i + 37;
+        if (j >= 75)
+            j -= 75;
+        var k = j+1;
+        if (k == 75)
+            k = 0;
+
         var ckey = state2       + 128 * j;
         var pt1  = state .array + 128 * i;
         var pt2  = state2       + 128 * i;
+        var kkey = state2       + 128 * k;
 
         BytesBuilder.CopyTo(128, 128, pt2,  text);      // Копируем блок для шифрования в отдельный массив, чтобы случайно ничего не испортить внутри тестов
         BytesBuilder.CopyTo(128, 128, ckey, ekey);
-        Threefish1024.genExpandedKey((ulong*)ekey);
+        BytesBuilder.CopyTo(  8,   8, kkey, ekey + 128);
 
         Threefish_Static_Generated.Threefish1024_step((ulong*)ekey, twi, (ulong*)text);
 
