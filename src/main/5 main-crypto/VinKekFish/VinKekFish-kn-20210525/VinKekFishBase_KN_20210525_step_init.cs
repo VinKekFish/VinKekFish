@@ -114,16 +114,17 @@ namespace vinkekfish
 
             // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(tablesForPermutations, Math.Min(tablesForPermutations.len, 256)));
         }
-
+// TODO: посмотреть в тестах, что исходный tweak не изменяется
         /// <summary>Вторая инициализация (полная инициализация): инициализация внутреннего состояния ключём</summary>
         /// <param name="key">Основной ключ алгоритма</param>
         /// <param name="OpenInitializationVector">Основной ОВИ (открытый вектор инициализации), не более чем MAX_OIV_K байтов</param>
         /// <param name="TweakInit">Инициализатор Tweak (дополнительная синхропосылка), может быть null или инициализирован нулями</param>
-        /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ</param>
+        /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ. Имеет смысл делать это количество раундов самым большим.</param>
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
         /// <param name="RoundsForTailsBlock">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость - это рекомендуется и это по умолчанию)</param>
-        public virtual void Init2(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true)
+        /// <param name="noInputKey">Если true, то инициализация ключом и синхропосылкой должна быть осуществлена пользователем вручную. key, TweakInit и OpenInitializationVector должны быть null</param>
+        public virtual void Init2(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = -1, int RoundsForFirstKeyBlock = -1, int RoundsForTailsBlock = -1, bool FinalOverwrite = true, bool noInputKey = false)
         {
             if (RoundsForFinal < 0)
             {
@@ -155,7 +156,14 @@ namespace vinkekfish
                 ClearState();       // Здесь должны быть обнулены и tweak
                 StartThreads();
 
-                InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailBlocks: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
+                if (noInputKey)
+                {
+                    if (key != null || TweakInit != null || OpenInitializationVector != null)
+                        throw new ArgumentException("VinKekFishBase_KN_20210525.Init2: noInputKey is true but key != null || TweakInit != null || OpenInitializationVector != null");
+                }
+                else
+                    InputKey(key: key, OpenInitializationVector: OpenInitializationVector, TweakInit: TweakInit, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock, RoundsForTailBlocks: RoundsForTailsBlock, FinalOverwrite: FinalOverwrite);
+
                 output?.Clear();
                 isInit2 = true;
             }
@@ -206,7 +214,7 @@ namespace vinkekfish
         /// <param name="key">Основной ключ алгоритма</param>
         /// <param name="OpenInitializationVector">Основной ОВИ (открытый вектор инициализации), не более чем MAX_OIV_K байтов</param>
         /// <param name="TweakInit">Инициализатор Tweak (дополнительная синхропосылка), может быть null или инициализирован нулями</param>
-        /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ</param>
+        /// <param name="RoundsForFinal">Количество раундов отбоя после ввода ключи и ОВИ. Имеет смысл делать это количество раундов самым большим.</param>
         /// <param name="RoundsForFirstKeyBlock">Количество раундов преобразования первого блока ключа и ОВИ</param>
         /// <param name="RoundsForTailBlocks">Количество раундов преобразования иных блоков ключа, кроме первого блока</param>
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
@@ -275,7 +283,7 @@ namespace vinkekfish
                 if (dt > BLOCK_SIZE_K)
                     dt = BLOCK_SIZE_K;
 
-                InputData_Overwrite(TailOfKey, dt, regime: 0);
+                InputData_Overwrite(TailOfKey, dt, regime: 0, nullPadding: false);
 
                 keyLen    -= dt;
                 TailOfKey += dt;
@@ -288,6 +296,8 @@ namespace vinkekfish
             {
                 InputData_Overwrite(null, 0, regime: 255, nullPadding: true);
             }
+            else
+                InputData_Xor(null, 0, regime: 255);
 
             step(RoundsForFinal);
         }
@@ -354,9 +364,9 @@ namespace vinkekfish
 
             State1[0] ^= len1;
             State1[1] ^= len2;
-            State1[2] ^= regime;
+            // State1[2] ^= regime;
 
-            InputData_ChangeTweak(dataLen: dataLen, Overwrite: true, regime: regime);
+            InputData_ChangeTweakAndState(dataLen: dataLen, Overwrite: true, regime: regime);
         }
 
         /// <summary>Ввод данных во внешнюю часть криптографического состояния через xor</summary>
@@ -370,20 +380,23 @@ namespace vinkekfish
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Xor: Fatal algorithmic error: !State1Main");
 
-            XorWithBytes(dataLen, data, State1 + 3);
+            if (dataLen > 0)
+            {
+                XorWithBytes(dataLen, data, State1 + 3);
 
-            byte len1 = (byte) dataLen;
-            byte len2 = (byte) (dataLen >> 8);
+                byte len1 = (byte) dataLen;
+                byte len2 = (byte) (dataLen >> 8);
 
-            State1[0] ^= len1;
-            State1[1] ^= len2;
-            State1[2] ^= regime;
+                State1[0] ^= len1;
+                State1[1] ^= len2;
+            }
+            // State1[2] ^= regime;
 
-            InputData_ChangeTweak(dataLen: dataLen, Overwrite: false, regime: regime);
+            InputData_ChangeTweakAndState(dataLen: dataLen, Overwrite: false, regime: regime);
         }
 
         /// <summary>Изменяет tweak. Этот метод вызывать не надо. Он автоматически вызывается при вызове InputData_*</summary>
-        public void InputData_ChangeTweak(long dataLen, bool Overwrite, byte regime)
+        public void InputData_ChangeTweakAndState(long dataLen, bool Overwrite, byte regime)
         {
             // Приращение tweak перед вводом данных
             Tweaks[0] += TWEAK_STEP_NUMBER;
@@ -398,7 +411,7 @@ namespace vinkekfish
         }
 
         /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak</summary>
-        public void NoInputData_ChangeTweak(byte regime)
+        public void NoInputData_ChangeTweakAndState(byte regime)
         {
             // Приращение tweak перед вводом данных
             Tweaks[0] += TWEAK_STEP_NUMBER;

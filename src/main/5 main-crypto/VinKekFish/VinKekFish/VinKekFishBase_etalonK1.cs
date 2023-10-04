@@ -99,7 +99,7 @@ namespace cryptoprime.VinKekFish
                 if (dataLen > BLOCK_SIZE)
                     dataLen = BLOCK_SIZE;
 
-                InputData_Overwrite(data, state, dataLen, tweak, regime: 0);
+                InputData_Overwrite(data, state, dataLen, tweak, regime: 0, nullPaddding: false);
                 data += dataLen;
             }
             else
