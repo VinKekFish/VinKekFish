@@ -1,4 +1,7 @@
 ﻿// TODO: tests
+
+// #define DEBUG_OUTPUT
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +26,19 @@ namespace vinkekfish
                                                                 /// <summary>Если <see langword="true"/>, то выполнена инициализация 1 (сгенерированы таблицы перестановок)</summary>
         public bool IsInit1 => isInit1;                         /// <summary>Если <see langword="true"/>, то выполнена инициализация 2 (полная инициализация состояния)</summary>
         public bool IsInit2 => isInit2;
+                                                                /// <summary>Перед шагом необходимо изменить tweak и state, даже если ничего не вводилось. Если false - при попытке выполнить шаг будет сгенерированно исключение. Устанавливается в функциях, изменяющих tweak от шага к шагу (InputData_Xor и InputData_Overwrite; InputData_ChangeTweakAndState).</summary>
+        protected bool isDataInputed = false;
 
 
-        /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish</remarks>
+        /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
         /// <param name="askedCountOfRounds">Количество раундов.</param>
         public void step(int askedCountOfRounds = -1)
         {
+            if (!isDataInputed)
+                throw new ArgumentException("VinKekFishBase_KN_20210525.step: !isDataInputed. Before step you must call InputData_Overwrite or InputData_Xor", "isDataInputed");
+
+            isDataInputed = false;
+
             if (askedCountOfRounds > CountOfRounds)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.step: askedCountOfRounds > this.CountOfRounds");
 
@@ -46,8 +56,10 @@ namespace vinkekfish
             Tweaks[2+0] = Tweaks[0+0];
             Tweaks[2+1] = Tweaks[0+1];
 
-            VinKekFish_Utils.Utils.MsgToFile($"round started {askedCountOfRounds}", "KN");   // TODO: !!!
-            VinKekFish_Utils.Utils.ArrayToFile((byte *) Tweaks, 16, "KN");   // TODO: !!!
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.MsgToFile($"round started {askedCountOfRounds}", "KN");
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) Tweaks, 16, "KN");
+            #endif
 
             // Предварительное преобразование
             doPermutation(transpose128);
@@ -61,7 +73,9 @@ namespace vinkekfish
             askedCountOfRounds <<= 1;
             for (int round = 0; round < askedCountOfRounds; round++)
             {
-                VinKekFish_Utils.Utils.MsgToFile($"semiround {round}", "KN");   // TODO: !!!
+                #if DEBUG_OUTPUT
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round}", "KN");
+                #endif
 
                 doKeccak();
                 doPermutation(TB); TB += Len;
@@ -75,7 +89,9 @@ namespace vinkekfish
                 Tweaks[2+0] += 0x1_0000_0000U;  // Берём элемент [1], расположение tweak см. по метке :an6c5JhGzyOO
             }
 
-            VinKekFish_Utils.Utils.MsgToFile($"final", "KN");   // TODO: !!!
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.MsgToFile($"final", "KN");
+            #endif
 
             // После последнего раунда производится заключительное преобразование (заключительная рандомизация) поблочной функцией keccak-f
             for (int i = 0; i < CountOfFinal; i++)
@@ -115,7 +131,7 @@ namespace vinkekfish
             // Console.WriteLine(VinKekFish_Utils.Utils.ArrayToHex(tablesForPermutations, Math.Min(tablesForPermutations.len, 256)));
         }
 // TODO: посмотреть в тестах, что исходный tweak не изменяется
-        /// <summary>Вторая инициализация (полная инициализация): инициализация внутреннего состояния ключём</summary>
+        /// <summary>Вторая инициализация (полная инициализация): инициализация внутреннего состояния ключём. Вызывается после Init1</summary>
         /// <param name="key">Основной ключ алгоритма</param>
         /// <param name="OpenInitializationVector">Основной ОВИ (открытый вектор инициализации), не более чем MAX_OIV_K байтов</param>
         /// <param name="TweakInit">Инициализатор Tweak (дополнительная синхропосылка), может быть null или инициализирован нулями</param>
@@ -223,6 +239,8 @@ namespace vinkekfish
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputKey: Fatal algorithmic error: !State1Main");
 
+            if (TweakInit != null && TweakInit.len < CryptoTweakLen)
+                throw new ArgumentOutOfRangeException("TweakInit.len", $"VinKekFishBase_KN_20210525.InputKey: TweakInit.len < CryptoTweakLen ({TweakInit.len} < {CryptoTweakLen})");
             if (RoundsForFinal < MIN_ROUNDS_K)
                 throw new ArgumentOutOfRangeException("RoundsForFinal", $"VinKekFishBase_KN_20210525.InputKey: RoundsForFinal < MIN_ROUNDS_K ({RoundsForFinal} < {MIN_ROUNDS_K})");
             if (RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K)
@@ -231,7 +249,7 @@ namespace vinkekfish
                 throw new ArgumentOutOfRangeException("RoundsForTailsBlock", $"VinKekFishBase_KN_20210525.InputKey: RoundsForTailsBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForTailBlocks} < {MIN_ABSORPTION_ROUNDS_D_K})");
 
 // TODO: проверить в тестах, что все инициализаторы действительно используются
-            if (TweakInit != null && TweakInit.len >= CryptoTweakLen)
+            if (TweakInit != null)
             {
                 // Tweaks уже очищено в init2, так что инициализируем только если нужно
                 var T     = (ulong *) TweakInit;
@@ -271,6 +289,7 @@ namespace vinkekfish
                 keyLen -= dt;
             }
 
+            isDataInputed = true;
             step(RoundsForFirstKeyBlock);
 
             byte * TailOfKey = null;         // key + dt - это будет неверно! , см. перегрузку оператора "+" в Record
@@ -396,7 +415,10 @@ namespace vinkekfish
         }
 
         /// <summary>Изменяет tweak. Этот метод вызывать не надо. Он автоматически вызывается при вызове InputData_*</summary>
-        public void InputData_ChangeTweakAndState(long dataLen, bool Overwrite, byte regime)
+        /// <param name="dataLen">Длина введённых данных</param>
+        /// <param name="Overwrite">Режим ввода. true - если overwrite</param>
+        /// <param name="regime">Номер режима схемы шифрования</param>
+        protected void InputData_ChangeTweakAndState(long dataLen, bool Overwrite, byte regime)
         {
             // Приращение tweak перед вводом данных
             Tweaks[0] += TWEAK_STEP_NUMBER;
@@ -408,9 +430,12 @@ namespace vinkekfish
             var reg = ((ulong) regime) << 40; // 8*5 - третий по старшинству байт, нумерация с 1
             Tweaks[1] += reg;
             State1[2] ^= regime;
+
+            isDataInputed = true;
         }
 
-        /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak</summary>
+        /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak. Вместо этого можно вызвать InputData_Xor(null, 0, regime)</summary>
+        /// <param name="regime">Номер режима схемы шифрования</param>
         public void NoInputData_ChangeTweakAndState(byte regime)
         {
             // Приращение tweak перед вводом данных
@@ -419,6 +444,8 @@ namespace vinkekfish
             var reg = ((ulong) regime) << 40; // 8*5 - третий по старшинству байт, нумерация с 1
             Tweaks[1] += reg;
             State1[2] ^= regime;
+
+            isDataInputed = true;
         }
     }
 }

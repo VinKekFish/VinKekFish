@@ -296,7 +296,9 @@ namespace vinkekfish
             CurrentPermutationBlockNumber = 0;
             this.CurrentPermutationTable  = CurrentPermutationTable;
 
-            VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");    // TODO: !!!
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");
+            #endif
 
             // doFunction(ThreadFunction_Permutation);
             // Для повышения эффективности работы это делает один поток, а не пул (см. пояснения ThreadFunction_Permutation)
@@ -304,9 +306,10 @@ namespace vinkekfish
             waitForDoFunction();
             isState1Main ^= true;
 
-            // TODO: !!!
+            #if DEBUG_OUTPUT
             // VinKekFish_Utils.Utils.ArrayToFile((byte *) CurrentPermutationTable, this.Len*2, "KN");
             VinKekFish_Utils.Utils.ArrayToFile(st1, this.Len, "KN");
+            #endif
         }
 
         protected volatile int      CurrentPermutationBlockNumber = 0;

@@ -1,5 +1,5 @@
 ﻿// TODO: tests
-// Сделать тесты на то, что вспомогательный блок действительно работает
+// #define DEBUG_OUTPUT
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -213,9 +213,9 @@ namespace cryptoprime.VinKekFish
 
             state[0] ^= len1;
             state[1] ^= len2;
-            state[2] ^= regime;
+            // state[2] ^= regime;
 
-            InputData_ChangeTweak(state: state, tweak: tweak, dataLen: (long) dataLen, Overwrite: true, regime: regime);
+            InputData_ChangeTweakAndState(state: state, tweak: tweak, dataLen: (long) dataLen, Overwrite: true, regime: regime);
         }
 
         /// <summary>Сырой ввод данных. Вводит данные в состояние через xor (режим ввода sponge), изменяет tweak. Не вызывает криптографические функции</summary>
@@ -234,13 +234,13 @@ namespace cryptoprime.VinKekFish
 
             state[0] ^= len1;
             state[1] ^= len2;
-            state[2] ^= regime;
+            //state[2] ^= regime;
 
-            InputData_ChangeTweak(state: state, tweak: tweak, dataLen: dataLen, Overwrite: false, regime: regime);
+            InputData_ChangeTweakAndState(state: state, tweak: tweak, dataLen: dataLen, Overwrite: false, regime: regime);
         }
 
         /// <summary>Этот метод вызывать не надо, изменяет tweak. Он автоматически вызывается при вызове InputData_*</summary>
-        public static void InputData_ChangeTweak(byte * state, ulong * tweak, long dataLen, bool Overwrite, byte regime)
+        public static void InputData_ChangeTweakAndState(byte * state, ulong * tweak, long dataLen, bool Overwrite, byte regime)
         {
             // Приращение tweak перед вводом данных
             tweak[0] += TWEAK_STEP_NUMBER;
@@ -285,8 +285,11 @@ namespace cryptoprime.VinKekFish
             vinkekfish.VinKekFish_k1_base_20210419.CheckAllPermutationTables(tablesForPermutations, countOfRounds, CryptoStateLen, "before step");
             #endif
 
-            VinKekFish_Utils.Utils.MsgToFile($"round started {countOfRounds}", "k1");   // TODO: !!!
-            VinKekFish_Utils.Utils.ArrayToFile((byte *) tweakTmp, 16, "k1");   // TODO: !!!
+
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.MsgToFile($"round started {countOfRounds}", "k1");
+            VinKekFish_Utils.Utils.ArrayToFile((byte *) tweakTmp, 16, "k1");
+            #endif
 
             // Распределение впитывания (Предварительное преобразование)
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
@@ -297,7 +300,9 @@ namespace cryptoprime.VinKekFish
             // Основной шаг алгоритма: раунды
             for (int round = 0; round < countOfRounds; round++)
             {
-                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2}", "k1");   // TODO: !!!
+                #if DEBUG_OUTPUT
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2}", "k1");
+                #endif
 
                 DoKeccakForAllBlocks(state, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state, state2, CryptoStateLen, tablesForPermutations);
@@ -310,7 +315,9 @@ namespace cryptoprime.VinKekFish
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 tweakTmp[0] += 0x1_0000_0000U;
 
-                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2+1}", "k1");   // TODO: !!!
+                #if DEBUG_OUTPUT
+                VinKekFish_Utils.Utils.MsgToFile($"semiround {round*2+1}", "k1");
+                #endif
 
                 DoKeccakForAllBlocks(state2, CryptoStateLenKeccak, b: (ulong*) b, c: (ulong*) c);
                 DoPermutation(state2, state, CryptoStateLen, tablesForPermutations);
@@ -325,7 +332,9 @@ namespace cryptoprime.VinKekFish
                 tweakTmp[0] += 0x1_0000_0000U;
             }
 
-            VinKekFish_Utils.Utils.MsgToFile($"final", "k1");   // TODO: !!!
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.MsgToFile($"final", "k1");
+            #endif
 
             // После последнего раунда производится заключительная рандомизация поблочной функцией keccak-f
             for (int i = 0; i < 2; i++)
@@ -429,16 +438,19 @@ namespace cryptoprime.VinKekFish
             // vinkekfish.VinKekFish_k1_base_20210419.CheckPermutationTable(permutationTable, len, "DoPermutation.k1 function");
             #endif
 
-            VinKekFish_Utils.Utils.ArrayToFile(source, len, "k1");  // TODO: !!!
+            #if DEBUG_OUTPUT
+            VinKekFish_Utils.Utils.ArrayToFile(source, len, "k1");
+            #endif
 
             for (int i = 0; i < len; i++)
             {
                 target[i] = source[  permutationTable[i]  ];
             }
 
-            // TODO: !!!
-            VinKekFish_Utils.Utils.ArrayToFile((byte *) permutationTable, len*2, "k1");
+            #if DEBUG_OUTPUT
+            // VinKekFish_Utils.Utils.ArrayToFile((byte *) permutationTable, len*2, "k1");
             VinKekFish_Utils.Utils.ArrayToFile(target, len, "k1");
+            #endif
         }
 
         public static ushort* transpose128_3200    = null;

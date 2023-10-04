@@ -21,6 +21,14 @@ namespace vinkekfish
         public    BytesBuilderStatic? input       = null;
         protected Record?             inputRecord = null;
 
+        /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата</summary>
+        /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K</param>
+        /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K</param>
+        /// <param name="Overwrite">Если true - режим overwrite. Если false - режим xor</param>
+        /// <param name="regime">Номер режима работы схемы шифрования</param>
+        /// <param name="nullPadding">Если true - включён режим nullPadding (при overwrite будет перезаписано BLOCK_SIZE_K байтов вне зависимости от длины ввода)</param>
+        /// <exception cref="Exception">Неверное состояние губки или другое</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Неверные аргументы</exception>
         public void doStepAndIO(int countOfRounds = -1, int outputLen = -1, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
         {
             if (!isInit1 || !isInit2)
@@ -35,27 +43,34 @@ namespace vinkekfish
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: countOfRounds < MIN_ROUNDS_K");
 
             if (input != null)
-            lock (input)
             {
-                if (inputRecord == null)
-                    inputRecord = allocator.AllocMemory(BLOCK_SIZE_K);
-
-                int inputLen = input.Count > BLOCK_SIZE_K ? BLOCK_SIZE_K : (int) input.Count;
-                input.getBytesAndRemoveIt(inputRecord, inputLen);
-
-                if (Overwrite)
+                lock (input)
                 {
-                    InputData_Overwrite(inputRecord, inputLen, regime: regime, nullPadding: nullPadding);
-                }
-                else
-                {
-                    InputData_Xor(inputRecord, inputLen, regime: regime);
+                    if (inputRecord == null)
+                        inputRecord = allocator.AllocMemory(BLOCK_SIZE_K);
+
+                    int inputLen = input.Count > BLOCK_SIZE_K ? BLOCK_SIZE_K : (int) input.Count;
+                    input.getBytesAndRemoveIt(inputRecord, inputLen);
+
+                    if (Overwrite)
+                    {
+                        InputData_Overwrite(inputRecord, inputLen, regime: regime, nullPadding: nullPadding);
+                    }
+                    else
+                    {
+                        InputData_Xor(inputRecord, inputLen, regime: regime);
+                    }
                 }
             }
+            else
+                if (Overwrite)
+                    InputData_Overwrite(null, 0, regime, nullPadding);
+                else
+                    NoInputData_ChangeTweakAndState(regime);
 
             step(askedCountOfRounds: countOfRounds);
 
-            if (output != null)
+            if (output != null && outputLen > 0)
             lock (output)
             {
                 if (!isHaveOutputData)
@@ -71,6 +86,22 @@ namespace vinkekfish
                 }
                 output.add(this.st1, outputLen);
             }
+        }
+
+        /// <summary>Если вместо функции doStepAndIO используется step, то необходимо получить результат с помощью этой функции</summary>
+        /// <param name="forData">Массив для получения результата</param>
+        /// <param name="outputLen">Желаемая длина результата, не более BLOCK_SIZE_K. 0 не позволяется</param>
+        public void doOutput(byte * forData, nint outputLen)
+        {
+            if (!isHaveOutputData)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doOutput: !isHaveOutputData");
+            if (outputLen <= 0)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doOutput: outputLen <= 0");
+            if (outputLen > BLOCK_SIZE_K)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doOutput: outputLen > BLOCK_SIZE_K");
+
+            isHaveOutputData = false;
+            BytesBuilder.CopyTo(Len, outputLen, st1, forData);
         }
     }
 }

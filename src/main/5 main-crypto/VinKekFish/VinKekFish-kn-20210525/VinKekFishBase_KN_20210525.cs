@@ -230,6 +230,7 @@ namespace vinkekfish
 
                 output?.Clear();
                 isHaveOutputData = false;
+                isDataInputed    = false;
             }
         }
 

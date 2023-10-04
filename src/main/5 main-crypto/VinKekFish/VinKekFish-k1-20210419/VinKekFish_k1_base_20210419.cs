@@ -365,6 +365,11 @@ namespace vinkekfish
             isHaveOutputData = true;
         }
 
+        public void InputData_Xor(byte * data, long dataLen, byte regime = 0)
+        {
+            VinKekFishBase_etalonK1.InputData_Xor(data, this._state, dataLen, this.t0, regime);
+        }
+
         /// <summary>Получает из криптографического состояния вывод</summary>
         /// <param name="output">Массив для получения вывода</param>
         /// <param name="start">Индекс в массиве output, с которого надо начинать запись</param>

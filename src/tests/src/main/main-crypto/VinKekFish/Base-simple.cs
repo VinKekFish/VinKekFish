@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("VinKekFish", duration: 60e3, singleThread: true)]
+[TestTagAttribute("VinKekFish", duration: 500, singleThread: false)]
 public unsafe class VinKekFish_test_simplebase : TestTask
 {
     public VinKekFish_test_simplebase(TestConstructor constructor) :
@@ -83,8 +83,26 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         Init2(state, OIV, tweak, TW, key, RoundsForFinal, RoundsForTailsBlock, RoundsForFirstKeyBlock);
 
+        // Выполняем вычислительный шаг, например, для генерации гаммы
+        k.output = new BytesBuilderStatic(512*3);
+        k.doStepAndIO(k.MIN_ROUNDS_K, regime: 4);
 
-        // k.step(k.MIN_ROUNDS_K);
+        state[0] ^= 0;
+        state[1] ^= 0;
+        state[2] ^= 4;
+
+        TW[0] += 1253539379;
+        TW[1] += 4UL << 40;
+        TW[2]  = TW[0] ^ TW[1];
+
+        calcRound(state, TW, 9);
+
+        var r = stackalloc byte[512*3];
+
+        k.output.getBytesAndRemoveIt(r, 512*3);
+
+        if (!BytesBuilder.UnsecureCompare(512*3, 512*3, state, r))
+            throw new Exception("!BytesBuilder.UnsecureCompare(512*3, 512*3, state, r)");
     }
 
     protected void Init2(Record state, Record oiv, Record tweak, ulong * TW, Record key, int roundsForFinal, int roundsForTailsBlock, int roundsForFirstKeyBlock)

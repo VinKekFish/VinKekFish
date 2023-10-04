@@ -32,8 +32,9 @@ public class VinKekFish_test_baseK: Keccak_test_parent
         }
     }
 }
+
 // TODO: проверить VinKekFish на вводе только синхропосылки, а ключ вводить дальше вручную
-// [TestTagAttribute("inWork")]
+[TestTagAttribute("inWork")]
 [TestTagAttribute("VinKekFish", duration: 15e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 {
@@ -102,6 +103,8 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         k1t16.Init1(roundsCnt);
         k1t16.Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
 
+
+        k1e  .InputData_Xor(null, 0, 0);
         k1e  .DoStep(roundsCnt);
         k1t1 .doStepAndIO(roundsCnt);
         k1t4 .doStepAndIO(roundsCnt);
