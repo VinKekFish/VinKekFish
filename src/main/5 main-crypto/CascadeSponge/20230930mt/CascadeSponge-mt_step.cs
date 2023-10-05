@@ -20,8 +20,18 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 {
     protected volatile byte regime = 0;
 
+    /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
+    /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
+    /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
+    /// <param name="data">Данные для ввода, не более maxDataLen на один шаг</param>
+    /// <param name="dataLen">Количество данных для ввода</param>
+    /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
+    /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
+    /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <returns>Количество данных, введённых в губку</returns>
     public override nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
+        // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
         try
         {
@@ -31,6 +41,34 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         finally
         {
             Event.Reset();
+        }
+
+        return result;
+    }
+
+    /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
+    /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
+    /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
+    /// <param name="data">Данные для ввода, не более maxDataLen на один шаг</param>
+    /// <param name="dataLen">Количество данных для ввода</param>
+    /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
+    /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
+    /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <param name="noResetEvent">Если true, то состояние синхронизации не будет сбрасываться. Это нужно, если после одного шага сразу следует другой. В таком случае, потоки будут находится в цикле ожидания, тратя процессорные ресурсы вхолостую, но готовые вновь быстро взять задачи.</param>
+    /// <returns>Количество данных, введённых в губку</returns>
+    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, bool noResetEvent = false)
+    {
+        // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
+        nint result = -1;
+        try
+        {
+            Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
+            result = base.step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+        }
+        finally
+        {
+            if (!noResetEvent)
+                Event.Reset();
         }
 
         return result;

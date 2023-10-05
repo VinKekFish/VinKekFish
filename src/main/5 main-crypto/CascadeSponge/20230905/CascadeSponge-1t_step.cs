@@ -21,9 +21,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     protected volatile Keccak_Input_Delegate input = KeccakPrime.Keccak_Input64_512;
 
     public class StepProgress
-    {                                           /// <summary>Сколько шагов нужно выполнить всего</summary>
-        public nint allSteps   = 0;              /// <summary>Сколько шагов уже закончено</summary>
-        public nint endedSteps = 0;
+    {                                                     /// <summary>Сколько шагов нужно выполнить всего</summary>
+        public volatile nint allSteps   = 0;              /// <summary>Сколько шагов уже закончено</summary>
+        public volatile nint endedSteps = 0;
     }
 
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
@@ -33,6 +33,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="dataLen">Количество данных для ввода</param>
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
+    /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <returns>Количество данных, введённых в губку</returns>
     public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");

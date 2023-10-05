@@ -92,8 +92,12 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             data     .Dispose();
         }
 
-        Console.WriteLine($"{GC.CollectionCount() - cc}");
-        Console.WriteLine($"{GC.CollectionCount()}");
+        if (GC.CollectionCount(0) - cc > 0)
+            throw new Exception("GC.CollectionCount(0) - cc > 0");
+        /*
+        Console.WriteLine($"{GC.CollectionCount(0) - cc}");
+        Console.WriteLine($"{GC.CollectionCount(0)}");
+        Console.WriteLine($"{GC.CollectionCount(GC.MaxGeneration)}");*/
     }
 }
 
