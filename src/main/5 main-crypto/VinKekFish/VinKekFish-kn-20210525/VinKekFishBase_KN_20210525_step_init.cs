@@ -186,7 +186,7 @@ namespace vinkekfish
         }
                                                             /// <summary>Запускает все потоки</summary>
         protected virtual void StartThreads()
-        {
+        {/*
             foreach (var t in threads!)
             {
                 if (t.ThreadState != ThreadState.Running && t.ThreadState != ThreadState.WaitSleepJoin)
@@ -198,7 +198,7 @@ namespace vinkekfish
             while (ThreadsExecuted < ThreadCount && !isEnded)
             {
                 Monitor.Wait(sync);
-            }
+            }*/
         }
 
         /// <summary>Простая инициализация объекта без ключа для принятия энтропии в дальнейшем</summary>

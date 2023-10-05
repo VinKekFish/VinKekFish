@@ -652,7 +652,7 @@ namespace cryptoprime
             }
 
             /// <summary>Размер отступов контрольных значений. И левый, и правый отступы имеют одни и те же значения</summary>
-            public const nint ControlPaddingSize = 64;
+            public const nint ControlPaddingSize = 128;
 
             public nint getFullSizeToAllocate(nint len)
             {

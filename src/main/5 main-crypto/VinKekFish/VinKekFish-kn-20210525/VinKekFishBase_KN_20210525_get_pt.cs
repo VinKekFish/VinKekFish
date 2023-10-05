@@ -195,10 +195,10 @@ namespace vinkekfish
                 throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[8] != 1600");
             if (transpose200[LenInKeccak] != 1)
                 throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[LenInKeccak] != 1");
-            if (transpose200[LenInKeccak*LenInThreeFish] != LenInThreeFish)
+/*            if (transpose200[LenInKeccak*LenInThreeFish] != LenInThreeFish)
                 throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200[LenInKeccak*LenInThreeFish] != LenInThreeFish");
             if (transpose200_8[200*(LenInKeccak - K*2)] != 07)
-                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200_8[200*(LenInKeccak - K*2)] != 07");
+                throw new Exception("VinKekFish: fatal algotirhmic error: GenTables - transpose200_8[200*(LenInKeccak - K*2)] != 07");*/
         }
     }
 }

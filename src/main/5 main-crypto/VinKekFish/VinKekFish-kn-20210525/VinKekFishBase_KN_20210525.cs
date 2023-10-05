@@ -16,7 +16,7 @@ using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 namespace vinkekfish
 {
     // code::docs:m0vbJGmf34Sx5nKnLnpz:
-    /// <summary>Основная реализация VinKekFish. Создаёт потоки внутри объекта для многопоточной обработки
+    /// <summary>Основная реализация VinKekFish - необходимо использовать именно эту реализацию. Многопоточный вариант для любых разрешённых K. Рекомендуется использовать на одном потоке, т.к. производительность растёт очень слабо с увеличением потоков.
     /// Описание реализации искать по шаблону docs::docs:m0vbJGmf34Sx5nKnLnpz:</summary>
     /// <remarks>IsDisposed == true означает, что объект более не пригоден для использования.</remarks>
     /// <remarks>Обязательная инициализация вызовом Init1 и Init2</remarks>
@@ -52,8 +52,7 @@ namespace vinkekfish
         public readonly int LenInKeccak    = 0;
                                                                             /// <summary>Размер криптографического состояния, поделенного между потоками, в байтах. Последний блок может быть большей длины</summary>
         public readonly int LenThreadBlock   = 0;                           /// <summary>Количество блоков перестановки для потоков (размер в блоках длиной LenThreadBlock)</summary>
-        public readonly int LenInThreadBlock = 0;                           /// <summary>Количество потоков</summary>
-        public readonly int ThreadCount      = 0;
+        public readonly int LenInThreadBlock = 0;
                                                                             /// <summary>Максимальная длина ОВИ (открытого вектора инициализации)</summary>
         public readonly int MAX_OIV_K;                                      /// <summary>Максимальная длина первого блока ключа (это максимально рекомендуемая длина, но можно вводить больше)</summary>
         public readonly int MAX_SINGLE_KEY_K;                               /// <summary>Длина блока ввода/вывода</summary>
@@ -93,12 +92,11 @@ namespace vinkekfish
         //                                                                               /// <summary>Таймер чтения вхолостую. Может быть <see langword="null"/>.</summary>
         // protected readonly Timer? Timer                    = null; // Таймер нужно подвергнуть Dispose
 
-
+        int ThreadCount;
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта. После конструктора необходимо вызвать init1 и init2</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
-        /// <param name="ThreadCount">Количество создаваемых потоков. Рекомендуется использовать значение по-умолчанию: 0 (0 == Environment.ProcessorCount)</param>
-        // /// <param name="TimerIntervalMs">Интервал таймера холостого чтения. Если нет желания использовать таймер, поставьте Timeout.Infinite или любое отрицательное число</param>
+        /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount)</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
             BLOCK_SIZE_K     = K * BLOCK_SIZE;
@@ -120,6 +118,9 @@ namespace vinkekfish
             EXTRA_ROUNDS_K            = ce( K*25.0 );
             MAX_ROUNDS_K              = ce( K*25.0*(2*Math.Log2(K+1)+2) );
 
+            if (ThreadCount == 0)
+                ThreadCount = Environment.ProcessorCount;
+            this.ThreadCount = ThreadCount;
 
             if (CountOfRounds < 0)
                 CountOfRounds = NORMAL_ROUNDS_K;
@@ -130,13 +131,6 @@ namespace vinkekfish
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525: K < 1 || K > 19. Read VinKekFish.md");
             if ((K & 1) == 0)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525: (K & 1) == 0. Read VinKekFish.md");
-
-            if (ThreadCount <= 0)
-                ThreadCount = Environment.ProcessorCount;
-
-            this.ThreadCount            = ThreadCount;
-            this.ThreadsInFunc          = ThreadCount;
-            this.ThreadsExecutedForTask = ThreadCount;
 
             this.CountOfRounds = CountOfRounds;
             this.K             = K;
@@ -171,11 +165,11 @@ namespace vinkekfish
             ClearState();
 
             // ThreadsFunc_Current = ThreadFunction_empty; // Это уже сделано в ClearState
-            threads = new Thread[ThreadCount];
+/*            threads = new Thread[ThreadCount];
 
             for (int i = 0; i < threads.Length; i++)
                 threads[i] = new Thread(ThreadsFunction);
-
+*/
 
             NumbersOfThreeFishBlocks = new int[LenInThreeFish];
             var j = LenInThreeFish / 2;
@@ -222,11 +216,10 @@ namespace vinkekfish
             lock (sync)
             {
                 isInit2 = false;
-                ThreadsFunc_Current = ThreadFunction_empty;
 
-                rState1.Clear();
-                rState2.Clear();
-                rTweaks.Clear();
+                rState1?.Clear();
+                rState2?.Clear();
+                rTweaks?.Clear();
 
                 output?.Clear();
                 isHaveOutputData = false;
@@ -271,10 +264,6 @@ namespace vinkekfish
         public    bool IsDisposed => isDisposed;                            /// <summary>Очищает объект и освобождает все выделенные под него ресурсы</summary>
         protected virtual void Dispose(bool fromDispose = true)
         {
-            IsEnded = true;
-            // lock (sync) Monitor.PulseAll(sync);
-            // Свойство IsEnded уже вызывает PulseAll
-
             if (isDisposed)
             {
                 Record.errorsInDispose = true;
@@ -295,13 +284,11 @@ namespace vinkekfish
                 return;
             }
 
-            waitForDoFunction();
-
             lock (this)
             {
                 Clear();
-                try     {  output?.Dispose(); input?.Dispose(); inputRecord?.Dispose(); }
-                finally {  rState1.Dispose(); rState2.Dispose(); rTweaks.Dispose();  }
+                try     {  output? .Dispose(); input?  .Dispose(); inputRecord?.Dispose(); }
+                finally {  rState1?.Dispose(); rState2?.Dispose(); rTweaks?    .Dispose();  }
 
                 output      = null;
                 input       = null;
