@@ -34,7 +34,7 @@ public class VinKekFish_test_baseK: Keccak_test_parent
 }
 
 // TODO: проверить VinKekFish на вводе только синхропосылки, а ключ вводить дальше вручную
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("VinKekFish", duration: 15e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 {

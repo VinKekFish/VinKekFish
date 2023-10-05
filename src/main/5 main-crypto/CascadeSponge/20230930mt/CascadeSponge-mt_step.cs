@@ -72,7 +72,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
             // После того, как подготовили данные для заданий, ставим задания потокам
             // Если поставим перед - потоки сразу начнут выполнение и сделают всё некорректно
-            for (nint i = 0; i < ThreadsFunc.Length; i++)
+            for (nint i = 0; i < ThreadsFunc.Length; i += AlignmentMultipler)
                 ThreadsFunc[i] = 1;       // Ставим на выполнение keccak потокам
 
             // lock (ThreadsStop)      // Ждём выполнения задач (и запускаем задачи)

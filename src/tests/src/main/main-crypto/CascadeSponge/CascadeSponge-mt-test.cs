@@ -1,5 +1,5 @@
 // #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-// #define inWork_With_CascadeSponge_mt
+#define inWork_With_CascadeSponge_mt
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -39,6 +39,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     {
         GC.Collect();
         GC.WaitForPendingFinalizers();
+        var cc = GC.CollectionCount(0);
 
         var cascade1t = new CascadeSponge_1t_20230905(_tall: tall, _wide: wide);
         var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 0);
@@ -90,6 +91,9 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             cascademt.Dispose();
             data     .Dispose();
         }
+
+        Console.WriteLine($"{GC.CollectionCount() - cc}");
+        Console.WriteLine($"{GC.CollectionCount()}");
     }
 }
 

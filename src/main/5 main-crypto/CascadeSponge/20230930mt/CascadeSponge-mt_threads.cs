@@ -73,7 +73,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
     private void SetEndTaskForAllThreads()
     {
-        for (nint i = 0; i < ThreadsFunc.Length; i++)
+        for (nint i = 0; i < ThreadsFunc.Length; i += AlignmentMultipler)
             ThreadsFunc[i] = EndTask;
     }
 
@@ -96,15 +96,16 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <summary>Функция, выполняемая потоками</summary>
     protected virtual void ThreadsFunction(nint ThreadIndex)
     {
-        while (ThreadsFunc[ThreadIndex] != EndTask)
+        var ATI = ThreadIndex*AlignmentMultipler;
+        while (ThreadsFunc[ATI] != EndTask)
         {
-            if (ThreadsFunc[ThreadIndex] == EmptyTaskSlot)
+            if (ThreadsFunc[ATI] == EmptyTaskSlot)
             {
                 Thread.Sleep(0);        // Event внутри цикла никогда не сбрасывается, так что немного экономим мощности
                 Event.WaitOne();
             }
 
-            if (ThreadsFunc[ThreadIndex] == EndTask)
+            if (ThreadsFunc[ATI] == EndTask)
             {
                 Interlocked.Decrement(ref ThreadsExecuted);
                 lock (ThreadsStop)
@@ -113,7 +114,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                 return;
             }
 
-            switch (ThreadsFunc[ThreadIndex])
+            switch (ThreadsFunc[ATI])
             {
                 case 1:
                         Thread_keccak(ThreadIndex);
@@ -132,7 +133,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <summary>Функция преобразования keccak</summary>
     protected void Thread_keccak(nint ThreadIndex)
     {
-        ThreadsFunc[ThreadIndex] = EmptyTaskSlot;
+        ThreadsFunc[ThreadIndex*AlignmentMultipler] = EmptyTaskSlot;
 
         nint index = ThreadIndex;
 

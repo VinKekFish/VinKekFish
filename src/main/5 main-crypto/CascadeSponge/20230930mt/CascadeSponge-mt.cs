@@ -20,6 +20,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
     protected Record? stepBuffer;
     protected int     curStepBuffer = 1;
 
+    protected const nint AlignmentMultipler = 16;
+
     /// <summary>Создаёт каскадную губку с заданными параметрами</summary>
     /// <param name="_wide">Ширина каскадной губки, не менее MinWide и не менее CalcMinWide. Всегда должна быть чётной. Чем больше ширина, тем больше выход данных губки за один шаг.</param>
     /// <param name="_tall">Высота каскадной губки, не менее MinTall</param>
@@ -42,13 +44,13 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
 
         this.ThreadsCount = ThreadsCount;
         Threads         = new Thread[ThreadsCount-1];   // Основной поток тоже занят вычислениями, поэтому мы создаём на 1 поток меньше. Основной поток имеет последний индекс
-        ThreadsFunc     = new nint[ThreadsCount];
+        ThreadsFunc     = new nint[ThreadsCount * AlignmentMultipler];
         for (nint i = 0; i < Threads.Length; i++)
         {
             var _i = i;
             Threads[i] = new Thread(  () => ThreadsFunction(_i)  );
 
-            ThreadsFunc [i] = EmptyTaskSlot;
+            ThreadsFunc[i*AlignmentMultipler] = EmptyTaskSlot;
         }
         StartThreads();
 
