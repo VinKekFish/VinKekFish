@@ -16,6 +16,9 @@ class Program
 
         GCSettings.LatencyMode = GCLatencyMode.Batch;
 
+        // Изменяем локаль на английскую, чтобы она такая была всегда: в тестах есть сообщения, которые сравниваются с эталоном на английском
+        File.WriteAllText("REDEFINE.loc", "en");
+
         var driver = new DriverForTests();
 
         var tc = new MainTestConstructor();

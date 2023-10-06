@@ -1,6 +1,7 @@
 // TODO: tests
 using System.Text;
 // TODO: сделать опции для сервиса здесь и переписать получение опций в сервисе через этот класс
+// TODO: сделать здесь локализацию
 namespace VinKekFish_Utils.ProgramOptions;
 
 public class Options_Service
@@ -11,11 +12,13 @@ public class Options_Service
     {
         this.options = options;
         root = Analize();
+
+        root.Check();
     }
 
     protected virtual Root Analize()
     {
-        return new Root(options.options.blocks);
+        return new Root(options.options.blocks, new Options.Block());
     }
 
     public override string ToString()
@@ -35,10 +38,16 @@ public class Options_Service
         public readonly Element? parent;
         public virtual  Element? Parent => parent;
 
-        public Element(Element? parent, List<Options.Block> blocks)
+        public readonly List<Element> elements = new List<Element>(4);
+        public readonly Options.Block thisBlock;
+
+        public Element(Element? parent, List<Options.Block> blocks, Options.Block thisBlock)
         {
-            this.blocks = blocks;
-            this.parent = parent;
+            this.blocks    = blocks;
+            this.parent    = parent;
+            this.thisBlock = thisBlock;
+
+            parent?.elements.Add(this);
 
             Select();
         }
@@ -49,46 +58,89 @@ public class Options_Service
                 SelectBlock(b, getCanonicalName(b));
         }
 
+        public virtual void Check()
+        {
+            foreach (var e in elements)
+                e.Check();
+        }
+
         public static string getCanonicalName(Options.Block b)
         {
             return b.Name.ToLowerInvariant().Trim();
         }
 
         public abstract void SelectBlock (Options.Block block, string canonicalName);
+
+        public virtual string getFullElementName()
+        {
+            if (this.Parent == null)
+                return "";
+
+            var sb = new StringBuilder();
+            if (this.Parent != null)
+                sb.Append(this.Parent.getFullElementName());
+
+            sb.Append("." + this.thisBlock.Name);
+
+            return sb.ToString();
+        }
     }
 
     public class Root: Element
     {
-        public Root(List<Options.Block> blocks): base(null, blocks)
+        public Root(List<Options.Block> blocks, Options.Block thisBlock): base(null, blocks, thisBlock)
         {}
 
         public Output? output;
         public Input?  input;
 
+        /// <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>
+        /// <param name="block">Подблок из парсера</param>
+        /// <param name="canonicalName">Каноническое имя блока: пробелы и табуляции удалены, регистр преобразован в нижний</param>
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
-            Element e = canonicalName switch
+            switch(canonicalName)
             {
-                "input"  => new Input (this, block.blocks),
-                "output" => new Output(this, block.blocks),
-                _ => throw new Options_Service_Exception($"At line {block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output' or 'Input'")
-            };
+                case "input" : input  = new Input (this, block.blocks, block); break;
+                case "output": output = new Output(this, block.blocks, block); break;
+                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output' or 'Input'");
+            }
+        }
+
+        public override void Check()
+        {
+            if (output == null)
+                throw new Options_Service_Exception($"In the root of service options must have 'Output' and 'Input' elements. No have 'output' element");
+            if (input == null)
+                throw new Options_Service_Exception($"In the root of service options must have 'Output' and 'Input' elements. No have 'input' element");
+
+            base.Check();
         }
     }
 
     public class Output: Element
     {
         public override  Root? Parent => parent as Root;
-        public Output(Root parent, List<Options.Block> blocks): base(parent, blocks)
+        public Output(Root parent, List<Options.Block> blocks, Options.Block thisBlock): base(parent, blocks, thisBlock)
         {}
+
+        public Random? random;
 
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
-            Element e = canonicalName switch
+            switch(canonicalName)
             {
-                "random"  => new Random(this, block.blocks),
-                _ => throw new Options_Service_Exception($"At line {block.startLine} in the output element found the unknown element '{block.Name}'. Acceptable is 'random'")
-            };
+                case "random": random = new Random(this, block.blocks, block); break;
+                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'random'");
+            }
+        }
+
+        public override void Check()
+        {
+            if (random == null)
+                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'random' element. No have 'random' element");
+
+            base.Check();
         }
 
         public Random.UnixStream.Path? out_random;
@@ -96,33 +148,53 @@ public class Options_Service
         public class Random: Element
         {
             public override  Output? Parent => parent as Output;
-            public Random(Output? parent, List<Options.Block> blocks) : base(parent, blocks)
+            public Random(Output? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
             {
             }
+
+            public UnixStream? unixStream;
 
             public override void SelectBlock(Options.Block block, string canonicalName)
             {
                 Element e = canonicalName switch
                 {
-                    "unix stream"  => new UnixStream(this, block.blocks),
-                    _ => throw new Options_Service_Exception($"At line {block.startLine} in the output.random element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
+                    "unix stream"  => unixStream = new UnixStream(this, block.blocks, block),
+                    _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
                 };
+            }
+
+            public override void Check()
+            {
+                if (unixStream == null)
+                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. No have 'unix stream' element");
+
+                base.Check();
             }
 
             public class UnixStream : Element
             {
                 public override  Random? Parent => parent as Random;
-                public UnixStream(Random? parent, List<Options.Block> blocks) : base(parent, blocks)
+                public UnixStream(Random? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {
                 }
+
+                public Path? path;
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
                     Element e = canonicalName switch
                     {
-                        "path"  => new Path(this, block.blocks),
-                        _ => throw new Options_Service_Exception($"At line {block.startLine} in the 'output.random.unix stream' element found the unknown element '{block.Name}'. Acceptable is 'path'")
+                        "path"  => path = new Path(this, block.blocks, block),
+                        _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'path'")
                     };
+                }
+
+                public override void Check()
+                {
+                    if (path == null)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. No have 'path' element");
+
+                    base.Check();
                 }
 
                 public class Path : Element
@@ -130,7 +202,7 @@ public class Options_Service
                     public DirectoryInfo? dir;
                     public FileInfo?      file;
                     public override  UnixStream? Parent => parent as UnixStream;
-                    public Path(UnixStream? parent, List<Options.Block> blocks) : base(parent, blocks)
+                    public Path(UnixStream? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {}
 
                     public override void SelectBlock(Options.Block block, string canonicalName)
@@ -140,6 +212,14 @@ public class Options_Service
                         dir  = new DirectoryInfo(block.Name);
                         file = new FileInfo(System.IO.Path.Combine(dir.FullName, "random"));
                     }
+
+                    public override void Check()
+                    {
+                        if (file == null)
+                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have a string with the path value. No found path value");
+
+                        base.Check();
+                    }
                 }
             }
         }
@@ -147,7 +227,7 @@ public class Options_Service
 
     public class Input: Element
     {
-        public Input(Root parent, List<Options.Block> blocks): base(parent, blocks)
+        public Input(Root parent, List<Options.Block> blocks, Options.Block thisBlock): base(parent, blocks, thisBlock)
         {}
 
         public override void SelectBlock(Options.Block block, string canonicalName)

@@ -71,5 +71,10 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Root.SelectBlock(VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+            <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>
+            <param name="block">Подблок из парсера</param>
+            <param name="canonicalName">Каноническое имя блока: пробелы и табуляции удалены, регистр преобразован в нижний</param>
+        </member>
     </members>
 </doc>

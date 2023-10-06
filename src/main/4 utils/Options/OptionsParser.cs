@@ -81,6 +81,11 @@ public class Options
             return sb.ToString();
         }
 
+        public Block()
+        {
+            Name = "";
+        }
+
         public Block(List<string> options, ref int currentLine, int blockHeaderIndent, bool isRootBlock = false, bool isAllStrings = false)
         {
             this.blockHeaderIndent = blockHeaderIndent;
