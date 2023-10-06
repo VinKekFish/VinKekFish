@@ -86,11 +86,56 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output.random'",
+                lst, "no have 'path'",
                 () =>
                 {
                     fileString.Add("input");
                     fileString.Add("output");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have 'path.random at start folder'",
+                () =>
+                {
+                    fileString.Add("path");
+                    fileString.Add("input");
+                    fileString.Add("output");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have 'path.random at start folder.value'",
+                () =>
+                {
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("input");
+                    fileString.Add("output");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have 'output.random'",
+                () =>
+                {
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
+                    fileString.Add("output");
+                    fileString.Add("input");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
@@ -102,9 +147,12 @@ public class ServiceAutoTestFile: ServiceAutoTests
                 lst, "no have 'output.random.unix stream'",
                 () =>
                 {
-                    fileString.Add("input");
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
                     fileString.Add("output");
                     fileString.Add("\trandom");
+                    fileString.Add("input");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
@@ -116,10 +164,13 @@ public class ServiceAutoTestFile: ServiceAutoTests
                 lst, "no have 'output.random.unix stream.path'",
                 () =>
                 {
-                    fileString.Add("input");
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
                     fileString.Add("output");
                     fileString.Add("\trandom");
                     fileString.Add("\t\tunix stream");
+                    fileString.Add("input");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
@@ -131,11 +182,14 @@ public class ServiceAutoTestFile: ServiceAutoTests
                 lst, "no have 'output.random.unix stream.path.value'",
                 () =>
                 {
-                    fileString.Add("input");
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
                     fileString.Add("output");
                     fileString.Add("\trandom");
                     fileString.Add("\t\tunix stream");
                     fileString.Add("\t\t\tpath");
+                    fileString.Add("input");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
@@ -147,17 +201,18 @@ public class ServiceAutoTestFile: ServiceAutoTests
                 lst, "error at 'output.random'",
                 () =>
                 {
-                    fileString.Add("input");
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
                     fileString.Add("output");
                     fileString.Add("\trandom");
                     fileString.Add("\t\tERROR");
                     fileString.Add("\t\t\tpath");
+                    fileString.Add("input");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
             );
-
-
 
             return lst;
         }

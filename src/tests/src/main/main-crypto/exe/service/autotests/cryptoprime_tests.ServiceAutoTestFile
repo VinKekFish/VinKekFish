@@ -5,21 +5,24 @@
 	{object number 0002}
 		
 		Capacity:		System.Int32		.enumerableObject.Capacity
-			8
+			16
 		
 		Count:		System.Int32		.enumerableObject.Count
-			8
+			11
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
 				00:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'output' element (for empty)		[:String]
 				01:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'input' element (for no have 'input')
 				02:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'output' element (for no have 'output')
-				03:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element (for no have 'output.random')
-				04:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element (for no have 'output.random.unix stream')
-				05:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element (for no have 'output.random.unix stream.path')
-				06:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element (for no have 'output.random.unix stream.path.value')
-				07:     At line 4 in the '.output.random' element found the unknown element 'ERROR'. Acceptable is 'unix stream' (for error at 'output.random')
+				03:     In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element (for no have 'path')
+				04:     In the '.path' of service options must have 'random at start folder' element. No have 'random at start folder' element (for no have 'path.random at start folder')
+				05:     In the '.path.random at start folder' of service options require a value. The value not found (for no have 'path.random at start folder.value')
+				06:     In the '.output' element (at line 4) of service option must have 'random' element. No have 'random' element (for no have 'output.random')
+				07:     In the '.output.random' element (at line 5) of service options must have 'unix stream' element. No have 'unix stream' element (for no have 'output.random.unix stream')
+				08:     In the '.output.random.unix stream' element (at line 6) of service options must have 'path' element. No have 'path' element (for no have 'output.random.unix stream.path')
+				09:     In the '.output.random.unix stream.path' element (at line 7) of service options must have a string with the path value. No found path value (for no have 'output.random.unix stream.path.value')
+				10:     At line 6 in the '.output.random' element found the unknown element 'ERROR'. Acceptable is 'unix stream' (for error at 'output.random')
 			[end values]
 
 
