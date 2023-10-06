@@ -1,4 +1,5 @@
 // TODO: tests
+using System.Diagnostics;
 using System.Text;
 // TODO: сделать опции для сервиса здесь и переписать получение опций в сервисе через этот класс
 // TODO: сделать здесь локализацию
@@ -93,6 +94,7 @@ public class Options_Service
 
         public Output? output;
         public Input?  input;
+        public Path?   Path;
 
         /// <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>
         /// <param name="block">Подблок из парсера</param>
@@ -103,16 +105,19 @@ public class Options_Service
             {
                 case "input" : input  = new Input (this, block.blocks, block); break;
                 case "output": output = new Output(this, block.blocks, block); break;
-                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output' or 'Input'");
+                case "path"  : Path   = new Path  (this, block.blocks, block); break;
+                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output', 'Input', 'Path'");
             }
         }
 
         public override void Check()
         {
             if (output == null)
-                throw new Options_Service_Exception($"In the root of service options must have 'Output' and 'Input' elements. No have 'output' element");
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'output' element");
             if (input == null)
-                throw new Options_Service_Exception($"In the root of service options must have 'Output' and 'Input' elements. No have 'input' element");
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'input' element");
+            if (Path == null)
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element");
 
             base.Check();
         }
@@ -233,6 +238,55 @@ public class Options_Service
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
             Console.Error.WriteLine("input block not implemented");
+        }
+    }
+
+    public class Path: Element
+    {
+        public Path(Root parent, List<Options.Block> blocks, Options.Block thisBlock): base(parent, blocks, thisBlock)
+        {}
+
+        public RandomAtStartFolder? randomAtStartFolder;
+
+        public override void SelectBlock(Options.Block block, string canonicalName)
+        {
+            switch(canonicalName)
+            {
+                case "random at start folder": randomAtStartFolder = new RandomAtStartFolder(this, block.blocks, block); break;
+                default:                       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output', 'Input', 'Path'");
+            }
+        }
+
+        public override void Check()
+        {
+            if (randomAtStartFolder == null)
+                throw new Options_Service_Exception($"In the '{getFullElementName()}' of service options must have 'random at start folder' element. No have 'random at start folder' element");
+
+            base.Check();
+        }
+
+        public class RandomAtStartFolder: Element
+        {
+            public RandomAtStartFolder(Path parent, List<Options.Block> blocks, Options.Block thisBlock): base(parent, blocks, thisBlock)
+            {}
+
+            public DirectoryInfo? dir;
+
+            public override void SelectBlock(Options.Block block, string canonicalName)
+            {
+                dir = new DirectoryInfo(block.Name);
+
+                if (!dir.Exists)
+                    dir.Create();
+            }
+
+            public override void Check()
+            {
+                if (dir == null)
+                    throw new Options_Service_Exception($"In the '{getFullElementName()}' of service options require a value. The value not found");
+
+                base.Check();
+            }
         }
     }
 }

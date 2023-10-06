@@ -1,3 +1,7 @@
+path
+    random at start folder
+        random_at_start_folder
+
 output
     random
         unix stream
@@ -8,6 +12,16 @@ input
     entropy
         OS
             /dev/random
+                min
+                    2048
+                max
+                    1
+                EME
+                    2048
+                interval
+                    1s
+                length
+                    1
         standard
             df
 
