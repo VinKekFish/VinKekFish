@@ -25,7 +25,10 @@ namespace vinkekfish
             CurrentKeccakBlockNumber[0] = 0;
             CurrentKeccakBlockNumber[1] = 1;
 
-            Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_Keccak());
+            if (ThreadCount > 1)
+                Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_Keccak());
+            else
+                ThreadFunction_Keccak();
 
             isState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
         }
@@ -78,7 +81,11 @@ namespace vinkekfish
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
             // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
             BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, targetIndex: Len, count: CryptoStateLenExtension, index: 0);
-            Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_ThreeFish());
+
+            if (ThreadCount > 1)
+                Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_ThreeFish());
+            else
+                ThreadFunction_ThreeFish();
 
             isState1Main ^= true;
         }
