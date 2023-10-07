@@ -85,6 +85,14 @@ public partial class Options_Service
 
             return sb.ToString();
         }
+
+        public virtual Root? getRoot()
+        {
+            if (this.Parent == null)
+                return this as Root;
+
+            return this.Parent.getRoot();
+        }
     }
 
     public class Root: Element
@@ -120,6 +128,19 @@ public partial class Options_Service
                 throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element");
 
             base.Check();
+        }
+
+        protected List<Warning> warnings = new List<Warning>();
+
+        public void addWarning(string message)
+        {
+            lock (warnings)
+                warnings.Add(new Warning() {message = message});
+        }
+
+        public class Warning
+        {
+            public required string message { get; init; }
         }
     }
 }

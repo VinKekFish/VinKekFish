@@ -71,6 +71,15 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.out_random">
+            <summary>Определяет, в какой директории будет находится файл "random" с выходом программы</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.Random.UnixStream.Path.dir">
+            <summary>Определяет директорию для выхода потоков с псевдослучайными криптостойкими данными</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.Random.UnixStream.Path.file">
+            <summary>Путь к файлу random</summary>
+        </member>
         <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Root.SelectBlock(VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
             <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>
             <param name="block">Подблок из парсера</param>

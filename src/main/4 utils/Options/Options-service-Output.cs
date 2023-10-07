@@ -32,6 +32,7 @@ public partial class Options_Service
             base.Check();
         }
 
+                                                                                /// <summary>Определяет, в какой директории будет находится файл "random" с выходом программы</summary>
         public Random.UnixStream.Path? out_random;
 
         public class Random: Element
@@ -87,8 +88,8 @@ public partial class Options_Service
                 }
 
                 public class Path : Element
-                {
-                    public DirectoryInfo? dir;
+                {                                                                   /// <summary>Определяет директорию для выхода потоков с псевдослучайными криптостойкими данными</summary>
+                    public DirectoryInfo? dir;                                      /// <summary>Путь к файлу random</summary>
                     public FileInfo?      file;
                     public override  UnixStream? Parent => parent as UnixStream;
                     public Path(UnixStream? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
