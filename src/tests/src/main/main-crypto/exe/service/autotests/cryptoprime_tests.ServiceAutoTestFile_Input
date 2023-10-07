@@ -8,11 +8,12 @@
 			4
 		
 		Count:		System.Int32		.enumerableObject.Count
-			1
+			2
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
-				00:     In the '.input' element (at line 9) of service option must have 'entropy' element. No have 'entropy' element (for empty 'input' element)		[:String]
+				00:     In the '.input' element (at line 9) of service option must have 'entropy' element. No have 'entropy' element (for no have 'entropy')		[:String]
+				01:     ServiceAutoTestFile_Input: have not exception (for no have 'entoropy.OS')
 			[end values]
 
 

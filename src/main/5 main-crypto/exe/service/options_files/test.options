@@ -11,26 +11,28 @@ output
 input
     entropy
         OS
-            /dev/random
-                min
-                    480
-                max
-                    1
-                EME
-                    2048
-                interval
-                    once
-                        length
-                            32
-                        date
-                            yes
-                    1s
-                    length
+            file
+                /dev/random
+                    min
+                        480
+                    max
                         1
-                    date
-                        no
-                    difference
-                        no
+                    EME
+                        2048
+                    interval
+                        once
+                            length
+                                32
+                            date
+                                yes
+                        1s
+                        length
+                            1
+                        date
+                            no
+                        difference
+                            no
         standard
-            df
+            cmd
+                df
 

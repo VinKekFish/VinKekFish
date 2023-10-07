@@ -71,6 +71,9 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
+        <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputFileElement">
+            <summary>Представляет источник энтропии, являющийся файлов (или совместимым с ним устройством)</summary>
+        </member>
         <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.out_random">
             <summary>Определяет, в какой директории будет находится файл "random" с выходом программы</summary>
         </member>

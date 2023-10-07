@@ -32,7 +32,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "empty 'input' element",
+                lst, "no have 'entropy'",
                 () =>
                 {
                     fileString.Add("path");

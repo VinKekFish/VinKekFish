@@ -60,17 +60,48 @@ public partial class Options_Service
                 public OS(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public InputElement random;
+                public readonly List<InputFileElement> random = new List<InputFileElement>();
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    throw new NotImplementedException();
+                    var rnd = new InputFileElement(this, block.blocks, block);
+                    random.Add(rnd);
+                }
+
+                public override void Check()
+                {
+                    if (random.Count <= 0)
+                        this.getRoot()!.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was found no one element");
+
+                    base.Check();
                 }
             }
 
-            public class InputElement: Element
+            public abstract class InputElemement: Element
             {
-                public InputElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                public InputElemement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                {}
+
+                public override void SelectBlock(Options.Block block, string canonicalName)
+                {
+                    throw new Options_Service_Exception($"Fatal error: InputElemement must not be called");
+                }
+
+                public static InputElemement getInputElemement(Element parent, Options.Block block, string canonicalName)
+                {
+                    switch(canonicalName)
+                    {
+                        case "file":    return new InputFileElement(parent, block.blocks, block);
+                        case "cmd" :    return new InputFileElement(parent, block.blocks, block); // TODO: !!!
+                        default:        throw  new Options_Service_Exception($"At line {1+block.startLine} in the '{parent.getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'file', 'cmd'");
+                    }
+                }
+            }
+
+            /// <summary>Представляет источник энтропии, являющийся файлов (или совместимым с ним устройством)</summary>
+            public class InputFileElement: InputElemement
+            {
+                public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
