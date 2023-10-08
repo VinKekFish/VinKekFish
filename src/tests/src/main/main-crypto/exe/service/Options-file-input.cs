@@ -52,7 +52,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'entoropy.OS'",
+                lst, "empty .input.Entropy.OS",
                 () =>
                 {
                     fileString.Add("path");
@@ -68,6 +68,8 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     fileString.Add("\t\tOS");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
+
+                    throw new Exception(options_service.root.warns.ToString());
                 }
             );
 

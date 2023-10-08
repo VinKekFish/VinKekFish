@@ -49,8 +49,10 @@ public partial class Options_Service
             public override void Check()
             {
                 if (os == null)
-                    // throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'entropy' element. No have 'entropy' element");
-                    this.getRoot()!.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found 'OS' element");
+                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found 'OS' element");
+
+                if (elements.Count <= 0)
+                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have an one or more element. Have no one element");
 
                 base.Check();
             }
@@ -71,7 +73,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (random.Count <= 0)
-                        this.getRoot()!.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was found no one element");
+                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was found no one element");
 
                     base.Check();
                 }

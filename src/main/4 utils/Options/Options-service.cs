@@ -9,12 +9,20 @@ public partial class Options_Service
 {
     public readonly Options options;
     public readonly Root    root;
-    public Options_Service(Options options)
+
+    /// <summary>Создаёт объект настроек, полученных из файла</summary>
+    /// <param name="options">Парсер опций. new Options(fileString), где fileString - содержимое файла настроек</param>
+    /// <param name="doNotOutputWarningsToConsole">Если false, то выводит на Console.Error предупреждения</param>
+    public Options_Service(Options options, bool doNotOutputWarningsToConsole = false)
     {
         this.options = options;
         root = Analize();
 
         root.Check();
+
+        // Выводим предупреждения парсера на экран
+        if (!doNotOutputWarningsToConsole)
+            Console.Error.WriteLine(root.warns.ToString());
     }
 
     protected virtual Root Analize()
@@ -130,17 +138,41 @@ public partial class Options_Service
             base.Check();
         }
 
-        protected List<Warning> warnings = new List<Warning>();
-
-        public void addWarning(string message)
-        {
-            lock (warnings)
-                warnings.Add(new Warning() {message = message});
-        }
-
         public class Warning
         {
             public required string message { get; init; }
+
+            public override string ToString() => message;
         }
+
+        public class Warnings
+        {
+            protected List<Warning> warnings = new List<Warning>();
+
+            public void addWarning(string message)
+            {
+                lock (warnings)
+                    warnings.Add(new Warning() {message = message});
+            }
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder();
+
+                foreach (var warn in warnings)
+                {
+                    sb.AppendLine(warn.ToString());
+                }
+
+                return sb.ToString();
+            }
+
+            public void Clear()
+            {
+                warnings.Clear();
+            }
+        }
+
+        public readonly Warnings warns = new Warnings();
     }
 }
