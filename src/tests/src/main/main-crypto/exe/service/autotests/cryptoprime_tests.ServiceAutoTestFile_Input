@@ -8,7 +8,7 @@
 			32
 		
 		Count:		System.Int32		.enumerableObject.Count
-			20
+			24
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
@@ -32,7 +32,11 @@
 				16:     100 100 (for correct time in .input.Entropy.OS.file.path.interval.*)
 				17:     100000 100000 (for correct time in .input.Entropy.OS.file.path.interval.*)
 				18:     6000000 6000000 (for correct time in .input.Entropy.OS.file.path.interval.*)
-				19:     360000000 360000000 (for correct time in .input.Entropy.OS.file.path.interval.*)
+				19:     In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service option must have element this represents length of data to input (for example: '32', '--', 'full') (for have no a length element in .input.Entropy.OS.file.path.interval.*)
+				20:     In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service option must have element this represents length of data to input (for example: '32', '--', 'full') (for have no a length value in .input.Entropy.OS.file.path.interval.*)
+				21:     360000000 360000000 (for correct time in .input.Entropy.OS.file.path.interval.*)
+				22:     yes no 32 (for length, date and difference in .input.Entropy.OS.file.path.interval.*)
+				23:     no yes 64 (for length, date and difference in .input.Entropy.OS.file.path.interval.*)
 			[end values]
 
 

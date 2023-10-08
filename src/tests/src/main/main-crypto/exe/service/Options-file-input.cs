@@ -67,7 +67,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     fileString.Add("\tEntropy");
                     fileString.Add("\t\tOS");
                     var opt = new Options(fileString);
-                    var options_service = new Options_Service(opt, false);
+                    var options_service = new Options_Service(opt, true);
 
                     throw new Exception(options_service.root.warns.ToString());
                 }
@@ -362,6 +362,42 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                 }
             );
 
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a length element in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    //fileString.Add("\t\t\t\t\t\t\tLength");
+                    //fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdate");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+                }
+            );
+
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a length value in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    fileString.Add("\t\t\t\t\t\t\tLength");
+                    //fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdate");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+                }
+            );
+
             fileString.Clear();
             add
             (
@@ -383,6 +419,40 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
 
                     var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
                     throw new Exception($"{t1} {t2}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "length, date and difference in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval_full_32YesNo(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].date!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].Length;
+
+                    throw new Exception($"{t1} {t2} {t3}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "length, date and difference in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval_full_64NoYes(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].date!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].Length;
+
+                    throw new Exception($"{t1} {t2} {t3}");
                 }
             );
 
@@ -423,6 +493,32 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                 fileString.Add("\t\t\t\t\t\t\tLength");
                 fileString.Add("\t\t\t\t\t\t\t\t32");
                 fileString.Add("\t\t\t\t\t\t\tdate");
+                fileString.Add("\t\t\t\t\t\t\t\tyes");
+                fileString.Add("\t\t\t\t\t\t\tDifference");
+                fileString.Add("\t\t\t\t\t\t\t\tno");
+            }
+
+            static void add_Input_Entropy_OS_file_interval_full_32YesNo(List<string> fileString)
+            {
+                add_Input_Entropy_OS_file_interval(fileString);
+                fileString.Add("\t\t\t\t\t\t100h");
+                fileString.Add("\t\t\t\t\t\t\tLength");
+                fileString.Add("\t\t\t\t\t\t\t\t32");
+                fileString.Add("\t\t\t\t\t\t\tdate");
+                fileString.Add("\t\t\t\t\t\t\t\tyes");
+                fileString.Add("\t\t\t\t\t\t\tDifference");
+                fileString.Add("\t\t\t\t\t\t\t\tno");
+            }
+
+            static void add_Input_Entropy_OS_file_interval_full_64NoYes(List<string> fileString)
+            {
+                add_Input_Entropy_OS_file_interval(fileString);
+                fileString.Add("\t\t\t\t\t\t100h");
+                fileString.Add("\t\t\t\t\t\t\tLength");
+                fileString.Add("\t\t\t\t\t\t\t\t64");
+                fileString.Add("\t\t\t\t\t\t\tdate");
+                fileString.Add("\t\t\t\t\t\t\t\tno");
+                fileString.Add("\t\t\t\t\t\t\tDifference");
                 fileString.Add("\t\t\t\t\t\t\t\tyes");
             }
         }

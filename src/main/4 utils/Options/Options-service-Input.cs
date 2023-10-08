@@ -284,6 +284,14 @@ public partial class Options_Service
                     inner  = new InnerIntervalElement(this, block.blocks, block);
                     if (inner.Length != null)
                         Length = inner.Length.Length;
+
+                    date = inner.Date;
+                    if (date == null || date.date == Date.DateValue.undefined)
+                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
+
+                    difference = inner.Difference;
+                    if (difference == null || difference.differenceValue == Difference.DifferenceValue.undefined)
+                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
                 }
 
                 protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
@@ -402,7 +410,7 @@ public partial class Options_Service
                 public class LengthElement : Element
                 {
                     protected int  i = 0;
-                    public    long Length = -1;
+                    public    long Length = -2;
                     public LengthElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {}
 
@@ -419,7 +427,10 @@ public partial class Options_Service
 
                 public class Difference : Element
                 {
-                    public bool processDifference = false;
+                    public enum    DifferenceValue { undefined = 0, yes = 1, no = 2, complex = 4 };
+                    public DifferenceValue differenceValue;
+                    public bool    processDifference = false;
+                    public string? differenceCommand;
                     public Difference(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {
                     }
@@ -429,10 +440,20 @@ public partial class Options_Service
                         if (canonicalName == "no")
                         {
                             processDifference = false;
+                            differenceValue   = DifferenceValue.no;
+                            return;
+                        }
+
+                        if (canonicalName == "yes")
+                        {
+                            processDifference = false;
+                            differenceValue   = DifferenceValue.yes;
                             return;
                         }
 
                         processDifference = true;
+                        differenceValue   = DifferenceValue.complex;
+                        differenceCommand = block.Name;
                     }
                 }
             }
