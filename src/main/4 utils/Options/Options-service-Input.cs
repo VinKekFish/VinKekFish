@@ -360,14 +360,7 @@ public partial class Options_Service
                         switch (canonicalName)
                         {
                             case "length":
-                                try
-                                {
-                                    Length = new LengthElement(this, block.blocks, block); break;
-                                }
-                                catch
-                                {
-                                    throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary '1', '32', etc.");
-                                }
+                                Length = new LengthElement(this, block.blocks, block); break;
 
                             case "date":
                                 Date = new Date(this, block.blocks, block); break;
@@ -421,7 +414,14 @@ public partial class Options_Service
 
                         i++;
 
-                        Length = long.Parse(canonicalName);
+                        try
+                        {
+                            Length = long.Parse(canonicalName);
+                        }
+                        catch
+                        {
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary '1', '32', etc. (in bytes)");
+                        }
                     }
                 }
 

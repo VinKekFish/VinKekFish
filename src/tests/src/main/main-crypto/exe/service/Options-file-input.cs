@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_SERVICE
+// #define CAN_CREATEFILE_FOR_SERVICE
 
 namespace cryptoprime_tests;
 
@@ -11,7 +11,7 @@ using VinKekFish_Utils.ProgramOptions;
 using System.Runtime.CompilerServices;
 
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("service", duration: 100, singleThread: false)]
 public class ServiceAutoTestFile_Input: ServiceAutoTests
 {
@@ -362,42 +362,6 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                 }
             );
 
-
-            fileString.Clear();
-            add
-            (
-                lst, "have no a length element in .input.Entropy.OS.file.path.interval.*",
-                () =>
-                {
-                    add_Input_Entropy_OS_file_interval(fileString);
-                    fileString.Add("\t\t\t\t\t\t100h");
-                    //fileString.Add("\t\t\t\t\t\t\tLength");
-                    //fileString.Add("\t\t\t\t\t\t\t\t32");
-                    fileString.Add("\t\t\t\t\t\t\tdate");
-                    fileString.Add("\t\t\t\t\t\t\t\tyes");
-                    var opt = new Options(fileString);
-                    var options_service = new Options_Service(opt, true);
-                }
-            );
-
-
-            fileString.Clear();
-            add
-            (
-                lst, "have no a length value in .input.Entropy.OS.file.path.interval.*",
-                () =>
-                {
-                    add_Input_Entropy_OS_file_interval(fileString);
-                    fileString.Add("\t\t\t\t\t\t100h");
-                    fileString.Add("\t\t\t\t\t\t\tLength");
-                    //fileString.Add("\t\t\t\t\t\t\t\t32");
-                    fileString.Add("\t\t\t\t\t\t\tdate");
-                    fileString.Add("\t\t\t\t\t\t\t\tyes");
-                    var opt = new Options(fileString);
-                    var options_service = new Options_Service(opt, true);
-                }
-            );
-
             fileString.Clear();
             add
             (
@@ -455,6 +419,99 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     throw new Exception($"{t1} {t2} {t3}");
                 }
             );
+
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a length element in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    //fileString.Add("\t\t\t\t\t\t\tLength");
+                    //fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdate");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a length value in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    fileString.Add("\t\t\t\t\t\t\tLength");
+                    //fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdate");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a difference value in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    fileString.Add("\t\t\t\t\t\t\tLength");
+                    fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdate");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+
+                    throw new Exception(options_service.root.warns.ToString());
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no a date value in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    fileString.Add("\t\t\t\t\t\t\tLength");
+                    fileString.Add("\t\t\t\t\t\t\t\t32");
+                    fileString.Add("\t\t\t\t\t\t\tdifference");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+
+                    throw new Exception(options_service.root.warns.ToString());
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect a length value in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    fileString.Add("\t\t\t\t\t\t\tLength");
+                    fileString.Add("\t\t\t\t\t\t\t\tAAA");
+                    fileString.Add("\t\t\t\t\t\t\tdifference");
+                    fileString.Add("\t\t\t\t\t\t\t\tyes");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt, true);
+
+                    throw new Exception(options_service.root.warns.ToString());
+                }
+            );
+
 
 
             return lst;
