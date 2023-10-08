@@ -27,7 +27,7 @@ public partial class Options_Service
         public override void Check()
         {
             if (random == null)
-                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'random' element. No have 'random' element");
+                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'random' element. Have no 'random' element");
 
             base.Check();
         }
@@ -56,7 +56,7 @@ public partial class Options_Service
             public override void Check()
             {
                 if (unixStream == null)
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. No have 'unix stream' element");
+                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. Have no 'unix stream' element");
 
                 base.Check();
             }
@@ -82,7 +82,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (path == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. No have 'path' element");
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
 
                     base.Check();
                 }

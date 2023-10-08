@@ -30,7 +30,7 @@ public class ServiceAutoTests: Keccak_test_parent
 }
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("service", duration: 1e16, singleThread: false)]
+[TestTagAttribute("service", duration: 100, singleThread: false)]
 public class ServiceAutoTestFile: ServiceAutoTests
 {
     public ServiceAutoTestFile(TestConstructor constructor):
@@ -60,7 +60,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'input'",
+                lst, "have no 'input'",
                 () =>
                 {
                     fileString.Add("output");
@@ -73,7 +73,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output'",
+                lst, "have no 'output'",
                 () =>
                 {
                     fileString.Add("input");
@@ -86,7 +86,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'path'",
+                lst, "have no 'path'",
                 () =>
                 {
                     fileString.Add("input");
@@ -99,7 +99,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'path.random at start folder'",
+                lst, "have no 'path.random at start folder'",
                 () =>
                 {
                     fileString.Add("path");
@@ -113,7 +113,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'path.random at start folder.value'",
+                lst, "have no 'path.random at start folder.value'",
                 () =>
                 {
                     fileString.Add("path");
@@ -128,7 +128,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output.random'",
+                lst, "have no 'output.random'",
                 () =>
                 {
                     fileString.Add("path");
@@ -144,7 +144,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output.random.unix stream'",
+                lst, "have no 'output.random.unix stream'",
                 () =>
                 {
                     fileString.Add("path");
@@ -161,7 +161,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output.random.unix stream.path'",
+                lst, "have no 'output.random.unix stream.path'",
                 () =>
                 {
                     fileString.Add("path");
@@ -179,7 +179,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'output.random.unix stream.path.value'",
+                lst, "have no 'output.random.unix stream.path.value'",
                 () =>
                 {
                     fileString.Add("path");

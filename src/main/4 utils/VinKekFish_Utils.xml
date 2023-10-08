@@ -72,7 +72,22 @@
             <param name="logName">Логическое имя лог-файла</param>
         </member>
         <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputFileElement">
-            <summary>Представляет источник энтропии, являющийся файлов (или совместимым с ним устройством)</summary>
+            <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
+        </member>
+        <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputCmdElement">
+            <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
+        </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Intervals.getTime(System.String)">
+            <summary>Распарсить строку вида "1s"</summary>
+            <param name="timeString">Строка для парсинга</param>
+            <returns>-1 - если строку не удалось распарсить. Иначе - время в миллисекундах.</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Intervals.getTime(System.String,System.Collections.Generic.KeyValuePair{System.String,System.Int64},System.Int64@)">
+            <summary>Распарсить строку типа "1s", получив из неё время</summary>
+            <param name="timeString">Строка для парсинга</param>
+            <param name="factor">Модификатор единицы времени из списка TimeFactors</param>
+            <param name="time">Возвращаемый результат: время в миллисекундах</param>
+            <returns>true - если время получено успешно. false - если время не было распознано</returns>
         </member>
         <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.out_random">
             <summary>Определяет, в какой директории будет находится файл "random" с выходом программы</summary>

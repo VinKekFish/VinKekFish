@@ -1,0 +1,26 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			8
+		
+		Count:		System.Int32		.enumerableObject.Count
+			5
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     In the '.input' element (at line 9) of service option must have 'entropy' element. Have no 'entropy' element (for have no 'entropy')		[:String]
+				01:     Warning: In the '.input.Entropy.OS' element (at line 11) of service options was found no one element
+ (for have no .input.Entropy.OS.*)
+				02:     The '.input.Entropy.OS' element (at line 11) of service option must represent the existing file path. Have no path value (example: '/dev/random') (for have no .input.Entropy.OS.file.path)
+				03:     The '.input.Entropy.OS' element (at line 11) of service option must represent the existing file path. The '/dev/randomAAA' string represents non existent file (for incorrect .input.Entropy.OS.file.path)
+				04:     The '.input.Entropy.OS' element (at line 11) of service option must represent the existing file path. Have no path value (example: '/dev/random') (for empty .input.Entropy.OS.file.path)
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 

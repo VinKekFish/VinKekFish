@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 
 [TestTagAttribute("inWork")]
-[TestTagAttribute("service", duration: 1e16, singleThread: false)]
+[TestTagAttribute("service", duration: 100, singleThread: false)]
 public class ServiceAutoTestFile_Input: ServiceAutoTests
 {
     public ServiceAutoTestFile_Input(TestConstructor constructor):
@@ -32,7 +32,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have 'entropy'",
+                lst, "have no 'entropy'",
                 () =>
                 {
                     fileString.Add("path");
@@ -52,7 +52,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "empty .input.Entropy.OS",
+                lst, "have no .input.Entropy.OS.*",
                 () =>
                 {
                     fileString.Add("path");
@@ -67,13 +67,78 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     fileString.Add("\tEntropy");
                     fileString.Add("\t\tOS");
                     var opt = new Options(fileString);
-                    var options_service = new Options_Service(opt);
+                    var options_service = new Options_Service(opt, false);
 
                     throw new Exception(options_service.root.warns.ToString());
                 }
             );
 
+            fileString.Clear();
+            add
+            (
+                lst, "have no .input.Entropy.OS.file.path",
+                () =>
+                {
+                    fileString.Add("path");
+                    fileString.Add("\trandom at start folder");
+                    fileString.Add("\t\trandom_at_start_folder");
+                    fileString.Add("output");
+                    fileString.Add("\trandom");
+                    fileString.Add("\t\tunix stream");
+                    fileString.Add("\t\t\tpath");
+                    fileString.Add("\t\t\t\tvalue");
+                    fileString.Add("input");
+                    fileString.Add("\tEntropy");
+                    fileString.Add("\t\tOS");
+                    fileString.Add("\t\t\tfile");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect .input.Entropy.OS.file.path",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/randomAAA");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "empty .input.Entropy.OS.file.path",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
             return lst;
+
+            static void add_Input_Entropy_OS_file(List<string> fileString)
+            {
+                fileString.Add("path");
+                fileString.Add("\trandom at start folder");
+                fileString.Add("\t\trandom_at_start_folder");
+                fileString.Add("output");
+                fileString.Add("\trandom");
+                fileString.Add("\t\tunix stream");
+                fileString.Add("\t\t\tpath");
+                fileString.Add("\t\t\t\tvalue");
+                fileString.Add("input");
+                fileString.Add("\tEntropy");
+                fileString.Add("\t\tOS");
+                fileString.Add("\t\t\tfile");
+            }
         }
 
         void add(List<string> lst, string msg, Func func)

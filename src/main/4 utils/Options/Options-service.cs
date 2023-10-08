@@ -129,11 +129,11 @@ public partial class Options_Service
         public override void Check()
         {
             if (output == null)
-                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'output' element");
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. Have no 'output' element");
             if (input == null)
-                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'input' element");
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. Have no 'input' element");
             if (Path == null)
-                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. No have 'Path' element");
+                throw new Options_Service_Exception($"In the root of service options must have 'Output', 'Input', 'Path' elements. Have no 'Path' element");
 
             base.Check();
         }

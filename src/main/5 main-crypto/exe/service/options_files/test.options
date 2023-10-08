@@ -26,12 +26,12 @@ input
                             date
                                 yes
                         1s
-                        length
-                            1
-                        date
-                            no
-                        difference
-                            no
+                            length
+                                1
+                            date
+                                no
+                            difference
+                                no
         standard
             cmd
                 df
