@@ -122,6 +122,271 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                 }
             );
 
+            fileString.Clear();
+            add
+            (
+                lst, "no have .input.Entropy.OS.file.path.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\t");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have .input.Entropy.OS.file.path.{min,max,EME}",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\tinterval");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have .input.Entropy.OS.file.path.tinterval.min",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\tmax");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tEME");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tinterval");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have .input.Entropy.OS.file.path.tinterval.max",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\tmin");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tEME");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tinterval");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "no have .input.Entropy.OS.file.path.tinterval.EME",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\tmin");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tmax");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tinterval");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t0xA");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t1b");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100,s");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100d");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    throw new Exception($"{t1}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t0");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    throw new Exception($"{t1}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100ms");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100   ms");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    opt = new Options(fileString);
+                    options_service = new Options_Service(opt);
+
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    throw new Exception($"{t1} {t2}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100s");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100   s");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    opt = new Options(fileString);
+                    options_service = new Options_Service(opt);
+
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    throw new Exception($"{t1} {t2}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100m");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100   m");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    opt = new Options(fileString);
+                    options_service = new Options_Service(opt);
+
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    throw new Exception($"{t1} {t2}");
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "correct time in .input.Entropy.OS.file.path.interval.*",
+                () =>
+                {
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100h");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+
+                    add_Input_Entropy_OS_file_interval(fileString);
+                    fileString.Add("\t\t\t\t\t\t100   h");
+                    add_Input_Entropy_OS_file_interval_LD(fileString);
+                    opt = new Options(fileString);
+                    options_service = new Options_Service(opt);
+
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    throw new Exception($"{t1} {t2}");
+                }
+            );
+
+
             return lst;
 
             static void add_Input_Entropy_OS_file(List<string> fileString)
@@ -139,6 +404,27 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                 fileString.Add("\t\tOS");
                 fileString.Add("\t\t\tfile");
             }
+
+            static void add_Input_Entropy_OS_file_interval(List<string> fileString)
+            {
+                add_Input_Entropy_OS_file(fileString);
+                fileString.Add("\t\t\t\t/dev/random");
+                fileString.Add("\t\t\t\t\tmin");
+                fileString.Add("\t\t\t\t\t\t0");
+                fileString.Add("\t\t\t\t\tmax");
+                fileString.Add("\t\t\t\t\t\t0");
+                fileString.Add("\t\t\t\t\tEME");
+                fileString.Add("\t\t\t\t\t\t0");
+                fileString.Add("\t\t\t\t\tinterval");
+            }
+
+            static void add_Input_Entropy_OS_file_interval_LD(List<string> fileString)
+            {
+                fileString.Add("\t\t\t\t\t\t\tLength");
+                fileString.Add("\t\t\t\t\t\t\t\t32");
+                fileString.Add("\t\t\t\t\t\t\tdate");
+                fileString.Add("\t\t\t\t\t\t\t\tyes");
+            }
         }
 
         void add(List<string> lst, string msg, Func func)
@@ -146,7 +432,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             try
             {
                 func();
-                throw new Exception($"ServiceAutoTestFile_Input: have not exception");
+                throw new Exception($"ServiceAutoTestFile_Input: have no exception");
             }
             catch (Exception ex)
             {

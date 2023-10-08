@@ -90,16 +90,27 @@ public partial class Options_Service
                 }
             }
 
+            /// <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
             public abstract class InputElement: Element
             {
-                public string? PathString {get; protected set;}
+                public string?    PathString {get; protected set;}
+                public Intervals? intervals;
 
                 public InputElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    throw new Options_Service_Exception($"Fatal error: InputElemement must not be called");
+                    PathString = block.Name;
+                    intervals  = new Intervals(parent, block.blocks, block);
+                }
+
+                public override void Check()
+                {
+                    if (intervals == null)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have interval elements. Have no interval elements");
+
+                    base.Check();
                 }
 
                 public static InputElement getInputElemement(Element parent, Options.Block block, string canonicalName)
@@ -119,14 +130,9 @@ public partial class Options_Service
                 public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public override void SelectBlock(Options.Block block, string canonicalName)
-                {
-                    PathString = block.Name;
-                }
-
                 public override void Check()
                 {
-                    if (PathString == "")
+                    if (string.IsNullOrEmpty(PathString))
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'PathString' element. Have no 'PathString' element");
 
                     base.Check();
@@ -139,11 +145,6 @@ public partial class Options_Service
                 public InputCmdElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public override void SelectBlock(Options.Block block, string canonicalName)
-                {
-                    PathString = block.Name;
-                }
-
                 public override void Check()
                 {
                     base.Check();
@@ -152,39 +153,46 @@ public partial class Options_Service
 
             public class EntropyValues
             {
-                public long min, max, EME;
+                public long min = -1, max = -1, EME = -1;
+
+                public bool isCorrect()
+                {
+                    if (min < 0)
+                        return false;
+                    if (max < 0)
+                        return false;
+                    if (EME < 0)
+                        return false;
+
+                    return true;
+                }
             }
 
             public class Intervals: Element
             {
-                protected List<Interval> intervals = new List<Interval>();
+                public readonly List<Interval> intervals = new List<Interval>();
 
                 public readonly EntropyValues entropy = new EntropyValues();
 
                 public Intervals(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    if (canonicalName == "min")
-                        setMin(block);
-                    if (canonicalName == "max")
-                        setMax(block);
-                    if (canonicalName == "EME")
-                        setEME(block);
-
-                    if (canonicalName == "once" || canonicalName == "--")
+                    switch (canonicalName)
                     {
-                        intervals.Add( new Interval(this, block.blocks, block) {time = -1} );
-                        return;
+                        case "min":
+                            setMin(block); break;
+                        case "max":
+                            setMax(block); break;
+                        case "eme":
+                            setEME(block); break;
+                        case "interval":
+                            intervals.Add( new Interval(this, block.blocks, block) ); break;
+
+                        default:
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is values 'min', 'max', 'EME', 'interval'");
                     }
-
-                    var time = getTime(canonicalName);
-                    if (time <= 0)
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
-
-                    intervals.Add( new Interval(this, block.blocks, block) {time = time} );
                 }
 
                 protected void setMin(Options.Block block)
@@ -210,12 +218,12 @@ public partial class Options_Service
                         entropy.max = long.Parse(block.blocks[0].Name);
                         if (block.blocks.Count > 1)
                             throw new Exception();
-                        if (entropy.max <= 0)
+                        if (entropy.max < 0)
                             throw new Exception();
                     }
                     catch
                     {
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'max' found. Acceptable value is positive integer (example: 1, 2, 3)");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'max' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
                     }
                 }
 
@@ -235,6 +243,50 @@ public partial class Options_Service
                     }
                 }
 
+                public override void Check()
+                {
+                    if (intervals.Count <= 0)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have at least one 'interval' element. Have no one element");
+                    if (!entropy.isCorrect())
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0");
+
+                    base.Check();
+                }
+            }
+
+            public class Interval: Element
+            {
+                public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                {}
+
+                public long        time       { get; protected set; } = -2;
+                public long        Length     { get; protected set; } = -2;
+                public Date?       date       { get; protected set; }
+                public Difference? difference { get; protected set; }
+
+                protected InnerIntervalElement? inner;
+
+                public override void SelectBlock(Options.Block block, string canonicalName)
+                {
+                    if (canonicalName == "once" || canonicalName == "--")
+                    {
+                        time = -1;
+                    }
+                    else
+                    {
+                        var timev = getTime(canonicalName);
+                        if (timev <= -1)
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
+
+                        time = timev;
+                    }
+
+                    inner  = new InnerIntervalElement(this, block.blocks, block);
+                    if (inner.Length != null)
+                        Length = inner.Length.Length;
+                }
+
+                protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
                 /// <summary>Распарсить строку вида "1s"</summary>
                 /// <param name="timeString">Строка для парсинга</param>
                 /// <returns>-1 - если строку не удалось распарсить. Иначе - время в миллисекундах.</returns>
@@ -276,24 +328,49 @@ public partial class Options_Service
 
                     return false;
                 }
-            }
 
-            public class Interval: Element
-            {
-                public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                public override void Check()
                 {
-                    Length = -2;
-                    time   = -2;
+                    if (time   == -2)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents time (for example: '1s')");
+                    if (Length == -2)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents length of data to input (for example: '32', '--', 'full')");
+
+                    base.Check();
                 }
 
-                public required long        time       { get; init; }
-                public          long        Length     { get; protected set; }
-                public          Date?       date       { get; protected set; }
-                public          Difference? difference { get; protected set; }
-
-                public override void SelectBlock(Options.Block block, string canonicalName)
+                public class InnerIntervalElement: Element
                 {
-                    throw new NotImplementedException();
+                    public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                    {}
+
+                    public LengthElement? Length;
+                    public Date?          Date;
+                    public Difference?    Difference;
+                    public override void SelectBlock(Options.Block block, string canonicalName)
+                    {
+                        switch (canonicalName)
+                        {
+                            case "length":
+                                try
+                                {
+                                    Length = new LengthElement(this, block.blocks, block); break;
+                                }
+                                catch
+                                {
+                                    throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary '1', '32', etc.");
+                                }
+
+                            case "date":
+                                Date = new Date(this, block.blocks, block); break;
+
+                            case "difference":
+                                Difference = new Difference(this, block.blocks, block); break;
+
+                            default:
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'date', 'difference'");
+                        }
+                    }
                 }
 
                 public class Date : Element
@@ -302,21 +379,60 @@ public partial class Options_Service
                     {
                     }
 
+                    public enum DateValue { undefined = 0, yes = 1, no = 2 };
+                    public DateValue date;
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
-                        throw new NotImplementedException();
+                        switch (canonicalName)
+                        {
+                            case "no":
+                            case "-":
+                                date = DateValue.no; break;
+
+                            case "yes":
+                            case "+":
+                                date = DateValue.yes; break;
+
+                            default:
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is 'yes', '+', 'no', '-'");
+                        }
+                    }
+                }
+
+                public class LengthElement : Element
+                {
+                    protected int  i = 0;
+                    public    long Length = -1;
+                    public LengthElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                    {}
+
+                    public override void SelectBlock(Options.Block block, string canonicalName)
+                    {
+                        if (i > 0)
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the second value of the length block: '{block.Name}'. Must be one and only one value");
+
+                        i++;
+
+                        Length = long.Parse(canonicalName);
                     }
                 }
 
                 public class Difference : Element
                 {
+                    public bool processDifference = false;
                     public Difference(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {
                     }
 
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
-                        throw new NotImplementedException();
+                        if (canonicalName == "no")
+                        {
+                            processDifference = false;
+                            return;
+                        }
+
+                        processDifference = true;
                     }
                 }
             }
