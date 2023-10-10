@@ -287,11 +287,11 @@ public partial class Options_Service
 
                     date = inner.Date;
                     if (date == null || date.date == Date.DateValue.undefined)
-                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
+                        this.getRoot()!.warns.addWarning($"Warning: In the '{inner.getFullElementName()}' element (at line {1+inner.thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
 
                     difference = inner.Difference;
                     if (difference == null || difference.differenceValue == Difference.DifferenceValue.undefined)
-                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
+                        this.getRoot()!.warns.addWarning($"Warning: In the '{inner.getFullElementName()}' element (at line {1+inner.thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
                 }
 
                 protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };

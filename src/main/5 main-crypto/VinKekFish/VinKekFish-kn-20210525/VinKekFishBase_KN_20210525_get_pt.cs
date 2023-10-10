@@ -38,7 +38,12 @@ namespace vinkekfish
 
             //using var prng = new Keccak_PRNG_20201128();
             // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая. Поэтому, создаём губку именно такой стойкости
-            using var prng = PreRoundsForTranspose >= Rounds  ? null : new CascadeSponge_mt_20230930(this.K*1024);
+            nint gpKeyLen   = this.K*1024;
+            if (gpKeyLen > key_length)
+                gpKeyLen = key_length;
+
+            using var prng = PreRoundsForTranspose >= Rounds  ? null
+                             : new CascadeSponge_mt_20230930(gpKeyLen);
 
             if (key != null || OpenInitVector != null)
             if (prng == null)

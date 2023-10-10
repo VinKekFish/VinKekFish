@@ -25,6 +25,8 @@ input
                                 32
                             date
                                 yes
+                            difference
+                                no
                         1s
                             length
                                 1

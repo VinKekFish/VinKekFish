@@ -35,9 +35,12 @@ public partial class Regime_Service
         {
             using (var readStream = file.OpenRead())
             {
-                InputFromFileContent(file, readStream);
-                InputFromFileAttr   (file);
-                InputFromFileName   (file);
+                InputFromFileAttr   (file);Console.WriteLine("1");
+                InputFromFileName   (file);Console.WriteLine("2");
+
+                CascadeSponge.InitThreeFishByCascade();Console.WriteLine("3");
+                InputFromFileContent(file, readStream);Console.WriteLine("4");
+                CascadeSponge.InitThreeFishByCascade();Console.WriteLine("5");
             }
         }
 

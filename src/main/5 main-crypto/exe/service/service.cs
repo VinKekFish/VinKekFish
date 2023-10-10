@@ -57,6 +57,7 @@ public partial class Regime_Service
     public ProgramErrorCode Start(List<string> args)
     {
         GCSettings.LatencyMode = GCLatencyMode.Batch;
+        Thread.CurrentThread.IsBackground = false;
 
         var poResult = ParseOptions(args);
         if (poResult != ProgramErrorCode.success)
@@ -65,6 +66,8 @@ public partial class Regime_Service
         vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
 
         StartEntropy();
+        Console.WriteLine("started");
+
         while (!Terminated || vkfListener.connections.Count > 0)
         {
             ExecEntropy();

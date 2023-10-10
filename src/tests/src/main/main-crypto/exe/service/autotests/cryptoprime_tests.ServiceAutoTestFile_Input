@@ -37,9 +37,9 @@
 				21:     no yes 64 (for length, date and difference in .input.Entropy.OS.file.path.interval.*)
 				22:     In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service option must have element this represents length of data to input (for example: '32', '--', 'full') (for have no a length element in .input.Entropy.OS.file.path.interval.*)
 				23:     In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service option must have element this represents length of data to input (for example: '32', '--', 'full') (for have no a length value in .input.Entropy.OS.file.path.interval.*)
-				24:     Warning: In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service options was not found a 'difference' element or value of the element
+				24:     Warning: In the '.input.Entropy.OS./dev/random.interval.100h' element (at line 21) of service options was not found a 'difference' element or value of the element
  (for have no a difference value in .input.Entropy.OS.file.path.interval.*)
-				25:     Warning: In the '.input.Entropy.OS./dev/random.interval' element (at line 20) of service options was not found a 'date' element or value of the element
+				25:     Warning: In the '.input.Entropy.OS./dev/random.interval.100h' element (at line 21) of service options was not found a 'date' element or value of the element
  (for have no a date value in .input.Entropy.OS.file.path.interval.*)
 				26:     At line 23 in the '.input.Entropy.OS./dev/random.interval.100h.Length' element found the value 'AAA'. Acceptable is value similary '1', '32', etc. (in bytes) (for incorrect a length value in .input.Entropy.OS.file.path.interval.*)
 			[end values]

@@ -12,11 +12,11 @@ public partial class CascadeSponge_1t_20230905
 {
     public unsafe void doRandomPermutationForUShorts(nint len, ushort* T, nint countOfSteps = 0, byte regime = 1)
     {
-        ushort a;
+        ushort a, err = 0;
         nint   index;
 
-        var bb = new BytesBuilderStatic(this.maxDataLen*2);
-
+        using var bb = new BytesBuilderStatic(this.maxDataLen*2);
+Console.WriteLine($"doRandomPermutationForUShorts started {len}");
         // Алгоритм тасования Дурштенфельда
         // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
         for (nint i = 0; i < len - 1; i++)
@@ -31,13 +31,26 @@ public partial class CascadeSponge_1t_20230905
                 this.haveOutput = false;
             }
 
-            index = getUnsignedInteger(len - i - 1, bb) + i;
+            // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
+            try
+            {
+                index = getUnsignedInteger(len - i - 1, bb) + i;
+                err = 0;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                if (err > 0)
+                    throw;
+
+                err = 1;
+                continue;
+            }
 
             a        = T[i];
             T[i]     = T[index];
             T[index] = a;
         }
-
+Console.WriteLine("doRandomPermutationForUShorts ended");
         a = 0;
     }
 

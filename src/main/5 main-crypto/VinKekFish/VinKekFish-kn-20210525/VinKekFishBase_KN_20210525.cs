@@ -41,7 +41,7 @@ namespace vinkekfish
         public const    int CountOfTweaks  = 8;                             /// <summary>Длина одного блока массива Matrix в байтах (для выделения в стеке для keccak)</summary>
         public const    int MatrixLen      = 256;
 
-                                                                            /// <summary>Максимальное количество раундов</summary>
+                                                                            /// <summary>Максимальное количество раундов, для которого инициализированны таблицы перестановок</summary>
         public readonly int CountOfRounds  = 0;                             /// <summary>Коэффициент размера K</summary>
         public readonly int K              = 1;                             /// <summary>Количество заключительных пар перестановок в завершающем преобразовании (2 => 4*keccak, 3 => 6*keccak)</summary>
         public readonly int CountOfFinal   = Int32.MaxValue;
@@ -103,20 +103,17 @@ namespace vinkekfish
             MAX_OIV_K        = K * MAX_OIV;
             MAX_SINGLE_KEY_K = K * MAX_SINGLE_KEY;
 
-            var ce = (double x) => (int) Math.Ceiling( x );
+            var ce = (double x) => (int)Math.Ceiling(x);
 
             // var kr = (K - 1) >> 1;
             // Рассчитываем константы для рекомендуемого количества раундов
-            MIN_ABSORPTION_ROUNDS_D_K = ce( Math.Log2(K+1) );
-            MIN_ABSORPTION_ROUNDS_K   = ce( K*1.337 - 0.328 );
-            MIN_ROUNDS_K              = ce( K*2.674 );
-            if (MIN_ROUNDS_K < ce(  4.0*Math.Log2(K+1)  ))
-                MIN_ROUNDS_K = ce(  4.0*Math.Log2(K+1)  );
-
-            REDUCED_ROUNDS_K          = ce( K*6.168 );
-            NORMAL_ROUNDS_K           = ce( K*6.168*1.5 );
-            EXTRA_ROUNDS_K            = ce( K*25.0 );
-            MAX_ROUNDS_K              = ce( K*25.0*(2*Math.Log2(K+1)+2) );
+            MIN_ABSORPTION_ROUNDS_D_K = ce(Math.Log2(K + 1));
+            MIN_ABSORPTION_ROUNDS_K   = ce(K * 1.337 - 0.328);
+            MIN_ROUNDS_K              = Calc_MIN_ROUNDS_K    (K);
+            REDUCED_ROUNDS_K          = Calc_REDUCED_ROUNDS_K(K);
+            NORMAL_ROUNDS_K           = Calc_NORMAL_ROUNDS_K (K);
+            EXTRA_ROUNDS_K            = Calc_EXTRA_ROUNDS_K  (K);
+            MAX_ROUNDS_K              = Calc_MAX_ROUNDS_K    (K);
 
             if (ThreadCount == 0)
                 ThreadCount = Environment.ProcessorCount;
@@ -135,7 +132,7 @@ namespace vinkekfish
             this.CountOfRounds = CountOfRounds;
             this.K             = K;
             FullLen            = K * CryptoStateLen + CryptoStateLenExtension;
-            FullLen            = (int) calcAlignment(FullLen);
+            FullLen            = (int)calcAlignment(FullLen);
             Len                = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
             LenInThreeFish     = Len / ThreeFishBlockLen;
             LenInKeccak        = Len / KeccakBlockLen;
@@ -147,29 +144,31 @@ namespace vinkekfish
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
             TweaksArrayLen = CryptoTweakLen * 2; //CountOfTweaks * CryptoTweakLen * LenInThreeFish;
-            TweaksArrayLen = (int) calcAlignment(TweaksArrayLen);
+            TweaksArrayLen = (int)calcAlignment(TweaksArrayLen);
             /*MatrixArrayLen = MatrixLen * LenInKeccak;
             MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
-            CountOfFinal   = K <= 11 ? 2 : 3;
+            CountOfFinal = MIN_ABSORPTION_ROUNDS_D; //K <= 11 ? 2 : 3;
+            if (CountOfFinal < 2)
+                CountOfFinal = 2;
 
             // Делаем перестановку в один поток, т.к. всё равно он сильно зависит от шины памяти и обращается к общей памяти. Хотя, в целом, это может быть и не так уж и оправдано
             LenInThreadBlock = 1;
-            LenThreadBlock   = Len;
+            LenThreadBlock = Len;
 
             rState1 = allocator.AllocMemory(FullLen);
             rState2 = allocator.AllocMemory(FullLen);
             rTweaks = allocator.AllocMemory(TweaksArrayLen);
-            State1  = rState1;
-            State2  = rState2;
-            Tweaks  = rTweaks;
+            State1 = rState1;
+            State2 = rState2;
+            Tweaks = rTweaks;
             ClearState();
 
             // ThreadsFunc_Current = ThreadFunction_empty; // Это уже сделано в ClearState
-/*            threads = new Thread[ThreadCount];
+            /*            threads = new Thread[ThreadCount];
 
-            for (int i = 0; i < threads.Length; i++)
-                threads[i] = new Thread(ThreadsFunction);
-*/
+                        for (int i = 0; i < threads.Length; i++)
+                            threads[i] = new Thread(ThreadsFunction);
+            */
 
             NumbersOfThreeFishBlocks = new int[LenInThreeFish];
             var j = LenInThreeFish / 2;
@@ -181,13 +180,52 @@ namespace vinkekfish
             }
 
             CheckNumbersOfThreeFishBlocks();
-/*
-            if (TimerIntervalMs > 0)
-            {
-                Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
-            }
-*/
+            /*
+                        if (TimerIntervalMs > 0)
+                        {
+                            Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
+                        }
+            */
             isState1Main = true;
+        }
+
+        public static int Calc_MIN_ROUNDS_K(int K)
+        {
+            var ce = (double x) => (int)Math.Ceiling(x);
+
+            var MIN_ROUNDS_K = ce(K * 2.674);
+            if (MIN_ROUNDS_K < ce(4.0 * Math.Log2(K + 1)))
+                MIN_ROUNDS_K = ce(4.0 * Math.Log2(K + 1));
+
+            return MIN_ROUNDS_K;
+        }
+
+        public static int Calc_REDUCED_ROUNDS_K(int K)
+        {
+            var ce = (double x) => (int)Math.Ceiling(x);
+
+            return ce(K * 6.168);
+        }
+
+        public static int Calc_NORMAL_ROUNDS_K(int K)
+        {
+            var ce = (double x) => (int)Math.Ceiling(x);
+
+            return ce(K * 6.168 * 1.5);
+        }
+
+        public static int Calc_EXTRA_ROUNDS_K(int K)
+        {
+            var ce = (double x) => (int)Math.Ceiling(x);
+
+            return ce(K * 25.0);
+        }
+
+        public static int Calc_MAX_ROUNDS_K(int K)
+        {
+            var ce = (double x) => (int)Math.Ceiling(x);
+
+            return ce(K * 25.0 * (2 * Math.Log2(K + 1) + 2));
         }
 
         /// <summary>Проверка верности заполнения NumbersOfThreeFishBlocks</summary>
