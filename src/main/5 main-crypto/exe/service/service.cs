@@ -9,7 +9,7 @@ using static VinKekFish_Utils.Language;
 /// <summary>
 /// Класс, реализующий функциональность программы в режиме работы сервиса "service"
 /// </summary>
-public class Regime_Service
+public partial class Regime_Service
 {
                                                 /// <summary>Полное имя файла конфигурации</summary>
     public string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
@@ -50,6 +50,7 @@ public class Regime_Service
             Console.WriteLine("Regime_Service.doTerminate: exited");
     }
 
+
     /// <summary>Исполнение программы в режиме сервиса</summary>
     /// <param name="args">Аргументы командной строки, идущие после описателя режима service (имя файла конфигурации)</param>
     /// <returns>Код возврата сервиса</returns>
@@ -58,15 +59,21 @@ public class Regime_Service
         GCSettings.LatencyMode = GCLatencyMode.Batch;
 
         var poResult = ParseOptions(args);
-        if (poResult is not null)
-            return poResult.Value;
+        if (poResult != ProgramErrorCode.success)
+            return poResult;
 
         vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
 
+        StartEntropy();
         while (!Terminated || vkfListener.connections.Count > 0)
         {
+            ExecEntropy();
             Thread.Sleep(1000);
         }
+
+        Console.WriteLine("Regime_Service.Start: exiting");
+
+        StopEntropy();
 
         Console.WriteLine("Regime_Service.Start: exited");
 
@@ -75,7 +82,10 @@ public class Regime_Service
 
     // Парсим файл конфигурации для сервисного режима
     public Options_Service? options_service = null;
-    public ProgramErrorCode? ParseOptions(List<string> args)
+    /// <summary>Вызывается при старте службы для парсинга настроек</summary>
+    /// <param name="args">Аргументы командной строки, идущие после описателя режима service (имя файла конфигурации)</param>
+    /// <returns>0, если успех</returns>
+    public ProgramErrorCode ParseOptions(List<string> args)
     {
         if (args.Count <= 0)
         {
@@ -104,7 +114,7 @@ public class Regime_Service
             return ProgramErrorCode.noOptions_Service;
         }
 
-        return null;
+        return ProgramErrorCode.success;
     }
 
     public string? GetStringFromOptions(string path, Options opt, Options.Block? block = null)

@@ -35,17 +35,19 @@ namespace vinkekfish
             if (allocator == null)
                 allocator = VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
 
-            using var prng = new Keccak_PRNG_20201128();
+            //using var prng = new Keccak_PRNG_20201128();
+            // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая. Поэтому, создаём губку именно такой стойкости
+            using var prng = new CascadeSponge_mt_20230930(this.K*1024);
 
             if (key != null && key_length > 0)
             {
                 if (OpenInitVector == null)
                 {
-                    prng.InputKeyAndStep((byte*)key, key_length, null, 0);
+                    prng.initKeyAndOIV(key, key_length, null, 0, 2);
                 }
                 else
                 {
-                    prng.InputKeyAndStep((byte*)key, key_length, (byte*)OpenInitVector, OpenInitVector_length);
+                    prng.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, 2);
                 }
             }
             else
@@ -84,8 +86,8 @@ namespace vinkekfish
 // TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду?
                 for (; Rounds > 0; Rounds--)
                 {
-                    prng.doRandomPermutationForUShorts(table1);
-                    prng.doRandomPermutationForUShorts(table2);
+                    prng.doRandomPermutationForUShorts(len1, Table1);
+                    prng.doRandomPermutationForUShorts(len1, Table2);
                     
                     // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
                     /*CheckPermutationTable(Table1, table1.Length);
