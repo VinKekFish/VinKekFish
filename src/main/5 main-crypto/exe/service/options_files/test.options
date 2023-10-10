@@ -1,6 +1,6 @@
 path
     random at start folder
-        random_at_start_folder
+        /inRamA/random_at_start_folder/1/2/3
 
 output
     random
@@ -32,7 +32,7 @@ input
                                 no
                             difference
                                 no
-        standard
-            cmd
-                df
+        #standard
+        #    cmd
+        #        df
 

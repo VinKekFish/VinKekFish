@@ -17,11 +17,11 @@ namespace vinkekfish
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
         /// <summary>Сюда выводятся данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (вызвать Dispose и перезаписать в null указатель), либо в Displose автоматически. Если ёмкости не хватает, новые данные перезаписывают старые.</summary>
-        public    BytesBuilderStatic? output      = null;    /// <summary>Отсюда вводятся в криптографическое состояние данные, полученные в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (вызвать Dispose и перезаписать в null указатель), либо в Displose автоматически</summary>
+        public    BytesBuilderStatic? output      = null;    /// <summary>Отсюда данные вводятся в криптографическое состояние. Данные используются в ходе выполнения функции doStepAndOutput. Инициализируется пользователем, очищается либо пользователем (вызвать Dispose и перезаписать в null указатель), либо в Displose автоматически</summary>
         public    BytesBuilderStatic? input       = null;
         protected Record?             inputRecord = null;
 
-        /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата</summary>
+        /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата. Данные для ввода в шаги берутся из переменной input. while (VinKekFish.input!.Count > 0) doStepAndIO();</summary>
         /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K</param>
         /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K</param>
         /// <param name="Overwrite">Если true - режим overwrite. Если false - режим xor</param>

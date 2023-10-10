@@ -123,7 +123,7 @@ namespace vinkekfish
             this.ThreadCount = ThreadCount;
 
             if (CountOfRounds < 0)
-                CountOfRounds = NORMAL_ROUNDS_K;
+                CountOfRounds = MAX_ROUNDS_K;
 
             if (CountOfRounds < MIN_ROUNDS_K)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525: CountOfRounds < MIN_ROUNDS_K");
@@ -286,9 +286,9 @@ namespace vinkekfish
 
             lock (this)
             {
-                Clear();
+                Clear();    // tablesForPermutations очищаются здесь
                 try     {  output? .Dispose(); input?  .Dispose(); inputRecord?.Dispose(); }
-                finally {  rState1?.Dispose(); rState2?.Dispose(); rTweaks?    .Dispose();  }
+                finally {  rState1?.Dispose(); rState2?.Dispose(); rTweaks?    .Dispose(); }
 
                 output      = null;
                 input       = null;
