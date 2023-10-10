@@ -44,11 +44,13 @@ public class UnixSocketListener: IDisposable
     public List<Connection> connections = new List<Connection>(4);
     public void AcceptConnection(IAsyncResult ar)
     {
-        if (!doTerminate)
-            ThreadPool.QueueUserWorkItem
-            (
-                (obj) => listenSocket.BeginAccept(AcceptConnection, null)
-            );
+        if (doTerminate)
+            return;
+
+        ThreadPool.QueueUserWorkItem
+        (
+            (obj) => listenSocket.BeginAccept(AcceptConnection, null)
+        );
 
         try
         {
@@ -60,6 +62,12 @@ public class UnixSocketListener: IDisposable
         // Если сокет уже закрыт
         catch (System.ObjectDisposedException)
         {}
+        catch
+        {
+            // Если завершаем работу, то просто игнорируем исключения
+            if (!doTerminate)
+                throw;
+        }
     }
 
     public void Dispose()

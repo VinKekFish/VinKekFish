@@ -22,6 +22,8 @@ public partial class Regime_Service
         RandomAtFolder_Static = new DirectoryInfo(Path.Combine(RandomAtFolder.FullName, "static")); RandomAtFolder.Refresh();
         if (!RandomAtFolder_Static.Exists)
             RandomAtFolder_Static.Create();
+
+        Console.WriteLine($"RandomAtFolder in folder {RandomAtFolder.FullName}");
     }
 
     public const int MAX_RANDOM_AT_START_FILE_LENGTH = 256*1024;
@@ -35,12 +37,12 @@ public partial class Regime_Service
         {
             using (var readStream = file.OpenRead())
             {
-                InputFromFileAttr   (file);Console.WriteLine("1");
-                InputFromFileName   (file);Console.WriteLine("2");
+                InputFromFileAttr   (file);
+                InputFromFileName   (file);
 
-                CascadeSponge.InitThreeFishByCascade();Console.WriteLine("3");
-                InputFromFileContent(file, readStream);Console.WriteLine("4");
-                CascadeSponge.InitThreeFishByCascade();Console.WriteLine("5");
+                CascadeSponge.InitThreeFishByCascade();
+                InputFromFileContent(file, readStream);
+                CascadeSponge.InitThreeFishByCascade();
             }
         }
 

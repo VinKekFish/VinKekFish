@@ -96,7 +96,7 @@ namespace vinkekfish
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта. После конструктора необходимо вызвать init1 и init2</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
-        /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount)</param>
+        /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
             BLOCK_SIZE_K     = K * BLOCK_SIZE;
@@ -147,9 +147,7 @@ namespace vinkekfish
             TweaksArrayLen = (int)calcAlignment(TweaksArrayLen);
             /*MatrixArrayLen = MatrixLen * LenInKeccak;
             MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
-            CountOfFinal = MIN_ABSORPTION_ROUNDS_D; //K <= 11 ? 2 : 3;
-            if (CountOfFinal < 2)
-                CountOfFinal = 2;
+            CountOfFinal = MIN_ABSORPTION_ROUNDS_D * 2;
 
             // Делаем перестановку в один поток, т.к. всё равно он сильно зависит от шины памяти и обращается к общей памяти. Хотя, в целом, это может быть и не так уж и оправдано
             LenInThreadBlock = 1;

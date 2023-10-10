@@ -59,6 +59,8 @@ public partial class Regime_Service
         GCSettings.LatencyMode = GCLatencyMode.Batch;
         Thread.CurrentThread.IsBackground = false;
 
+        Console.WriteLine($"initialization started at {DateTime.Now.ToString()}");
+
         var poResult = ParseOptions(args);
         if (poResult != ProgramErrorCode.success)
             return poResult;
@@ -66,19 +68,26 @@ public partial class Regime_Service
         vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
 
         StartEntropy();
-        Console.WriteLine("started");
+        Console.WriteLine($"service started at {DateTime.Now.ToString()}");
 
-        while (!Terminated || vkfListener.connections.Count > 0)
+        try
         {
-            ExecEntropy();
-            Thread.Sleep(1000);
+            while (!Terminated || vkfListener.connections.Count > 0)
+            {
+                ExecEntropy();
+                Thread.Sleep(1000);
+            }
+        }
+        finally
+        {
+            Terminated = true;
         }
 
-        Console.WriteLine("Regime_Service.Start: exiting");
+        Console.WriteLine($"Regime_Service.Start: exiting at {DateTime.Now.ToString()}");
 
         StopEntropy();
 
-        Console.WriteLine("Regime_Service.Start: exited");
+        Console.WriteLine($"Regime_Service.Start: exited at {DateTime.Now.ToString()}");
 
         return ProgramErrorCode.success;
     }

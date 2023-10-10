@@ -28,11 +28,12 @@ public partial class Program
         return false;
     }
 
-    public static void ProcessExit(object? sender, EventArgs e)
+    public static void ProcessExit(object? sender, ConsoleCancelEventArgs e)
     {
         try
         {
             service?.doTerminate(willBlock: true);
+            e.Cancel = true;
         }
         catch (Exception ex)
         {

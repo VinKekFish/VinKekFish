@@ -16,7 +16,7 @@ public partial class CascadeSponge_1t_20230905
         nint   index;
 
         using var bb = new BytesBuilderStatic(this.maxDataLen*2);
-Console.WriteLine($"doRandomPermutationForUShorts started {len}");
+
         // Алгоритм тасования Дурштенфельда
         // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
         for (nint i = 0; i < len - 1; i++)
@@ -50,7 +50,7 @@ Console.WriteLine($"doRandomPermutationForUShorts started {len}");
             T[i]     = T[index];
             T[index] = a;
         }
-Console.WriteLine("doRandomPermutationForUShorts ended");
+
         a = 0;
     }
 
