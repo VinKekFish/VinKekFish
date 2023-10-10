@@ -51,7 +51,8 @@ public partial class CascadeSponge_1t_20230905
             throw new ArgumentOutOfRangeException("CascadeSponge_1t_20230905.getUnsignedInteger: max < 1");
 
         nint r;
-        var e = stackalloc byte[2] {0, 0};
+        nint cnt = max < 256 ? 1 : 2;
+        var  e   = stackalloc byte[2] {0, 0};
 
         nint mask = 2;
         while (mask <= max)
@@ -60,13 +61,7 @@ public partial class CascadeSponge_1t_20230905
         mask--;
         do
         {
-            e[0] = 0;
-            e[1] = 0;
-
-            if (max < 256)
-                entropy.getBytesAndRemoveIt(e, 1);
-            else
-                entropy.getBytesAndRemoveIt(e, 2);
+            entropy.getBytesAndRemoveIt(e, cnt);
 
             r  = e[0];
             r += e[1] << 8;
@@ -74,6 +69,9 @@ public partial class CascadeSponge_1t_20230905
             r &= mask;
         }
         while (r > max);
+
+        e[0] = 0;
+        e[1] = 0;
 
         return r;
     }

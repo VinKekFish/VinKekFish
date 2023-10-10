@@ -22,7 +22,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
+        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0)
         {
             this.GenTables();
 
@@ -30,29 +30,34 @@ namespace vinkekfish
                 PreRoundsForTranspose = Rounds;
 
             if (PreRoundsForTranspose < 1)
-                throw new ArgumentOutOfRangeException("VinKekFish_KN_base_20210525.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
+                // throw new ArgumentOutOfRangeException("VinKekFish_KN_base_20210525.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
+                PreRoundsForTranspose = this.MIN_ABSORPTION_ROUNDS_D_K;
 
             if (allocator == null)
                 allocator = VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
 
             //using var prng = new Keccak_PRNG_20201128();
             // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая. Поэтому, создаём губку именно такой стойкости
-            using var prng = new CascadeSponge_mt_20230930(this.K*1024);
+            using var prng = PreRoundsForTranspose >= Rounds  ? null : new CascadeSponge_mt_20230930(this.K*1024);
+
+            if (key != null || OpenInitVector != null)
+            if (prng == null)
+                throw new ArgumentException("GenStandardPermutationTables: key != null || OpenInitVector != null but prng == null");
 
             if (key != null && key_length > 0)
             {
                 if (OpenInitVector == null)
                 {
-                    prng.initKeyAndOIV(key, key_length, null, 0, 2);
+                    prng!.initKeyAndOIV(key, key_length, null, 0, 2);
                 }
                 else
                 {
-                    prng.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, 2);
+                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, 2);
                 }
             }
             else
             if (OpenInitVector != null)
-                throw new ArgumentException("key == null && OpenInitVector != null. Set OpenInitVector as key");
+                throw new ArgumentException("GenStandardPermutationTables: key == null && OpenInitVector != null. Set OpenInitVector as key");
 
             nint len1  = Len;
             nint len2  = len1 * sizeof(ushort);
@@ -83,12 +88,12 @@ namespace vinkekfish
                     BytesBuilder.CopyTo(len2, len2, (byte *) transpose200  , r); CheckPermutationTable_fast((ushort*)r, len1, "transpose200.1"); r += len2;
                     BytesBuilder.CopyTo(len2, len2, (byte *) transpose128  , r); CheckPermutationTable_fast((ushort*)r, len1, "transpose128.2"); r += len2;
                 }
-// TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду?
+
                 for (; Rounds > 0; Rounds--)
                 {
-                    prng.doRandomPermutationForUShorts(len1, Table1);
-                    prng.doRandomPermutationForUShorts(len1, Table2);
-                    
+                    prng!.doRandomPermutationForUShorts(len1, Table1);
+                    prng!.doRandomPermutationForUShorts(len1, Table2);
+
                     // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
                     /*CheckPermutationTable(Table1, table1.Length);
                     CheckPermutationTable(Table2, table2.Length);*/
