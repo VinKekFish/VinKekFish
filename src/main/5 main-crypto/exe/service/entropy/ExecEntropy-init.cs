@@ -131,11 +131,16 @@ public partial class Regime_Service
                         CascadeSponge.InitThreeFishByCascade(1, false);
                     }
                 );
-    
+
                 GetStartupEntropy();
-                CascadeSponge.InitThreeFishByCascade(1, false);
+                CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
 
                 isInitiated = true;
+            }
+            catch
+            {
+                doTerminate();
+                throw;
             }
             finally
             {
@@ -195,8 +200,12 @@ public partial class Regime_Service
             readStream.Read(span);
 
             VinKekFish.input!.add(bytes, flen);
-            while (VinKekFish.input!.Count > 0)
+            do
+            {
                 VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 1);
+            }
+            while (VinKekFish.input!.Count > 0);
+            VinKekFish.step(VinKekFish.MIN_ABSORPTION_ROUNDS_D_K);
 
             CascadeSponge.step(data: bytes, dataLen: (nint) file.Length, regime: 1);
         }

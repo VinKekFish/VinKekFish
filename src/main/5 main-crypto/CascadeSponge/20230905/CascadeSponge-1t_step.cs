@@ -172,7 +172,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <summary>Инициализирует ThreeFish с помощью каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
     /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз, либо еслив дальнейшем будет проведён повторный вызов данного метода.</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true)
+    /// <param name="dataLenFromStep">Параметр определяет, сколько будет взято байтов для ключей ThreeFish с каждого шага губки. Не более maxDataLen</param>
+    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0)
     {
         // Защита от вызова на непроинициализированной губке
         if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration)
@@ -188,6 +189,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         if (lastRegime == 1)
             throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 1");
+        if (dataLenFromStep > maxDataLen)
+            throw new CascadeSpongeException("InitThreeFishByCascade: dataLenFromStep > maxDataLen");
+
+        if (dataLenFromStep <= 0)
+            dataLenFromStep = maxDataLen;
 
         try
         {
@@ -198,7 +204,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 do
                 {
                     step(countStepsForKeyGeneration, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
-                    buffer.add(lastOutput, maxDataLen);
+                    buffer.add(lastOutput, dataLenFromStep);
                 }
                 while (buffer.Count < needLen);
 

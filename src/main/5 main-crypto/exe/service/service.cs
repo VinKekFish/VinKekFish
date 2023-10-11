@@ -61,12 +61,12 @@ public partial class Regime_Service
 
         Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
 
-        var poResult = ParseOptions(args);
-        if (poResult != ProgramErrorCode.success)
-            return poResult;
-
         try
         {
+            var poResult = ParseOptions(args);
+            if (poResult != ProgramErrorCode.success)
+                return poResult;
+
             vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
 
             StartEntropy();
@@ -82,7 +82,7 @@ public partial class Regime_Service
             }
             finally
             {
-                Terminated = true;
+                doTerminate();
             }
         }
         finally
