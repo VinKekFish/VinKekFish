@@ -170,13 +170,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
     // code::docs:Wt74dfPfEIcGzPN5Jrxe:
     /// <summary>Инициализирует ThreeFish с помощью каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
-    /// <param name="stepToKeyConst">Не менее, чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями)</param>
-    public void InitThreeFishByCascade(int stepToKeyConst = 2)
+    /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз.</param>
+    /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
+    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true)
     {
         // Защита от вызова на непроинициализированной губке
-        if (countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput)
+        if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput)
             throw new CascadeSpongeException("InitThreeFishByCascade: countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput");
-        if (stepToKeyConst < 2)
+        if (doCheckSafty && stepToKeyConst < 2)
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 2");
 
         haveOutput  = false;     // Сбрасываем, чтобы если случилась ошибка, флаг был бы сброшен и не дал бы дальше работать

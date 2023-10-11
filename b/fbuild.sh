@@ -21,3 +21,9 @@ fi
 ./build/builder/builder "$configuration" "$testTags" "$flags"
 
 # dotnet ./build/SecureCompare.dll
+
+mkdir -p  /inRamA/vkf
+cp -fvur ./build/locales       /inRamA/vkf
+cp -fvu  ./build/vkf           /inRamA/vkf
+cp -fvu  ./build/test.options  /inRamA/vkf
+

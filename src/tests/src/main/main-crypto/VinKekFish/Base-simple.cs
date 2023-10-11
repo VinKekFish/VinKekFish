@@ -197,6 +197,16 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         }
 
         VinKekFish_Utils.Utils.MsgToFile($"final", "KNe");
+
+        keccak(state);
+        transpose200(state);
+        keccak(state);
+        transpose200_8(state);
+        keccak(state);
+        transpose200(state);
+        keccak(state);
+        transpose200_8(state);
+
         keccak(state);
         transpose200(state);
         keccak(state);

@@ -76,6 +76,12 @@ public partial class Program
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + e.ExceptionObject.ToString());
         else
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + formatException(ex));
+
+        if (e.IsTerminating)
+        if (service != null)
+        {
+            service.doTerminate(true);
+        }
     }
 
     public static ProgramErrorCode Main_ec(string[] args)

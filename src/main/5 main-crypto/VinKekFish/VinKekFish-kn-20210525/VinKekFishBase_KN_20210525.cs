@@ -147,7 +147,7 @@ namespace vinkekfish
             TweaksArrayLen = (int)calcAlignment(TweaksArrayLen);
             /*MatrixArrayLen = MatrixLen * LenInKeccak;
             MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
-            CountOfFinal = MIN_ABSORPTION_ROUNDS_D * 2;
+            CountOfFinal = MIN_ABSORPTION_ROUNDS_D_K * 2;
 
             // Делаем перестановку в один поток, т.к. всё равно он сильно зависит от шины памяти и обращается к общей памяти. Хотя, в целом, это может быть и не так уж и оправдано
             LenInThreadBlock = 1;
@@ -224,6 +224,41 @@ namespace vinkekfish
             var ce = (double x) => (int)Math.Ceiling(x);
 
             return ce(K * 25.0 * (2 * Math.Log2(K + 1) + 2));
+        }
+
+        /// <summary>Рассчитывает оптимальное количество случайных таблиц перестановок для VinKekFish</summary>
+        /// <param name="key_length">Длина ключа для инициализации перестановок в байтах</param>
+        public int Calc_OptimalRandomPermutationCount(nint key_length)
+        {
+            return Calc_OptimalRandomPermutationCount_static(K, key_length);
+        }
+
+        /// <summary>Рассчитывает оптимальное количество случайных таблиц перестановок для VinKekFish</summary>
+        /// <param name="K">Параметр K (множитель стойкости и размера шифра)</param>
+        /// <param name="key_length">Длина ключа для инициализации перестановок в байтах</param>
+        public static int Calc_OptimalRandomPermutationCount_static(int K, nint key_length)
+        {
+            var k   = Calc_OptimalRandomPermutationCountK  (K);
+            var key = Calc_OptimalRandomPermutationCountKey(key_length);
+
+            if (k < key)
+                return K;
+
+            return key;
+        }
+
+        /// <summary>Рассчитывает оптимальное количество случайных таблиц перестановок для VinKekFish, исходя из значения K (можно больше, но инициализация может затянуться).<para>Количество раундов со случайными перестановками рассчитывается исходя из минимального значения Calc_OptimalRandomPermutationCountK и Calc_OptimalRandomPermutationCountKey</para></summary>
+        /// <param name="K">Параметр K (множитель стойкости и размера шифра)</param>
+        public static int Calc_OptimalRandomPermutationCountK(int K)
+        {
+            return K*1024*8*2/(1344+1720);
+        }
+
+        /// <summary>Рассчитывает оптимальное количество случайных таблиц перестановок для VinKekFish, исходя из длины вводимого для перестановок ключа (можно больше, но инициализация может затянуться)</summary>
+        /// <param name="key_length">Длина ключа для инициализации перестановок в байтах</param>
+        public static int Calc_OptimalRandomPermutationCountKey(nint key_length)
+        {
+            return (int) Math.Ceiling(  key_length*8.0*2.0/(1344.0+1720.0)  );
         }
 
         /// <summary>Проверка верности заполнения NumbersOfThreeFishBlocks</summary>

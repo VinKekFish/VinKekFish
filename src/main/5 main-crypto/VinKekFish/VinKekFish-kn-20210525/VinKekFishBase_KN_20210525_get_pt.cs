@@ -22,7 +22,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0)
+        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0, int ThreeFishInitSteps = 2)
         {
             this.GenTables();
 
@@ -53,11 +53,11 @@ namespace vinkekfish
             {
                 if (OpenInitVector == null)
                 {
-                    prng!.initKeyAndOIV(key, key_length, null, 0, 2);
+                    prng!.initKeyAndOIV(key, key_length, null, 0, ThreeFishInitSteps);
                 }
                 else
                 {
-                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, 2);
+                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, ThreeFishInitSteps);
                 }
             }
             else

@@ -112,7 +112,8 @@ namespace vinkekfish
         /// <param name="PreRoundsForTranspose">Количество раундов, которое будет происходить со стандартными таблицами (не зависящими от ключа)</param>
         /// <param name="keyForPermutations">Дополнительный ключ: ключ для определения таблиц перестановок. Не должен зависеть от основного ключа<para>Пользователь должен обеспечить, чтобы при разглашении дополнительного ключа основной оставался бы неизвестным. Такой ключ можно добавить при инициализации к основному ключу (вводимому в саму губку) после основного ключа, но этот ключ, считается менее защищённым, чем основной</para><para>В зависимости от длины ключа вычисляется и стойкость генератора таблиц перестановок (но не более, чем удвоенная номинальная стойкость VinKekFish). Желательно, чтобы этот ключ каждую сессию шифрования был разный.</para></param>
         /// <param name="OpenInitVectorForPermutations">Дополнительный вектор инициализации</param>
-        public virtual void Init1(int PreRoundsForTranspose = 0, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null)
+        /// <param name="ThreeFishInitSteps">Количество раундов инициализации ключей ThreeFish для каскадной губки, инициализирующей случайные таблицы перестановок</param>
+        public virtual void Init1(int PreRoundsForTranspose = 0, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null, int ThreeFishInitSteps = 2)
         {
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init1: Fatal algorithmic error: !State1Main");
@@ -124,7 +125,7 @@ namespace vinkekfish
             lock (this)
             {
                 Clear();
-                tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len, PreRoundsForTranspose: PreRoundsForTranspose);
+                tablesForPermutations = GenStandardPermutationTables(CountOfRounds, allocator, key: keyForPermutations, key_length: keyForPermutations == null ? 0 : keyForPermutations.len, OpenInitVector: OpenInitVectorForPermutations, OpenInitVector_length: OpenInitVectorForPermutations == null ? 0 : OpenInitVectorForPermutations.len, PreRoundsForTranspose: PreRoundsForTranspose, ThreeFishInitSteps: ThreeFishInitSteps);
                 isInit1    = true;
             }
 

@@ -399,8 +399,10 @@ namespace cryptoprime
                                                                                     /// <summary>Уменьшает длину записи на subtracted. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
             public static Record operator <<(Record a, nint subtracted)
             {
+                if (subtracted < 0)
+                    throw new ArgumentOutOfRangeException("subtracted", "subtracted < 0");
                 if (a.len <= subtracted)
-                    throw new ArgumentOutOfRangeException("len", "in '<<' operator");
+                    throw new ArgumentOutOfRangeException("subtracted", "in Record.'<<' operator: a.len <= subtracted");
 
                 var r = new Record()
                 {
