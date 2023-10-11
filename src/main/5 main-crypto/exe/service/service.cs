@@ -59,35 +59,40 @@ public partial class Regime_Service
         GCSettings.LatencyMode = GCLatencyMode.Batch;
         Thread.CurrentThread.IsBackground = false;
 
-        Console.WriteLine($"initialization started at {DateTime.Now.ToString()}");
+        Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
 
         var poResult = ParseOptions(args);
         if (poResult != ProgramErrorCode.success)
             return poResult;
 
-        vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
-
-        StartEntropy();
-        Console.WriteLine($"service started at {DateTime.Now.ToString()}");
-
         try
         {
-            while (!Terminated || vkfListener.connections.Count > 0)
+            vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
+
+            StartEntropy();
+            Console.WriteLine($"{L("service started at")} {DateTime.Now.ToString()}");
+
+            try
             {
-                ExecEntropy();
-                Thread.Sleep(1000);
+                while (!Terminated || vkfListener.connections.Count > 0)
+                {
+                    ExecEntropy();
+                    Thread.Sleep(1000);
+                }
+            }
+            finally
+            {
+                Terminated = true;
             }
         }
         finally
         {
-            Terminated = true;
+            Console.WriteLine($"Regime_Service.Start: exiting at {DateTime.Now.ToString()}");
+
+            StopEntropy();
+
+            Console.WriteLine($"Regime_Service.Start: exited at {DateTime.Now.ToString()}");
         }
-
-        Console.WriteLine($"Regime_Service.Start: exiting at {DateTime.Now.ToString()}");
-
-        StopEntropy();
-
-        Console.WriteLine($"Regime_Service.Start: exited at {DateTime.Now.ToString()}");
 
         return ProgramErrorCode.success;
     }

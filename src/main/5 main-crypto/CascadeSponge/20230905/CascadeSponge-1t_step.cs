@@ -170,15 +170,17 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
     // code::docs:Wt74dfPfEIcGzPN5Jrxe:
     /// <summary>Инициализирует ThreeFish с помощью каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
-    /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз.</param>
+    /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз, либо еслив дальнейшем будет проведён повторный вызов данного метода.</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
     public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true)
     {
         // Защита от вызова на непроинициализированной губке
-        if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput)
+        if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration)
             throw new CascadeSpongeException("InitThreeFishByCascade: countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput");
         if (doCheckSafty && stepToKeyConst < 2)
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 2");
+        if (stepToKeyConst < 1)
+            throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 1");
 
         haveOutput  = false;     // Сбрасываем, чтобы если случилась ошибка, флаг был бы сброшен и не дал бы дальше работать
         var needLen = countOfThreeFish*threefish_slowly.keyLen + countOfThreeFish*threefish_slowly.twLen;
@@ -195,8 +197,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 // Берём данные из губки для инициализации ключей
                 do
                 {
-                    buffer.add(lastOutput, maxDataLen);         // Губка уже проинициализированна, значит, берём значения сачала, а потом уже выполняем повторный расчёт
-                    step(countStepsForKeyGeneration, regime: 1); haveOutput = false;
+                    step(countStepsForKeyGeneration, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
+                    buffer.add(lastOutput, maxDataLen);
                 }
                 while (buffer.Count < needLen);
 
@@ -236,16 +238,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="key">Ключ шифрования</param>
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
-    public void initKeyAndOIV(Record key, Record? OIV, int InitThreeFishByCascade_stepToKeyConst)
+    /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
+    public void initKeyAndOIV(Record key, Record? OIV, int InitThreeFishByCascade_stepToKeyConst, bool doCheckSafty = true)
     {
-        initKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst);
+        initKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
 
     /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
     /// <param name="key">Ключ шифрования</param>
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
-    public void initKeyAndOIV(byte * key, nint key_length, byte * OIV, nint OIV_length, int InitThreeFishByCascade_stepToKeyConst)
+    /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
+    public void initKeyAndOIV(byte * key, nint key_length, byte * OIV, nint OIV_length, int InitThreeFishByCascade_stepToKeyConst, bool doCheckSafty = true)
     {
         if (OIV is not null)
         {
@@ -269,6 +273,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         step(countStepsForKeyGeneration, regime: 5);
 
         if (InitThreeFishByCascade_stepToKeyConst != 0)
-            InitThreeFishByCascade(InitThreeFishByCascade_stepToKeyConst);
+            InitThreeFishByCascade(InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
 }

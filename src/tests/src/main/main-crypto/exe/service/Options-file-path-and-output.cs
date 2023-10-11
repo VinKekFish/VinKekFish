@@ -29,7 +29,7 @@ public class ServiceAutoTests: Keccak_test_parent
     }
 }
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
 [TestTagAttribute("service", duration: 100, singleThread: false)]
 public class ServiceAutoTestFile: ServiceAutoTests
 {

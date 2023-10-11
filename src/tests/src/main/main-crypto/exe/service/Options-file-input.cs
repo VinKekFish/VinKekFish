@@ -125,7 +125,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have .input.Entropy.OS.file.path.*",
+                lst, "have no .input.Entropy.OS.file.path.*",
                 () =>
                 {
                     add_Input_Entropy_OS_file(fileString);
@@ -139,7 +139,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have .input.Entropy.OS.file.path.{min,max,EME}",
+                lst, "have no .input.Entropy.OS.file.path.{min,max,EME}",
                 () =>
                 {
                     add_Input_Entropy_OS_file(fileString);
@@ -153,7 +153,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have .input.Entropy.OS.file.path.tinterval.min",
+                lst, "have no .input.Entropy.OS.file.path.interval.min",
                 () =>
                 {
                     add_Input_Entropy_OS_file(fileString);
@@ -171,7 +171,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have .input.Entropy.OS.file.path.tinterval.max",
+                lst, "have no .input.Entropy.OS.file.path.interval.max",
                 () =>
                 {
                     add_Input_Entropy_OS_file(fileString);
@@ -189,7 +189,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             fileString.Clear();
             add
             (
-                lst, "no have .input.Entropy.OS.file.path.tinterval.EME",
+                lst, "have no .input.Entropy.OS.file.path.interval.EME",
                 () =>
                 {
                     add_Input_Entropy_OS_file(fileString);
@@ -199,6 +199,25 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     fileString.Add("\t\t\t\t\tmax");
                     fileString.Add("\t\t\t\t\t\t0");
                     fileString.Add("\t\t\t\t\tinterval");
+                    var opt = new Options(fileString);
+                    var options_service = new Options_Service(opt);
+                }
+            );
+
+            fileString.Clear();
+            add
+            (
+                lst, "have no .input.Entropy.OS.file.path.interval.innerInterval",
+                () =>
+                {
+                    add_Input_Entropy_OS_file(fileString);
+                    fileString.Add("\t\t\t\t/dev/random");
+                    fileString.Add("\t\t\t\t\tmin");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tmax");
+                    fileString.Add("\t\t\t\t\t\t0");
+                    fileString.Add("\t\t\t\t\tEME");
+                    fileString.Add("\t\t\t\t\t\t0");
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
                 }
@@ -267,7 +286,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     throw new Exception($"{t1}");
                 }
@@ -284,7 +303,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     throw new Exception($"{t1}");
                 }
@@ -301,7 +320,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   ms");
@@ -309,7 +328,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
@@ -325,7 +344,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   s");
@@ -333,7 +352,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
@@ -349,7 +368,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   m");
@@ -357,7 +376,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
@@ -373,7 +392,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   h");
@@ -381,7 +400,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
@@ -395,9 +414,9 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_32YesNo(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].date!.date;
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].difference!.differenceValue;
-                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].Length;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Date!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Length!.Length;
 
                     throw new Exception($"{t1} {t2} {t3}");
                 }
@@ -412,9 +431,9 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_64NoYes(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].date!.date;
-                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].difference!.differenceValue;
-                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.intervals[0].Length;
+                    var t1 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Date!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.random![0].intervals!.interval!.inner[0].Length!.Length;
 
                     throw new Exception($"{t1} {t2} {t3}");
                 }

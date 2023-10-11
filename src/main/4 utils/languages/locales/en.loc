@@ -26,4 +26,12 @@ Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.erro
     Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
 Unhandled Exception occured
     Unhandled Exception occured
+Initialization got random from file
+    Initialization got random bytes from file
+Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required
+    Check the options file for the input.entropy.OS.file element. 'Interval' element with 'once' or '--' keywords required
+service started at
+    service started at
+initialization started at
+    Initialization started at
 :

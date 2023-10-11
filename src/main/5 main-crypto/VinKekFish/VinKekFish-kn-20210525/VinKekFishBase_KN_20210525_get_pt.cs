@@ -53,11 +53,11 @@ namespace vinkekfish
             {
                 if (OpenInitVector == null)
                 {
-                    prng!.initKeyAndOIV(key, key_length, null, 0, ThreeFishInitSteps);
+                    prng!.initKeyAndOIV(key, key_length, null, 0, ThreeFishInitSteps, doCheckSafty: false);
                 }
                 else
                 {
-                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, ThreeFishInitSteps);
+                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, ThreeFishInitSteps, doCheckSafty: false);
                 }
             }
             else

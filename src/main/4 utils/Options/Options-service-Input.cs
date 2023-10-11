@@ -108,7 +108,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (intervals == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have interval elements. Have no interval elements");
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one interval element. Have no interval element");
 
                     base.Check();
                 }
@@ -170,7 +170,7 @@ public partial class Options_Service
 
             public class Intervals: Element
             {
-                public readonly List<Interval> intervals = new List<Interval>();
+                public Interval? interval { get; protected set; }
 
                 public readonly EntropyValues entropy = new EntropyValues();
 
@@ -188,7 +188,13 @@ public partial class Options_Service
                         case "eme":
                             setEME(block); break;
                         case "interval":
-                            intervals.Add( new Interval(this, block.blocks, block) ); break;
+
+                            if (interval == null)
+                                interval = new Interval(this, block.blocks, block);
+                            else
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found twiced element interval. Can only one an 'interval' element");
+
+                            break;
 
                         default:
                             throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is values 'min', 'max', 'EME', 'interval'");
@@ -245,10 +251,11 @@ public partial class Options_Service
 
                 public override void Check()
                 {
-                    if (intervals.Count <= 0)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have at least one 'interval' element. Have no one element");
                     if (!entropy.isCorrect())
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0");
+                    
+                    if (interval == null)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one 'interval' element. Have no one 'interval' element");
 
                     base.Check();
                 }
@@ -259,15 +266,11 @@ public partial class Options_Service
                 public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public long        time       { get; protected set; } = -2;
-                public long        Length     { get; protected set; } = -2;
-                public Date?       date       { get; protected set; }
-                public Difference? difference { get; protected set; }
-
-                protected InnerIntervalElement? inner;
+                public readonly List<InnerIntervalElement> inner = new List<InnerIntervalElement>();
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
+                    long time = -2;
                     if (canonicalName == "once" || canonicalName == "--")
                     {
                         time = -1;
@@ -281,17 +284,7 @@ public partial class Options_Service
                         time = timev;
                     }
 
-                    inner  = new InnerIntervalElement(this, block.blocks, block);
-                    if (inner.Length != null)
-                        Length = inner.Length.Length;
-
-                    date = inner.Date;
-                    if (date == null || date.date == Date.DateValue.undefined)
-                        this.getRoot()!.warns.addWarning($"Warning: In the '{inner.getFullElementName()}' element (at line {1+inner.thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
-
-                    difference = inner.Difference;
-                    if (difference == null || difference.differenceValue == Difference.DifferenceValue.undefined)
-                        this.getRoot()!.warns.addWarning($"Warning: In the '{inner.getFullElementName()}' element (at line {1+inner.thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
+                    inner.Add(new InnerIntervalElement(this, block.blocks, block, time));
                 }
 
                 protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
@@ -339,19 +332,20 @@ public partial class Options_Service
 
                 public override void Check()
                 {
-                    if (time   == -2)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents time (for example: '1s')");
-                    if (Length == -2)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents length of data to input (for example: '32', '--', 'full')");
+                    if (inner.Count <= 0)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one 'interval' element. Have no one element");
 
                     base.Check();
                 }
 
                 public class InnerIntervalElement: Element
                 {
-                    public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
-                    {}
+                    public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, long time) : base(parent, blocks, thisBlock)
+                    {
+                        this.time = time;
+                    }
 
+                    public long           time       { get; protected set; } = -2;
                     public LengthElement? Length;
                     public Date?          Date;
                     public Difference?    Difference;
@@ -371,6 +365,23 @@ public partial class Options_Service
                             default:
                                 throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'date', 'difference'");
                         }
+                    }
+
+                    public override void Check()
+                    {
+                        if (time == -2)
+                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents time (for example: '1s')");
+
+                        if (Length == null || Length.Length == -2)
+                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents length of data to input (for example: '32', '--', 'full')");
+
+                        if (Date == null || Date.date == Date.DateValue.undefined)
+                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
+
+                        if (Difference == null || Difference.differenceValue == Difference.DifferenceValue.undefined)
+                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
+
+                        base.Check();
                     }
                 }
 
