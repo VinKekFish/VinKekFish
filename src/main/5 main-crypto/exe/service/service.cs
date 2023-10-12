@@ -77,7 +77,7 @@ public partial class Regime_Service
                 while (!Terminated || vkfListener.connections.Count > 0)
                 {
                     ExecEntropy();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                 }
             }
             finally

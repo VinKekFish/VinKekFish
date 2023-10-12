@@ -4,6 +4,7 @@ using System.Runtime;
 namespace VinKekFish_EXE;
 
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using cryptoprime;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
@@ -26,6 +27,7 @@ public partial class Regime_Service
     {
         lock (entropy_sync)
         {
+            Record? rnd = null;
             try
             {
                 if (VinKekFish.CountOfRounds - VinKekFish.EXTRA_ROUNDS_K < 0)
@@ -33,69 +35,38 @@ public partial class Regime_Service
 
                 CreateFolders();
 
-                ExecEntorpy_now  = DateTime.Now.Ticks;
-                VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
-
+                ExecEntorpy_now     = DateTime.Now.Ticks;
                 using var bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
-                // using var rndbytes  = new BytesBuilderForPointers();
 
-                CascadeSponge.InitEmptyThreeFish((ulong) ExecEntorpy_now);
-                CascadeSponge.step(regime: 255);
+                CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
                 CascadeSponge.InitThreeFishByCascade(1, false);
 
                 nint realRandomLength = 0;
 
-                checked
+                
+                nint    rndCount = 0;
+                using (var rndbytes = new BytesBuilderForPointers())
                 {
-                    try
-                    {
-                        var rndList  = options_service!.root!.input!.entropy!.os!.random;
-                        foreach (var rnd in rndList)
-                        {
-                            var intervals = rnd.intervals!.interval!.inner;
-                            foreach (var interval in intervals)
-                            {
-                                if (interval.time == -1 || interval.time == 0)
-                                {
-                                    if (string.IsNullOrEmpty(rnd.PathString))
-                                        throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
+                    realRandomLength = getRandomFromOSEntropy_Startup(bufferRec, rndbytes, realRandomLength);
 
-                                    var rndFileInfo = new FileInfo(rnd.PathString); rndFileInfo.Refresh();
-                                    var len         = (nint) rndFileInfo.Length;
+                    if (realRandomLength < 16)
+                        throw new Exception("Regime_Service.StartEntropy: realRandomLength < 16.\n" + L("Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required"));
 
-                                    if (interval.Length!.Length > 0)
-                                        len = (nint) interval.Length!.Length;
-
-                                    if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
-                                        throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
-
-                                    var bufferSpan = new Span<byte>(bufferRec, (int) len);
-                                    using (var rs = rndFileInfo.OpenRead())
-                                    {
-                                        rs.Read(bufferSpan);
-                                        // rndbytes.addWithCopy(bufferRec << bufferRec.len - len, allocator: allocator);
-                                    }
-
-                                    CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, data: bufferRec, dataLen: len, regime: 2);
-
-                                    realRandomLength += len;
-                                    Console.WriteLine($"{L("Initialization got random from file")}; len = {len}; name = {rndFileInfo.FullName}");
-                                }
-                            }
-                        }
-                    }
-                    catch (NullReferenceException)
-                    {}
+                    GetStartupEntropy(bufferRec, rndbytes);
+                    rnd      = rndbytes.getBytes();
+                    rndCount = rnd.len;
                 }
 
-                if (realRandomLength < 16)
-                    throw new Exception("Regime_Service.StartEntropy: realRandomLength < 16.\n" + L("Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required"));
+                CascadeSponge.step(regime: 1, data: rnd, dataLen: rnd.len);
+                CascadeSponge.step(CascadeSponge.countStepsForKeyGeneration, regime: 255, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite);
+                CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
+
 
                 // Делаем первичную инициализацию временем при старте
-                    var sz  = (int) realRandomLength;       // Стойкость перестановок - 4 килобита
-                    var arr = stackalloc byte[sizeof(long) + sz];
-                using var rec = new Record() {array = arr, len = sizeof(long) + sz};
-                BytesBuilder.ULongToBytes((ulong) ExecEntorpy_now, arr, sizeof(long));
+                var sz  = (int)(realRandomLength + rndCount);
+                var arr = stackalloc byte[sizeof(long) + sz];
+                using var rec = new Record() { array = arr, len = sizeof(long) + sz };
+                BytesBuilder.ULongToBytes((ulong)ExecEntorpy_now, arr, sizeof(long));
 
                 nint curLen;
                 for (nint pointer = 0; pointer < sz; pointer += curLen)
@@ -111,29 +82,29 @@ public partial class Regime_Service
                 if (Terminated)
                     return;
 
-
                 Parallel.Invoke
                 (
                     () =>
-                    {   // rec является синхропосылкой, но т.к. ключа нет, то rec вводится как ключ
+                    {   
+                        // VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
+
+                        // rec является синхропосылкой, но т.к. ключа нет, то rec вводится как ключ
                         VinKekFish.Init1
                         (
                             keyForPermutations: rec,
                             PreRoundsForTranspose: VinKekFish.EXTRA_ROUNDS_K - VinKekFish.Calc_OptimalRandomPermutationCount(rec.len),
-                            ThreeFishInitSteps:    1
+                            ThreeFishInitSteps: 1
                         );
-                        VinKekFish.Init2(key: rec, TweakInit: rec >> sizeof(long));
+                        VinKekFish.Init2(key: rnd, TweakInit: rec);
                     },
 
                     () =>
                     {
-                        CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite);
-                        CascadeSponge.InitThreeFishByCascade(1, false);
+                        // Вводим здесь только время и снова переопределяем ключи шифрования ThreeFish
+                        CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);
+                        CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
                     }
                 );
-
-                GetStartupEntropy();
-                CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
 
                 isInitiated = true;
             }
@@ -144,8 +115,67 @@ public partial class Regime_Service
             }
             finally
             {
+                rnd?.Dispose();
                 Monitor.PulseAll(entropy_sync);
             }
+        }
+    }
+
+    public unsafe nint getRandomFromOSEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
+    {
+        checked
+        {
+            try
+            {
+                var rndList      = options_service!.root!.input!.entropy!.os!.random;
+                realRandomLength = getRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
+            }
+            catch (NullReferenceException)
+            { }
+        }
+
+        return realRandomLength;
+    }
+
+    public unsafe nint getRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputFileElement> rndList)
+    {
+        checked
+        {
+            foreach (var rnd in rndList)
+            {
+                var intervals = rnd.intervals!.interval!.inner;
+                foreach (var interval in intervals)
+                {
+                    if (interval.time == -1 || interval.time == 0)
+                    {
+                        if (string.IsNullOrEmpty(rnd.PathString))
+                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
+
+                        var rndFileInfo = new FileInfo(rnd.PathString); rndFileInfo.Refresh();
+                        var len = (nint)rndFileInfo.Length;
+
+                        if (interval.Length!.Length > 0)
+                            len = (nint)interval.Length!.Length;
+
+                        if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
+                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
+
+                        var bufferSpan = new Span<byte>(bufferRec, (int)len);
+                        using (var rs = rndFileInfo.OpenRead())
+                        {
+                            rs.Read(bufferSpan);
+                            rndbytes.addWithCopy(bufferRec << bufferRec.len - len, allocator: allocator);
+                        }
+
+                        // CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, data: bufferRec, dataLen: len, regime: 2);
+
+                        realRandomLength += len;
+                        Console.WriteLine($"{L("Initialization got random from file")}; len = {len}; name = {rndFileInfo.FullName}");
+                    }
+                }
+            }
+
+            return realRandomLength;
         }
     }
 
@@ -166,27 +196,28 @@ public partial class Regime_Service
 
     public const int MAX_RANDOM_AT_START_FILE_LENGTH = 256*1024;
 
-    protected unsafe virtual void GetStartupEntropy()
+    protected unsafe virtual void GetStartupEntropy(Record bufferRec, BytesBuilderForPointers rndbytes)
     {
-        // var bb    = new BytesBuilderStatic(1024*1024);
+        var sb    = new StringBuilder();
         var files = RandomAtFolder_Static!.GetFiles("*", SearchOption.AllDirectories);
 
+        sb.AppendLine($"{L("Initialization got random from file")}");
         foreach (var file in files)
         {
             using (var readStream = file.OpenRead())
             {
-                InputFromFileAttr   (file);
-                InputFromFileName   (file);
-
-                CascadeSponge.InitThreeFishByCascade();
-                InputFromFileContent(file, readStream);
-                CascadeSponge.InitThreeFishByCascade();
+                InputFromFileName   (bufferRec, file, rndbytes);
+                InputFromFileContent(bufferRec, file, readStream, rndbytes);
+                InputFromFileAttr   (bufferRec, file, rndbytes);        // Это идёт последним, т.к. использует текущее время для доп. энтропии, а это время зависит от длины файла и задержек при работе с файлом
             }
 
-            Console.WriteLine($"{L("Initialization got random from file")}; len = {file.Length}; name = {file.FullName}");
+            sb.AppendLine($"len = {file.Length}; name = {file.FullName}");
         }
 
-        unsafe void InputFromFileContent(FileInfo file, FileStream readStream)
+        Console.WriteLine(sb.ToString());
+
+
+        unsafe void InputFromFileContent(Record bufferRec, FileInfo file, FileStream readStream, BytesBuilderForPointers rndbytes)
         {
             int flen = (int) file.Length;
             if (file.Length > MAX_RANDOM_AT_START_FILE_LENGTH)
@@ -194,11 +225,9 @@ public partial class Regime_Service
             if (flen <= 0)
                 throw new ArgumentOutOfRangeException("InputFromFile: flen <= 0");
 
-            var bytes = stackalloc byte[flen];
-
-            var span = new Span<byte>(bytes, flen);
+            var span = new Span<byte>(bufferRec, flen);
             readStream.Read(span);
-
+/*
             VinKekFish.input!.add(bytes, flen);
             do
             {
@@ -206,38 +235,45 @@ public partial class Regime_Service
             }
             while (VinKekFish.input!.Count > 0);
             VinKekFish.step(VinKekFish.MIN_ABSORPTION_ROUNDS_D_K);
+*/
 
-            CascadeSponge.step(data: bytes, dataLen: (nint) file.Length, regime: 1);
+            rndbytes.addWithCopy(bufferRec, flen, allocator);
+            // CascadeSponge.step(data: bytes, dataLen: (nint) file.Length, regime: 1);
         }
 
-        unsafe void InputFromFileAttr(FileInfo file)
+        unsafe void InputFromFileAttr(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
         {
-            var size  = sizeof(long);
+            var size  = sizeof(long) + sizeof(long);
             var bytes = stackalloc byte[size];
 
-            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes, size);
+            // Получаем энтропию как из времени последней записи в файл,
+            // так и из текущего времени, т.к. оно может зависеть от загрузки жётского диска и быть частично случайным
+            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes     , size);
+            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes+size, size);
+            /*
             VinKekFish.input!.add(bytes, size);
 
             while (VinKekFish.input!.Count > 0)
                 VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 2);
-
-            CascadeSponge.step(data: bytes, dataLen: size, regime: 2);
+*/
+            rndbytes.addWithCopy(bytes, size, allocator);
+            // CascadeSponge.step(data: bytes, dataLen: size, regime: 2);
         }
 
-        unsafe void InputFromFileName(FileInfo file)
+        unsafe void InputFromFileName(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
         {
             var size  = file.Name.Length * sizeof(char);
-            var bytes = stackalloc byte[size];
 
             fixed (char * str = file.Name)
-                BytesBuilder.CopyTo(size, size, (byte *) str, bytes);
-
+                BytesBuilder.CopyTo(size, bufferRec.len, (byte *) str, bufferRec);
+/*
             VinKekFish.input!.add(bytes, size);
 
             while (VinKekFish.input!.Count > 0)
                 VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 3);
 
-            CascadeSponge.step(data: bytes, dataLen: size, regime: 3);
+            CascadeSponge.step(data: bytes, dataLen: size, regime: 3);*/
+            rndbytes.addWithCopy(bufferRec, size, allocator);
         }
     }
 }
