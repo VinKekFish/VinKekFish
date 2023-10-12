@@ -1,0 +1,71 @@
+# /lib/systemd/system/vkf.service
+# sudo systemctl enable vkf
+# sudo cp -fvu /opt/VinKekFish/options/vkf.service /lib/systemd/system/
+[Unit]
+Description=VinKekFish
+After=nss-lookup.target
+
+
+[Service]
+WorkingDirectory=$$$VkfDir
+PIDFile=$$$VkfDir/vkf.pid
+
+Environment=CONFIGFILE=options/service.options
+# Environment=LD_LIBRARY_PATH='$ORIGIN'
+
+User=root
+Group=root
+
+Type=exec
+# ExecStart=$$$VkfDir/exe/vkf service options/service.options
+ExecStart=$$$VkfDir/exe/vkf service $CONFIGFILE
+ExecStopPost=/bin/rm -f $$$VkfDir/vkf.pid
+
+# DefaultTimeoutStartSec=infinity
+TimeoutStopSec=60
+TimeoutStopFailureMode=kill
+
+Nice=19
+#IOSchedulingClass=idle
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+
+
+# man systemd.exec
+# https://www.freedesktop.org/software/systemd/man/systemd.exec.html
+# https://www.redhat.com/sysadmin/mastering-systemd
+
+NoNewPrivileges=yes
+
+ProtectKernelModules=true
+ProtectSystem=full
+
+ProtectHome=no
+ProtectDevices=no
+ProtectKernelTunables=true
+ProtectControlGroups=yes
+PrivateTmp=no
+ProtectClock=yes
+ProtectKernelLogs=no
+ProtectProc=default
+PrivateNetwork=no
+
+# Сетевая активность может быть, т.к. пользователь может давать задачи для сбора энтропии через ping или что-то другое
+SystemCallArchitectures=native 
+# RestrictAddressFamilies=AF_UNIX AF_NETLINK
+# RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+
+
+#IPAddressDeny=any
+# К сожалению, это не получится, т.к. dotnet компилирует всё налету (исключая прекомпилированные сборки)
+# MemoryDenyWriteExecute=yes
+PrivateMounts=no
+DynamicUser=no
+
+
+[Install]
+WantedBy=multi-user.target

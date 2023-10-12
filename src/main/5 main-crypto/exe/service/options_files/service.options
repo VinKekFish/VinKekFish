@@ -1,12 +1,12 @@
 path
     random at start folder
-        random_at_start_folder
+        data/random_at_start_folder
 
 output
     random
         unix stream
             path
-                /inRamA/
+                /dev/vkf/
 
 input
     entropy
@@ -24,7 +24,9 @@ input
                             length
                                 32
                             date
-                                yes
+                                no
+                            difference
+                                no
                         1s
                             length
                                 1
@@ -32,7 +34,7 @@ input
                                 no
                             difference
                                 no
-        standard
-            cmd
-                df
+        #standard
+        #    cmd
+        #        df
 

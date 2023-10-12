@@ -16,9 +16,11 @@ public partial class Regime_Service
                                                                                             /// <summary>Указывает папку, где содержатся данные, хранящиеся между запусками программы. В том числе, данные по рандомизации на старте</summary>
     public DirectoryInfo? RandomAtFolder;
     public DirectoryInfo? RandomAtFolder_Static;
+    public FileInfo?      RandomAtFolder_Current;
 
+    public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
     public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11
-    public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(10*1024);
+    public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
 
     public bool isInitiated { get; protected set; } = false;
 
@@ -141,6 +143,7 @@ public partial class Regime_Service
     {
         checked
         {
+            var sb = new StringBuilder();
             foreach (var rnd in rndList)
             {
                 var intervals = rnd.intervals!.interval!.inner;
@@ -170,9 +173,15 @@ public partial class Regime_Service
                         // CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, data: bufferRec, dataLen: len, regime: 2);
 
                         realRandomLength += len;
-                        Console.WriteLine($"{L("Initialization got random from file")}; len = {len}; name = {rndFileInfo.FullName}");
+                        sb.AppendLine($"len = {len}; name = {rndFileInfo.FullName}");
                     }
                 }
+            }
+
+            if (sb.Length > 0)
+            {
+                Console.WriteLine(L("Initialization got random from file"));
+                Console.WriteLine(sb.ToString());
             }
 
             return realRandomLength;
@@ -192,6 +201,8 @@ public partial class Regime_Service
             RandomAtFolder_Static.Create();
 
         Console.WriteLine($"RandomAtFolder = {RandomAtFolder.FullName}");
+
+        RandomAtFolder_Current = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current")  );
     }
 
     public const int MAX_RANDOM_AT_START_FILE_LENGTH = 256*1024;
@@ -201,20 +212,23 @@ public partial class Regime_Service
         var sb    = new StringBuilder();
         var files = RandomAtFolder_Static!.GetFiles("*", SearchOption.AllDirectories);
 
-        sb.AppendLine($"{L("Initialization got random from file")}");
-        foreach (var file in files)
+        if (files.Length > 0)
         {
-            using (var readStream = file.OpenRead())
+            sb.AppendLine($"{L("Initialization got random from file")}");
+            foreach (var file in files)
             {
-                InputFromFileName   (bufferRec, file, rndbytes);
-                InputFromFileContent(bufferRec, file, readStream, rndbytes);
-                InputFromFileAttr   (bufferRec, file, rndbytes);        // Это идёт последним, т.к. использует текущее время для доп. энтропии, а это время зависит от длины файла и задержек при работе с файлом
+                using (var readStream = file.OpenRead())
+                {
+                    InputFromFileName   (bufferRec, file, rndbytes);
+                    InputFromFileContent(bufferRec, file, readStream, rndbytes);
+                    InputFromFileAttr   (bufferRec, file, rndbytes);        // Это идёт последним, т.к. использует текущее время для доп. энтропии, а это время зависит от длины файла и задержек при работе с файлом
+                }
+
+                sb.AppendLine($"len = {file.Length}; name = {file.FullName}");
             }
 
-            sb.AppendLine($"len = {file.Length}; name = {file.FullName}");
+            Console.WriteLine(sb.ToString());
         }
-
-        Console.WriteLine(sb.ToString());
 
 
         unsafe void InputFromFileContent(Record bufferRec, FileInfo file, FileStream readStream, BytesBuilderForPointers rndbytes)
@@ -223,7 +237,8 @@ public partial class Regime_Service
             if (file.Length > MAX_RANDOM_AT_START_FILE_LENGTH)
                 throw new ArgumentOutOfRangeException("InputFromFile: flen > MAX_RANDOM_AT_START_FILE_LENGTH");
             if (flen <= 0)
-                throw new ArgumentOutOfRangeException("InputFromFile: flen <= 0");
+                //throw new ArgumentOutOfRangeException("InputFromFile: flen <= 0");
+                return;
 
             var span = new Span<byte>(bufferRec, flen);
             readStream.Read(span);
@@ -243,13 +258,15 @@ public partial class Regime_Service
 
         unsafe void InputFromFileAttr(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
         {
-            var size  = sizeof(long) + sizeof(long);
+            var size  = sizeof(long)*4;
             var bytes = stackalloc byte[size];
 
             // Получаем энтропию как из времени последней записи в файл,
             // так и из текущего времени, т.к. оно может зависеть от загрузки жётского диска и быть частично случайным
-            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes     , size);
-            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes+size, size);
+            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes       , size);
+            BytesBuilder.ULongToBytes((ulong) file.LastAccessTime  .Ticks, bytes+size  , size);
+            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes+size*2, size);
+            BytesBuilder.ULongToBytes((ulong) file.Length                , bytes+size*3, size);
             /*
             VinKekFish.input!.add(bytes, size);
 

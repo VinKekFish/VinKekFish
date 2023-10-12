@@ -1,12 +1,12 @@
 path
     random at start folder
-        /inRamA/random_at_start_folder/
+        data/random_at_start_folder
 
 output
     random
         unix stream
             path
-                /inRamA/
+                /dev/vkf/
 
 input
     entropy

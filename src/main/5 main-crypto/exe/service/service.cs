@@ -59,13 +59,13 @@ public partial class Regime_Service
         GCSettings.LatencyMode = GCLatencyMode.Batch;
         Thread.CurrentThread.IsBackground = false;
 
-        Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
-
         try
         {
             var poResult = ParseOptions(args);
             if (poResult != ProgramErrorCode.success)
                 return poResult;
+
+            Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
 
             vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
 

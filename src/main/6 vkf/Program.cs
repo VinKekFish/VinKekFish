@@ -124,6 +124,11 @@ public partial class Program
             return command_service(args);
         }
 
+        if (is_command_install(args))
+        {
+            return command_install(args);
+        }
+
         if (!isAutomaticProgram)
         if (!is_command_manual(args))
         {

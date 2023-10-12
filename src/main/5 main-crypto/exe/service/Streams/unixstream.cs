@@ -25,6 +25,8 @@ public class UnixSocketListener: IDisposable
         this.path.Refresh();
         if (this.path.Exists)
             this.path.Delete();
+        if (!this.path.Directory!.Exists)
+            this.path.Directory.Create();
 
         listenSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
 

@@ -22,8 +22,16 @@ fi
 
 # dotnet ./build/SecureCompare.dll
 
-mkdir -p  /inRamA/vkf
-cp -fvur ./build/locales       /inRamA/vkf
-cp -fvu  ./build/vkf           /inRamA/vkf
-cp -fvu  ./build/test.options  /inRamA/vkf
+arcDir=./build/arcs/dotnet7/exe
+rm -rf ./build/arcs/dotnet7/
+mkdir -p  $arcDir
+cp -fvur ./build/locales       $arcDir/locales
+cp -fvu  ./build/vkf           $arcDir
+cp -fvu  ./build/vkf           $arcDir
+cp -fvu  ./build/*.options     $arcDir
+cp -fvu  ./build/*.service     $arcDir
+
+rm -f ./build/arcs/vkf-dotnet7.7z
+7z a -y -t7z -m0=lzma2 -mx=9 -bb0 -bd -ssc -ssw ./build/arcs/vkf-dotnet7.7z "$arcDir"  > /dev/null
+
 
