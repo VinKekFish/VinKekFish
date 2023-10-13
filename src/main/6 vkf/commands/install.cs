@@ -75,11 +75,7 @@ public partial class Program
 
             var proc = Process.Start("systemctl", $"daemon-reload");
             proc.WaitForExit();
-                proc = Process.Start("systemctl", $"stop {vkft.Name}");
-            proc.WaitForExit();
                 proc = Process.Start("systemctl", $"enable {vkft.Name}");
-            proc.WaitForExit();
-                proc = Process.Start("systemctl", $"start {vkft.Name}");
             proc.WaitForExit();
         }
 

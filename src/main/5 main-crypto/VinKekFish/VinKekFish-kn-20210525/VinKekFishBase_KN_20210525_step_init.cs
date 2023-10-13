@@ -395,7 +395,7 @@ namespace vinkekfish
         /// <param name="regime">Режим шифрования (это определяемое пользователем байтовое поле, вводимое во внешную часть криптографического состояния)</param>
         public void InputData_Xor(byte * data, long dataLen, byte regime)
         {
-            if (dataLen > BLOCK_SIZE_K*0)
+            if (dataLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Xor: dataLen > BLOCK_SIZE_K");
             if (!isState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Xor: Fatal algorithmic error: !State1Main");

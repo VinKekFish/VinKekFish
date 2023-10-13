@@ -88,7 +88,7 @@ namespace vinkekfish
             }
         }
 
-        /// <summary>Если вместо функции doStepAndIO используется step, то необходимо получить результат с помощью этой функции</summary>
+        /// <summary>Если вместо функции doStepAndIO используется step, то необходимо получить результат с помощью этой функции. Либо если this.output равен нулю и хочется получить данные напрямую</summary>
         /// <param name="forData">Массив для получения результата</param>
         /// <param name="outputLen">Желаемая длина результата, не более BLOCK_SIZE_K. 0 не позволяется</param>
         public void doOutput(byte * forData, nint outputLen)

@@ -9,12 +9,13 @@ vkfDir=$1
 arcDir=$2
 
 
+echo
 
 user=`whoami`
 if [[ $user != 'root' ]]
 then
-    echo -e '\033[41mWarning: install.sh not executed under root (executed under '$user'). Example:\033[0m\nsudo bash install.sh'
-    # exit 1
+    echo -e '\033[41mError: install.sh not executed under root (executed under '$user'). Example:\033[0m\nsudo bash install.sh'
+    exit 1
 fi
 
 
@@ -22,7 +23,7 @@ mkdir -p "$vkfDir"
 ls "$vkfDir" &>> /dev/null
 if [[ $? -ne 0 ]]
 then
-    echo -e "Program directory '$vkfDir' not found. The script executed by sudo?"
+    echo -e "Program directory '$vkfDir' not found. The script must be executed by sudo."
     exit 2
 fi
 
@@ -34,7 +35,8 @@ then
     exit 3
 fi
 
-echo -e "Program directory '$vkfDir' created or has been exists."
+echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (успешно создана папка программы)\033[0m"
+echo -e "The installation continue... (установка продолжается)"
 
 chmod a-rwx "$vkfDir"
 chmod u+rwX "$vkfDir"
@@ -49,6 +51,8 @@ setfacl -d -m o::--- .
 rm -rf exe
 7z x -y -bb0 "$arcDir" >> /dev/null
 
+ln -s "$vkfDir/exe/vkf" /usr/local/bin/vkf
+
 chmod -R a-rwx exe
 chmod -R a+rX  exe
 chmod -R a+rx  exe/vkf
@@ -57,5 +61,33 @@ chmod -R a+rx  exe/vkf
 mkdir -p options
 mkdir -p data
 
+chmod -R o-rwx options
+chmod -R o-rwx data
+
+
 systemctl stop vkf
+sleep 3
 exe/vkf install
+
+if [[ $? -ne 0 ]]
+then
+    echo; echo;
+    echo -e "\033[41mThe vkf program installation is unsuccessfully ended (error in vkf install)\033[0m"
+    echo
+    exit 1
+fi
+
+systemctl start vkf
+sleep 3
+
+systemctl status vkf
+if [[ $? -ne 0 ]]
+then
+    echo; echo;
+    echo -e "\033[41mThe vkf program installation is unsuccessfully ended\033[0m"
+    echo
+fi
+
+echo; echo;
+echo -e "\033[32mThe vkf program is successfully installed (программа успешно инсталлирована)\033[0m"
+echo

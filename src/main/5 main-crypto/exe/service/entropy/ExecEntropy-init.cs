@@ -16,7 +16,8 @@ public partial class Regime_Service
                                                                                             /// <summary>Указывает папку, где содержатся данные, хранящиеся между запусками программы. В том числе, данные по рандомизации на старте</summary>
     public DirectoryInfo? RandomAtFolder;
     public DirectoryInfo? RandomAtFolder_Static;
-    public FileInfo?      RandomAtFolder_Current;
+    public FileInfo?      RandomAtFolder_Current0;
+    public FileInfo?      RandomAtFolder_Current1;
 
     public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
     public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11
@@ -88,7 +89,7 @@ public partial class Regime_Service
                 (
                     () =>
                     {   
-                        // VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
+                        VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
 
                         // rec является синхропосылкой, но т.к. ключа нет, то rec вводится как ключ
                         VinKekFish.Init1
@@ -202,7 +203,8 @@ public partial class Regime_Service
 
         Console.WriteLine($"RandomAtFolder = {RandomAtFolder.FullName}");
 
-        RandomAtFolder_Current = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current")  );
+        RandomAtFolder_Current0 = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current.0")  );
+        RandomAtFolder_Current1 = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current.1")  );
     }
 
     public const int MAX_RANDOM_AT_START_FILE_LENGTH = 256*1024;
