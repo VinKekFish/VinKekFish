@@ -133,19 +133,18 @@ public partial class Regime_Service
 
         var rc1 = rec  .array;
         var rc2 = recvk.array;
+
+        ushort cf = 0;
         // Арифметически складываем байты вывода каскадной губки и ВинКекФиша
         for (nint i = 0; i < rec.len; i++)
         checked
         {
             ushort a = rc1[i];
             ushort b = rc2[i];
-            ushort c = (ushort) (a + b);
+            ushort c = (ushort) (a + b + cf);
 
-            rc1[i]   = unchecked( (byte) c );
-            if (i+1 < rec.len)
-            {
-                rc1[i+1] += (byte) (c >> 8);
-            }
+            rc1[i] = unchecked( (byte) c );
+            cf     = (byte) (c >> 8);
         }
 
         return rec;

@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
