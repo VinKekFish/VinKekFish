@@ -148,10 +148,11 @@ namespace cryptoprime
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
+        /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte * b, nint start, nint PostEnd, AllocatorForUnsafeMemoryInterface allocator)
+        public static unsafe Record CloneBytes(byte * b, nint start, nint PostEnd, AllocatorForUnsafeMemoryInterface allocator, string? RecordName = null)
         {
-            var result = allocator.AllocMemory(PostEnd - start);
+            var result = allocator.AllocMemory(PostEnd - start, RecordName);
             BytesBuilder.CopyTo(PostEnd, PostEnd - start, b, result.array, 0, -1, start);
 
             return result;
@@ -162,8 +163,9 @@ namespace cryptoprime
         /// <param name="allocator">Аллокатор для выделения памяти для копирования. Может быть null, в таком случае аллокатор получается из rec</param>
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
+        /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива rec[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(Record rec, AllocatorForUnsafeMemoryInterface? allocator = null, nint start = 0, nint PostEnd = -1)
+        public static unsafe Record CloneBytes(Record rec, AllocatorForUnsafeMemoryInterface? allocator = null, nint start = 0, nint PostEnd = -1, string? RecordName = null)
         {
             if (PostEnd < 0)
                 PostEnd = rec.len;
@@ -172,7 +174,7 @@ namespace cryptoprime
             if (allocator == null)
                 throw new Exception("BytesBuilderForPointers.CloneBytes: allocator == null");
 
-            return CloneBytes(rec.array, start: start, PostEnd: PostEnd, allocator);
+            return CloneBytes(rec.array, start: start, PostEnd: PostEnd, allocator, RecordName: RecordName);
         }
 
         /// <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary>
@@ -180,15 +182,16 @@ namespace cryptoprime
         /// <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
         /// <param name="start">Начальный элемент для копирования</param>
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
+        /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte[] b, AllocatorForUnsafeMemoryInterface allocator, nint start = 0, nint PostEnd = -1)
+        public static unsafe Record CloneBytes(byte[] b, AllocatorForUnsafeMemoryInterface allocator, nint start = 0, nint PostEnd = -1, string? RecordName = null)
         {
             if (PostEnd < 0)
                 PostEnd = checked((nint) b.LongLength );
 
             fixed (byte * bb = b)
             {
-                return CloneBytes(bb, start: start, PostEnd: PostEnd, allocator);
+                return CloneBytes(bb, start: start, PostEnd: PostEnd, allocator, RecordName: RecordName);
             }
         }
 

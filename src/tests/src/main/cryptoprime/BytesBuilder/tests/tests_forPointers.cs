@@ -58,7 +58,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_par
                 }
 
                 byte * a = null;
-                using (var r = allocator.AllocMemory(memoryToAllocate))
+                using (var r = allocator.AllocMemory(memoryToAllocate, "BytesBuilder_ForPointers_Record_test1"))
                 {
                     i += memoryToAllocate;
                     a = r.array;
@@ -200,24 +200,24 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
                 (state) => Calc(b)
             );
 
-            lst.Add(getRecordFromBytesArray(b).CloneToSafeBytes(destroyRecord: true));
+            lst.Add(getRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.getRecordFromBytesArray").CloneToSafeBytes(destroyRecord: true));
 
             return lst;
         }
 
         private static void Calc(byte[] b)
         {
-            using var R1 = getRecordFromBytesArray(b);
-            using var R2 = (Record) R1.Clone();
-            using var R3 = R1.Clone(0, -1);
+            using var R1 = getRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.Calc.R1");
+            using var R2 = (Record) R1.Clone("BytesBuilder_ForPointers_Record_test3.Calc.R2");
+            using var R3 = R1.Clone(0, -1, RecordName: "BytesBuilder_ForPointers_Record_test3.Calc.R3");
             using var R4 = R1.NoCopyClone();
             using var R5 = R1.NoCopyClone(0, 1);
             using var R7 = R1.NoCopyClone(1, R1.len - 1);
             try
             {
-                var R6 = R1.NoCopyClone(0);
-                R6.isDisposed = true;
-                R6.array      = null;
+                var R6 = R1.NoCopyClone(0, RecordName: "R1=>R6 (1)");
+                //R6.isDisposed = true;
+                R6.Dispose();
                 R6.NoCopyClone();
                 throw new Exception("R1.NoCopyClone(0)");
             }
@@ -226,7 +226,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
 
             try
             {
-                var R6 = R1.NoCopyClone(2, R1.len - 1);
+                using var R6 = R1.NoCopyClone(2, R1.len - 1, RecordName: "R1=>R6 (2)");
                 throw new Exception("R1.NoCopyClone(R1.len, R1.len-1)");
             }
             catch (ArgumentOutOfRangeException)
@@ -712,8 +712,8 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
                         var cnt = bb.Count;
 
-                              var tmpR1 = allocator.AllocMemory(counter_a);
-                        using var tmpR2 = allocator.AllocMemory(counter_a);
+                              var tmpR1 = allocator.AllocMemory(counter_a, "BytesBuilder_ForPointers_test");
+                        using var tmpR2 = allocator.AllocMemory(counter_a, "BytesBuilder_ForPointers_test");
 
                         // Этот блок нужен для того, чтобы удалить tmpR1 в том случае, если getBytesAndRemoveIt выдаст исключение (он это должен делать в конце цикла)
                         try

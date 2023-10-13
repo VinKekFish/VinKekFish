@@ -51,6 +51,7 @@ setfacl -d -m o::--- .
 rm -rf exe
 7z x -y -bb0 "$arcDir" >> /dev/null
 
+rm -f /usr/local/bin/vkf
 ln -s "$vkfDir/exe/vkf" /usr/local/bin/vkf
 
 chmod -R a-rwx exe

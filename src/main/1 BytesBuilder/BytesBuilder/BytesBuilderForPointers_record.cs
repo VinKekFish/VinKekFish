@@ -51,13 +51,13 @@ namespace cryptoprime
             /// <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
             /// <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             /// <param name="sourceArray"></param>
-            /// <returns></returns>
-            public static Record getRecordFromBytesArray(byte[] sourceArray, AllocatorForUnsafeMemoryInterface? allocator = null)
+            /// <param name="RecordDebugName">Идентификатор записи, для отладки удаления памяти</param>
+            public static Record getRecordFromBytesArray(byte[] sourceArray, AllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
             {
                 if (allocator == null)
                     allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
 
-                var r = allocator.AllocMemory((nint) sourceArray.LongLength);
+                var r = allocator.AllocMemory((nint) sourceArray.LongLength, RecordName: RecordDebugName);
 
                 fixed (byte * s = sourceArray)
                 {
@@ -154,13 +154,22 @@ namespace cryptoprime
                 return CloneBytes(this);
             }
 
+            /// <summary>Клонирует запись. Данные внутри записи копируются</summary>
+            /// <param name="RecordName">Имя записи, для отладки</param>
+            /// <returns>Возвращает полностью скопированный массив, независимый от исходного</returns>
+            public object Clone(string? RecordName = null)
+            {
+                return CloneBytes(this, RecordName: RecordName);
+            }
+
             /// <summary>Клонирует запись. Данные внутри записи копируются из диапазона [start .. PostEnd - 1]</summary>
             /// <param name="start">Начальный элемент для копирования</param>
             /// <param name="PostEnd">Первый элемент, который не надо копировать</param>
             /// <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
             /// <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
+            /// <param name="RecordName">Имя записи, для отладки</param>
             /// <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
-            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false)
+            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false, string? RecordName = null)
             {
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.Clone");
@@ -180,8 +189,9 @@ namespace cryptoprime
             /// <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в оригинальной записи только после того, как будет закончено использование копии (если это будет не так, возникнет исключение)</summary>
             /// <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива, дополнительно к shift (newLen = this.len - shift + len)</param>
             /// <param name="shift">Сдвиг начала массива относительно исходной записи</param>
+            /// <param name="RecordName">Имя записи, для отладки</param>
             /// <returns>Новая запись, указывающая на тот же самый массив</returns>
-            public Record NoCopyClone(nint len = 0, nint shift = 0)
+            public Record NoCopyClone(nint len = 0, nint shift = 0, string? RecordName = null)
             {
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.NoCopyClone");
@@ -200,6 +210,7 @@ namespace cryptoprime
                 {
                     len       = len,
                     array     = this.array + shift,
+                    Name      = RecordName ?? this.Name
                 };
 
                 r.allocator = new AllocHGlobal_NoCopy(this, r);
@@ -290,6 +301,8 @@ namespace cryptoprime
                         throw new Exception(msg);
                     else
                         Console.Error.WriteLine(msg);
+
+                    return;
                 }
                 else
                     GC.SuppressFinalize(this);
@@ -302,6 +315,7 @@ namespace cryptoprime
                     {
                         try
                         {
+                            // if (!inLinks[i].isDisposed)
                             inLinks[i].Dispose();
                         }
                         catch

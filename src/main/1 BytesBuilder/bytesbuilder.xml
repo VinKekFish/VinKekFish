@@ -303,27 +303,30 @@
             <param name="allocator">Аллокатор для выделения памяти для копирования</param>
             <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte*,System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte*,System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary><param name="b">Массив для копирования</param>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
+            <param name="RecordName">Имя новой записи, для отладки</param>
             <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary>
             <param name="rec">Массив для копирования</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования. Может быть null, в таком случае аллокатор получается из rec</param>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
+            <param name="RecordName">Имя новой записи, для отладки</param>
             <returns>Новый массив, являющийся копией массива rec[start .. PostEnd - 1]</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary>
             <param name="b">Массив для копирования</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
+            <param name="RecordName">Имя новой записи, для отладки</param>
             <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.RemoveBlockAt(System.Int32,System.Boolean)">
@@ -373,11 +376,11 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.String)">
             <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
             <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             <param name="sourceArray"></param>
-            <returns></returns>
+            <param name="RecordDebugName">Идентификатор записи, для отладки удаления памяти</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.ToString">
             <summary>Выводит строковое представление для отладки в формате "{длина}; элемент элемент элемент"</summary>
@@ -391,18 +394,25 @@
             <summary>Клонирует запись. Данные внутри записи копируются</summary>
             <returns>Возвращает полностью скопированный массив, независимый от исходного</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Boolean)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.String)">
+            <summary>Клонирует запись. Данные внутри записи копируются</summary>
+            <param name="RecordName">Имя записи, для отладки</param>
+            <returns>Возвращает полностью скопированный массив, независимый от исходного</returns>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Boolean,System.String)">
             <summary>Клонирует запись. Данные внутри записи копируются из диапазона [start .. PostEnd - 1]</summary>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Первый элемент, который не надо копировать</param>
             <param name="allocator">Аллокатор для выделения памяти, может быть <see langword="null"/>, если у this установлен аллокатор</param>
             <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
+            <param name="RecordName">Имя записи, для отладки</param>
             <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.NoCopyClone(System.IntPtr,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.NoCopyClone(System.IntPtr,System.IntPtr,System.String)">
             <summary>Копирует запись, но без копированя массива и без возможности его освободить. Массив должен быть освобождён в оригинальной записи только после того, как будет закончено использование копии (если это будет не так, возникнет исключение)</summary>
             <param name="len">Длина массива либо 0, если длина массива от shift до конца исходного массива, либо иное значение не более this.len. Отрицательное значение будет интерпретировано как исключение определённой длины из массива, дополнительно к shift (newLen = this.len - shift + len)</param>
             <param name="shift">Сдвиг начала массива относительно исходной записи</param>
+            <param name="RecordName">Имя записи, для отладки</param>
             <returns>Новая запись, указывающая на тот же самый массив</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.CloneToSafeBytes(System.IntPtr,System.IntPtr,System.Boolean)">
