@@ -186,7 +186,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
         // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
         // countStepsForHardening     = (nint) 1;
-        countStepsForKeyGeneration    = (nint) Math.Ceiling(  2*Math.Log2(tall) + 1  );
+        countStepsForKeyGeneration    = (nint) Math.Ceiling(  2*Math.Log2(3*tall) + 1  );
         countStepsForHardening        = (nint) Math.Ceiling(  Math.Log2(tall)  );
 
         lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");

@@ -57,5 +57,5 @@ chmod -R a+rx  exe/vkf
 mkdir -p options
 mkdir -p data
 
-
+systemctl stop vkf
 exe/vkf install
