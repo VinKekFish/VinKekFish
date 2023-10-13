@@ -92,3 +92,5 @@ fi
 echo; echo;
 echo -e "\033[32mThe vkf program is successfully installed (программа успешно инсталлирована)\033[0m"
 echo
+echo 'Example for get random bytes: nc -UN /dev/vkf/random'
+echo

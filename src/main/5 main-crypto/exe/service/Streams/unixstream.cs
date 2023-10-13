@@ -1,4 +1,5 @@
 // TODO: tests
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using cryptoprime;
@@ -18,8 +19,10 @@ public class UnixSocketListener: IDisposable
     public          bool     doTerminate = false;
     public          Socket   listenSocket;
 
+    public readonly Regime_Service service;
+
     // Для проверки можно использовать nc -UN path_to_socket
-    public UnixSocketListener(string path, int backlog = 64)
+    public UnixSocketListener(string path, Regime_Service service, int backlog = 64)
     {
         this.path = new FileInfo(path);
         this.path.Refresh();
@@ -28,6 +31,7 @@ public class UnixSocketListener: IDisposable
         if (!this.path.Directory!.Exists)
             this.path.Directory.Create();
 
+        this.service = service;
         listenSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
 
         var un = new UnixDomainSocketEndPoint(path);
@@ -35,6 +39,8 @@ public class UnixSocketListener: IDisposable
         listenSocket.Listen(backlog);
 
         listenSocket.BeginAccept(AcceptConnection, null);
+
+        Process.Start("chmod", $"a+rw \"{path}\"");
     }
 
     ~UnixSocketListener()
@@ -125,7 +131,8 @@ public class UnixSocketListener: IDisposable
             if (!closed)
             {
                 Dispose();
-                throw new Exception("UnixSocketListener.Connection: not closed connection in ~Connection()");
+                BytesBuilderForPointers.Record.errorsInDispose = true;
+                Console.Error.WriteLine("UnixSocketListener.Connection: not closed connection in ~Connection()");
             }
         }
 
@@ -150,17 +157,22 @@ public class UnixSocketListener: IDisposable
             closed = true;
         }
 
-        public readonly byte[] receiveBuffer = new byte[64*1024];
-        protected virtual void StartReceive()
+        protected unsafe virtual void StartReceive()
         {
             // connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this);
 
-            var b = new UTF8Encoding().GetBytes(L("Not implemented") + "\n");
-            BytesBuilder.CopyTo(b, receiveBuffer);
-            connection.Send(receiveBuffer, 0, b.Length, SocketFlags.None);
+            //var b = new UTF8Encoding().GetBytes(L("Not implemented") + "\n");
+
+            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
+
+            var buff = listenSocket.service.getEntropyForOut(blockSize);
+            var span = new ReadOnlySpan<byte>(buff, (int) blockSize);
+
+            connection.Send(span);
             Close();
         }
-
+/*
+        protected byte[] receiveBuffer = new byte[1];
         public void EndReceive(IAsyncResult ar)
         {
             if (listenSocket.doTerminate)
@@ -175,14 +187,11 @@ public class UnixSocketListener: IDisposable
                     return;
                 }
 
-                /* // Это эхо.
+                // Это эхо.
                 if (errorCode == SocketError.Success)
                 if (connection.Connected)
                     connection.Send(receiveBuffer, 0, received, SocketFlags.None);
-                    *//*
-                var b = new UTF8Encoding().GetBytes("Not implemented\nПока не реализовано");
-                BytesBuilder.CopyTo(b, receiveBuffer);
-                connection.Send(receiveBuffer, 0, 32, SocketFlags.None);*/
+                    
             }
             catch (Exception ex)
             {
@@ -195,6 +204,6 @@ public class UnixSocketListener: IDisposable
             (
                 (obj) => connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this)
             );            
-        }
+        }*/
     }
 }

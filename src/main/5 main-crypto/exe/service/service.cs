@@ -67,9 +67,13 @@ public partial class Regime_Service
 
             Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
 
-            vkfListener = new UnixSocketListener(UnixStreamPath!.FullName);
+            // Мы сначала создаём прослушиватель, но делаем это сразу в блокировке, чтобы не было возможности получить данные ещё из непроинициализированных губок
+            lock (entropy_sync)
+            {
+                vkfListener = new UnixSocketListener(UnixStreamPath!.FullName, this);
+                StartEntropy();
+            }
 
-            StartEntropy();
             Console.WriteLine($"{L("service started at")} {DateTime.Now.ToString()}");
 
             try

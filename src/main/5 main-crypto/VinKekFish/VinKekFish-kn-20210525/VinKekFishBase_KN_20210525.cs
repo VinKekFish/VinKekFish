@@ -101,7 +101,7 @@ namespace vinkekfish
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
             BLOCK_SIZE_K     = K * BLOCK_SIZE;
-            BLOCK_SIZE_KEY_K = (int) Math.Ceiling( BLOCK_SIZE/(2.0*Math.Log2(8*K)+1.0) );   // Здесь округление идёт вверх
+            BLOCK_SIZE_KEY_K = (int) Math.Floor( BLOCK_SIZE_K/(2.0*Math.Log2(8*K)+1.0) );
             MAX_OIV_K        = K * MAX_OIV;
             MAX_SINGLE_KEY_K = K * MAX_SINGLE_KEY;
 

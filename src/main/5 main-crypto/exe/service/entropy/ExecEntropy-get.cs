@@ -73,64 +73,68 @@ public partial class Regime_Service
         }
     }
 
-    public unsafe Record getEntropyForOut(int outputStrenght)
+    /// <summary>Получает случайный вывод, предназначенный для пользователя. Для безопасности при многопоточности, входит в блокировку entropy_sync.</summary>
+    /// <param name="outputStrenght">Количество байтов случайного вывода, которое необходимо получить. Не менее чем sizeof(long) байтов</param>
+    /// <returns>Запрошенный случайный вывод</returns>
+    public unsafe Record getEntropyForOut(nint outputStrenght)
     {
         if (outputStrenght < sizeof(long))
             outputStrenght = sizeof(long);
 
         var rec   = allocator.AllocMemory(outputStrenght, "getEntropyForOut.rec");
         var recvk = allocator.AllocMemory(outputStrenght, "getEntropyForOut.recvkf");
-
-        Parallel.Invoke
-        (
-            () =>
-            {
-                nint outLen = 0;
-                do
+        lock (entropy_sync)
+        {
+            Parallel.Invoke
+            (
+                () =>
                 {
-                    BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, rec.array, sizeof(long));
+                    nint outLen = 0;
+                    do
+                    {
+                        BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, rec.array, sizeof(long));
 
-                    CascadeSponge.step
-                    (
-                        ArmoringSteps: CascadeSponge.countStepsForKeyGeneration-1,
-                        data:          rec,
-                        dataLen:       sizeof(long),
-                        regime:        11
-                    );
+                        CascadeSponge.step
+                        (
+                            ArmoringSteps: CascadeSponge.countStepsForKeyGeneration-1,
+                            data:          rec,
+                            dataLen:       sizeof(long),
+                            regime:        11
+                        );
 
-                    outLen += BytesBuilder.CopyTo(CascadeSponge.maxDataLen >> 1, rec.len, CascadeSponge.lastOutput, rec, outLen);
-                }
-                while (outLen < outputStrenght);
-            },
+                        outLen += BytesBuilder.CopyTo(CascadeSponge.maxDataLen >> 1, rec.len, CascadeSponge.lastOutput, rec, outLen);
+                    }
+                    while (outLen < outputStrenght);
+                },
 
-            () =>
-            {
-                var vkfData = recvk.array;
-                var outLen  = outputStrenght;
-                do
+                () =>
                 {
-                    BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, recvk.array, sizeof(long));
-                    VinKekFish.input!.add(recvk, sizeof(long));
+                    var vkfData = recvk.array;
+                    var outLen  = outputStrenght;
+                    do
+                    {
+                        BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, recvk.array, sizeof(long));
+                        VinKekFish.input!.add(recvk, sizeof(long));
 
-                    VinKekFish.doStepAndIO
-                    (
-                        countOfRounds: VinKekFish.EXTRA_ROUNDS_K,
-                        outputLen:     0,
-                        regime:        11
-                    );
+                        VinKekFish.doStepAndIO
+                        (
+                            countOfRounds: VinKekFish.EXTRA_ROUNDS_K,
+                            outputLen:     0,
+                            regime:        11
+                        );
 
-                    var len = outLen;
-                    if (len > VinKekFish.BLOCK_SIZE_KEY_K)
-                        len = VinKekFish.BLOCK_SIZE_KEY_K;
+                        var len = outLen;
+                        if (len > VinKekFish.BLOCK_SIZE_KEY_K)
+                            len = VinKekFish.BLOCK_SIZE_KEY_K;
 
-                    VinKekFish.doOutput(vkfData, len);
-                    vkfData += len;
-                    outLen  -= len;
+                        VinKekFish.doOutput(vkfData, len);
+                        vkfData += len;
+                        outLen  -= len;
+                    }
+                    while (outLen > 0);
                 }
-                while (outLen > 0);
-            }
-        );
-
+            );
+        }
         var rc1 = rec  .array;
         var rc2 = recvk.array;
 
