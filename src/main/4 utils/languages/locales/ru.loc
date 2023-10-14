@@ -36,4 +36,8 @@ initialization started at
     Инициализация запущена в
 for get version information
     для получения информации о версии
+The option file
+    Файл опций
+is exists. Will not replaced. Check this is correct manually
+    существует. Файл не будет перезаписан. Проверьте его правильность вручную. Если необходимо, удалите файл и запустите установку заново
 :

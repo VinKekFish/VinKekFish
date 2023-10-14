@@ -36,4 +36,8 @@ initialization started at
     Initialization started at
 for get version information
     for get version information
+The option file
+    The option file
+is exists. Will not replaced. Check this is correct manually
+    is exists. Will not rewrited. Check this is correct manually. If need then delete the file and restart the installation again
 :
