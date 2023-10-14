@@ -163,6 +163,8 @@ public partial class Program
         Console.WriteLine("\t" + L("for execute without human"));
         Console.WriteLine("vkf manual");
         Console.WriteLine("\t" + L("for execute for human friendly"));
+        Console.WriteLine("vkf version");
+        Console.WriteLine("\t" + L("for get version information"));
         Console.WriteLine();
     }
 }

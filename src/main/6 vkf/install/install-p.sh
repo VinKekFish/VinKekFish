@@ -81,6 +81,10 @@ fi
 systemctl start vkf
 sleep 3
 
+echo
+echo 'INFORMATION: '
+echo
+echo 'Service status:'
 systemctl status vkf
 if [[ $? -ne 0 ]]
 then
@@ -88,6 +92,10 @@ then
     echo -e "\033[41mThe vkf program installation is unsuccessfully ended\033[0m"
     echo
 fi
+
+echo
+vkf version
+echo
 
 echo; echo;
 echo -e "\033[32mThe vkf program is successfully installed (программа успешно инсталлирована)\033[0m"

@@ -454,6 +454,12 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Finalize">
             <summary>Деструктор. Выполняет очистку памяти, если она ещё не была вызвана (с исключением)</summary>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.Span{System.Byte}">
+            <summary>Возвращает ссылку на Span, которая представляет содержимое данной записи</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.ReadOnlySpan{System.Byte}">
+            <summary>Возвращает ссылку на ReadOnlySpan, которая представляет содержимое данной записи</summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_Implicit(cryptoprime.BytesBuilderForPointers.Record)~System.Void*">
             <summary>Возвращает ссылку на массив</summary>
         </member>

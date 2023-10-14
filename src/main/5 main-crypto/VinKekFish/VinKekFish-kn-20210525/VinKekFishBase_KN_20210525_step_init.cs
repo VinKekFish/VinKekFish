@@ -145,9 +145,7 @@ namespace vinkekfish
         {
             if (RoundsForFinal < 0)
             {
-                RoundsForFinal = NORMAL_ROUNDS_K;
-                if (RoundsForFinal > CountOfRounds)
-                    RoundsForFinal = CountOfRounds;
+                RoundsForFinal = CountOfRounds;
             }
 
             if (RoundsForFirstKeyBlock < 0)

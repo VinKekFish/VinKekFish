@@ -1,12 +1,13 @@
+# Этот файл используется для тестирования разработчиком
 path
     random at start folder
-        $$$VkfDir/data/random_at_start_folder
+        vkf/random_at_start_folder
 
 output
     random
         unix stream
             path
-                /dev/vkf/
+                vkf
 
 input
     entropy

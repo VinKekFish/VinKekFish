@@ -24,7 +24,8 @@ public partial class CascadeSponge_1t_20230905
             // var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);ulong
             // index = getUnsignedInteger(0, cutoff) + i;
 
-            if (bb.Count < 2)
+            // Берём сразу 8 байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
+            if (bb.Count < 8)
             {
                 step(countOfSteps: countOfSteps, regime: regime);
                 bb.add(lastOutput);
@@ -37,7 +38,7 @@ public partial class CascadeSponge_1t_20230905
                 index = getUnsignedInteger(len - i - 1, bb) + i;
                 err = 0;
             }
-            catch (ArgumentOutOfRangeException)
+            catch (NotEnoughtBytesException)
             {
                 if (err > 0)
                     throw;
@@ -53,6 +54,9 @@ public partial class CascadeSponge_1t_20230905
 
         a = 0;
     }
+
+    public class NotEnoughtBytesException: Exception
+    {}
 
     /// <summary>Получает число от 0 до max включительно</summary>
     /// <param name="max">Максимальное число, которое ещё возможно получить</param>
@@ -74,6 +78,9 @@ public partial class CascadeSponge_1t_20230905
         mask--;
         do
         {
+            if (entropy.Count < cnt)
+                throw new NotEnoughtBytesException();
+
             entropy.getBytesAndRemoveIt(e, cnt);
 
             r  = e[0];

@@ -163,15 +163,18 @@ public partial class Regime_Service
 
                         if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
                             throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
+                        if (len <= 0)
+                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero");
 
                         var bufferSpan = new Span<byte>(bufferRec, (int)len);
                         using (var rs = rndFileInfo.OpenRead())
                         {
-                            rs.Read(bufferSpan);
-                            rndbytes.addWithCopy(bufferRec << bufferRec.len - len, allocator: allocator);
-                        }
+                            var readedLen = rs.Read(bufferSpan);
+                            if (readedLen <= 0)
+                                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
 
-                        // CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, data: bufferRec, dataLen: len, regime: 2);
+                            rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+                        }
 
                         realRandomLength += len;
                         sb.AppendLine($"len = {len, 5}; name = {rndFileInfo.FullName}");
@@ -212,7 +215,7 @@ public partial class Regime_Service
     protected unsafe virtual void GetStartupEntropy(Record bufferRec, BytesBuilderForPointers rndbytes)
     {
         var sb    = new StringBuilder();
-        var files = RandomAtFolder_Static!.GetFiles("*", SearchOption.AllDirectories);
+        var files = RandomAtFolder!.GetFiles("*", SearchOption.AllDirectories);
 
         if (files.Length > 0)
         {
@@ -260,15 +263,16 @@ public partial class Regime_Service
 
         unsafe void InputFromFileAttr(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
         {
-            var size  = sizeof(long)*4;
+            var esize = sizeof(long);
+            var size  = esize*4;
             var bytes = stackalloc byte[size];
 
             // Получаем энтропию как из времени последней записи в файл,
             // так и из текущего времени, т.к. оно может зависеть от загрузки жётского диска и быть частично случайным
-            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes       , size);
-            BytesBuilder.ULongToBytes((ulong) file.LastAccessTime  .Ticks, bytes+size  , size);
-            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes+size*2, size);
-            BytesBuilder.ULongToBytes((ulong) file.Length                , bytes+size*3, size);
+            BytesBuilder.ULongToBytes((ulong) file.LastWriteTimeUtc.Ticks, bytes, size, 0);
+            BytesBuilder.ULongToBytes((ulong) file.LastAccessTime  .Ticks, bytes, size, esize);
+            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes, size, esize*2);
+            BytesBuilder.ULongToBytes((ulong) file.Length                , bytes, size, esize*3);
             /*
             VinKekFish.input!.add(bytes, size);
 

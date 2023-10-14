@@ -362,6 +362,26 @@ namespace cryptoprime
             {
                 Dispose(false);
             }
+                                                                                    /// <summary>Возвращает ссылку на Span, которая представляет содержимое данной записи</summary>
+            public static implicit operator Span<byte> (Record? t)
+            {
+                if (t == null)
+                    return null;
+                if (t.len > int.MaxValue)
+                    throw new ArgumentOutOfRangeException($"BytesBuilderForPointers.Record.implicit operator Span<byte> (Record? t): record.len > int.MaxValue ({t.len})");
+
+                return new Span<byte>(t.array, (int) t.len);
+            }
+                                                                                    /// <summary>Возвращает ссылку на ReadOnlySpan, которая представляет содержимое данной записи</summary>
+            public static implicit operator ReadOnlySpan<byte> (Record? t)
+            {
+                if (t == null)
+                    return null;
+                if (t.len > int.MaxValue)
+                    throw new ArgumentOutOfRangeException($"BytesBuilderForPointers.Record.implicit operator ReadOnlySpan<byte> (Record? t): record.len > int.MaxValue ({t.len})");
+
+                return new ReadOnlySpan<byte>(t.array, (int) t.len);
+            }
                                                                                     /// <summary>Возвращает ссылку на массив</summary>
             public static implicit operator void * (Record? t)
             {
