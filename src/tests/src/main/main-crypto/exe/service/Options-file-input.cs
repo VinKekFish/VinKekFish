@@ -414,7 +414,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_32YesNo(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Date!.date;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].flags!.date;
                     var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Difference!.differenceValue;
                     var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Length!.Length;
 
@@ -431,7 +431,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_64NoYes(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Date!.date;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].flags!.date;
                     var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Difference!.differenceValue;
                     var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Length!.Length;
 

@@ -23,18 +23,58 @@ input
                         once
                             length
                                 32
-                            date
-                                no
+                            flags
                             difference
                                 no
                         1s
                             length
                                 1
-                            date
-                                no
+                            flags
                             difference
                                 no
-        #standard
-        #    cmd
-        #        df
+        standard
+            cmd
+                ping
+                77.88.8.88 -s 16 -c 1
+                    min
+                        480
+                    max
+                        1
+                    EME
+                        2048
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+                        1s
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            cmd
+                ping
+                127.0.0.1 -s 16 -A -c 12
+                    min
+                        480
+                    max
+                        1
+                    EME
+                        2048
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+                        1s
+                            length
+                                full
+                            flags
+                            difference
+                                no
 

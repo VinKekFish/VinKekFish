@@ -26,6 +26,8 @@ Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.erro
     Ошибка при завершении работы программы: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
 Unhandled Exception occured
     Возникла необработанная исключительная ситуация
+Initialization got random from file
+    Подпрограмма инициализации получила случайные байты из файла
 Initialization got random values from file or command
     Подпрограмма инициализации получила случайные байты из файла или от команды
 Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required

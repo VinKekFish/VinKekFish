@@ -96,8 +96,8 @@ public partial class Options_Service
             /// <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
             public abstract class InputElement: Element
             {
-                public string?    PathString {get; protected set;}
-                public Intervals? intervals;
+                public string?         PathString {get; protected set;}
+                public Intervals?      intervals;
 
                 public InputElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
@@ -376,6 +376,8 @@ public partial class Options_Service
 
             public class Interval: Element
             {
+                public Interval.Flags? flags;
+
                 public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
@@ -465,7 +467,7 @@ public partial class Options_Service
 
                     public long           time       { get; protected set; } = -2;
                     public LengthElement? Length;
-                    public Date?          Date;
+                    public Flags?         flags;
                     public Difference?    Difference;
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
@@ -474,14 +476,16 @@ public partial class Options_Service
                             case "length":
                                 Length = new LengthElement(this, block.blocks, block); break;
 
-                            case "date":
-                                Date = new Date(this, block.blocks, block); break;
+                            case "flags":
+                                flags = new Flags(this, block.blocks, block);
+                                (parent as Interval)!.flags = flags;
+                                break;
 
                             case "difference":
                                 Difference = new Difference(this, block.blocks, block); break;
 
                             default:
-                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'date', 'difference'");
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'flags', 'difference'");
                         }
                     }
 
@@ -493,8 +497,8 @@ public partial class Options_Service
                         if (Length == null || Length.Length == -2)
                             throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have element this represents length of data to input (for example: '32', '--', 'full')");
 
-                        if (Date == null || Date.date == Date.DateValue.undefined)
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'date' element or value of the element");
+                        if (flags == null)
+                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'flags' element");
 
                         if (Difference == null || Difference.differenceValue == Difference.DifferenceValue.undefined)
                             this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
@@ -503,25 +507,29 @@ public partial class Options_Service
                     }
                 }
 
-                public class Date : Element
+                public class Flags : Element
                 {
-                    public Date(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                    public Flags(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {
                     }
 
-                    public enum DateValue { undefined = 0, yes = 1, no = 2 };
-                    public DateValue date;
+                    public enum FlagValue { undefined = 0, yes = 1, no = 2 };
+                    public FlagValue date    = FlagValue.no;
+                    public FlagValue ignored = FlagValue.no;
+                    public FlagValue log     = FlagValue.no;
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
                         switch (canonicalName)
                         {
-                            case "no":
-                            case "-":
-                                date = DateValue.no; break;
+                            case "date":
+                                date = FlagValue.yes; break;
 
-                            case "yes":
-                            case "+":
-                                date = DateValue.yes; break;
+                            case "ignored:log":
+                                log     = FlagValue.yes;
+                                goto case "ignored";
+
+                            case "ignored":
+                                ignored = FlagValue.yes; break;
 
                             default:
                                 throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is 'yes', '+', 'no', '-'");

@@ -42,7 +42,6 @@ ProtectKernelModules=true
 ProtectSystem=full
 
 ProtectHome=no
-ProtectDevices=no
 ProtectKernelTunables=true
 ProtectControlGroups=yes
 PrivateTmp=no

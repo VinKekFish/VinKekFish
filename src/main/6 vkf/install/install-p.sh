@@ -65,9 +65,10 @@ mkdir -p data
 chmod -R o-rwx options
 chmod -R o-rwx data
 
-
+date
 systemctl stop vkf
-sleep 3
+killall -s SIGINT -wq vkf
+
 exe/vkf install
 
 if [[ $? -ne 0 ]]
@@ -78,12 +79,18 @@ then
     exit 1
 fi
 
+
 systemctl start vkf
 sleep 3
 
 echo
 echo 'INFORMATION: '
+
 echo
+vkf version
+echo
+echo
+
 echo 'Service status:'
 systemctl status vkf
 if [[ $? -ne 0 ]]
@@ -91,14 +98,12 @@ then
     echo; echo;
     echo -e "\033[41mThe vkf program installation is unsuccessfully ended\033[0m"
     echo
+    exit 3
 fi
 
-echo
-vkf version
-echo
 
 echo; echo;
-echo -e "\033[32mThe vkf program is successfully installed (программа успешно инсталлирована)\033[0m"
+echo -e "\033[32mThe vkf program is successfully installed (программа успешно установлена)\033[0m"
 echo
 echo 'Example for get random bytes: nc -UN /dev/vkf/random'
 echo

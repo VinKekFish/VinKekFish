@@ -39,8 +39,12 @@ public partial class Regime_Service
 
     public void doTerminate(bool willBlock = false)
     {
-        Terminated = true;
-        vkfListener?.Close();
+        if (!Terminated)
+        {
+            Terminated = true;
+            vkfListener?.Close();
+        }
+
         while (willBlock && vkfListener != null && vkfListener?.ConnectionsCount > 0)
         {
             Thread.Sleep(100);

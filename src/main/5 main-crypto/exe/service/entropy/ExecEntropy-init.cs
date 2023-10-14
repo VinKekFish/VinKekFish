@@ -232,21 +232,36 @@ public partial class Regime_Service
 
             var ps = Process.Start(psi);
             ps!.WaitForExit();
-
+/*
             var output = ps.StandardOutput.ReadToEnd();
             var ob     = psi.StandardOutputEncoding.GetBytes(output);
 
             BytesBuilder.ClearString(output);
-
-            fixed (byte * bytes = ob)
+*/
+            var readedLen = ps.StandardOutput.BaseStream.Read(bufferRec);
+            var ignored   = false;
+            // fixed (byte * bytes = ob)
             {
-                rndbytes.addWithCopy(bytes, ob.Length, allocator: allocator);
-                BytesBuilder.ToNull(ob.Length, bytes);
+                if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                {
+                    ignored = true;
+                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                        WriteToLog(bufferRec, readedLen);
+                }
+                else
+                    rndbytes.addWithCopy(bufferRec.array, readedLen, allocator: allocator);
             }
 
-            sb.AppendLine($"len = {ob.Length, 5}; name = {cmdElement.PathString} {cmdElement.parameters}");
-
-            return realRandomLength + ob.Length;
+            if (!ignored)
+            {
+                sb.AppendLine($"len = {readedLen, 5}; name = {cmdElement.PathString} {cmdElement.parameters}");
+                return realRandomLength + readedLen;
+            }
+            else
+            {
+                sb.AppendLine($"ignored name = {cmdElement.PathString} {cmdElement.parameters}");
+                return realRandomLength;
+            }
         }
     }
 
@@ -265,6 +280,7 @@ public partial class Regime_Service
             if (len <= 0)
                 throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero");
 
+            var ignored    = false;
             var bufferSpan = new Span<byte>(bufferRec, (int)len);
             using (var rs = rndFileInfo.OpenRead())
             {
@@ -272,12 +288,40 @@ public partial class Regime_Service
                 if (readedLen <= 0)
                     throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
 
-                rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+                if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                {
+                    ignored = true;
+                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                        WriteToLog(bufferRec, readedLen);
+                }
+                else
+                    rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
             }
 
-            realRandomLength += len;
-            sb.AppendLine($"len = {len,5}; name = {rndFileInfo.FullName}");
+            if (!ignored)
+            {
+                realRandomLength += len;
+                sb.AppendLine($"len = {len,5}; name = {rndFileInfo.FullName}");
+            }
+            else
+            {
+                sb.AppendLine($"ignored name = {rndFileInfo.FullName}");
+            }
+
             return realRandomLength;
+        }
+    }
+
+    public static unsafe void WriteToLog(Record bufferRec, int readedLen)
+    {
+        checked
+        {
+            var log = new FileInfo("log.log");
+            using (var ws = log.OpenWrite())
+            {
+                ws.Seek(0, SeekOrigin.End);
+                ws.Write(bufferRec << bufferRec.len - readedLen);
+            }
         }
     }
 

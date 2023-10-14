@@ -54,7 +54,9 @@ public partial class Program
                 var fi = new FileInfo(Path.Combine(dirOpts.FullName, file.Name)); fi.Refresh();
                 if (fi.Exists)
                 {
-                    Console.Write($"{L("The .service file")} '{fi.FullName}' {L("is exists. Will not replaced. Check this is correct manually")}.");
+                    using (var console = new YellowTextConsole())
+                        Console.Write($"{L("The .service file")} '{fi.FullName}' {L("is exists. Will not replaced. Check this is correct manually")}.");
+
                     continue;
                 }
 
