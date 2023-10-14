@@ -40,4 +40,6 @@ The option file
     The option file
 is exists. Will not replaced. Check this is correct manually
     is exists. Will not rewrited. Check this is correct manually. If need then delete the file and restart the installation again
+The .service file
+    The .service file
 :

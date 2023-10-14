@@ -52,8 +52,11 @@ public partial class Program
             foreach (var file in files)
             {
                 var fi = new FileInfo(Path.Combine(dirOpts.FullName, file.Name)); fi.Refresh();
-                /*if (fi.Exists)
-                    continue;*/
+                if (fi.Exists)
+                {
+                    Console.Write($"{L("The .service file")} '{fi.FullName}' {L("is exists. Will not replaced. Check this is correct manually")}.");
+                    continue;
+                }
 
                 using (var fs = file.OpenText())
                 {
