@@ -1,6 +1,7 @@
 // TODO: tests
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Text;
 // TODO: сделать здесь локализацию
@@ -37,14 +38,16 @@ public partial class Options_Service
             public Entropy(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
             {}
 
-            public OS? os;
+            public OS?       os;
+            public Standard? standard;
 
             public override void SelectBlock(Options.Block block, string canonicalName)
             {
                 switch(canonicalName)
                 {
-                    case "os": os = new OS(this, block.blocks, block); break;
-                    default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'OS'");
+                    case "os"      : os       = new OS      (this, block.blocks, block); break;
+                    case "standard": standard = new Standard(this, block.blocks, block); break;
+                    default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'OS' and 'standard'");
                 }
             }
 
@@ -52,9 +55,11 @@ public partial class Options_Service
             {
                 if (os == null)
                     this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found 'OS' element");
+                if (standard == null)
+                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was not found 'standard' element");
 
                 if (elements.Count <= 0)
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have an one or more element. Have no one element");
+                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have an one or more element. Have no one element. Acceptable: 'OS' and 'standard'");
 
                 base.Check();
             }
@@ -64,30 +69,28 @@ public partial class Options_Service
                 public OS(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public readonly List<InputFileElement> random = new List<InputFileElement>();
+                public readonly List<InputElement> randoms = new List<InputElement>();
 
                 public FileInfo? File;
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    var rnd = new InputFileElement(this, block.blocks, block);
-                    random.Add(rnd);
-
-                    if (string.IsNullOrEmpty(rnd.PathString))
-                        throw new Options_Service_Exception($"The '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must represent the existing file path. Have no path value (example: '/dev/random')");
-
-                    File = new FileInfo(rnd.PathString); File.Refresh();
-                    if (!File.Exists)
-                        throw new Options_Service_Exception($"The '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must represent the existing file path. The '{rnd.PathString}' string represents non existent file");
+                    randoms.Add(  InputElement.getInputElemement(this, block, canonicalName)  );
                 }
 
                 public override void Check()
                 {
-                    if (random.Count <= 0)
+                    if (randoms.Count <= 0)
                         this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options was found no one element");
 
                     base.Check();
                 }
+            }
+
+            public class Standard : OS
+            {
+                public Standard(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                {}
             }
 
             /// <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
@@ -101,25 +104,67 @@ public partial class Options_Service
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    PathString = block.Name;
-                    intervals  = new Intervals(parent, block.blocks, block);
+                    if (PathString == null)
+                    {
+                        PathString = block.Name;
+                    }
+                    else
+                    {
+                        AdditionalBlock(block, canonicalName);
+                    }
+
+                    if (block.blocks.Count > 0)
+                        intervals = new Intervals(parent, block.blocks, block);
                 }
+
+                public abstract void AdditionalBlock(Options.Block block, string canonicalName);
 
                 public override void Check()
                 {
                     if (intervals == null)
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one interval element. Have no interval element");
 
+                    if (PathString == null)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have a path string. Have no the path string");
+
                     base.Check();
                 }
 
                 public static InputElement getInputElemement(Element parent, Options.Block block, string canonicalName)
                 {
-                    switch(canonicalName)
+                    switch (canonicalName)
                     {
-                        case "file":    return new InputFileElement(parent, block.blocks, block);
-                        case "cmd" :    return new InputCmdElement (parent, block.blocks, block);
-                        default:        throw  new Options_Service_Exception($"At line {1+block.startLine} in the '{parent.getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'file', 'cmd'");
+                        case "file":
+                            var rnd = new InputFileElement(parent, block.blocks, block);
+
+                            if (string.IsNullOrEmpty(rnd.PathString))
+                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of service option must represent the existing file path. Have no path value (example: '/dev/random')");
+
+                            var file = new FileInfo(rnd.PathString); file.Refresh();
+                            if (!file.Exists)
+                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of service option must represent the existing file path. The '{file.FullName}' string represents non existent file");
+
+                            return rnd;
+                        
+                        case "cmd":
+                            var cmd = new InputCmdElement(parent, block.blocks, block);
+
+                            if (string.IsNullOrEmpty(cmd.PathString))
+                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of service option must represent the existing file path. Have no path value (example: '/dev/random')");
+
+                            return cmd;
+                        
+                        case "dir":
+                        case "directory":
+                            var dir = new InputDirElement(parent, block.blocks, block);
+
+                            if (string.IsNullOrEmpty(dir.PathString))
+                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of service option must represent the existing file path. Have no path value (example: '/dev/random')");
+
+                            return dir;
+
+                        default:
+                            throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of service option have unknown value '{canonicalName}'. Acceptable is 'dir' ('directory'), 'cmd', 'file'");
                     }
                 }
             }
@@ -127,8 +172,22 @@ public partial class Options_Service
             /// <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
             public class InputFileElement: InputElement
             {
+                public FileInfo? fileInfo { get; protected set; }
+
                 public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
+
+                public override void SelectBlock(Options.Block block, string canonicalName)
+                {
+                    base.SelectBlock(block, canonicalName);
+
+                    if (string.IsNullOrEmpty(this.PathString))
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the null path for the file command. Must have a not empty value");
+
+                    fileInfo = new FileInfo(this.PathString); fileInfo.Refresh();
+                    if (!fileInfo.Exists)
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the not exists file '{fileInfo.FullName}'. The file must exists");
+                }
 
                 public override void Check()
                 {
@@ -137,11 +196,17 @@ public partial class Options_Service
 
                     base.Check();
                 }
+
+                public override void AdditionalBlock(Options.Block block, string canonicalName)
+                {}
             }
 
             /// <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
             public class InputCmdElement: InputElement
             {
+                public string  parameters = "";
+                public string? workingDir;
+                public string? userName;
                 public InputCmdElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
@@ -149,6 +214,54 @@ public partial class Options_Service
                 {
                     base.Check();
                 }
+
+                public override void AdditionalBlock(Options.Block block, string canonicalName)
+                {
+                    if (canonicalName.StartsWith("working dir:"))
+                    {
+                        workingDir = block.Name.Substring("working dir:".Length).Trim();
+                        return;
+                    }
+
+                    if (canonicalName.StartsWith("user:"))
+                    {
+                        userName = block.Name.Substring("user:".Length).Trim();
+                        return;
+                    }
+
+                    if (parameters.Length > 0)
+                        parameters += " ";
+
+                    parameters += block.Name;
+                }
+            }
+
+            /// <summary>Представляет источник энтропии, являющийся директорией с использованием FileSystemWatcher для наблюдения за вновь появляющимися файлами</summary>
+            public class InputDirElement: InputElement
+            {
+                public DirectoryInfo? dirInfo { get; protected set; }
+                public InputDirElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                {}
+
+                public override void SelectBlock(Options.Block block, string canonicalName)
+                {
+                    base.SelectBlock(block, canonicalName);
+
+                    if (string.IsNullOrEmpty(this.PathString))
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the null path for the directory command. Must have a not empty value");
+
+                    dirInfo = new DirectoryInfo(this.PathString); dirInfo.Refresh();
+                    if (!dirInfo.Exists)
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the not exists directory '{dirInfo.FullName}'. The directory must exists");
+                }
+
+                public override void Check()
+                {
+                    base.Check();
+                }
+
+                public override void AdditionalBlock(Options.Block block, string canonicalName)
+                {}
             }
 
             public class EntropyValues
@@ -274,6 +387,11 @@ public partial class Options_Service
                     if (canonicalName == "once" || canonicalName == "--")
                     {
                         time = -1;
+                    }
+                    else
+                    if (canonicalName == "continuously" || canonicalName == "0")
+                    {
+                        time = 0;
                     }
                     else
                     {
@@ -424,6 +542,12 @@ public partial class Options_Service
                             throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the second value of the length block: '{block.Name}'. Must be one and only one value");
 
                         i++;
+
+                        if (canonicalName == "full" || canonicalName == "--")
+                        {
+                            Length = 0;
+                            return;
+                        }
 
                         try
                         {

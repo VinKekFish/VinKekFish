@@ -30,6 +30,7 @@ cp -fvu  ./build/vkf           $arcDir
 cp -fvu  ./build/vkf           $arcDir
 cp -fvu  ./build/*.options     $arcDir
 cp -fvu  ./build/*.service     $arcDir
+cp -fvu  ./build/*.sh          $arcDir
 
 rm -f ./build/arcs/vkf-dotnet7.7z
 7z a -y -t7z -m0=lzma2 -mx=9 -bb0 -bd -ssc -ssw ./build/arcs/vkf-dotnet7.7z "$arcDir"  > /dev/null

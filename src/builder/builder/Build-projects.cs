@@ -134,6 +134,7 @@ partial class Program
         // Копируем файл с опциями в директорию билда
         CopyFiles("src/main/5 main-crypto/exe/service/", "*.options");
         CopyFiles("src/main/5 main-crypto/exe/service/", "*.service");
+        CopyFiles("src/main/6 vkf/install/",             "*.sh");
         CopyFiles("src/main/4 utils/languages/locales",  "*.loc", "build/locales");
 
 

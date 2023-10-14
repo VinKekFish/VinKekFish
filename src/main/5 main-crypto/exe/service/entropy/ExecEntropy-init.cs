@@ -4,6 +4,7 @@ using System.Runtime;
 namespace VinKekFish_EXE;
 
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Text;
 using cryptoprime;
 using vinkekfish;
@@ -56,6 +57,9 @@ public partial class Regime_Service
                         throw new Exception("Regime_Service.StartEntropy: realRandomLength < 16.\n" + L("Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required"));
 
                     GetStartupEntropy(bufferRec, rndbytes);
+
+                    realRandomLength = getRandomFromStandardEntropy_Startup(bufferRec, rndbytes, realRandomLength);
+
                     rnd      = rndbytes.getBytes();
                     rndCount = rnd.len;
                 }
@@ -130,7 +134,7 @@ public partial class Regime_Service
         {
             try
             {
-                var rndList      = options_service!.root!.input!.entropy!.os!.random;
+                var rndList      = options_service!.root!.input!.entropy!.os!.randoms;
                 realRandomLength = getRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
             }
             catch (NullReferenceException)
@@ -140,7 +144,23 @@ public partial class Regime_Service
         return realRandomLength;
     }
 
-    public unsafe nint getRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputFileElement> rndList)
+    public unsafe nint getRandomFromStandardEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
+    {
+        checked
+        {
+            try
+            {
+                var rndList      = options_service!.root!.input!.entropy!.standard!.randoms;
+                realRandomLength = getRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
+            }
+            catch (NullReferenceException)
+            { }
+        }
+
+        return realRandomLength;
+    }
+
+    public unsafe nint getRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputElement> rndList)
     {
         checked
         {
@@ -155,39 +175,108 @@ public partial class Regime_Service
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
 
-                        var rndFileInfo = new FileInfo(rnd.PathString); rndFileInfo.Refresh();
-                        var len = (nint)rndFileInfo.Length;
-
-                        if (interval.Length!.Length > 0)
-                            len = (nint)interval.Length!.Length;
-
-                        if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
-                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
-                        if (len <= 0)
-                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero");
-
-                        var bufferSpan = new Span<byte>(bufferRec, (int)len);
-                        using (var rs = rndFileInfo.OpenRead())
+                        switch (rnd)
                         {
-                            var readedLen = rs.Read(bufferSpan);
-                            if (readedLen <= 0)
-                                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
+                            case Options_Service.Input.Entropy.InputFileElement fileElement:
+                                realRandomLength = getRandomFromFile(bufferRec, rndbytes, realRandomLength, sb, rnd, fileElement.fileInfo!, interval);
+                            break;
 
-                            rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+                            case Options_Service.Input.Entropy.InputCmdElement cmdElement:
+                                realRandomLength = getRandomFromCommand(bufferRec, rndbytes, realRandomLength, sb, cmdElement, interval);
+                            break;
+
+                            case Options_Service.Input.Entropy.InputDirElement dirElement:
+
+                                var files = dirElement.dirInfo!.GetFiles("*", SearchOption.AllDirectories);
+                                foreach (var file in files)
+                                    realRandomLength = getRandomFromFile(bufferRec, rndbytes, realRandomLength, sb, rnd, file, interval);
+                            break;
+
+                            default:
+                                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
                         }
-
-                        realRandomLength += len;
-                        sb.AppendLine($"len = {len, 5}; name = {rndFileInfo.FullName}");
                     }
                 }
             }
 
             if (sb.Length > 0)
             {
-                Console.WriteLine(L("Initialization got random from file"));
+                Console.WriteLine(L("Initialization got random values from file or command"));
                 Console.WriteLine(sb.ToString());
             }
 
+            return realRandomLength;
+        }
+    }
+
+    public unsafe nint getRandomFromCommand(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputCmdElement cmdElement, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
+    {
+        checked
+        {
+            var psi = new ProcessStartInfo(cmdElement.PathString!)
+            {
+                UseShellExecute        = false,
+                RedirectStandardOutput = true,
+                StandardOutputEncoding = new ASCIIEncoding()
+            };
+            if (cmdElement.workingDir is not null)
+                psi.WorkingDirectory = cmdElement.workingDir;
+            if (!string.IsNullOrEmpty(cmdElement.parameters))
+                psi.Arguments = cmdElement.parameters;
+            if (cmdElement.userName is not null)
+            {
+                psi.UserName = cmdElement.userName;
+                if (psi.WorkingDirectory is null)
+                    psi.WorkingDirectory = Directory.GetCurrentDirectory();
+            }
+
+            var ps = Process.Start(psi);
+            ps!.WaitForExit();
+
+            var output = ps.StandardOutput.ReadToEnd();
+            var ob     = psi.StandardOutputEncoding.GetBytes(output);
+
+            BytesBuilder.ClearString(output);
+
+            fixed (byte * bytes = ob)
+            {
+                rndbytes.addWithCopy(bytes, ob.Length, allocator: allocator);
+                BytesBuilder.ToNull(ob.Length, bytes);
+            }
+
+            sb.AppendLine($"len = {ob.Length, 5}; name = {cmdElement.PathString} {cmdElement.parameters}");
+
+            return realRandomLength + ob.Length;
+        }
+    }
+
+    public unsafe nint getRandomFromFile(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputElement rnd, FileInfo rndFileInfo, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
+    {
+        checked
+        {
+            rndFileInfo!.Refresh();
+            var len = (nint)rndFileInfo.Length;
+
+            if (interval.Length!.Length > 0)
+                len = (nint)interval.Length!.Length;
+
+            if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
+                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
+            if (len <= 0)
+                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero");
+
+            var bufferSpan = new Span<byte>(bufferRec, (int)len);
+            using (var rs = rndFileInfo.OpenRead())
+            {
+                var readedLen = rs.Read(bufferSpan);
+                if (readedLen <= 0)
+                    throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
+
+                rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+            }
+
+            realRandomLength += len;
+            sb.AppendLine($"len = {len,5}; name = {rndFileInfo.FullName}");
             return realRandomLength;
         }
     }
@@ -247,18 +336,8 @@ public partial class Regime_Service
 
             var span = new Span<byte>(bufferRec, flen);
             readStream.Read(span);
-/*
-            VinKekFish.input!.add(bytes, flen);
-            do
-            {
-                VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 1);
-            }
-            while (VinKekFish.input!.Count > 0);
-            VinKekFish.step(VinKekFish.MIN_ABSORPTION_ROUNDS_D_K);
-*/
 
             rndbytes.addWithCopy(bufferRec, flen, allocator);
-            // CascadeSponge.step(data: bytes, dataLen: (nint) file.Length, regime: 1);
         }
 
         unsafe void InputFromFileAttr(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
@@ -273,14 +352,8 @@ public partial class Regime_Service
             BytesBuilder.ULongToBytes((ulong) file.LastAccessTime  .Ticks, bytes, size, esize);
             BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes, size, esize*2);
             BytesBuilder.ULongToBytes((ulong) file.Length                , bytes, size, esize*3);
-            /*
-            VinKekFish.input!.add(bytes, size);
 
-            while (VinKekFish.input!.Count > 0)
-                VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 2);
-*/
             rndbytes.addWithCopy(bytes, size, allocator);
-            // CascadeSponge.step(data: bytes, dataLen: size, regime: 2);
         }
 
         unsafe void InputFromFileName(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
@@ -289,13 +362,7 @@ public partial class Regime_Service
 
             fixed (char * str = file.Name)
                 BytesBuilder.CopyTo(size, bufferRec.len, (byte *) str, bufferRec);
-/*
-            VinKekFish.input!.add(bytes, size);
 
-            while (VinKekFish.input!.Count > 0)
-                VinKekFish.doStepAndIO(VinKekFish.NORMAL_ROUNDS_K, regime: 3);
-
-            CascadeSponge.step(data: bytes, dataLen: size, regime: 3);*/
             rndbytes.addWithCopy(bufferRec, size, allocator);
         }
     }
