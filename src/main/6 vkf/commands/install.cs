@@ -96,7 +96,7 @@ public partial class Program
 
                     fi.Refresh();
                     */
-                    using (var console = new RedTextConsole())
+                    using (var console = new YellowTextConsole())
                         Console.Write($"The option file '{fi.FullName}' is exists. Will not replaced. Check this is correct manually.");
 
                     continue;

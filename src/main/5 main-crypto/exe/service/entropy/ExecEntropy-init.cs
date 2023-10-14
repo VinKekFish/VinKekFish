@@ -170,7 +170,7 @@ public partial class Regime_Service
                 var intervals = rnd.intervals!.interval!.inner;
                 foreach (var interval in intervals)
                 {
-                    if (interval.time == -1 || interval.time == 0)
+                    if (interval.time == -1)
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
