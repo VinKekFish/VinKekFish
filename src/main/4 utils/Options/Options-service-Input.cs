@@ -517,12 +517,14 @@ public partial class Options_Service
                     public FlagValue date    = FlagValue.no;
                     public FlagValue ignored = FlagValue.no;
                     public FlagValue log     = FlagValue.no;
+                    public FlagValue broker  = FlagValue.no;
+
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
                         switch (canonicalName)
                         {
                             case "date":
-                                date = FlagValue.yes; break;
+                                date    = FlagValue.yes; break;
 
                             case "ignored:log":
                                 log     = FlagValue.yes;
@@ -530,6 +532,9 @@ public partial class Options_Service
 
                             case "ignored":
                                 ignored = FlagValue.yes; break;
+
+                            case "broker":
+                                broker  = FlagValue.yes; break;
 
                             default:
                                 throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is 'yes', '+', 'no', '-'");

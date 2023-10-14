@@ -11,6 +11,323 @@ output
 input
     entropy
         OS
+            cmd
+                cat
+                /proc/cpuinfo
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                cat
+                /proc/version
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                cat
+                /proc/ioports
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                cat
+                /proc/diskstats
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                cat
+                /proc/stat
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                cat
+                /proc/zoneinfo
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                cat
+                /proc/meminfo
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                ls
+                -alR /dev
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                sensors
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
+            cmd
+                df
+                -T
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lsblk
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lscpu
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lshw
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lslogins
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lsmem
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lsmod
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                lspci
+                -vvv -x -n
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                                ignored:log
+                            difference
+                                no
+            
+            cmd
+                lsusb
+                -v
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+            
+            cmd
+                ps
+                -eo pid,times,rss,nlwp,args --sort time,rss,pid,args
+                    min
+                        0
+                    max
+                        0
+                    EME
+                        0
+                    interval
+                        once
+                            length
+                                full
+                            flags
+                            difference
+                                no
+
             file
                 /dev/random
                     min
@@ -49,7 +366,7 @@ input
                             flags
                             difference
                                 no
-                        1s
+                        1m
                             length
                                 full
                             flags
@@ -57,7 +374,7 @@ input
                                 no
             cmd
                 ping
-                127.0.0.1 -s 16 -A -c 12
+                127.0.0.1 -s 16 -UA -c 12
                     min
                         480
                     max
@@ -71,7 +388,7 @@ input
                             flags
                             difference
                                 no
-                        1s
+                        1m
                             length
                                 full
                             flags

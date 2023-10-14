@@ -81,7 +81,6 @@ fi
 
 
 systemctl start vkf
-sleep 3
 
 echo
 echo 'INFORMATION: '
@@ -90,6 +89,7 @@ echo
 vkf version
 echo
 echo
+sleep 3
 
 echo 'Service status:'
 systemctl status vkf

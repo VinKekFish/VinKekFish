@@ -50,6 +50,10 @@ public partial class Program
                     }
                 }
             }
+            catch (VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(formatException(ex));

@@ -11,6 +11,8 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
+using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
 
 public partial class Regime_Service
 {
@@ -70,7 +72,11 @@ public partial class Regime_Service
 
 
                 // Делаем первичную инициализацию временем при старте
+                // Ограничиваем вывод, иначе получается слишком долго
                 var sz  = (int)(realRandomLength + rndCount);
+                if (sz > OutputStrenght)
+                    sz = OutputStrenght;
+
                 var arr = stackalloc byte[sizeof(long) + sz];
                 using var rec = new Record() { array = arr, len = sizeof(long) + sz };
                 BytesBuilder.ULongToBytes((ulong)ExecEntorpy_now, arr, sizeof(long));
@@ -232,12 +238,7 @@ public partial class Regime_Service
 
             var ps = Process.Start(psi);
             ps!.WaitForExit();
-/*
-            var output = ps.StandardOutput.ReadToEnd();
-            var ob     = psi.StandardOutputEncoding.GetBytes(output);
 
-            BytesBuilder.ClearString(output);
-*/
             var readedLen = ps.StandardOutput.BaseStream.Read(bufferRec);
             var ignored   = false;
             // fixed (byte * bytes = ob)
@@ -245,7 +246,7 @@ public partial class Regime_Service
                 if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
                 {
                     ignored = true;
-                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes && readedLen > 0)
                         WriteToLog(bufferRec, readedLen);
                 }
                 else
@@ -275,28 +276,32 @@ public partial class Regime_Service
             if (interval.Length!.Length > 0)
                 len = (nint)interval.Length!.Length;
 
-            if (len > MAX_RANDOM_AT_START_FILE_LENGTH)
-                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
+            if (len > bufferRec.len)
+                throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
             if (len <= 0)
-                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero");
+                throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+                // Некоторые файлы не имеют размера, например, /dev/random или /proc/cpuinfo
 
             var ignored    = false;
-            var bufferSpan = new Span<byte>(bufferRec, (int)len);
+            var bufferSpan = new Span<byte>(bufferRec, len == 0 ? MAX_RANDOM_AT_START_FILE_LENGTH : (int)len);
+
+            int readedLen = 0;
             using (var rs = rndFileInfo.OpenRead())
             {
-                var readedLen = rs.Read(bufferSpan);
-                if (readedLen <= 0)
-                    throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
+                readedLen = rs.Read(bufferSpan);
 
-                if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
-                {
-                    ignored = true;
-                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
-                        WriteToLog(bufferRec, readedLen);
-                }
-                else
-                    rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+                if (readedLen <= 0)
+                    throw new Exception($"Regime_Service.StartEntropy ('{rndFileInfo.FullName}'): for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
             }
+
+            if (interval.flags!.ignored == Flags.FlagValue.yes)
+            {
+                ignored = true;
+                if (interval.flags!.log == Flags.FlagValue.yes && readedLen > 0)
+                    WriteToLog(bufferRec, readedLen);
+            }
+            else
+                rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
 
             if (!ignored)
             {
@@ -372,7 +377,7 @@ public partial class Regime_Service
         unsafe void InputFromFileContent(Record bufferRec, FileInfo file, FileStream readStream, BytesBuilderForPointers rndbytes)
         {
             int flen = (int) file.Length;
-            if (file.Length > MAX_RANDOM_AT_START_FILE_LENGTH)
+            if (file.Length > bufferRec.len)
                 throw new ArgumentOutOfRangeException("InputFromFile: flen > MAX_RANDOM_AT_START_FILE_LENGTH");
             if (flen <= 0)
                 //throw new ArgumentOutOfRangeException("InputFromFile: flen <= 0");
