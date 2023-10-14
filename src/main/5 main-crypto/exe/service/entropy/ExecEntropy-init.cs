@@ -174,7 +174,7 @@ public partial class Regime_Service
                         // CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, data: bufferRec, dataLen: len, regime: 2);
 
                         realRandomLength += len;
-                        sb.AppendLine($"len = {len}; name = {rndFileInfo.FullName}");
+                        sb.AppendLine($"len = {len, 5}; name = {rndFileInfo.FullName}");
                     }
                 }
             }
@@ -226,7 +226,7 @@ public partial class Regime_Service
                     InputFromFileAttr   (bufferRec, file, rndbytes);        // Это идёт последним, т.к. использует текущее время для доп. энтропии, а это время зависит от длины файла и задержек при работе с файлом
                 }
 
-                sb.AppendLine($"len = {file.Length}; name = {file.FullName}");
+                sb.AppendLine($"len = {file.Length, 5}; name = {file.FullName}");
             }
 
             Console.WriteLine(sb.ToString());

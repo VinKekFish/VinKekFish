@@ -4,6 +4,20 @@
         <name>4 utils</name>
     </assembly>
     <members>
+        <member name="T:VinKekFish_Utils.console.ConsoleOptions">
+            <summary>Класс для временного переопределения параметров консоли</summary>
+            <remarks>Использование:
+            <para>Отнаследовать класс. В конструкторе задать нужные условия. Если нужно, переопределить Disposing()</para>
+            Применять с ключевым словом using
+            <para>using var console_opts = new ConsoleOptionsChild();</para>
+            </remarks>
+        </member>
+        <member name="F:VinKekFish_Utils.console.ConsoleOptions.InitialBackgroundColor">
+            <summary>Первоначальный цвет фона консоли</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.console.ConsoleOptions.InitialForegroundColor">
+            <summary>Первоначальный цвет текста консоли</summary>
+        </member>
         <member name="M:VinKekFish_Utils.Utils.calcAlignment(System.IntPtr,System.Int32)">
             <summary>Функция для расчёта выравнивания</summary>
             <param name="size">Размер массива для выравнивания</param>

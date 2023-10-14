@@ -5,8 +5,10 @@ namespace VinKekFish_console;
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using VinKekFish_EXE;
+using VinKekFish_Utils.console;
 
 public partial class Program
 {
@@ -86,9 +88,32 @@ public partial class Program
             {
                 var fi = new FileInfo(Path.Combine(dirOpts.FullName, file.Name)); fi.Refresh();
                 if (fi.Exists)
-                    continue;
+                {
+                    /*
+                    fi.MoveTo(fi.FullName + $".copy.{fi.LastWriteTime.Ticks}");
+                    using (var console = new RedTextConsole())
+                        Console.Write($"The option file '{fi.FullName}' will replaced");
 
-                file.CopyTo(fi.FullName);
+                    fi.Refresh();
+                    */
+                    using (var console = new RedTextConsole())
+                        Console.Write($"The option file '{fi.FullName}' is exists. Will not replaced. Check this is correct manually.");
+
+                    continue;
+                }
+
+                // file.CopyTo(fi.FullName);
+                using (var fs = file.OpenText())
+                {
+                    var text = fs.ReadToEnd();
+                        text = text.Replace("$$$VkfDir", dir.FullName);
+
+                    using (var fws = fi.OpenWrite())
+                    {
+                        var txt = new UTF8Encoding().GetBytes(text);
+                        fws.Write(txt);
+                    }
+                }
             }
         }
     }

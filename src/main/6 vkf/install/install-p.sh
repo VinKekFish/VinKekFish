@@ -36,7 +36,7 @@ then
 fi
 
 echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (успешно создана папка программы)\033[0m"
-echo -e "The installation continue... (установка продолжается)"
+echo -e "The installation continue... (установка продолжается...)"
 
 chmod a-rwx "$vkfDir"
 chmod u+rwX "$vkfDir"

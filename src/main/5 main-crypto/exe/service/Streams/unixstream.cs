@@ -157,19 +157,30 @@ public class UnixSocketListener: IDisposable
             closed = true;
         }
 
+        // Здесь ничего не принимаем. Выдаём 404 байта на выход молча - и всё.
+        // Если губка не проинициализированна, то getEntropyForOut заблокирует поток.
+        // Если программа завершается, getEntropyForOut выдаст исключение
         protected unsafe virtual void StartReceive()
         {
             // connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this);
 
-            //var b = new UTF8Encoding().GetBytes(L("Not implemented") + "\n");
+            try
+            {
+                var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
 
-            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
+                var buff = listenSocket.service.getEntropyForOut(blockSize);
+                var span = new ReadOnlySpan<byte>(buff, (int) blockSize);
 
-            var buff = listenSocket.service.getEntropyForOut(blockSize);
-            var span = new ReadOnlySpan<byte>(buff, (int) blockSize);
-
-            connection.Send(span);
-            Close();
+                connection.Send(span);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(   VinKekFish_Utils.Memory.formatException(ex)   );
+            }
+            finally
+            {
+                Close();
+            }
         }
 /*
         protected byte[] receiveBuffer = new byte[1];
