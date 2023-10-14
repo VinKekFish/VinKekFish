@@ -52,7 +52,7 @@ public partial class Regime_Service
             if (RandomAtFolder_Current1.Length < OutputStrenght)
                 return RandomAtFolder_Current1;
 
-            if (RandomAtFolder_Current.LastWriteTime > RandomAtFolder_Current1.LastAccessTime)
+            if (RandomAtFolder_Current.LastWriteTime > RandomAtFolder_Current1.LastWriteTime)
                 RandomAtFolder_Current = RandomAtFolder_Current1;
         }
         catch
