@@ -92,7 +92,7 @@ echo
 sleep 3
 
 echo 'Service status:'
-systemctl status vkf
+systemctl status --no-pager vkf
 if [[ $? -ne 0 ]]
 then
     echo; echo;

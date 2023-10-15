@@ -242,6 +242,7 @@ public partial class Regime_Service
             var readedLen = ps.StandardOutput.BaseStream.Read(bufferRec);
             var ignored   = false;
             // fixed (byte * bytes = ob)
+            if (readedLen > 0)
             {
                 if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
                 {
@@ -279,8 +280,14 @@ public partial class Regime_Service
             if (len > bufferRec.len)
                 throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
             if (len <= 0)
-                throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+            {
+                // throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");*/
                 // Некоторые файлы не имеют размера, например, /dev/random или /proc/cpuinfo
+                // Иногда бывает, что и файл может попасться пустой - программу надо устойчиво запустить всё равно                
+                Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+                sb.AppendLine($"EMPTY name = {rndFileInfo.FullName}");
+                return realRandomLength;
+            }
 
             var ignored    = false;
             var bufferSpan = new Span<byte>(bufferRec, len == 0 ? MAX_RANDOM_AT_START_FILE_LENGTH : (int)len);
@@ -291,7 +298,12 @@ public partial class Regime_Service
                 readedLen = rs.Read(bufferSpan);
 
                 if (readedLen <= 0)
-                    throw new Exception($"Regime_Service.StartEntropy ('{rndFileInfo.FullName}'): for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
+                {
+                    // throw new Exception($"Regime_Service.StartEntropy ('{rndFileInfo.FullName}'): for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
+                    Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+                    sb.AppendLine($"EMPTY (from read) name = {rndFileInfo.FullName}");
+                    return realRandomLength;
+                }
             }
 
             if (interval.flags!.ignored == Flags.FlagValue.yes)
