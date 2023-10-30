@@ -24,19 +24,32 @@ input
                         once
                             length
                                 32
-                            date
-                                no
+                            flags
                             difference
                                 no
                         1s
                             length
                                 1
-                            date
-                                no
+                            flags
                             difference
                                 no
-        #standard
-        #    cmd
+        standard
+            file
+                /dev/input/mouse0
+                    min
+                        2048
+                    max
+                        36
+                    EME
+                        0
+                    interval
+                        0
+                            length
+                                full
+                            flags
+                                date
+                            difference
+                                no
                 
 
 

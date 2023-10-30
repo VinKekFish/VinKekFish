@@ -274,6 +274,8 @@ public partial class Options_Service
                         return false;
                     if (max < 0)
                         return false;
+                    if (max > min)
+                        return false;
                     if (EME < 0)
                         return false;
 
@@ -365,7 +367,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (!entropy.isCorrect())
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0");
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0 and 'min >= max'");
                     
                     if (interval == null)
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one 'interval' element. Have no one 'interval' element");
@@ -386,7 +388,7 @@ public partial class Options_Service
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
                     long time = -2;
-                    if (canonicalName == "once" || canonicalName == "--")
+                    if (canonicalName == "once")
                     {
                         time = -1;
                     }

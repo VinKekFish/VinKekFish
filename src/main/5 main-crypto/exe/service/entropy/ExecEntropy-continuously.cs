@@ -61,7 +61,7 @@ public partial class Regime_Service
                         switch (rnd)
                         {
                             case Options_Service.Input.Entropy.InputFileElement fileElement:
-                                StartContinuouslyGetter(rnd, fileElement);
+                                StartContinuouslyGetter(rnd, interval, fileElement);
                             break;
 
                             case Options_Service.Input.Entropy.InputCmdElement cmdElement:
@@ -90,7 +90,7 @@ public partial class Regime_Service
         }
     }
 
-    protected unsafe void StartContinuouslyGetter(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.InputFileElement fileElement)
+    protected unsafe void StartContinuouslyGetter(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement)
     {
         fileElement.fileInfo!.Refresh();
         if (!fileElement.fileInfo.Exists)
@@ -98,51 +98,65 @@ public partial class Regime_Service
             Console.Error.WriteLine($"Regime_Service.StartContinuouslyGetter: file not found: {fileElement.fileInfo.FullName}");
             return;
         }
-// TODO: Добавить сюда учёт флага date
+// TODO: Добавить отладочный вывод количества символов, которые были прочитаны за один раз
 // TODO: Добавить сюда подсчёт количества энтропии, которое было введено
         var t = new Thread
         (
             () =>
             {
-                // KeccakPrime
-                var keccak = new Keccak_20200918();
+                nint totalBytes  = 0;
+                using var keccak = new Keccak_20200918();
 
                 var input   = stackalloc byte[KeccakPrime.BlockLen];    // Массив, из которого будет вводиться энтропия в губку keccak
                 int pos     = 0;
-                int dateLen = sizeof(long);
+                int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);
 
                 int len  = 24;
                 var buff = stackalloc byte[len];
                 var span = new Span<byte>(buff, len);
                 using (var rs = fileElement.fileInfo.OpenRead())
                 {
-                    while (true)
+                    try
                     {
-                        var bytesReaded = rs.Read(span);
-                        if (bytesReaded <= 0)
-                            return;
-
-                        if (KeccakPrime.BlockLen - pos < bytesReaded + dateLen)
+                        while (true)
                         {
-                            KeccakPrime.Keccak_Input64_512(input, (byte) pos, keccak.S);
-                            keccak.CalcStep();
-                            pos = 0;
+                            var bytesReaded = rs.Read(span);
+                            if (bytesReaded <= 0 || Terminated)
+                                break;
+
+                            if (KeccakPrime.BlockLen - pos < bytesReaded + dateLen)
+                            {
+                                KeccakPrime.Keccak_Input64_512(input, (byte) pos, keccak.S);
+                                keccak.CalcStep();
+                                pos = 0;
+                            }
+
+                            if (dateLen > 0)
+                            {
+                                var ticks = DateTime.Now.Ticks;
+                                BytesBuilder.ULongToBytes((ulong) ticks, input, KeccakPrime.BlockLen, pos);
+                                pos += dateLen;
+                            }
+
+                            BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
+                            pos += bytesReaded;
+                            totalBytes += bytesReaded;
+
+                            BytesBuilder.ToNull(len, buff);
                         }
-
-                        if (dateLen > 0)
-                        {
-                            var ticks = DateTime.Now.Ticks;
-                            BytesBuilder.ULongToBytes((ulong) ticks, input, KeccakPrime.BlockLen, pos);
-                            pos += dateLen;
-                        }
-
-                        BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
-                        pos += bytesReaded;
-
-                        BytesBuilder.ToNull(len, buff);
                     }
+                    catch (ThreadInterruptedException)
+                    {}
+                }
+
+                lock (entropy_sync)
+                {
+                    Console.WriteLine($"{totalBytes} bytes got from {fileElement.fileInfo.FullName}");
                 }
             }
         );
+
+        t.IsBackground = true;
+        t.Start();
     }
 }
