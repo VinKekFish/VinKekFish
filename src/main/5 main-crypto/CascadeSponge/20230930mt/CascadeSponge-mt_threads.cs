@@ -101,8 +101,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         {
             if (ThreadsFunc[ATI] == EmptyTaskSlot)
             {
-                Thread.Sleep(0);        // Event внутри цикла никогда не сбрасывается, так что немного экономим мощности
-                Event.WaitOne();
+                Event.WaitOne();        // В случае, если Event установлен, мы находимся прямо внутри цикла и постоянно крутимся. Thread.Sleep никогда не используется, т.к. может снять поток, а он должен постоянно подхватывать новые задачи
             }
 
             if (ThreadsFunc[ATI] == EndTask)

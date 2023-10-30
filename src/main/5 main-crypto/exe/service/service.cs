@@ -76,6 +76,7 @@ public partial class Regime_Service
             {
                 vkfListener = new UnixSocketListener(UnixStreamPath!.FullName, this);
                 StartEntropy();
+                StartContinuouslyEntropy();
             }
 
             Console.WriteLine($"{L("service started at")} {DateTime.Now.ToString()}");

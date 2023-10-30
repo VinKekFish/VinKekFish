@@ -74,6 +74,9 @@
             <param name="S">Внутреннее состояние keccak</param>
             <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
         </member>
+        <member name="F:cryptoprime.KeccakPrime.BlockLen">
+            <summary>Размер блока keccak в данной реализации (на ввод и на вывод)</summary>
+        </member>
         <member name="M:cryptoprime.KeccakPrime.Keccak_Input64_512(System.Byte*,System.Byte,System.Byte*,System.Byte)">
             <summary>
             Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием.

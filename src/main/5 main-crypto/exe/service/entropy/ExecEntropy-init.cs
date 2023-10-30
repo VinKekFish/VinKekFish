@@ -166,6 +166,7 @@ public partial class Regime_Service
         return realRandomLength;
     }
 
+    // ::cp:all:dhpOU4GDHUNYcaXq:2023.10.30
     public unsafe nint getRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputElement> rndList)
     {
         checked

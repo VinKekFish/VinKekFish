@@ -431,8 +431,8 @@ namespace cryptoprime
             *lastS ^= len; lastS++;
             *lastS ^= regime;
         }
-
-        public const byte RB = 64;
+                                                    /// <summary>Размер блока keccak в данной реализации (на ввод и на вывод)</summary>
+        public const byte BlockLen = 64;
 
         /// <summary>
         /// Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием.
@@ -443,7 +443,7 @@ namespace cryptoprime
         /// <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
         public static unsafe void Keccak_Input64_512(byte * message, byte len, byte * S, byte regime = 0)
         {
-            if (len > RB || len < 0)
+            if (len > BlockLen || len < 0)
             {
                 throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: len > 64 || len < 0");
             }
@@ -456,7 +456,7 @@ namespace cryptoprime
             // Дописываем len после конца: это не paddings, это отличие от оригинальной версии keccak
             int i1 = 0, i2 = 0, i3 = 0, ss = c_size;
             int i = 0;
-            for (; i < RB; i++)
+            for (; i < BlockLen; i++)
             {
                 lastS = S + (i1 << 3) + i2*ss + i3;
                 if (i < len)
