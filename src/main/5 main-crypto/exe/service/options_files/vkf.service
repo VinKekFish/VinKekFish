@@ -25,7 +25,9 @@ ExecStopPost=/bin/rm -f $$$VkfDir/vkf.pid
 TimeoutStopSec=60
 TimeoutStopFailureMode=kill
 
+# Самый низкий приоритет
 Nice=19
+# Низкий приоритет, но не совсем низкий
 #IOSchedulingClass=idle
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7
@@ -41,6 +43,7 @@ NoNewPrivileges=yes
 ProtectKernelModules=true
 ProtectSystem=full
 
+PrivateDevices=no
 ProtectHome=no
 ProtectKernelTunables=true
 ProtectControlGroups=yes
@@ -51,7 +54,7 @@ ProtectProc=default
 PrivateNetwork=no
 
 # Сетевая активность может быть, т.к. пользователь может давать задачи для сбора энтропии через ping или что-то другое
-SystemCallArchitectures=native 
+SystemCallArchitectures=native
 # RestrictAddressFamilies=AF_UNIX AF_NETLINK
 # RestrictAddressFamilies=AF_UNIX
 RestrictNamespaces=yes

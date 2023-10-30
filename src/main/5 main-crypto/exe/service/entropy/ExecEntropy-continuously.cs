@@ -147,6 +147,10 @@ public partial class Regime_Service
                     }
                     catch (ThreadInterruptedException)
                     {}
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine(  VinKekFish_Utils.Memory.formatException(ex)  );
+                    }
                 }
 
                 lock (entropy_sync)
