@@ -266,7 +266,13 @@ public partial class Options_Service
 
             public class EntropyValues
             {
-                public long min = -1, max = -1, EME = -1;
+                /// <summary>max >= min, EME >= max, avg >= min. EME и max всегда могут быть равны нулю, даже если min или max не равно нулю. Все значения могут быть равны нулю. Нулевые значения означают, что источник энтропии вообще может не дать энтропии.
+                /// <para>min - оценка минимального количества битов, которое нужно получить из этого источника для того, чтобы получить хотя бы один бит энтропии.</para>
+                /// <para>max - оценка максимального количества битов, которое нужно получить из этого источника для того, чтобы получить хотя бы один бит энтропии.</para>
+                /// <para>EME - оценка максимального количества битов в благоприятных условиях, которое нужно получить из этого источника для того, чтобы получить хотя бы один бит энтропии, который затруднительно перехватить с помощью прослушивания электромагнитных излучений, прослушивания сетевого траффика и других атак по побочным каналам</para>
+                /// <para>avg - оценка максимального количества битов в благоприятных условиях, которое нужно получить из этого источника для того, чтобы получить хотя бы один бит энтропии.</para>
+                /// </summary>
+                public long min = -1, max = -1, EME = -1, avg = -1;
 
                 public bool isCorrect()
                 {
@@ -274,9 +280,26 @@ public partial class Options_Service
                         return false;
                     if (max < 0)
                         return false;
-                    if (max > min)
+                    if (avg < 0)
                         return false;
+
+                    if (max != 0)
+                    if (max < min)
+                        return false;
+
+                    if (avg != 0)
+                    if (avg < min || avg > max)
+                        return false;
+
                     if (EME < 0)
+                        return false;
+
+                    if (EME != 0)
+                    if (EME < max)
+                        return false;
+
+                    if (min == 0)
+                    if (EME > 0 || max > 0 || avg > 0)
                         return false;
 
                     return true;
@@ -296,12 +319,21 @@ public partial class Options_Service
                 {
                     switch (canonicalName)
                     {
+                        case "no entropy evaluation":
+                            entropy.min = 0;
+                            entropy.max = 0;
+                            entropy.avg = 0;
+                            entropy.EME = 0;
+                            break;
+
                         case "min":
                             setMin(block); break;
                         case "max":
                             setMax(block); break;
                         case "eme":
                             setEME(block); break;
+                        case "avg":
+                            setAvg(block); break;
                         case "interval":
 
                             if (interval == null)
@@ -364,10 +396,26 @@ public partial class Options_Service
                     }
                 }
 
+                protected void setAvg(Options.Block block)
+                {
+                    try
+                    {
+                        entropy.avg = long.Parse(block.blocks[0].Name);
+                        if (block.blocks.Count > 1)
+                            throw new Exception();
+                        if (entropy.avg < 0)
+                            throw new Exception();
+                    }
+                    catch
+                    {
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'EME' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
+                    }
+                }
+
                 public override void Check()
                 {
                     if (!entropy.isCorrect())
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0 and 'min >= max'");
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0 and 'max >= min'");
                     
                     if (interval == null)
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one 'interval' element. Have no one 'interval' element");
@@ -516,10 +564,11 @@ public partial class Options_Service
                     }
 
                     public enum FlagValue { undefined = 0, yes = 1, no = 2 };
-                    public FlagValue date    = FlagValue.no;
-                    public FlagValue ignored = FlagValue.no;
-                    public FlagValue log     = FlagValue.no;
-                    public FlagValue broker  = FlagValue.no;
+                    public FlagValue date       = FlagValue.no;
+                    public FlagValue ignored    = FlagValue.no;
+                    public FlagValue log        = FlagValue.no;
+                    public FlagValue broker     = FlagValue.no;
+                    public FlagValue watchInLog = FlagValue.no;
 
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
@@ -537,6 +586,9 @@ public partial class Options_Service
 
                             case "broker":
                                 broker  = FlagValue.yes; break;
+
+                            case "watch counter in log":
+                                watchInLog = FlagValue.yes; break;
 
                             default:
                                 throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is 'yes', '+', 'no', '-'");

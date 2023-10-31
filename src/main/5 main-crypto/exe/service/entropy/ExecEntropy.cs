@@ -23,8 +23,9 @@ public partial class Regime_Service
                 MandatoryWriteCurrentFile();
 
             isInitiated = false;
-            VinKekFish   .Dispose();
-            CascadeSponge.Dispose();
+            VinKekFish   ?.Dispose();
+            CascadeSponge?.Dispose();
+            bufferRec    ?.Dispose();
 
             Monitor.PulseAll(entropy_sync);
         }
@@ -40,6 +41,8 @@ public partial class Regime_Service
         lock (entropy_sync)
         {
             ExecEntorpy_now = DateTime.Now.Ticks;
+
+            InputEntropyFromSources();
             MayBeWriteCurrentFile();
 
             Monitor.PulseAll(entropy_sync);

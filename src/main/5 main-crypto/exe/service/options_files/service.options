@@ -14,12 +14,7 @@ input
             cmd
                 cat
                 /proc/cpuinfo
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -31,12 +26,7 @@ input
             cmd
                 cat
                 /proc/version
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -48,12 +38,7 @@ input
             cmd
                 cat
                 /proc/ioports
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -65,12 +50,7 @@ input
             cmd
                 cat
                 /proc/diskstats
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -82,12 +62,7 @@ input
             cmd
                 cat
                 /proc/stat
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -99,12 +74,7 @@ input
             cmd
                 cat
                 /proc/zoneinfo
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -116,12 +86,7 @@ input
             cmd
                 cat
                 /proc/meminfo
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -133,12 +98,7 @@ input
             cmd
                 ls
                 -alR /dev
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -149,12 +109,7 @@ input
 
             cmd
                 sensors
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -166,12 +121,7 @@ input
             cmd
                 df
                 -T
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -182,12 +132,7 @@ input
             
             cmd
                 lsblk
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -198,12 +143,7 @@ input
             
             cmd
                 lscpu
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -214,12 +154,7 @@ input
             
             cmd
                 lshw
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -230,12 +165,7 @@ input
             
             cmd
                 lslogins
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -246,12 +176,7 @@ input
             
             cmd
                 lsmem
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -262,12 +187,7 @@ input
             
             cmd
                 lsmod
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -279,12 +199,7 @@ input
             cmd
                 lspci
                 -vvv -x -n
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -297,12 +212,7 @@ input
             cmd
                 lsusb
                 -v
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -314,12 +224,7 @@ input
             cmd
                 ps
                 -eo pid,times,rss,nlwp,args --sort time,rss,pid,args
-                    min
-                        0
-                    max
-                        0
-                    EME
-                        0
+                    no entropy evaluation
                     interval
                         once
                             length
@@ -337,9 +242,11 @@ input
             file
                 /dev/random
                     min
-                        480
-                    max
                         1
+                    max
+                        0
+                    avg
+                        4096
                     EME
                         2048
                     interval
@@ -355,16 +262,28 @@ input
                             flags
                             difference
                                 no
+
+
+        # -----------------------------------------------------
+        # -----------------------------------------------------
+        # -----------------------------------------------------
+
         standard
             cmd
                 ping
-                77.88.8.88 -s 16 -c 1
+                77.88.8.88 -s 16 -UA -c 1
                     min
-                        480
+                        # Выводит примерно 258 байтов вывода
+                        # Считаем, что пинг может быть довольно непостоянный и давать порядка 8-ми битов энтропии с одного вызова
+                        # 258/8=32,25
+                        32
                     max
-                        1
+                        0
+                    avg
+                        # Считаем, что один бит приходится менее, чем на один вызов
+                        384
                     EME
-                        2048
+                        0
                     interval
                         once
                             length
@@ -382,11 +301,23 @@ input
                 ping
                 127.0.0.1 -s 16 -UA -c 12
                     min
-                        480
+                        # Выводит примерно 857-мь байтов
+                        # Из них считаем, что максимум каждая строка стоит по 2 бита
+                        # Всего строк 12, значит битов 24.
+                        # 857/24=35,7083333
+                        36
                     max
-                        1
+                        # Возможно, на некоторых компьютерах, такой пинг всегда будет выдавать одно и то же
+                        # Так что лучше всего поставить 0, то есть считать, что такой пинг вообще не даёт энтропии в худшем случае
+                        0
+                    avg
+                        # Считаем, что один вызов на 857-мь байтов вывода даёт нам
+                        # всего один бит или даже меньше
+                        # Так как часто такой пинг реально выдаёт очень похожие значения
+                        1024
                     EME
-                        2048
+                        # 2048
+                        0
                     interval
                         once
                             length
@@ -399,19 +330,21 @@ input
                                 full
                             flags
                             difference
-                                no
+                                yes
             file
                 # https://www.kernel.org/doc/html/latest/input/input.html
                 /dev/input/mouse0
                     min
-                        # 512 байтов от перемещения мышки через весь экран, шириной 1280 пикселей
-                        # Если считать, что это даёт где-то 2 бита, то это 4096/2=2048
-                        2048
-                    max
                         # Считаем, что мышка даёт не так уж и много энтропии даже в лучшем случае
                         # На, скажем, 64 байта может быть дано 10 битов бита времени и ещё 3-4 бита направления
                         # 14 битов на 64 байта; 64*8/14=36,57. Округляем в меньшую сторону (как будто получили больше энтропии)
                         36
+                    max
+                        # 512 байтов от перемещения мышки через весь экран, шириной 1280 пикселей
+                        # Если считать, что это даёт где-то 2 бита, то это 4096/2=2048
+                        2048
+                    avg
+                        1024
                     EME
                         0
                     interval
@@ -420,6 +353,7 @@ input
                                 full
                             flags
                                 date
+                                watch counter in log
                             difference
                                 no
 

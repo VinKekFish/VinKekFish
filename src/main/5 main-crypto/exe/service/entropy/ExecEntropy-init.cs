@@ -27,6 +27,8 @@ public partial class Regime_Service
     public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
 
     public bool isInitiated { get; protected set; } = false;
+                                                                    /// <summary>Буферная запись, которая создаётся в StartEntropy и используется в InputEntropyFromSources. Её размер MAX_RANDOM_AT_START_FILE_LENGTH</summary>
+    protected Record? bufferRec = null;
 
     /// <summary>Функция вызывается для инициализации всех губок, накапливающих энтропию</summary>
     protected unsafe virtual void StartEntropy()
@@ -41,8 +43,8 @@ public partial class Regime_Service
 
                 CreateFolders();
 
-                ExecEntorpy_now     = DateTime.Now.Ticks;
-                using var bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
+                ExecEntorpy_now = DateTime.Now.Ticks;
+                bufferRec       = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
 
                 CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
                 CascadeSponge.InitThreeFishByCascade(1, false);

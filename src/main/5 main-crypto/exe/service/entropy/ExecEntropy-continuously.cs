@@ -93,44 +93,129 @@ public partial class Regime_Service
     // При доступе синхронизация lock (continuouslyGetters)
     public List<ContinuouslyGetterRecord> continuouslyGetters = new List<ContinuouslyGetterRecord>();
 
-    public unsafe class ContinuouslyGetterRecord
+    /// <summary>Инкапсулирует в себя промежуточную губку и предоставляет методы для записи в неё байтов из источника энтропии и получения из неё байтов энтропии</summary>
+    public unsafe class ContinuouslyGetterRecord: IDisposable
     {
-        public    readonly Thread          t;
+        public    readonly Thread          thread;
         protected readonly Keccak_20200918 keccak;
                                                                                             /// <summary>true, если объект уже удалён</summary>
-        public    bool     disposed {get; protected set;} = false;                          /// <summary>Количество битов, полученное из этого источника (это количество сырых битов, действительно полученных из источника, без учёта настроек {min,max,EME})</summary>
-        public    nint     countOfBits;
-        public    bool     isInited = false;
+        public    bool     disposed                   {get; protected set;} = false;        /// <summary>Количество байтов, полученное из этого источника (это количество сырых байтов, действительно полученных из источника, без учёта настроек {min,max,avg,EME})</summary>
+        public    nint     countOfBytes               {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было выведено для пользователя функцией getBytes</summary>
+        public    nint     countOfBytesToUser         {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было получено из источника энтропии после последнего изъятия битов из губки (необходимо для того, чтобы рассчитать, можно ли сейчас из этой губки что-то брать)</summary>
+        public    nint     countOfBytesFromLastOutput {get; protected set;} = 0;            /// <summary>true, если объект не проинициализирован (сбрасывается после вызова getBytes). Это значение не должно быть нужно пользователю, используйте метод isDataReady. Устанавливается при вызове метода addBytes (addBytes вызывает поток, который собирает энтропию).</summary>
+        public    bool     isInited                   {get; protected set;} = false;
+                                                                                            /// <summary>Элемент из настроек, описывающий параметры данного источника энтропии</summary>
+        public readonly Options_Service.Input.Entropy.InputElement inputElement;
 
-        public ContinuouslyGetterRecord(Thread t, Keccak_20200918 keccak)
+        public ContinuouslyGetterRecord(Thread t, Options_Service.Input.Entropy.InputElement inputElement)
         {
-            this.t      = t;
-            this.keccak = keccak;
+            this.thread      = t;
+            this.keccak = new Keccak_20200918();
+
+            this.inputElement = inputElement;
         }
 
-        public void getBytes(byte * data, nint maxLen)
+        /// <summary>Получает байты из промежуточной губки. <para>Пользователь должен проверить, что isInited установлен перед тем, как использовать этот метод. Если isInited == false, то губка ещё не готова к получению из неё информации: её надо просто пропустить и взять значения из других источников.</para><para>Код безопасен с точки зрения многопоточности.</para></summary>
+        /// <param name="data">Массив данных, принимающий накопленные байты энтропии из промежуточной губки</param>
+        /// <param name="len">Количество байтов энтропии для чтения. Не более чем KeccakPrime.BlockLen (64 байта)</param>
+        public void getBytes(byte * data, nint len)
         {
             checked
             {
-                if (maxLen > KeccakPrime.BlockLen)
-                    throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({maxLen} > {KeccakPrime.BlockLen})");
-                if (!isInited)
-                    throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited (you must check isInited and skip this, if it is not)");
-
-                lock (keccak)
+                lock (this)
                 {
-                    keccak.CalcStep();
-                    KeccakPrime.Keccak_Output_512(data, (byte) maxLen, keccak.S);
+                    if (disposed)
+                        throw new ObjectDisposedException("ContinuouslyGetterRecord.getBytes: disposed (you must check the 'disposed' field and skip the object, if disposed)");
+                    if (len > KeccakPrime.BlockLen)
+                        throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({len} > {KeccakPrime.BlockLen})");
+                    if (!isInited)
+                        throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited. You must check the 'isDataReady()' function and skip the object, if the return value is false");
+                    if (isDataReady(len))
+                        throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
+
+                    KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);
+                    isInited = false;
+                    countOfBytesFromLastOutput = 0;
+
+                    countOfBytesToUser += len;
+                }
+            }
+        }
+
+        /// <summary>Проверяет, готово ли количество данных len для вывода.</summary>
+        /// <param name="len">Количество байтов энтропии, которое хочет получить пользователь.</param>
+        /// <returns>false, если данные не готовы. true, если данные готовы. Если false, то из объекта ещё нельзя извлекать данные с помощью функции getBytes.</returns>
+        public bool isDataReady(nint len)
+        {
+            checked
+            {
+                if (!isInited)
+                    return false;
+
+                var val = GetCountOfReadyBytes();
+                return len > val;
+            }
+        }
+
+        /// <summary>Возвращает верхнюю оценку количества байтов энтропии, которое уже собрано промежуточной губкой</summary>
+        public long GetCountOfReadyBytes()
+        {
+            checked
+            {
+                // Если min не установлен (равен нулю), то считаем, что на один байт выхода приходится 8-мь байтов входа
+                if (inputElement.intervals!.entropy.min <= 0)
+                    return countOfBytesFromLastOutput >> 3;
+
+                return countOfBytesFromLastOutput / inputElement.intervals!.entropy.min;
+            }
+        }
+
+
+
+        /// <summary>Добавить в губку дополнительные байты из источника энтропии</summary>
+        /// <param name="bytes">Количество байтов из источника энтропии; для расчёта общего количества байтов</param>
+        /// <param name="len">Количество добавляемых байтов из input. Может отличаться от bytes в связи с тем, что к input могло быть добавлено время или какие-то другие дополнительные параметры. len >= bytes. len > 0 и может быть больше блока шифрования.</param>
+        /// <param name="input">Массив, содержащий добавляемые байты.</param>
+        public void addBytes(nint bytes, nint len, byte * input)
+        {
+            checked
+            {
+                lock (this)
+                {
+                    if (len <= 0)
+                        throw new ArgumentOutOfRangeException("len", "len <= 0");
+                    if (bytes > len)
+                        throw new ArgumentOutOfRangeException("bytes", "bytes > len");
+
+                    do
+                    {
+                        nint curLen = len;
+                        if (curLen > KeccakPrime.BlockLen)
+                            curLen = KeccakPrime.BlockLen;
+
+                        KeccakPrime.Keccak_Input64_512(input, (byte) curLen, keccak.S);
+                        keccak.CalcStep();
+                        len   -= curLen;
+                        input += curLen;
+                    }
+                    while (len > 0);
+
+                    isInited                    = true;
+                    countOfBytes               += bytes;
+                    countOfBytesFromLastOutput += bytes;
                 }
             }
         }
 
         public void Dispose()
         {
-            if (disposed)
-                throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
+            lock (this)
+            {
+                if (disposed)
+                    throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
 
-            disposed = true;
+                disposed = true;
+            }
         }
     }
 
@@ -142,48 +227,63 @@ public partial class Regime_Service
             Console.Error.WriteLine($"Regime_Service.StartContinuouslyGetter: file not found: {fileElement.fileInfo.FullName}");
             return;
         }
-// TODO: Добавить отладочный вывод количества символов, которые были прочитаны за один раз
-// TODO: Добавить сюда подсчёт количества энтропии, которое было введено
+
         var t = new Thread
         (
             () =>
             {
                 checked
                 {
-                    nint totalBytes  = 0;
-                    using var keccak = new Keccak_20200918();   // При доступе синхронизировать lock (keccak)
-
-                    var input   = stackalloc byte[KeccakPrime.BlockLen];    // Массив, из которого будет вводиться энтропия в губку keccak
+                    int len     = 1024;                    // Значение должно быть строго больше KeccakPrime.BlockLen + dateLen
+                    var input   = stackalloc byte[len*2];  // Массив, из которого будет вводиться энтропия в губку keccak
                     int pos     = 0;
                     int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);
 
-                    int len  = 24;
+                    long lastTimeInLog  = DateTime.Now.Ticks;
+                    nint lastBytesInLog = 0;
+
                     var buff = stackalloc byte[len];
-                    var span = new Span<byte>(buff, len);
+                    var span = new Span<byte>(buff, len - dateLen);
                     using (var rs = fileElement.fileInfo.OpenRead())
                     {
+                        var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+                        lock (continuouslyGetters)
+                            continuouslyGetters.Add(cgr);
+
                         try
                         {
+                            nint totalBytes = 0;
                             while (true)
                             {
                                 var bytesReaded = rs.Read(span);
                                 if (bytesReaded <= 0 || Terminated)
                                     break;
 
-                                if (KeccakPrime.BlockLen - pos < bytesReaded + dateLen)
+                                if (pos >= KeccakPrime.BlockLen)
                                 {
-                                    lock (keccak)
-                                    {
-                                        KeccakPrime.Keccak_Input64_512(input, (byte) pos, keccak.S);
-                                        keccak.CalcStep();
-                                    }
+                                    cgr.addBytes(totalBytes, pos, input);
                                     pos = 0;
+                                    totalBytes = 0;
+
+                                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                                    {
+                                        var ticks = DateTime.Now.Ticks;
+
+                                        if (ticks - lastTimeInLog >= ticksPerHour)
+                                        if (lastBytesInLog != cgr.countOfBytesToUser)
+                                        {
+                                            SendDebugMsgToConsole(fileElement, cgr);
+
+                                            lastTimeInLog  = ticks;
+                                            lastBytesInLog = cgr.countOfBytesToUser;
+                                        }
+                                    }
                                 }
 
                                 if (dateLen > 0)
                                 {
                                     var ticks = DateTime.Now.Ticks;
-                                    BytesBuilder.ULongToBytes((ulong) ticks, input, KeccakPrime.BlockLen, pos);
+                                    BytesBuilder.ULongToBytes((ulong)ticks, input, KeccakPrime.BlockLen, pos);
                                     pos += dateLen;
                                 }
 
@@ -193,6 +293,9 @@ public partial class Regime_Service
 
                                 BytesBuilder.ToNull(len, buff);
                             }
+
+                            if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                                SendDebugMsgToConsole(fileElement, cgr);
                         }
                         catch (ThreadInterruptedException)
                         {}
@@ -200,11 +303,13 @@ public partial class Regime_Service
                         {
                             Console.Error.WriteLine(  VinKekFish_Utils.Memory.formatException(ex)  );
                         }
-                    }
+                        finally
+                        {                            
+                            lock (continuouslyGetters)
+                                continuouslyGetters.Remove(cgr);
 
-                    lock (entropy_sync)
-                    {
-                        Console.WriteLine($"{totalBytes} bytes got from {fileElement.fileInfo.FullName}");
+                            cgr.Dispose();
+                        }
                     }
                 } // checked
             } // end thread function
@@ -212,5 +317,16 @@ public partial class Regime_Service
 
         t.IsBackground = true;
         t.Start();
+    }
+
+    public unsafe void SendDebugMsgToConsole(Options_Service.Input.Entropy.InputFileElement fileElement, ContinuouslyGetterRecord cgr)
+    {
+        checked
+        {
+            lock (entropy_sync)
+            {
+                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to user.");
+            }
+        }
     }
 }

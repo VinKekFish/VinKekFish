@@ -1,6 +1,9 @@
 Path
     random at start folder
         # Здесь содержится путь к папке, где располагаются файлы с энтропией, которые передаются между запусками программы
+        # В поставке стоит путь $$$VkfDir/data/random_at_start_folder
+        # Шаблон $$$VkfDir подменяется при установке программы на установочную директорию программы
+        /opt/VinKekFish/data/random_at_start_folder
 
 
 output
@@ -8,6 +11,7 @@ output
         unix stream
             path
                 # Здесь располагается путь к папке, в которой будут содержаться файлы криптостойкого выхода
+                /dev/vkf/
 
 Input
     entropy

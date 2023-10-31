@@ -25,12 +25,15 @@ ExecStopPost=/bin/rm -f $$$VkfDir/vkf.pid
 TimeoutStopSec=60
 TimeoutStopFailureMode=kill
 
-# Самый низкий приоритет
+# Самый низкий приоритет для CPU
 Nice=19
-# Низкий приоритет, но не совсем низкий
+# Пакетный режим планировщика
+CPUSchedulingPolicy=batch
+
+# Низкий приоритет ввода-вывода, но не совсем низкий (0-7; 7 - самый низкий)
 #IOSchedulingClass=idle
 IOSchedulingClass=best-effort
-IOSchedulingPriority=7
+IOSchedulingPriority=5
 
 
 
