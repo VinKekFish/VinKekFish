@@ -1,6 +1,7 @@
 // TODO: tests
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using cryptoprime;
 
@@ -21,9 +22,14 @@ public class UnixSocketListener: IDisposable
 
     public readonly Regime_Service service;
 
+    public enum SocketinformationType { error = 0, entropy = 1, entropyParams = 2 };
+    public SocketinformationType typeOfInformation;
+
     // Для проверки можно использовать nc -UN path_to_socket
-    public UnixSocketListener(string path, Regime_Service service, int backlog = 64)
+    public UnixSocketListener(string path, Regime_Service service, SocketinformationType typeOfInformation , int backlog = 64)
     {
+        this.typeOfInformation = typeOfInformation;
+
         this.path = new FileInfo(path);
         this.path.Refresh();
         if (this.path.Exists)
@@ -63,7 +69,7 @@ public class UnixSocketListener: IDisposable
         try
         {
             var newConnectionSocket = listenSocket.EndAccept(ar);
-            var newConnection       = new Connection(this, newConnectionSocket);
+            var newConnection       = new Connection(this, newConnectionSocket, typeOfInformation);
             lock (connections)
             connections.Add(newConnection);
         }
@@ -115,13 +121,17 @@ public class UnixSocketListener: IDisposable
 
     public class Connection: IDisposable
     {
-        public readonly UnixSocketListener listenSocket;
-        public readonly Socket             connection;
-        public          bool               closed = false;
-        public Connection(UnixSocketListener listenSocket, Socket connection)
+        public readonly UnixSocketListener    listenSocket;
+        public readonly Socket                connection;
+        public readonly SocketinformationType sendEntropyParameters;
+        public          bool                  closed = false;
+
+        public Connection(UnixSocketListener listenSocket, Socket connection, SocketinformationType sendEntropyParameters)
         {
             this.listenSocket = listenSocket;
             this.connection   = connection;
+
+            this.sendEntropyParameters = sendEntropyParameters;
 
             StartReceive();
         }
@@ -166,12 +176,18 @@ public class UnixSocketListener: IDisposable
 
             try
             {
-                var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
+                switch (sendEntropyParameters)
+                {
+                    case SocketinformationType.entropy:
+                        SendEntropyToUser();
+                    break;
+                    case SocketinformationType.entropyParams:
+                        SendEntropyParamsToUser();
+                    break;
 
-                var buff = listenSocket.service.getEntropyForOut(blockSize);
-                var span = new ReadOnlySpan<byte>(buff, (int) blockSize);
-
-                connection.Send(span);
+                    default:
+                        throw new NotImplementedException("UnixSocketListener.Connection.StartReceive: sendEntropyParameters.default");
+                }
             }
             catch (Exception ex)
             {
@@ -182,39 +198,59 @@ public class UnixSocketListener: IDisposable
                 Close();
             }
         }
-/*
-        protected byte[] receiveBuffer = new byte[1];
-        public void EndReceive(IAsyncResult ar)
+
+        protected unsafe void SendEntropyToUser()
         {
-            if (listenSocket.doTerminate)
-                return;
+            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
 
-            try
-            {
-                var received = connection.EndReceive(ar, out SocketError errorCode);
-                if (errorCode != SocketError.Success || !connection.Connected)
-                {
-                    Close();
-                    return;
-                }
+            var buff = listenSocket.service.getEntropyForOut(blockSize);
+            var span = new ReadOnlySpan<byte>(buff, (int)blockSize);
 
-                // Это эхо.
-                if (errorCode == SocketError.Success)
-                if (connection.Connected)
-                    connection.Send(receiveBuffer, 0, received, SocketFlags.None);
-                    
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception in UnixSocketListener.Connection.EndReceive: " + ex.Message + "\n" + ex.StackTrace);
-                Close();
-                return;
-            }
+            connection.Send(span);
+        }
 
-            ThreadPool.QueueUserWorkItem
-            (
-                (obj) => connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this)
-            );            
-        }*/
+        protected unsafe void SendEntropyParamsToUser()
+        {
+            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
+
+            var paramString = listenSocket.service.countOfBytesCounterTotal.ToString() + "\n" + listenSocket.service.countOfBytesCounterCorr.ToString();
+
+            var @params = new UTF8Encoding().GetBytes(paramString);
+            connection.Send(@params);
+        }
+        /*
+       protected byte[] receiveBuffer = new byte[1];
+       public void EndReceive(IAsyncResult ar)
+       {
+           if (listenSocket.doTerminate)
+               return;
+
+           try
+           {
+               var received = connection.EndReceive(ar, out SocketError errorCode);
+               if (errorCode != SocketError.Success || !connection.Connected)
+               {
+                   Close();
+                   return;
+               }
+
+               // Это эхо.
+               if (errorCode == SocketError.Success)
+               if (connection.Connected)
+                   connection.Send(receiveBuffer, 0, received, SocketFlags.None);
+
+           }
+           catch (Exception ex)
+           {
+               Console.WriteLine("Exception in UnixSocketListener.Connection.EndReceive: " + ex.Message + "\n" + ex.StackTrace);
+               Close();
+               return;
+           }
+
+           ThreadPool.QueueUserWorkItem
+           (
+               (obj) => connection.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, EndReceive, this)
+           );            
+       }*/
     }
 }

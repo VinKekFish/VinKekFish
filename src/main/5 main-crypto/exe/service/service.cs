@@ -18,8 +18,9 @@ public partial class Regime_Service
     public DirectoryInfo? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream</summary>
     public FileInfo?      UnixStreamPath;              /// <summary>Путь к производителю энтропии (/dev/random)</summary>
     public string         OS_Entropy_path = "/dev/random";
-                                                /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям чего-либо</summary>
-    public UnixSocketListener? vkfListener = null;
+                                                /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям энтропии</summary>
+    public UnixSocketListener? vkfListener     = null;  /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям информации о накопленной энтропии</summary>
+    public UnixSocketListener? vkfInfoListener = null;
     public Regime_Service()
     {
     }
@@ -42,10 +43,15 @@ public partial class Regime_Service
         if (!Terminated)
         {
             Terminated = true;
-            vkfListener?.Close();
+            vkfListener    ?.Close();
+            vkfInfoListener?.Close();
         }
 
-        while (willBlock && vkfListener != null && vkfListener?.ConnectionsCount > 0)
+        while (
+            willBlock
+         && vkfListener     != null && vkfListener    ?.ConnectionsCount > 0
+         && vkfInfoListener != null && vkfInfoListener?.ConnectionsCount > 0
+         )
         {
             Thread.Sleep(100);
         }
@@ -74,7 +80,8 @@ public partial class Regime_Service
             // Мы сначала создаём прослушиватель, но делаем это сразу в блокировке, чтобы не было возможности получить данные ещё из непроинициализированных губок
             lock (entropy_sync)
             {
-                vkfListener = new UnixSocketListener(UnixStreamPath!.FullName, this);
+                vkfListener     = new UnixSocketListener(UnixStreamPath!.FullName, this, UnixSocketListener.SocketinformationType.entropy);
+                vkfInfoListener = new UnixSocketListener(UnixStreamPath!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
                 StartEntropy();
                 StartContinuouslyEntropy();
             }
@@ -83,7 +90,7 @@ public partial class Regime_Service
 
             try
             {
-                while (!Terminated || vkfListener.connections.Count > 0)
+                while (!Terminated)
                 {
                     ExecEntropy();
                     Thread.Sleep(100);
