@@ -26,9 +26,16 @@ public partial class Regime_Service
 
         public void addNumberToBytes(nint bytes, ContinuouslyGetterRecord getter)
         {
+            if (getter.inputElement.intervals!.entropy.min > 0)
             _min += (double) bytes / (double) getter.inputElement.intervals!.entropy.min;
+
+            if (getter.inputElement.intervals!.entropy.max > 0)
             _max += (double) bytes / (double) getter.inputElement.intervals!.entropy.max;
+
+            if (getter.inputElement.intervals!.entropy.avg > 0)
             _avg += (double) bytes / (double) getter.inputElement.intervals!.entropy.avg;
+
+            if (getter.inputElement.intervals!.entropy.EME > 0)
             _EME += (double) bytes / (double) getter.inputElement.intervals!.entropy.EME;
         }
 

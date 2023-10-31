@@ -81,8 +81,8 @@ public partial class Regime_Service
             // Мы сначала создаём прослушиватель, но делаем это сразу в блокировке, чтобы не было возможности получить данные ещё из непроинициализированных губок
             lock (entropy_sync)
             {
-                vkfListener     = new UnixSocketListener(UnixStreamPath!.FullName, this, UnixSocketListener.SocketinformationType.entropy);
-                vkfInfoListener = new UnixSocketListener(UnixStreamPath!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
+                vkfListener     = new UnixSocketListener(UnixStreamPath      !.FullName, this, UnixSocketListener.SocketinformationType.entropy);
+                vkfInfoListener = new UnixSocketListener(UnixStreamPathParams!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
                 StartEntropy();
                 StartContinuouslyEntropy();
             }
