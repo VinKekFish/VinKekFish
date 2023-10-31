@@ -35,8 +35,8 @@ then
     exit 3
 fi
 
-echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (успешно создана папка программы)\033[0m"
-echo -e "The installation continue... (установка продолжается...)"
+echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (ru: успешно создана папка программы)\033[0m"
+echo -e "The installation continue... (ru: установка продолжается...)"
 
 chmod a-rwx "$vkfDir"
 chmod u+rwX "$vkfDir"
@@ -74,7 +74,7 @@ exe/vkf install
 if [[ $? -ne 0 ]]
 then
     echo; echo;
-    echo -e "\033[41mThe vkf program installation is unsuccessfully ended (error in vkf install)\033[0m"
+    echo -e "\033[41mThe vkf program installation is unsuccessfully ended (error in vkf install) (ru: произошла ошибка при попытке установки программы vkf)\033[0m"
     echo
     exit 1
 fi
@@ -96,14 +96,15 @@ systemctl status -l --no-pager vkf
 if [[ $? -ne 0 ]]
 then
     echo; echo;
-    echo -e "\033[41mThe vkf program installation is unsuccessfully ended\033[0m"
+    echo -e "\033[41mThe vkf program installation is unsuccessfully ended (ru: произошла ошибка при попытке установки программы vkf)\033[0m"
     echo
     exit 3
 fi
 
 
 echo; echo;
-echo -e "\033[32mThe vkf program is successfully installed (программа успешно установлена)\033[0m"
+echo -e "\033[32mThe vkf program is successfully installed (ru: программа успешно установлена)\033[0m"
 echo
 echo 'Example for get random bytes: nc -UN /dev/vkf/random'
+echo 'ru: Пример получения случайных байтов от сервиса: nc -UN /dev/vkf/random'
 echo

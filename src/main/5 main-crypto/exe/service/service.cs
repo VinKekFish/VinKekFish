@@ -15,8 +15,9 @@ public partial class Regime_Service
     public string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
     public bool    Terminated     = false;
                                                        /// <summary>Путь к папке, где программой создаётся unix stream. Берётся из конфигурационного файла</summary>
-    public DirectoryInfo? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream</summary>
-    public FileInfo?      UnixStreamPath;              /// <summary>Путь к производителю энтропии (/dev/random)</summary>
+    public DirectoryInfo? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream для получения энтропии</summary>
+    public FileInfo?      UnixStreamPath;              /// <summary>Полное имя файла (с путём) unix stream для получения параметров накопления энтропии</summary>
+    public FileInfo?      UnixStreamPathParams;        /// <summary>Путь к производителю энтропии (/dev/random)</summary>
     public string         OS_Entropy_path = "/dev/random";
                                                 /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям энтропии</summary>
     public UnixSocketListener? vkfListener     = null;  /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям информации о накопленной энтропии</summary>
@@ -133,9 +134,10 @@ public partial class Regime_Service
             // Console.WriteLine(opt.ToString());
             options_service = new Options_Service(opt);
 
-            var out_random = options_service!.root!.output!.out_random!;
-            UnixStreamDir  = out_random.dir;
-            UnixStreamPath = out_random.file;
+            var out_random       = options_service!.root!.output!.out_random!;
+            UnixStreamDir        = out_random.dir;
+            UnixStreamPath       = out_random.file;
+            UnixStreamPathParams = out_random.fileForParams;
             Console.WriteLine($"UnixStreamPath = {UnixStreamPath!.FullName}");
 
 

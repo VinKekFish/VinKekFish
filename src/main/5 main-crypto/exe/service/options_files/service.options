@@ -248,7 +248,7 @@ input
                     avg
                         4096
                     EME
-                        2048
+                        0
                     interval
                         once
                             length

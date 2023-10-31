@@ -26,14 +26,16 @@ git clone https://github.com/VinKekFish/VinKekFish
 Перейти в директорию VinKekFish
 cd VinKekFish
 
+
 Полностью перестроить решение
-bash ./b/rebuild.sh Debug
+bash ./b/rebuild.sh
 
 Или быстро перестроить решение (если решение было построено)
-bash ./b/fbuild.sh Debug
+bash ./b/fbuild.sh
 
 В случае успешного перестроения последняя строчка консоли будет начинаться с
 "Builder successfully ended"
+При построении тесты запускаются автоматически
 
 
 ## 3. Исполняемые файлы проекта

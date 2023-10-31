@@ -288,8 +288,13 @@ public partial class Options_Service
                         return false;
 
                     if (avg != 0)
-                    if (avg < min || avg > max)
-                        return false;
+                    {
+                        if (avg < min)
+                            return false;
+
+                        if (avg > max && max != 0)
+                            return false;
+                    }
 
                     if (EME < 0)
                         return false;
@@ -415,7 +420,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (!entropy.isCorrect())
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'max' and 'EME' elements. Must 'min' >= 0, 'max' >= 0, 'EME' >= 0 and 'max >= min'");
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values)");
                     
                     if (interval == null)
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have one 'interval' element. Have no one 'interval' element");

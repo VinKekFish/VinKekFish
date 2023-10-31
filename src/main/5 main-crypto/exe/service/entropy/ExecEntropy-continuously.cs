@@ -130,7 +130,7 @@ public partial class Regime_Service
                         throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({len} > {KeccakPrime.BlockLen})");
                     if (!isInited)
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited. You must check the 'isDataReady()' function and skip the object, if the return value is false");
-                    if (isDataReady(len))
+                    if (!isDataReady(len))
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
 
                     KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);

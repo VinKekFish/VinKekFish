@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_SERVICE
+// #define CAN_CREATEFILE_FOR_SERVICE
 
 namespace cryptoprime_tests;
 

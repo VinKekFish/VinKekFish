@@ -91,6 +91,7 @@ public partial class Options_Service
                 {                                                                   /// <summary>Определяет директорию для выхода потоков с псевдослучайными криптостойкими данными</summary>
                     public DirectoryInfo? dir;                                      /// <summary>Путь к файлу random</summary>
                     public FileInfo?      file;
+                    public FileInfo?      fileForParams;
                     public override  UnixStream? Parent => parent as UnixStream;
                     public Path(UnixStream? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                     {}
@@ -101,6 +102,8 @@ public partial class Options_Service
 
                         dir  = new DirectoryInfo(block.Name);
                         file = new FileInfo(System.IO.Path.Combine(dir.FullName, "random"));
+
+                        fileForParams = new FileInfo(System.IO.Path.Combine(dir.FullName, "params"));
                     }
 
                     public override void Check()
