@@ -90,6 +90,50 @@ public partial class Regime_Service
         }
     }
 
+    // При доступе синхронизация lock (continuouslyGetters)
+    public List<ContinuouslyGetterRecord> continuouslyGetters = new List<ContinuouslyGetterRecord>();
+
+    public unsafe class ContinuouslyGetterRecord
+    {
+        public    readonly Thread          t;
+        protected readonly Keccak_20200918 keccak;
+                                                                                            /// <summary>true, если объект уже удалён</summary>
+        public    bool     disposed {get; protected set;} = false;                          /// <summary>Количество битов, полученное из этого источника (это количество сырых битов, действительно полученных из источника, без учёта настроек {min,max,EME})</summary>
+        public    nint     countOfBits;
+        public    bool     isInited = false;
+
+        public ContinuouslyGetterRecord(Thread t, Keccak_20200918 keccak)
+        {
+            this.t      = t;
+            this.keccak = keccak;
+        }
+
+        public void getBytes(byte * data, nint maxLen)
+        {
+            checked
+            {
+                if (maxLen > KeccakPrime.BlockLen)
+                    throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({maxLen} > {KeccakPrime.BlockLen})");
+                if (!isInited)
+                    throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited (you must check isInited and skip this, if it is not)");
+
+                lock (keccak)
+                {
+                    keccak.CalcStep();
+                    KeccakPrime.Keccak_Output_512(data, (byte) maxLen, keccak.S);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+                throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
+
+            disposed = true;
+        }
+    }
+
     protected unsafe void StartContinuouslyGetter(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement)
     {
         fileElement.fileInfo!.Refresh();
@@ -104,60 +148,66 @@ public partial class Regime_Service
         (
             () =>
             {
-                nint totalBytes  = 0;
-                using var keccak = new Keccak_20200918();
-
-                var input   = stackalloc byte[KeccakPrime.BlockLen];    // Массив, из которого будет вводиться энтропия в губку keccak
-                int pos     = 0;
-                int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);
-
-                int len  = 24;
-                var buff = stackalloc byte[len];
-                var span = new Span<byte>(buff, len);
-                using (var rs = fileElement.fileInfo.OpenRead())
+                checked
                 {
-                    try
+                    nint totalBytes  = 0;
+                    using var keccak = new Keccak_20200918();   // При доступе синхронизировать lock (keccak)
+
+                    var input   = stackalloc byte[KeccakPrime.BlockLen];    // Массив, из которого будет вводиться энтропия в губку keccak
+                    int pos     = 0;
+                    int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);
+
+                    int len  = 24;
+                    var buff = stackalloc byte[len];
+                    var span = new Span<byte>(buff, len);
+                    using (var rs = fileElement.fileInfo.OpenRead())
                     {
-                        while (true)
+                        try
                         {
-                            var bytesReaded = rs.Read(span);
-                            if (bytesReaded <= 0 || Terminated)
-                                break;
-
-                            if (KeccakPrime.BlockLen - pos < bytesReaded + dateLen)
+                            while (true)
                             {
-                                KeccakPrime.Keccak_Input64_512(input, (byte) pos, keccak.S);
-                                keccak.CalcStep();
-                                pos = 0;
+                                var bytesReaded = rs.Read(span);
+                                if (bytesReaded <= 0 || Terminated)
+                                    break;
+
+                                if (KeccakPrime.BlockLen - pos < bytesReaded + dateLen)
+                                {
+                                    lock (keccak)
+                                    {
+                                        KeccakPrime.Keccak_Input64_512(input, (byte) pos, keccak.S);
+                                        keccak.CalcStep();
+                                    }
+                                    pos = 0;
+                                }
+
+                                if (dateLen > 0)
+                                {
+                                    var ticks = DateTime.Now.Ticks;
+                                    BytesBuilder.ULongToBytes((ulong) ticks, input, KeccakPrime.BlockLen, pos);
+                                    pos += dateLen;
+                                }
+
+                                BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
+                                pos += bytesReaded;
+                                totalBytes += bytesReaded;
+
+                                BytesBuilder.ToNull(len, buff);
                             }
-
-                            if (dateLen > 0)
-                            {
-                                var ticks = DateTime.Now.Ticks;
-                                BytesBuilder.ULongToBytes((ulong) ticks, input, KeccakPrime.BlockLen, pos);
-                                pos += dateLen;
-                            }
-
-                            BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
-                            pos += bytesReaded;
-                            totalBytes += bytesReaded;
-
-                            BytesBuilder.ToNull(len, buff);
+                        }
+                        catch (ThreadInterruptedException)
+                        {}
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine(  VinKekFish_Utils.Memory.formatException(ex)  );
                         }
                     }
-                    catch (ThreadInterruptedException)
-                    {}
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine(  VinKekFish_Utils.Memory.formatException(ex)  );
-                    }
-                }
 
-                lock (entropy_sync)
-                {
-                    Console.WriteLine($"{totalBytes} bytes got from {fileElement.fileInfo.FullName}");
-                }
-            }
+                    lock (entropy_sync)
+                    {
+                        Console.WriteLine($"{totalBytes} bytes got from {fileElement.fileInfo.FullName}");
+                    }
+                } // checked
+            } // end thread function
         );
 
         t.IsBackground = true;

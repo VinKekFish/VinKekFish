@@ -48,7 +48,8 @@ ProtectHome=no
 ProtectKernelTunables=true
 ProtectControlGroups=yes
 PrivateTmp=no
-ProtectClock=yes
+# Это препятствует чтению данных из /dev/input/mouse0; причём тут часы - неясно
+ProtectClock=no
 ProtectKernelLogs=no
 ProtectProc=default
 PrivateNetwork=no
