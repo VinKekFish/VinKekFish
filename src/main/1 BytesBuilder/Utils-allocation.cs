@@ -295,6 +295,7 @@ public unsafe static class Memory
         }
     }
 
+    //::warn:onlylinux:sOq1JvFKRxQyw7FQ:
     /// <summary>
     /// Выделяет оперативную память, как описано в man mmap
     /// </summary>

@@ -134,7 +134,7 @@ public partial class Regime_Service
     {
         lock (entropy_sync)
         {
-            if (bufferRec_current > 32) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных
+            if (bufferRec_current > 32) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
             if (bufferRec!.len - bufferRec_current < EmptyRemainder)
             {
                 var enteredBytesCount = bufferRec_current;
