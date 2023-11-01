@@ -6,6 +6,7 @@ namespace VinKekFish_console;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Security.Cryptography;
 using System.Text;
 using VinKekFish_EXE;
 using VinKekFish_Utils.console;
@@ -42,8 +43,8 @@ public partial class Program
             dirData = new DirectoryInfo("data");
             dirOpts = new DirectoryInfo("options");
 
-            ProcessServiceFile();
             ProcessOptionsFile();
+            ProcessServiceFile();
         }
 
         protected void ProcessServiceFile()
@@ -79,12 +80,15 @@ public partial class Program
             if (vkft.Exists)
                 vkft.Delete();
 
-            vkfo.CopyTo(vkft.FullName);
+            // vkfo.CopyTo(vkft.FullName);
+            vkft.CreateAsSymbolicLink(vkfo.FullName);
 
             var proc = Process.Start("systemctl", $"daemon-reload");
             proc.WaitForExit();
                 proc = Process.Start("systemctl", $"enable {vkft.Name}");
             proc.WaitForExit();
+
+            Console.WriteLine(L("'daemon-reload' and 'systemctl enable vkf' executed"));
         }
 
         protected void ProcessOptionsFile()

@@ -91,10 +91,10 @@ public partial class Regime_Service
             lock (entropy_sync)
             {
                 if (Terminated)
-                if (!ignoreTerminated)
-                {
-                    throw new Exception("Regime_Service.getEntropyForOut: termitaned");
-                }
+                    if (!ignoreTerminated)
+                    {
+                        throw new Exception("Regime_Service.getEntropyForOut: termitaned");
+                    }
 
                 Parallel.Invoke
                 (
@@ -149,6 +149,9 @@ public partial class Regime_Service
 
             // Арифметически складываем байты вывода каскадной губки и ВинКекФиша
             AddBytes(rec.len, rec.array, recvk.array);
+
+            if (!ignoreTerminated)  // Это выполняется не для файлов current
+                RemoveFromCountOfBytesCounters(outputStrenght);
         }
         catch
         {

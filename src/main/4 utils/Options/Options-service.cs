@@ -7,7 +7,7 @@ namespace VinKekFish_Utils.ProgramOptions;
 
 public partial class Options_Service
 {
-    public readonly Options options;
+    public readonly Options rawOptionsFile;
     public readonly Root    root;
 
     /// <summary>Создаёт объект настроек, полученных из файла</summary>
@@ -15,7 +15,7 @@ public partial class Options_Service
     /// <param name="doNotOutputWarningsToConsole">Если false, то выводит на Console.Error предупреждения</param>
     public Options_Service(Options options, bool doNotOutputWarningsToConsole = false)
     {
-        this.options = options;
+        this.rawOptionsFile = options;
         root = Analize();
 
         root.Check();
@@ -27,12 +27,12 @@ public partial class Options_Service
 
     protected virtual Root Analize()
     {
-        return new Root(options.options.blocks, new Options.Block());
+        return new Root(rawOptionsFile.options.blocks, new Options.Block());
     }
 
     public override string ToString()
     {
-        return options.ToString();
+        return rawOptionsFile.ToString();
     }
 
     public class Options_Service_Exception: Exception
@@ -108,9 +108,10 @@ public partial class Options_Service
         public Root(List<Options.Block> blocks, Options.Block thisBlock): base(null, blocks, thisBlock)
         {}
 
-        public Output? output;
-        public Input?  input;
-        public Path?   Path;
+        public Output?       output;
+        public Input?        input;
+        public Path?         Path;
+        public OptionsBlock? Options;
 
         /// <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>
         /// <param name="block">Подблок из парсера</param>
@@ -119,9 +120,10 @@ public partial class Options_Service
         {
             switch(canonicalName)
             {
-                case "input" : input  = new Input (this, block.blocks, block); break;
-                case "output": output = new Output(this, block.blocks, block); break;
-                case "path"  : Path   = new Path  (this, block.blocks, block); break;
+                case "input"   : input   = new Input        (this, block.blocks, block); break;
+                case "output"  : output  = new Output       (this, block.blocks, block); break;
+                case "path"    : Path    = new Path         (this, block.blocks, block); break;
+                case "options" : Options = new OptionsBlock (this, block.blocks, block); break;
                 default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'Output', 'Input', 'Path'");
             }
         }

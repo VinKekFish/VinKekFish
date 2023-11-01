@@ -66,6 +66,7 @@ chmod -R o-rwx options
 chmod -R o-rwx data
 
 date
+systemctl disable vkf
 systemctl stop vkf
 killall -s SIGINT -wq vkf
 
@@ -105,6 +106,19 @@ fi
 echo; echo;
 echo -e "\033[32mThe vkf program is successfully installed (ru: программа успешно установлена)\033[0m"
 echo
-echo 'Example for get random bytes: nc -UN /dev/vkf/random'
-echo 'ru: Пример получения случайных байтов от сервиса: nc -UN /dev/vkf/random'
+echo 'Example for get random bytes:'
+echo 'ru: Пример получения случайных байтов от сервиса:'
+echo nc -UN /dev/vkf/random
+echo nc -UN /dev/vkf/random >> /some/Path/file.key
+echo
+echo
+echo 'For reading log of service use commands:'
+echo 'ru: Для чтения логов программы используйте следующие команды:'
+echo sudo journalctl -e -u vkf
+echo -n "sudo watch "
+echo -ne \'
+echo -n journalctl --no-pager -u vkf
+echo -n " | "
+echo -n tail -n 15
+echo \'
 echo

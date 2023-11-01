@@ -35,6 +35,13 @@ CPUSchedulingPolicy=batch
 IOSchedulingClass=best-effort
 IOSchedulingPriority=5
 
+# Устанавливаем ограничения по потреблению
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html#
+# Раскомментировать, если нужно ограничить потребляемые ресурсы процессора
+# Это будет ОЧЕНЬ долго инициализироваться и запускаться. Для 15% процесс может длиться часами
+# На 4-хядерном компьютере при полной производительности процесс инициализации может спокойно занимать 5 минут.
+CPUQuota=200%
+# CPUQuotaPeriodSec=1000ms
 
 
 # man systemd.exec

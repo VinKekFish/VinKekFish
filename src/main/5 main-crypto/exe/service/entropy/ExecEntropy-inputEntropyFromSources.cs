@@ -16,13 +16,15 @@ using static VinKekFish_Utils.Language;
 public partial class Regime_Service
 {
     public class CountOfBytesCounter
-    {
-        protected double _min = 0d, _max = 0d, _avg = 0d, _EME = 0d;
+    {                                                                   /// <summary>Значения максимального количества накопленных байтов энтропии (min), минимального количества (max), среднего (avg) и количества для противодействия атакам по побочным каналам (EME)</summary>
+        protected double _min = 0d, _max = 0d, _avg = 0d, _EME = 0d;    /// <summary>Значение "удалённых" байтов - количества байтов, которые были получены из губки.</summary>
+        protected nint removedBytes = 0;
 
-        public nint min => (nint) _min;
-        public nint max => (nint) _max;
-        public nint avg => (nint) _avg;
-        public nint EME => (nint) _EME;
+        public nint min => (nint) Math.Max(_min - removedBytes, 0);
+        public nint max => (nint) Math.Max(_max - removedBytes, 0);
+        public nint avg => (nint) Math.Max(_avg - removedBytes, 0);
+        public nint EME => (nint) Math.Max(_EME - removedBytes, 0);
+
 
         public void addNumberToBytes(nint bytes, ContinuouslyGetterRecord getter)
         {
@@ -39,12 +41,39 @@ public partial class Regime_Service
             _EME += (double) bytes / (double) getter.inputElement.intervals!.entropy.EME;
         }
 
+        /// <summary>Логически "удаляет" часть байтов из значения накопленной энтропии</summary>
+        /// <param name="bytes">Количество удаляемых байтов энтропии (положительное значение, равное количеству изъятых из губки байтов)</param>
+        public void removeBytes(nint bytes)
+        {
+            if (bytes < 0)
+                throw new ArgumentOutOfRangeException($"Regime_Service.CountOfBytesCounter.removeBytes: bytes < 0 ({bytes})");
+
+            removedBytes += bytes;
+        }
+
         public void Clear()
         {
             _min = 0d;
             _max = 0d;
             _avg = 0d;
             _EME = 0d;
+
+            removedBytes = 0;
+        }
+
+        public CountOfBytesCounter Clone()
+        {
+            var result = new CountOfBytesCounter()
+            {
+                _min = this._min,
+                _max = this._max,
+                _avg = this._avg,
+                _EME = this._EME,
+
+                removedBytes = this.removedBytes
+            };
+
+            return result;
         }
 
         public override string ToString()
@@ -59,13 +88,18 @@ public partial class Regime_Service
                     {avg}
                 EME
                     {EME}
+                removed
+                    {removedBytes}
 
             """;
         }
     }
-                                                                                                                /// <summary>Количество собранных битов энтропии - всего</summary>
-    public readonly CountOfBytesCounter countOfBytesCounterTotal = new CountOfBytesCounter();                   /// <summary>Количество собранных битов энтропии - с учётом выведенной энтропии</summary>
-    public readonly CountOfBytesCounter countOfBytesCounterCorr  = new CountOfBytesCounter();
+                                                                                                                /// <summary>Количество собранных байтов энтропии - всего; эта переменная учитывает собранные, но ещё не введённые в главную губку байты.</summary>
+    protected readonly CountOfBytesCounter countOfBytesCounterTotal_h = new CountOfBytesCounter();              /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии; эта переменная учитывает собранные, но ещё не введённые в главную губку байты.</summary>
+    protected readonly CountOfBytesCounter countOfBytesCounterCorr_h  = new CountOfBytesCounter();
+                                                                                                                /// <summary>Количество собранных байтов энтропии - всего.</summary>
+    public CountOfBytesCounter countOfBytesCounterTotal { get; protected set; } = new CountOfBytesCounter();    /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии.</summary>
+    public CountOfBytesCounter countOfBytesCounterCorr  { get; protected set; } = new CountOfBytesCounter();
 
     /// <summary>Это должно быть вызвано в lock (entropy_sync).
     /// Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии.</summary>
@@ -74,28 +108,41 @@ public partial class Regime_Service
         var BlockLen = KeccakPrime.BlockLen;
         lock (continuouslyGetters)
         {
-            var  buff = bufferRec!.array;
-            nint cur  = 0;
+            var buff = bufferRec!.array;
             foreach (var getter in continuouslyGetters)
             {
                 if (!getter.isDataReady(BlockLen))
                     continue;
 
-                if (bufferRec.len - cur < BlockLen)
-                {
-                    InputBuffToSponges(bufferRec!, cur);
-                    cur = 0;
-                }
+                ConditionalInputEntropyToMainSponges(BlockLen);
 
-                getter.getBytes(buff + cur, BlockLen);
-                cur += BlockLen;
+                getter.getBytes(buff + bufferRec_current, BlockLen);
+                bufferRec_current += BlockLen;
 
-                countOfBytesCounterTotal.addNumberToBytes(BlockLen, getter);
-                countOfBytesCounterCorr .addNumberToBytes(BlockLen, getter);
+                countOfBytesCounterTotal_h.addNumberToBytes(BlockLen, getter);
+                countOfBytesCounterCorr_h .addNumberToBytes(BlockLen, getter);
             }
 
-            if (cur > 0)
-                InputBuffToSponges(bufferRec!, cur);
+            ConditionalInputEntropyToMainSponges(BlockLen);
+        }
+    }
+
+    /// <summary>Ввести накопленную в bufferRec энтропию в основную губку и выполнить вспомогательные операции. Может быть вызвано пользователем для принудительного сброса накопленной энтропии в губку.</summary>
+    /// <param name="EmptyRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue</param>
+    public unsafe void ConditionalInputEntropyToMainSponges(nint EmptyRemainder)
+    {
+        lock (entropy_sync)
+        {
+            if (bufferRec_current > 0)
+            if (bufferRec!.len - bufferRec_current < EmptyRemainder)
+            {
+                var enteredBytesCount = bufferRec_current;
+                InputBuffToSponges(bufferRec!, bufferRec_current);
+                SetCountOfBytesCounters_and_ClearBufferRec();
+
+                if (options_service?.root?.Options?.doLogEveryInputEntropyToSponge ?? false)
+                    Console.WriteLine(L("Entropy bytes entered to the main sponge (\"do log every input entropy to sponge\" option is setted). Entered") + $" {enteredBytesCount}");
+            }
         }
     }
 

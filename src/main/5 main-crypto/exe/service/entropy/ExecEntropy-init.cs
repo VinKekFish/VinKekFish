@@ -27,8 +27,9 @@ public partial class Regime_Service
     public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
 
     public bool isInitiated { get; protected set; } = false;
-                                                                    /// <summary>Буферная запись, которая создаётся в StartEntropy и используется в InputEntropyFromSources. Её размер MAX_RANDOM_AT_START_FILE_LENGTH</summary>
-    protected Record? bufferRec = null;
+                                                                    /// <summary>Буферная запись, которая создаётся в StartEntropy и используется в InputEntropyFromSources. Осторожно, она хранит данные между запусками функций: её нельзя нигде использовать. Её размер MAX_RANDOM_AT_START_FILE_LENGTH</summary>
+    protected Record? bufferRec = null;                             /// <summary>Текущее значение объёма данных, которые  хранятся в bufferRec</summary>
+    protected nint    bufferRec_current = 0;
 
     /// <summary>Функция вызывается для инициализации всех губок, накапливающих энтропию</summary>
     protected unsafe virtual void StartEntropy()
@@ -44,15 +45,15 @@ public partial class Regime_Service
                 CreateFolders();
 
                 ExecEntorpy_now = DateTime.Now.Ticks;
-                bufferRec       = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
+                bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
 
                 CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
                 CascadeSponge.InitThreeFishByCascade(1, false);
 
                 nint realRandomLength = 0;
 
-                
-                nint    rndCount = 0;
+
+                nint rndCount = 0;
                 using (var rndbytes = new BytesBuilderForPointers())
                 {
                     realRandomLength = getRandomFromOSEntropy_Startup(bufferRec, rndbytes, realRandomLength);
@@ -64,9 +65,11 @@ public partial class Regime_Service
 
                     realRandomLength = getRandomFromStandardEntropy_Startup(bufferRec, rndbytes, realRandomLength);
 
-                    rnd      = rndbytes.getBytes();
+                    rnd = rndbytes.getBytes();
                     rndCount = rnd.len;
                 }
+
+                Console.WriteLine(L("Startup entropy absorption has begun: initialization continues"));
 
                 CascadeSponge.step(regime: 1, data: rnd, dataLen: rnd.len);
                 CascadeSponge.step(CascadeSponge.countStepsForKeyGeneration, regime: 255, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite);
@@ -75,7 +78,7 @@ public partial class Regime_Service
 
                 // Делаем первичную инициализацию временем при старте
                 // Ограничиваем вывод, иначе получается слишком долго
-                var sz  = (int)(realRandomLength + rndCount);
+                var sz = (int)(realRandomLength + rndCount);
                 if (sz > OutputStrenght)
                     sz = OutputStrenght;
 
@@ -97,10 +100,12 @@ public partial class Regime_Service
                 if (Terminated)
                     return;
 
+                Console.WriteLine(L("Deep initialization has begun: initialization continues"));
+
                 Parallel.Invoke
                 (
                     () =>
-                    {   
+                    {
                         VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
 
                         // rec является синхропосылкой, но т.к. ключа нет, то rec вводится как ключ
@@ -121,6 +126,7 @@ public partial class Regime_Service
                     }
                 );
 
+                SetCountOfBytesCounters_and_ClearBufferRec();
                 isInitiated = true;
             }
             catch
@@ -134,6 +140,21 @@ public partial class Regime_Service
                 Monitor.PulseAll(entropy_sync);
             }
         }
+    }
+
+    protected virtual unsafe void SetCountOfBytesCounters_and_ClearBufferRec()
+    {
+        bufferRec!.Clear();
+        bufferRec_current = 0;
+
+        countOfBytesCounterTotal = countOfBytesCounterTotal_h.Clone();
+        countOfBytesCounterCorr  = countOfBytesCounterCorr_h .Clone();
+    }
+
+    protected unsafe void RemoveFromCountOfBytesCounters(nint outputStrenght)
+    {
+        countOfBytesCounterCorr_h.removeBytes(outputStrenght);
+        countOfBytesCounterCorr  .removeBytes(outputStrenght);
     }
 
     public unsafe nint getRandomFromOSEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)

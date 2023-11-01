@@ -44,4 +44,12 @@ is exists. Will not replaced. Check this is correct manually
     существует. Файл не будет перезаписан. Проверьте его правильность вручную. Если необходимо, удалите файл и запустите установку заново
 The .service file
     .service файл
+Startup entropy absorption has begun: initialization continues
+    Начато предварительное поглощение энтропии при запуске: инициализация продолжается
+Deep initialization has begun: initialization continues
+    Начата основная инициализация: инициализация продолжается
+Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted). Entered
+    Байты энтропии были введены в главную губку (установлена настройка "do log every input entropy to sponge" для создания данной записи в логе). Введено
+'daemon-reload' and 'systemctl enable vkf' executed
+    'daemon-reload' и 'systemctl enable vkf' запущены
 :

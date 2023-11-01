@@ -3,6 +3,10 @@ path
     random at start folder
         vkf/random_at_start_folder
 
+options
+    do log every input entropy to sponge
+
+
 output
     random
         unix stream

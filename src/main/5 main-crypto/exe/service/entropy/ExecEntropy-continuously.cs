@@ -244,71 +244,17 @@ public partial class Regime_Service
 
                     var buff = stackalloc byte[len];
                     var span = new Span<byte>(buff, len - dateLen);
-                    using (var rs = fileElement.fileInfo.OpenRead())
-                    {
-                        var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
-                        lock (continuouslyGetters)
-                            continuouslyGetters.Add(cgr);
 
+                    while (!this.Terminated)
+                    {
                         try
                         {
-                            nint totalBytes = 0;
-                            while (true)
-                            {
-                                var bytesReaded = rs.Read(span);
-                                if (bytesReaded <= 0 || Terminated)
-                                    break;
-
-                                if (pos >= KeccakPrime.BlockLen)
-                                {
-                                    cgr.addBytes(totalBytes, pos, input);
-                                    pos = 0;
-                                    totalBytes = 0;
-
-                                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
-                                    {
-                                        var ticks = DateTime.Now.Ticks;
-
-                                        if (ticks - lastTimeInLog >= ticksPerHour)
-                                        if (lastBytesInLog != cgr.countOfBytesToUser)
-                                        {
-                                            SendDebugMsgToConsole(fileElement, cgr);
-
-                                            lastTimeInLog  = ticks;
-                                            lastBytesInLog = cgr.countOfBytesToUser;
-                                        }
-                                    }
-                                }
-
-                                if (dateLen > 0)
-                                {
-                                    var ticks = DateTime.Now.Ticks;
-                                    BytesBuilder.ULongToBytes((ulong)ticks, input, KeccakPrime.BlockLen, pos);
-                                    pos += dateLen;
-                                }
-
-                                BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
-                                pos += bytesReaded;
-                                totalBytes += bytesReaded;
-
-                                BytesBuilder.ToNull(len, buff);
-                            }
-
-                            if (interval.flags!.watchInLog == Flags.FlagValue.yes)
-                                SendDebugMsgToConsole(fileElement, cgr);
+                            getEntropyFromFile_h(rnd, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span);
                         }
-                        catch (ThreadInterruptedException)
-                        {}
                         catch (Exception ex)
                         {
-                            Console.Error.WriteLine(  VinKekFish_Utils.Memory.formatException(ex)  );
-                        }
-                        finally
-                        {                            
-                            lock (continuouslyGetters)
-                                continuouslyGetters.Remove(cgr);
-
-                            cgr.Dispose();
+                            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                            Thread.Sleep(5000);
                         }
                     }
                 } // checked
@@ -319,13 +265,96 @@ public partial class Regime_Service
         t.Start();
     }
 
+    protected unsafe void getEntropyFromFile_h(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span)
+    {
+        checked
+        {
+            using (var rs = fileElement.fileInfo!.OpenRead())
+            {
+                var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+                lock (continuouslyGetters)
+                    continuouslyGetters.Add(cgr);
+
+                try
+                {
+                    nint totalBytes = 0;
+                    getEntropyFromFile_h(interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes);
+
+                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                        SendDebugMsgToConsole(fileElement, cgr);
+                }
+                catch (ThreadInterruptedException)
+                { }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                    Thread.Sleep(5000);
+                }
+                finally
+                {
+                    lock (continuouslyGetters)
+                        continuouslyGetters.Remove(cgr);
+
+                    cgr.Dispose();
+                }
+            } // using
+        }
+    }
+
+    protected unsafe void getEntropyFromFile_h(Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, FileStream rs, ContinuouslyGetterRecord cgr, ref nint totalBytes)
+    {
+        checked
+        {
+            while (true)
+            {
+                var bytesReaded = rs.Read(span);
+                if (bytesReaded <= 0 || Terminated)
+                    break;
+
+                if (pos >= KeccakPrime.BlockLen)
+                {
+                    cgr.addBytes(totalBytes, pos, input);
+                    pos = 0;
+                    totalBytes = 0;
+
+                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                    {
+                        var ticks = DateTime.Now.Ticks;
+
+                        if (ticks - lastTimeInLog >= ticksPerHour)
+                            if (lastBytesInLog != cgr.countOfBytesToUser)
+                            {
+                                SendDebugMsgToConsole(fileElement, cgr);
+
+                                lastTimeInLog  = ticks;
+                                lastBytesInLog = cgr.countOfBytesToUser;
+                            }
+                    }
+                }
+
+                if (dateLen > 0)
+                {
+                    var ticks = DateTime.Now.Ticks;
+                    BytesBuilder.ULongToBytes((ulong)ticks, input, KeccakPrime.BlockLen, pos);
+                    pos += dateLen;
+                }
+
+                BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
+                pos        += bytesReaded;
+                totalBytes += bytesReaded;
+
+                BytesBuilder.ToNull(len, buff);
+            }
+        }
+    }
+
     public unsafe void SendDebugMsgToConsole(Options_Service.Input.Entropy.InputFileElement fileElement, ContinuouslyGetterRecord cgr)
     {
         checked
         {
             lock (entropy_sync)
             {
-                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to user.");
+                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges.");
             }
         }
     }
