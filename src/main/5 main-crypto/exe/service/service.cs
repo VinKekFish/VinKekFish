@@ -143,9 +143,6 @@ public partial class Regime_Service
             Console.WriteLine("----------------------------------------------------------------");
             Console.WriteLine("----------------------------------------------------------------");
             Console.WriteLine($"UnixStreamPath = {UnixStreamPath!.FullName}");
-
-
-            // OS_Entropy_path
         }
         catch (Exception ex)
         {
