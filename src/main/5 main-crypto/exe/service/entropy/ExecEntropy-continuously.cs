@@ -143,17 +143,17 @@ public partial class Regime_Service
         }
 
         /// <summary>Проверяет, готово ли количество данных len для вывода.</summary>
-        /// <param name="len">Количество байтов энтропии, которое хочет получить пользователь.</param>
+        /// <param name="askedBytes">Количество байтов энтропии, которое хочет получить пользователь.</param>
         /// <returns>false, если данные не готовы. true, если данные готовы. Если false, то из объекта ещё нельзя извлекать данные с помощью функции getBytes.</returns>
-        public bool isDataReady(nint len)
+        public bool isDataReady(nint askedBytes)
         {
             checked
             {
                 if (!isInited)
                     return false;
 
-                var val = GetCountOfReadyBytes();
-                return len > val;
+                var ReadyBytes = GetCountOfReadyBytes();
+                return askedBytes < ReadyBytes;
             }
         }
 

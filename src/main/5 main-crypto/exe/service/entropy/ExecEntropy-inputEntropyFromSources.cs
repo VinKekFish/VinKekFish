@@ -123,12 +123,13 @@ public partial class Regime_Service
                 countOfBytesCounterCorr_h .addNumberToBytes(BlockLen, getter);
             }
 
-            ConditionalInputEntropyToMainSponges(BlockLen);
+            // Отрабатываем, если длина вводимых байтов больше, чем один шаг губки
+            ConditionalInputEntropyToMainSponges(bufferRec.len - Math.Max(VinKekFish.BLOCK_SIZE_K, CascadeSponge.maxDataLen));
         }
     }
 
     /// <summary>Ввести накопленную в bufferRec энтропию в основную губку и выполнить вспомогательные операции. Может быть вызвано пользователем для принудительного сброса накопленной энтропии в губку.</summary>
-    /// <param name="EmptyRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue</param>
+    /// <param name="EmptyRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
     public unsafe void ConditionalInputEntropyToMainSponges(nint EmptyRemainder)
     {
         lock (entropy_sync)

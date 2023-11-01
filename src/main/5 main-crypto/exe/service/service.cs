@@ -138,6 +138,10 @@ public partial class Regime_Service
             UnixStreamDir        = out_random.dir;
             UnixStreamPath       = out_random.file;
             UnixStreamPathParams = out_random.fileForParams;
+
+            // Это первое, что пишет программа при запуске
+            Console.WriteLine("----------------------------------------------------------------");
+            Console.WriteLine("----------------------------------------------------------------");
             Console.WriteLine($"UnixStreamPath = {UnixStreamPath!.FullName}");
 
 

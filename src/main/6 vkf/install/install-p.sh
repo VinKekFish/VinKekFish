@@ -68,6 +68,7 @@ chmod -R o-rwx data
 date
 systemctl disable vkf
 systemctl stop vkf
+sleep 5
 killall -s SIGINT -wq vkf
 
 exe/vkf install
@@ -109,7 +110,7 @@ echo
 echo 'Example for get random bytes:'
 echo 'ru: Пример получения случайных байтов от сервиса:'
 echo nc -UN /dev/vkf/random
-echo nc -UN /dev/vkf/random >> /some/Path/file.key
+echo nc -UN /dev/vkf/random ">>" /some/Path/file.key
 echo
 echo
 echo 'For reading log of service use commands:'
