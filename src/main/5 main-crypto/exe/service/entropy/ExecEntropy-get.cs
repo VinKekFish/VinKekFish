@@ -80,6 +80,8 @@ public partial class Regime_Service
     /// <returns>Запрошенный случайный вывод</returns>
     public unsafe Record getEntropyForOut(nint outputStrenght, bool ignoreTerminated = false)
     {
+        ConditionalInputEntropyToMainSponges(nint.MaxValue);
+
         if (outputStrenght < sizeof(long))
             outputStrenght = sizeof(long);
 

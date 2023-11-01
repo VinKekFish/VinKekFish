@@ -203,7 +203,6 @@ public class UnixSocketListener: IDisposable
         {
             var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
 
-            listenSocket.service.ConditionalInputEntropyToMainSponges(nint.MaxValue);
             using (var buff = listenSocket.service.getEntropyForOut(blockSize))
             {
                 var span = new ReadOnlySpan<byte>(buff, (int)blockSize);
@@ -213,8 +212,7 @@ public class UnixSocketListener: IDisposable
 
         protected unsafe void SendEntropyParamsToUser()
         {
-            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
-
+            listenSocket.service.ConditionalInputEntropyToMainSponges(nint.MaxValue);
             var paramString = listenSocket.service.countOfBytesCounterTotal.ToString() + "\n" + listenSocket.service.countOfBytesCounterCorr.ToString();
 
             var @params = new UTF8Encoding().GetBytes(paramString);

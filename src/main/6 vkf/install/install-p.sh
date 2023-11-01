@@ -82,7 +82,11 @@ then
 fi
 
 
+# Дадим пользователю хоть краем глаза взглянуть на то, что было выведено до этого
+sleep 3
 systemctl start vkf
+
+sleep 3
 
 echo
 echo 'INFORMATION: '

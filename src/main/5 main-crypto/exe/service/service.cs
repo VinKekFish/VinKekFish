@@ -140,8 +140,8 @@ public partial class Regime_Service
             UnixStreamPathParams = out_random.fileForParams;
 
             // Это первое, что пишет программа при запуске
-            Console.WriteLine("----------------------------------------------------------------");
-            Console.WriteLine("----------------------------------------------------------------");
+            Console.WriteLine("---------------------------------------------");
+            Console.WriteLine("---------------------------------------------");
             Console.WriteLine($"UnixStreamPath = {UnixStreamPath!.FullName}");
         }
         catch (Exception ex)

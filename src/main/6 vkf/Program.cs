@@ -7,7 +7,7 @@ using VinKekFish_EXE;
 using Memory = VinKekFish_Utils.Memory;
 using static VinKekFish_Utils.Memory;
 using static VinKekFish_Utils.Language;
-
+using System.Text;
 
 public partial class Program
 {
