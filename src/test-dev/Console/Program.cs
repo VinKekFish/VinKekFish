@@ -50,6 +50,19 @@ unsafe class Program
         else
             Console.WriteLine("ERROR: Неверный владелец");
 
+        var fi = new FileInfo("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"); fi.Refresh();
+        Console.WriteLine($"scaling_cur_freq length: {fi.Length}");
+        // var b = new byte[1024*1024];
+        var b = stackalloc byte[16*1024];
+        var s = new Span<byte>(b, 16*1024);
+        using (var fs = fi.OpenRead())
+        {
+            var readed = fs.Read(s);
+            Console.WriteLine($"scaling_cur_freq readed bytes count: {readed}");
+            readed = fs.Read(s);
+            Console.WriteLine($"scaling_cur_freq readed bytes count: {readed}");
+        }
+
         Console.WriteLine("Нажмите любую клавишу...");
         Console.ReadLine();
     }

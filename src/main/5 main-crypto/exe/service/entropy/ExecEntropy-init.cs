@@ -269,11 +269,12 @@ public partial class Regime_Service
             // fixed (byte * bytes = ob)
             if (readedLen > 0)
             {
-                if (interval.flags!.ignored == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes)
+                if (interval.flags!.log == Flags.FlagValue.yes && readedLen > 0)
+                    WriteToLog(bufferRec, readedLen);
+
+                if (interval.flags!.ignored == Flags.FlagValue.yes)
                 {
                     ignored = true;
-                    if (interval.flags!.log == Options_Service.Input.Entropy.Interval.Flags.FlagValue.yes && readedLen > 0)
-                        WriteToLog(bufferRec, readedLen);
                 }
                 else
                     rndbytes.addWithCopy(bufferRec.array, readedLen, allocator: allocator);
@@ -354,6 +355,7 @@ public partial class Regime_Service
         }
     }
 
+    public static readonly object WriteToLog_sync = new object();
     public static unsafe void WriteToLog(Record bufferRec, int readedLen)
     {
         checked
@@ -361,8 +363,11 @@ public partial class Regime_Service
             var log = new FileInfo("log.log");
             using (var ws = log.OpenWrite())
             {
-                ws.Seek(0, SeekOrigin.End);
-                ws.Write(bufferRec << bufferRec.len - readedLen);
+                lock (WriteToLog_sync)
+                {
+                    ws.Seek(0, SeekOrigin.End);
+                    ws.Write(bufferRec << bufferRec.len - readedLen);
+                }
             }
         }
     }

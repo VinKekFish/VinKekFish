@@ -141,6 +141,18 @@
             <param name="time">Возвращаемый результат: время в миллисекундах</param>
             <returns>true - если время получено успешно. false - если время не было распознано</returns>
         </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags.date">
+            <summary>Добавлять при чтении из источника энтропии точное время чтения (как дополнительный источник энтропии)</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags.ignored">
+            <summary>Информация не поступает в губку</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags.log">
+            <summary>Выводить ли всю информацию, полученную из источника энтропии, в лог-файл</summary>
+        </member>
+        <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags.watchInLog">
+            <summary>Показывать ли время от времени в логах количество полученных из источника байтов</summary>
+        </member>
         <member name="F:VinKekFish_Utils.ProgramOptions.Options_Service.Output.out_random">
             <summary>Определяет, в какой директории будет находится файл "random" с выходом программы</summary>
         </member>

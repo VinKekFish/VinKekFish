@@ -48,13 +48,15 @@ public partial class Regime_Service
     {
         checked
         {
-            var sb = new StringBuilder();
             foreach (var rnd in rndList)
             {
                 var intervals = rnd.intervals!.interval!.inner;
                 foreach (var interval in intervals)
                 {
-                    if (interval.IntervalType == IntervalTypeEnum.continuously)
+                    if (
+                        interval.IntervalType == IntervalTypeEnum.continuously ||
+                        interval.IntervalType == IntervalTypeEnum.fast
+                        )
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
@@ -81,12 +83,6 @@ public partial class Regime_Service
                         }
                     }
                 }
-            }
-
-            if (sb.Length > 0)
-            {
-                Console.WriteLine(L("Continuously getter started:"));
-                Console.WriteLine(sb.ToString());
             }
         }
     }
@@ -220,14 +216,19 @@ public partial class Regime_Service
         }
     }
 
-    protected unsafe void StartContinuouslyGetter(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement)
+    protected unsafe void StartContinuouslyGetter
+    (
+        Options_Service.Input.Entropy.InputElement rnd,
+        Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
+        Options_Service.Input.Entropy.InputFileElement fileElement
+    )
     {
-        fileElement.fileInfo!.Refresh();
+        fileElement.fileInfo!.Refresh();/*
         if (!fileElement.fileInfo.Exists)
         {
             Console.Error.WriteLine($"Regime_Service.StartContinuouslyGetter: file not found: {fileElement.fileInfo.FullName}");
             return;
-        }
+        }*/
 
         var t = new Thread
         (
@@ -246,17 +247,59 @@ public partial class Regime_Service
                     var buff = stackalloc byte[len];
                     var span = new Span<byte>(buff, len - dateLen);
 
-                    while (!this.Terminated)
+                    nint totalBytes = 0;
+                    var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+
+                    try
                     {
-                        try
+                        lock (continuouslyGetters)
+                            continuouslyGetters.Add(cgr);
+
+                        while (!this.Terminated)
                         {
-                            getEntropyFromFile_h(rnd, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span);
+                            try
+                            {
+                                WaitForFileExists(fileElement.fileInfo, L("File not found. Wait for creation:") + $" '{fileElement.fileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.fileInfo.FullName}'.");
+                                if (this.Terminated)
+                                    break;
+
+                                // Если мы "быстро" считываем файл,
+                                // то мы будем делать это не так и задержка в цикле будет другой
+                                if (interval.IntervalType == IntervalTypeEnum.fast)
+                                {
+                                    getEntropyFromFile_h(cgr, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes);
+                                    if (!this.Terminated)
+                                        Thread.Sleep(97);
+                                }
+                                else
+                                {
+                                    // Здесь мы считываем файл постоянно.
+                                    // Задержка нужна только на случай какой-либо ошибки файлового ввода-вывода
+                                    getEntropyFromFile_h(cgr, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes);
+                                    if (!this.Terminated)
+                                        Thread.Sleep(1049);
+                                }
+                            }
+                            catch (ThreadInterruptedException)
+                            {
+                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                                Thread.Sleep(3557);
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
-                            Thread.Sleep(5000);
-                        }
+
+                        if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                            SendGetterDebugMsgToConsole(fileElement, cgr);
+                    }
+                    finally
+                    {
+                        lock (continuouslyGetters)
+                            continuouslyGetters.Remove(cgr);
+
+                        cgr.Dispose();
                     }
                 } // checked
             } // end thread function
@@ -266,78 +309,121 @@ public partial class Regime_Service
         t.Start();
     }
 
-    protected unsafe void getEntropyFromFile_h(Options_Service.Input.Entropy.InputElement rnd, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span)
+    /// <summary>Ожидает появления файла в файловой системе, если его ещё нет</summary>
+    /// <param name="fileElement">Описатель файла</param>
+    public unsafe void WaitForFileExists(FileInfo fi, string? MessageForConsole = null, string? MessageBySuccessfullForConsole = null)
+    {
+        fi.Refresh();
+
+        bool messaged = false;
+        while (!fi.Exists && !this.Terminated)
+        {
+            if (!messaged)
+            {
+                Console.WriteLine(MessageForConsole);
+                messaged = true;
+            }
+
+            Thread.Sleep(1049);
+            fi.Refresh();
+        }
+
+        if (messaged)
+        {
+            Console.WriteLine(MessageBySuccessfullForConsole);
+        }
+    }
+
+    protected unsafe void getEntropyFromFile_h(ContinuouslyGetterRecord cgr, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, ref nint totalBytes)
     {
         checked
         {
             using (var rs = fileElement.fileInfo!.OpenRead())
             {
-                var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
-                lock (continuouslyGetters)
-                    continuouslyGetters.Add(cgr);
-
                 try
                 {
-                    nint totalBytes = 0;
                     getEntropyFromFile_h(interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes);
-
-                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
-                        SendDebugMsgToConsole(fileElement, cgr);
                 }
                 catch (ThreadInterruptedException)
-                { }
+                {}
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
-                    Thread.Sleep(5000);
+                    Thread.Sleep(3557);
                 }
                 finally
-                {
-                    lock (continuouslyGetters)
-                        continuouslyGetters.Remove(cgr);
-
-                    cgr.Dispose();
-                }
+                {}
             } // using
         }
     }
 
-    protected unsafe void getEntropyFromFile_h(Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, FileStream rs, ContinuouslyGetterRecord cgr, ref nint totalBytes)
+    protected unsafe void getEntropyFromFile_h
+    (
+        Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
+        Options_Service.Input.Entropy.InputFileElement fileElement,
+        int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog,
+        byte* buff, Span<byte> span,
+        FileStream rs, ContinuouslyGetterRecord cgr, ref nint totalBytes
+    )
     {
         checked
         {
+            long lastDate = default;
+            bool ignored  = interval.flags!.ignored == Flags.FlagValue.yes;
+            bool doLog    = interval.flags!.log == Flags.FlagValue.yes;
             while (true)
             {
                 var bytesReaded = rs.Read(span);
                 if (bytesReaded <= 0 || Terminated)
                     break;
+// TODO: Добавить сравнение с предыдущим считанным результатом
+                // Если считываем только время, то пропускаем шаг цикла, если время совпадает
+                if (interval.flags!.date == Flags.FlagValue.dateOnly)
+                {
+                    var now = DateTime.Now.Ticks;
+                    if (now == lastDate)
+                        continue;
 
+                    lastDate = now;
+                }
+
+                // Вводим данные в промежуточную губку, если их накопилось на блок
                 if (pos >= KeccakPrime.BlockLen)
                 {
-                    cgr.addBytes(totalBytes, pos, input);
+                    if (doLog)
+                    {
+                        using (var tmpRecord = new Record())
+                        {
+                            tmpRecord.array = input;
+                            tmpRecord.len   = span.Length;
+                            WriteToLog(tmpRecord, pos);
+
+                            // Иначе будет обнуление буфера
+                            tmpRecord.array = null;
+                        }
+                    }
+
+                    if (!ignored)
+                        cgr.addBytes(totalBytes, pos, input);
+
                     pos = 0;
                     totalBytes = 0;
 
-/* TODO: добавить логирование и игнорирование данных, если это необходимо по настройкам
-if (interval.flags!.ignored == Flags.FlagValue.yes)
-            {
-                ignored = true;
-                if (interval.flags!.log == Flags.FlagValue.yes && readedLen > 0)
-                    WriteToLog(bufferRec, readedLen);
-            }
-*/
-                    if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                    if (!ignored)
                     {
-                        var ticks = DateTime.Now.Ticks;
-
-                        if (ticks - lastTimeInLog >= ticksPerHour)
-                            if (lastBytesInLog != cgr.countOfBytesToUser)
-                            {
-                                SendDebugMsgToConsole(fileElement, cgr);
-
-                                lastTimeInLog  = ticks;
-                                lastBytesInLog = cgr.countOfBytesToUser;
-                            }
+                        if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                        {
+                            var ticks = DateTime.Now.Ticks;
+// TODO: !!!!
+                            if (ticks - lastTimeInLog >= ticksPerHour)
+                                if (lastBytesInLog != cgr.countOfBytesToUser)
+                                {
+                                    SendGetterDebugMsgToConsole(fileElement, cgr);
+Console.WriteLine(ticks - lastTimeInLog);
+                                    lastTimeInLog  = ticks;
+                                    lastBytesInLog = cgr.countOfBytesToUser;
+                                }
+                        }
                     }
                 }
 
@@ -346,18 +432,25 @@ if (interval.flags!.ignored == Flags.FlagValue.yes)
                     var ticks = DateTime.Now.Ticks;
                     BytesBuilder.ULongToBytes((ulong)ticks, input, KeccakPrime.BlockLen, pos);
                     pos += dateLen;
+
+                    if (interval.flags!.date == Flags.FlagValue.dateOnly)
+                        totalBytes += dateLen;
                 }
 
-                BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
-                pos        += bytesReaded;
-                totalBytes += bytesReaded;
+                // Считываем данные только если указано, что источник энтропии можно считывать
+                if (interval.flags!.date != Flags.FlagValue.dateOnly)
+                {
+                    BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
+                    pos        += bytesReaded;
+                    totalBytes += bytesReaded;
+                }
 
                 BytesBuilder.ToNull(len, buff);
             }
         }
     }
 
-    public unsafe void SendDebugMsgToConsole(Options_Service.Input.Entropy.InputFileElement fileElement, ContinuouslyGetterRecord cgr)
+    public unsafe void SendGetterDebugMsgToConsole(Options_Service.Input.Entropy.InputFileElement fileElement, ContinuouslyGetterRecord cgr)
     {
         checked
         {

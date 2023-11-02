@@ -114,8 +114,9 @@ partial class Program
             if (file.LastWriteTimeUtc >= first)
             {
                 using (var opt = new NotErrorConsoleOptions())
-                Console.WriteLine($"{sources_di.Name}");
-                Console.WriteLine($"Updated file found: {file.FullName}");
+                    Console.Write($"{sources_di.Name}");
+
+                Console.WriteLine($"\nUpdated file found: {file.FullName}");
                 return false;
             }
         }

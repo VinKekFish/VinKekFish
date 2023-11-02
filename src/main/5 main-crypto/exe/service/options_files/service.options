@@ -24,8 +24,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 cat
@@ -36,8 +34,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 cat
@@ -48,8 +44,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 cat
@@ -60,8 +54,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 cat
@@ -72,8 +64,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 cat
@@ -84,8 +74,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 cat
@@ -96,8 +84,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 ls
@@ -108,8 +94,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
 
             cmd
                 sensors
@@ -119,9 +103,12 @@ input
                             length
                                 full
                             flags
+                        1m
+                            length
+                                full
+                            flags
                             difference
                                 no
-
             cmd
                 df
                 -T
@@ -131,9 +118,12 @@ input
                             length
                                 full
                             flags
+                        1m
+                            length
+                                full
+                            flags
                             difference
-                                no
-            
+                                yes
             cmd
                 lsblk
                     no entropy evaluation
@@ -142,8 +132,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lscpu
@@ -153,8 +141,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lshw
@@ -164,8 +150,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lslogins
@@ -175,8 +159,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lsmem
@@ -186,8 +168,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lsmod
@@ -197,8 +177,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 lspci
@@ -210,8 +188,6 @@ input
                                 full
                             flags
                                 # ignored:log
-                            difference
-                                no
             
             cmd
                 lsusb
@@ -222,8 +198,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
             
             cmd
                 ps
@@ -234,8 +208,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
                         1m
                             length
                                 full
@@ -258,8 +230,6 @@ input
                             length
                                 32
                             flags
-                            difference
-                                no
                         1s
                             length
                                 1
@@ -293,8 +263,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
                         1m
                             length
                                 full
@@ -327,8 +295,6 @@ input
                             length
                                 full
                             flags
-                            difference
-                                no
                         1m
                             length
                                 full
@@ -358,6 +324,68 @@ input
                             flags
                                 date
                                 watch counter in log
-                            difference
-                                no
+            file
+                # Читаем данные с клавиатуры
+                # TODO: Здесь нужно сделать чтение данных не только с моей личной клавиатуры
+                /dev/input/by-id/usb-04d9_1203-event-kbd
+                    min
+                        # Здесь есть один существенный момент. Так как на клавиатуре может быть введён пароль,
+                        # он не должен быть подобран по его хешу, который может попасть в губку.
+                        # Учитывая это, мы не можем вообще снимать показания с клавиатуры.
+                        # Во флагах должно стоять "date only", чтобы брать только время нажатия, но не код нажатой клавиши.
+                        # Время нажатия считаем равномерным с точностью 2 мс.
+                        # Если интервал измерения остаётся, в среднем, в пределах 50 мкс (реально может быть менее 20мкс),
+                        # то получим 2000/50=40 разных вариантов числа, которые более-менее непредсказуемы
+                        # Учитывая возможные нюансы с тем, что клавиша просто долго нажата
+                        # и приходит равномерно по времени один и тот же скан-код, для расчёта максимума, возможно,
+                        # стоит ещё сделать запас в пару раз
+                        # Итого, дата занимает 8 байтов. Однако, приходит с них только 5 битов максимум.
+                        # Да ещё и возможные повторы клавиш: их не менее, чем 2 на одно нажатие, а бывает и 3, и 4.
+                        # Таким образом, 2*8*8/5=25,6
+                        # Если считать, что повторов гораздо больше - штук 10, то 10*8*8/5=128
+                        25
+                    max
+                        768
+                    avg
+                        128
+                    EME
+                        0
+                    interval
+                        0
+                            length
+                                full
+                            flags
+                                date only
+                                watch counter in log
+            file
+                /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+                    min
+                        # 8 символов на частоты в единицах гигагерц (включая завершающий \n)
+                        # Считаем, что, в среднем, получаем 2 бита информации с одного считывания
+                        # 8*8/2=32
+                        # Однако, это слишком много для поглощения
+                        # Т.к. 80 байтов мы получаем за 1 секунду, а нам нужно бы
+                        # вводить 4096 байтов не чаще, чем 1 раз в час.
+                        # В секунду, таким образом, примерно по байту
+                        # Получаем, что параметр min должен быть не менее 80-ти
+                        32
+                    max
+                        # Тактовая частота процессора всегда может быть настроена на максимум
+                        # или процессор может находиться в простое и быть на минимальной частоте
+                        # Тогда энтропии не будет уже
+                        0
+                    avg
+                        # Учитывая, что процессор может бездействовать на самой низкой частоте
+                        # или ещё могут быть какие настройки, например, поддержание одинаковой частоты,
+                        # то домножаем примерно на 100 минимальное значение энтропии
+                        2800
+                    EME
+                        0
+                    interval
+                        fast
+                            length
+                                full
+                            flags
+                                watch counter in log
+
 

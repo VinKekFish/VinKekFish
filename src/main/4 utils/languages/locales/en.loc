@@ -52,4 +52,8 @@ Entropy bytes entered to the main sponge ("do log every input entropy to sponge"
     Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted for make this log record). Entered
 'daemon-reload' and 'systemctl enable vkf' executed
     'daemon-reload' and 'systemctl enable vkf' executed
+File not found. Wait for creation:
+    File not found. Wait for creation:
+File found successfully:
+    File found successfully:
 :

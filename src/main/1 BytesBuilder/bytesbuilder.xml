@@ -374,7 +374,7 @@
             <summary>Имя записи. Используется в отладочных целях.</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.String)">
-            <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory</summary>
+            <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory.<para>При вызове этого метода для создания копии, нужно учитывать, что Dispose обнуляет память. Чтобы Dispose не обнулил память, необходимо обнулить array.</para></summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создать запись и скопировать туда содержимое массива байтов</summary>

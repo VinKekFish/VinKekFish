@@ -68,7 +68,13 @@ chmod -R o-rwx data
 date
 systemctl disable vkf
 systemctl stop vkf
-sleep 5
+
+pidof -q vkf
+if [[ $? -eq 0 ]]
+then
+    sleep 15
+fi
+
 killall -s SIGINT -wq vkf
 
 exe/vkf install
@@ -78,6 +84,9 @@ then
     echo; echo;
     echo -e "\033[41mThe vkf program installation is unsuccessfully ended (error in vkf install) (ru: произошла ошибка при попытке установки программы vkf)\033[0m"
     echo
+    echo "see logs by command"
+    echo "sudo journalctl -u vkf -e"
+    echo; echo;
     exit 1
 fi
 
@@ -104,6 +113,9 @@ then
     echo; echo;
     echo -e "\033[41mThe vkf program installation is unsuccessfully ended (ru: произошла ошибка при попытке установки программы vkf)\033[0m"
     echo
+    echo "see logs by command"
+    echo "sudo journalctl -u vkf -e"
+    echo; echo;
     exit 3
 fi
 
