@@ -431,6 +431,8 @@ public partial class Options_Service
 
             public class Interval: Element
             {
+                public enum IntervalTypeEnum { none = 0, time = 1, once = 2, continuously = 3, fast = 4 };
+
                 public Interval.Flags? flags;
 
                 public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
@@ -440,15 +442,24 @@ public partial class Options_Service
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
+                    IntervalTypeEnum IntervalType = IntervalTypeEnum.none;
                     long time = -2;
                     if (canonicalName == "once")
                     {
                         time = -1;
+                        IntervalType = IntervalTypeEnum.once;
+                    }
+                    else
+                    if (canonicalName == "fast" || canonicalName == "often")
+                    {
+                        time = 0;
+                        IntervalType = IntervalTypeEnum.fast;
                     }
                     else
                     if (canonicalName == "continuously" || canonicalName == "0")
                     {
                         time = 0;
+                        IntervalType = IntervalTypeEnum.continuously;
                     }
                     else
                     {
@@ -457,9 +468,10 @@ public partial class Options_Service
                             throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
 
                         time = timev;
+                        IntervalType = IntervalTypeEnum.time;
                     }
 
-                    inner.Add(new InnerIntervalElement(this, block.blocks, block, time));
+                    inner.Add(new InnerIntervalElement(this, block.blocks, block, time, IntervalType));
                 }
 
                 protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
@@ -515,15 +527,17 @@ public partial class Options_Service
 
                 public class InnerIntervalElement: Element
                 {
-                    public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, long time) : base(parent, blocks, thisBlock)
+                    public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, long time, IntervalTypeEnum IntervalType) : base(parent, blocks, thisBlock)
                     {
                         this.time = time;
+                        this.IntervalType = IntervalType;
                     }
 
-                    public long           time       { get; protected set; } = -2;
-                    public LengthElement? Length;
-                    public Flags?         flags;
-                    public Difference?    Difference;
+                    public long             time       { get; protected set; } = -2;
+                    public LengthElement?   Length;
+                    public Flags?           flags;
+                    public Difference?      Difference;
+                    public IntervalTypeEnum IntervalType = IntervalTypeEnum.none;
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
                         switch (canonicalName)
@@ -555,8 +569,12 @@ public partial class Options_Service
                         if (flags == null)
                             this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'flags' element");
 
+                        if (IntervalType != IntervalTypeEnum.continuously && IntervalType != IntervalTypeEnum.once)
                         if (Difference == null || Difference.differenceValue == Difference.DifferenceValue.undefined)
                             this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of service options was not found a 'difference' element or value of the element");
+
+                        if (IntervalType == IntervalTypeEnum.none)
+                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option occured unknown interval type. Acceptable is 'once', 'fast' ('often'), 'continuously'");
 
                         base.Check();
                     }

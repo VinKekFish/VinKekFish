@@ -113,6 +113,8 @@ partial class Program
             // Если хотя бы один из файлов-исходников новее, то версия бинарных файлов не актуальна
             if (file.LastWriteTimeUtc >= first)
             {
+                using (var opt = new NotErrorConsoleOptions())
+                Console.WriteLine($"{sources_di.Name}");
                 Console.WriteLine($"Updated file found: {file.FullName}");
                 return false;
             }

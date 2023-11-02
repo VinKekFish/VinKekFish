@@ -11,6 +11,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval;
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
 
@@ -200,7 +201,7 @@ public partial class Regime_Service
                 var intervals = rnd.intervals!.interval!.inner;
                 foreach (var interval in intervals)
                 {
-                    if (interval.time == -1)
+                    if (interval.IntervalType == IntervalTypeEnum.once)
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");

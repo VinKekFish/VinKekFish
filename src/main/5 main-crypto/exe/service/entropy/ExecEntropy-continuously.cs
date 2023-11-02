@@ -11,6 +11,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval;
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
 using maincrypto.keccak;
@@ -53,7 +54,7 @@ public partial class Regime_Service
                 var intervals = rnd.intervals!.interval!.inner;
                 foreach (var interval in intervals)
                 {
-                    if (interval.time == 0)
+                    if (interval.IntervalType == IntervalTypeEnum.continuously)
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
@@ -317,6 +318,14 @@ public partial class Regime_Service
                     pos = 0;
                     totalBytes = 0;
 
+/* TODO: добавить логирование и игнорирование данных, если это необходимо по настройкам
+if (interval.flags!.ignored == Flags.FlagValue.yes)
+            {
+                ignored = true;
+                if (interval.flags!.log == Flags.FlagValue.yes && readedLen > 0)
+                    WriteToLog(bufferRec, readedLen);
+            }
+*/
                     if (interval.flags!.watchInLog == Flags.FlagValue.yes)
                     {
                         var ticks = DateTime.Now.Ticks;
