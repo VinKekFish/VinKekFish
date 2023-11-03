@@ -88,6 +88,20 @@
         <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement">
             <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
         </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.getInputElemement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+            <summary>Абстрактная фабрика, которая создаёт элементы 'file', 'cmd' и другие</summary>
+            <param name="parent">Родительский элемент настроек</param>
+            <param name="block">Блок, описыающий данный элемент настроек</param>
+            <param name="canonicalName">Канонизированное имя блока (нижний регистр, триммированная строка)</param>
+            <returns>Список созданных блоков</returns>
+            <exception cref="T:VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception">Если есть ошибки в настройках, выдаёт исключение</exception>
+        </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.getNewInputFileElement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+            <summary>Создаёт элемент типа InputFileElement и добавляет его в result</summary>
+            <param name="parent">Блок-родитель создаваемого элемента настроек</param>
+            <param name="block">Блок опций, описывающий данный элемент</param>
+            <param name="path">Необязательный параметр. Строка с именем файла, который описывается данным элементом. Если null, то строка берётся из block.Name</param>
+        </member>
         <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputFileElement">
             <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
         </member>
@@ -166,6 +180,11 @@
             <summary>Создаёт объект настроек, полученных из файла</summary>
             <param name="options">Парсер опций. new Options(fileString), где fileString - содержимое файла настроек</param>
             <param name="doNotOutputWarningsToConsole">Если false, то выводит на Console.Error предупреждения</param>
+        </member>
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Element.SelectBlock(VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+            <summary>Проходит по дочерним блокам. Вызывается прямо в конструкторе, поэтому этот вызов происходит до вызова дочерних конструкторов.</summary>
+            <param name="block">Подчинённый блок опций для парсинга</param>
+            <param name="canonicalName">Каноническое имя подчинённого блока block</param>
         </member>
         <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Root.SelectBlock(VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
             <summary>Функция, разбирающая блоки из парсера на конкретные блоки настроек</summary>

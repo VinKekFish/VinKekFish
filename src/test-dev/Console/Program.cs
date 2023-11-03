@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
 namespace ConsoleTest;
@@ -63,6 +64,22 @@ unsafe class Program
             Console.WriteLine($"scaling_cur_freq readed bytes count: {readed}");
         }
 
+        Console.WriteLine();
+        var pGlob = stackalloc glob_t[1];   // Здесь нельзя просто создать объект, т.к. он будет перемещаемым
+        var str   = "/dev/*/*/*-event-*";
+        var str8  = Utf8StringMarshaller.ConvertToUnmanaged(str);
+        glob(str8, 0, null, pGlob);
+
+        Console.WriteLine("pattern: " + str);
+        for (int i = 0; i < pGlob->pathCount; i++)
+        {
+            var u = Utf8StringMarshaller.ConvertToManaged(pGlob->pathes[i]);
+            Console.WriteLine(u);
+        }
+
+        globfree(pGlob);
+
+        Console.WriteLine();
         Console.WriteLine("Нажмите любую клавишу...");
         Console.ReadLine();
     }
@@ -163,6 +180,15 @@ unsafe class Program
         public byte* pw_gecos, pw_dir, pw_shell;
     }
 
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct glob_t
+    {
+        public nint   pathCount;
+        public byte** pathes;   // char **
+        public nint   offset;
+    }
+
 // TODO: вот здесь нужно будет вставить проверку в реальном VinKekFish, что это функция реально работает и возвращает верный результат
 // Нужно взять текущего пользователя, его домашний каталог, а потом проверить, что всё норм, и что также создаётся stream с этими же правами (а что, если у нас у пользователя нет каталога? - не будет проверять, видимо этот пункт)
     // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
@@ -177,6 +203,12 @@ unsafe class Program
 
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern void free(void * buff);
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void glob(byte * pattern, nint flags, void * func, glob_t * pGlob);
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void globfree(glob_t * pGlob);
 
     public static int strlen(byte * str)
     {

@@ -50,7 +50,7 @@ IOSchedulingPriority=5
 
 NoNewPrivileges=yes
 
-ProtectKernelModules=no
+ProtectKernelModules=yes
 ProtectSystem=full
 
 PrivateDevices=no

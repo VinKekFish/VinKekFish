@@ -99,8 +99,14 @@ public partial class Options_Service
                 public string?         PathString {get; protected set;}
                 public Intervals?      intervals;
 
-                public InputElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
-                {}
+                protected nint AdditionalBlockCount = 0;
+                public InputElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, string? PathString = null) : base(parent, blocks, thisBlock)
+                {
+                    if (PathString != null)
+                    {
+                        this.PathString = PathString;
+                    }
+                }
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
@@ -135,24 +141,41 @@ public partial class Options_Service
                     base.Check();
                 }
 
+                /// <summary>Абстрактная фабрика, которая создаёт элементы 'file', 'cmd' и другие</summary>
+                /// <param name="parent">Родительский элемент настроек</param>
+                /// <param name="block">Блок, описыающий данный элемент настроек</param>
+                /// <param name="canonicalName">Канонизированное имя блока (нижний регистр, триммированная строка)</param>
+                /// <returns>Список созданных блоков</returns>
+                /// <exception cref="Options_Service_Exception">Если есть ошибки в настройках, выдаёт исключение</exception>
                 public static List<InputElement> getInputElemement(Element parent, Options.Block block, string canonicalName)
                 {
                     var result = new List<InputElement>(1);
                     switch (canonicalName)
                     {
                         case "file":
-                            var rnd = new InputFileElement(parent, block.blocks, block);
+                            var childBlockName = block.blocks.Count > 0 ? block.blocks[0].Name : "";
 
-                            if (string.IsNullOrEmpty(rnd.PathString))
-                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
+                            if (!childBlockName.Contains("*") && !childBlockName.Contains("?"))
+                            {
+                                var r = getNewInputFileElement(parent, block);
+                                result.Add(r);
+                            }
+                            else
+                            {
+                                var files = VinKekFish_Utils.Glob.getGlobFileNames(childBlockName);
+                                if (files.Count == 0)
+                                    parent.getRoot()!.warns.addWarning($"Warning: In the '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service options was not found at least one suitable file for the template '{childBlockName}'");
 
-                            var file = new FileInfo(rnd.PathString); file.Refresh();
-                            if (!file.Exists)
-                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. The '{file.FullName}' string represents non existent file");
+                                foreach (var file in files)
+                                {
+                                    var r = getNewInputFileElement(parent, block, file);
+                                    result.Add(r);
 
-                            result.Add(rnd);
+                                    Console.WriteLine($"Info: The file '{r.fileInfo!.FullName}' has been added to elements for crawling");
+                                }
+                            }
                             break;
-                        
+
                         case "cmd":
                             var cmd = new InputCmdElement(parent, block.blocks, block);
 
@@ -178,6 +201,20 @@ public partial class Options_Service
 
                     return result;
                 }
+
+                /// <summary>Создаёт элемент типа InputFileElement и добавляет его в result</summary>
+                /// <param name="parent">Блок-родитель создаваемого элемента настроек</param>
+                /// <param name="block">Блок опций, описывающий данный элемент</param>
+                /// <param name="path">Необязательный параметр. Строка с именем файла, который описывается данным элементом. Если null, то строка берётся из block.Name</param>
+                protected static InputFileElement getNewInputFileElement(Element parent, Options.Block block, string? path = null)
+                {
+                    var result = new InputFileElement(parent, block.blocks, block, path);
+
+                    if (string.IsNullOrEmpty(result.PathString))
+                        throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1 + parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
+
+                    return result;
+                }
             }
 
             /// <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
@@ -185,7 +222,7 @@ public partial class Options_Service
             {
                 public FileInfo? fileInfo { get; protected set; }
 
-                public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, string? PathString) : base(parent, blocks, thisBlock, PathString)
                 {}
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
@@ -194,16 +231,19 @@ public partial class Options_Service
 
                     if (string.IsNullOrEmpty(this.PathString))
                         throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the null path for the file command. Must have a not empty value");
-
-                    fileInfo = new FileInfo(this.PathString); fileInfo.Refresh();
-                    if (!fileInfo.Exists)
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the not exists file '{fileInfo.FullName}'. The file must exists");
                 }
 
                 public override void Check()
                 {
                     if (string.IsNullOrEmpty(PathString))
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'PathString' element. Have no 'PathString' element");
+                    if (fileInfo!.FullName.Contains("*") || fileInfo!.FullName.Contains("?"))
+                        throw new Options_Service_Exception($"FATAL ERROR: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option contains element with wildcards '{fileInfo!.FullName}'. This is the error made at the development stage, have no error in the option file.");
+
+                    // Это делаем именно здесь, т.к. PathString сначала записывается в SelectBlock,
+                    // а потом перезаписывается в конструкторе
+                    if (fileInfo is null)
+                        fileInfo = new FileInfo(this.PathString); fileInfo.Refresh();
 
                     base.Check();
                 }

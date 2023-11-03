@@ -58,7 +58,7 @@ public partial class Options_Service
 
             parent?.elements.Add(this);
 
-            Select();
+            this.Select();
         }
 
         public virtual void Select()
@@ -78,6 +78,9 @@ public partial class Options_Service
             return b.Name.ToLowerInvariant().Trim();
         }
 
+        /// <summary>Проходит по дочерним блокам. Вызывается прямо в конструкторе, поэтому этот вызов происходит до вызова дочерних конструкторов.</summary>
+        /// <param name="block">Подчинённый блок опций для парсинга</param>
+        /// <param name="canonicalName">Каноническое имя подчинённого блока block</param>
         public abstract void SelectBlock (Options.Block block, string canonicalName);
 
         public virtual string getFullElementName()

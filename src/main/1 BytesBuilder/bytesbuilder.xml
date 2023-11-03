@@ -781,5 +781,18 @@
             <param name="lenght">Длина участка памяти</param>
             <returns>В случае успеха возвращает 0</returns>
         </member>
+        <member name="T:VinKekFish_Utils.Glob">
+            <summary>
+            Этот класс помогает найти файлы, соответствующие шаблону поиска файла.
+            Пример шаблона "/dev/*/*/*-event-*".
+            </summary>
+        </member>
+        <member name="M:VinKekFish_Utils.Glob.glob(System.Byte*,System.IntPtr,System.Void*,VinKekFish_Utils.Glob.glob_t*)">
+            <summary>Выдаёт имена файлов, соответствующие шаблону</summary>
+            <param name="pattern">Шаблон для поиска</param>
+            <param name="flags">Флаги, см. man glob</param>
+            <param name="func">Функция обратного вызова. В данной реализации всегда null.</param>
+            <param name="pGlob">Ссылка на структуру, которая будет заполнена функцией glob.</param>
+        </member>
     </members>
 </doc>
