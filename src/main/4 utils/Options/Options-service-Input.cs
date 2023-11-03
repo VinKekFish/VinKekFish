@@ -223,7 +223,18 @@ public partial class Options_Service
                 public FileInfo? fileInfo { get; protected set; }
 
                 public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, string? PathString) : base(parent, blocks, thisBlock, PathString)
-                {}
+                {
+                    // Это делаем именно здесь, т.к. PathString сначала записывается в SelectBlock,
+                    // а потом перезаписывается в конструкторе
+                    // SelectBlock на этот момент уже вызван
+                    if (PathString == null)
+                        PathString = this.PathString;
+
+                    if (PathString is not null)
+                    {
+                        fileInfo = new FileInfo(PathString); fileInfo.Refresh();
+                    }
+                }
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
@@ -239,11 +250,6 @@ public partial class Options_Service
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'PathString' element. Have no 'PathString' element");
                     if (fileInfo!.FullName.Contains("*") || fileInfo!.FullName.Contains("?"))
                         throw new Options_Service_Exception($"FATAL ERROR: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option contains element with wildcards '{fileInfo!.FullName}'. This is the error made at the development stage, have no error in the option file.");
-
-                    // Это делаем именно здесь, т.к. PathString сначала записывается в SelectBlock,
-                    // а потом перезаписывается в конструкторе
-                    if (fileInfo is null)
-                        fileInfo = new FileInfo(this.PathString); fileInfo.Refresh();
 
                     base.Check();
                 }
