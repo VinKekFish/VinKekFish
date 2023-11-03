@@ -75,7 +75,7 @@ public partial class Options_Service
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    randoms.Add(  InputElement.getInputElemement(this, block, canonicalName)  );
+                    randoms.AddRange(  InputElement.getInputElemement(this, block, canonicalName)  );
                 }
 
                 public override void Check()
@@ -135,8 +135,9 @@ public partial class Options_Service
                     base.Check();
                 }
 
-                public static InputElement getInputElemement(Element parent, Options.Block block, string canonicalName)
+                public static List<InputElement> getInputElemement(Element parent, Options.Block block, string canonicalName)
                 {
+                    var result = new List<InputElement>(1);
                     switch (canonicalName)
                     {
                         case "file":
@@ -149,7 +150,8 @@ public partial class Options_Service
                             if (!file.Exists)
                                 throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. The '{file.FullName}' string represents non existent file");
 
-                            return rnd;
+                            result.Add(rnd);
+                            break;
                         
                         case "cmd":
                             var cmd = new InputCmdElement(parent, block.blocks, block);
@@ -157,7 +159,8 @@ public partial class Options_Service
                             if (string.IsNullOrEmpty(cmd.PathString))
                                 throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
 
-                            return cmd;
+                            result.Add(cmd);
+                            break;
                         
                         case "dir":
                         case "directory":
@@ -166,11 +169,14 @@ public partial class Options_Service
                             if (string.IsNullOrEmpty(dir.PathString))
                                 throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
 
-                            return dir;
+                            result.Add(dir);
+                            break;
 
                         default:
                             throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option have unknown value '{canonicalName}'. Acceptable is 'dir' ('directory'), 'cmd', 'file'");
                     }
+
+                    return result;
                 }
             }
 
