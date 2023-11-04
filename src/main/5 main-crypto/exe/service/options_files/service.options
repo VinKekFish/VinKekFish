@@ -290,7 +290,7 @@ input
                             length
                                 full
                             flags
-                                log
+                                # log
                             difference
                                 no
 

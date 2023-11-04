@@ -22,7 +22,7 @@ ExecStart=$$$VkfDir/exe/vkf service $CONFIGFILE
 ExecStopPost=/bin/rm -f $$$VkfDir/vkf.pid
 
 # DefaultTimeoutStartSec=infinity
-TimeoutStopSec=60
+TimeoutStopSec=180
 TimeoutStopFailureMode=kill
 
 # Самый низкий приоритет для CPU
