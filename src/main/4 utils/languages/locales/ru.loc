@@ -60,4 +60,6 @@ Continuously reading has been ended by repeated errors
     Непрерывное чтение было закончено в результате повторяющихся ошибок (см. ошибки выше)
 Error for command
     Ошибка для команды
+A signal for end has been received
+    Получен сигнал завершения работы программы
 :

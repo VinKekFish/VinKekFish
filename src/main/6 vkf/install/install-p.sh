@@ -119,7 +119,8 @@ then
     exit 3
 fi
 
-
+echo; echo;
+echo ------------------------------------------------
 echo; echo;
 echo -e "\033[32mThe vkf program is successfully installed (ru: программа успешно установлена)\033[0m"
 echo
@@ -139,3 +140,13 @@ echo -n " | "
 echo -n tail -n 15
 echo \'
 echo
+
+date
+echo "Wait for start the VinKekFish service (vkf service). This may take 5-7 minutes."
+echo "ru: Ждём запуска программы VinKekFish (сервис vkf). Это может занять 5-7 минут."
+nc -UN /dev/vkf/random > /dev/null
+echo; echo;
+journalctl -e -u vkf --no-pager | tail -n 1
+
+echo; date;
+echo;echo;

@@ -133,7 +133,8 @@ public partial class Regime_Service
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
 
                     KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);
-                    isInited = false;
+                    isInited     = false;
+                    MandatoryUse = false;
                     countOfBytesFromLastOutput = 0;
 
                     countOfBytesToUser += len;
@@ -150,6 +151,9 @@ public partial class Regime_Service
             {
                 if (!isInited)
                     return false;
+
+                if (MandatoryUse)
+                    return true;
 
                 var ReadyBytes = GetCountOfReadyBytes();
                 return askedBytes < ReadyBytes;
@@ -213,8 +217,15 @@ public partial class Regime_Service
                 if (disposed)
                     throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
 
+                keccak.Dispose();
                 disposed = true;
             }
+        }
+
+        protected bool MandatoryUse = false;
+        public void CorrectEntropyForMandatoryUse()
+        {
+            MandatoryUse = true;
         }
     }
 
@@ -301,7 +312,23 @@ public partial class Regime_Service
                                 }
 
                                 if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
+                                {
+                                    if (interval.flags!.ignored != Flags.FlagValue.yes)
+                                    {
+                                        cgr.addBytes(totalBytes, pos, input);
+                                        cgr.CorrectEntropyForMandatoryUse();
+                                        pos = 0;
+                                        totalBytes = 0;
+                                    }
+
+                                    SendGetterDebugMsgToConsole(fileElement, cgr);
+
+                                    // Ожидание завершеня работы через Thread.Interrupt
+                                    while (!Terminated)
+                                        Thread.Sleep(1000*3600);
+
                                     break;
+                                }
                             }
                             catch (ThreadInterruptedException)
                             {
@@ -315,6 +342,7 @@ public partial class Regime_Service
                         }
 
                         if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                        if (interval.IntervalType != IntervalTypeEnum.waitAndOnce)
                             SendGetterDebugMsgToConsole(fileElement, cgr);
                     }
                     finally
@@ -523,7 +551,13 @@ public partial class Regime_Service
                             lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
 
                             if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
+                            {
+                                // Ожидание завершеня работы через Thread.Interrupt
+                                while (!Terminated)
+                                    Thread.Sleep(1000*3600);
+
                                 break;
+                            }
                         }
                         catch (ThreadInterruptedException)
                         {
@@ -569,7 +603,7 @@ public partial class Regime_Service
                 lock (entropy_sync)
                 {
                     lastLogDate = ticks;
-                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for all the time of work).");
+                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for entire the time of work).");
                 }
 
         return lastLogDate;
@@ -638,7 +672,7 @@ public partial class Regime_Service
         {
             lock (entropy_sync)
             {
-                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for all the time of work).");
+                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for entire the time of work).");
             }
         }
     }

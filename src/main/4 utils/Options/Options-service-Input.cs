@@ -530,13 +530,14 @@ public partial class Options_Service
                     {
                         if (canonicalName == "wait" || canonicalName == "wait once")
                             IntervalType = IntervalTypeEnum.waitAndOnce;
+                        else
+                            IntervalType = IntervalTypeEnum.time;
 
                         var timev = getTime(canonicalName);
-                        if (timev <= -1)
+                        if (timev <= -1 && IntervalType != IntervalTypeEnum.waitAndOnce)
                             throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
 
                         time = timev;
-                        IntervalType = IntervalTypeEnum.time;
                     }
 
                     inner.Add(new InnerIntervalElement(this, block.blocks, block, time, IntervalType));

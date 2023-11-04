@@ -1,5 +1,5 @@
 // TODO: tests
-using static VinKekFish_console.Program;
+using static VinKekFish_Utils.Language;
 
 namespace VinKekFish_console;
 using VinKekFish_EXE;
@@ -33,7 +33,14 @@ public partial class Program
         try
         {
             e.Cancel = true;
-            service?.doTerminate(willBlock: false);
+            Console.WriteLine(L("A signal for end has been received"));
+            ThreadPool.QueueUserWorkItem
+            (
+                (param) =>
+                {
+                    service?.doTerminate(willBlock: false);
+                }
+            );
         }
         catch (Exception ex)
         {

@@ -60,4 +60,6 @@ Continuously reading has been ended by repeated errors
     Continuously reading has been ended by repeated errors (see above)
 Error for command
     Error for command
+A signal for end has been received
+    A signal for termination has been received
 :
