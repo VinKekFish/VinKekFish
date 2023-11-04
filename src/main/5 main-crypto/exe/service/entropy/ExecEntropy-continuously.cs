@@ -223,6 +223,7 @@ public partial class Regime_Service
         }
 
         protected bool MandatoryUse = false;
+        public    bool MandatoryUseGet => MandatoryUse;
         public void CorrectEntropyForMandatoryUse()
         {
             MandatoryUse = true;
@@ -320,11 +321,11 @@ public partial class Regime_Service
                                         pos = 0;
                                         totalBytes = 0;
                                     }
-
+// TODO: сделать аналогичное для команд cmd. Также сделать так,чтобы поток не висел всю жизнь программы, а просто добавил бы себя как надо.
                                     SendGetterDebugMsgToConsole(fileElement, cgr);
 
                                     // Ожидание завершеня работы через Thread.Interrupt
-                                    while (!Terminated)
+                                    while (!Terminated && cgr.MandatoryUseGet)
                                         Thread.Sleep(1000*3600);
 
                                     break;
