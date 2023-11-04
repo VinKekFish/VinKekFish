@@ -412,5 +412,64 @@ input
                                 full
                             flags
                                 watch counter in log
+            file
+                /sys/class/net/*/statistics/?x_packets
+                    min
+                        # Сетевые пакеты. Вряд ли большая энтропия
+                        # Считаем не больше 1 бита на вызов
+                        # У меня на вызов порядка 37-ми байтов
+                        # 37*8=296
+                        512
+                    max
+                        0
+                    avg
+                        0
+                    EME
+                        0
+                    interval
+                        1m
+                            length
+                                full
+                            flags
+                                watch counter in log
+                            difference
+                                yes
+            file
+                /sys/class/net/*/statistics/?x_bytes
+                    min
+                        512
+                    max
+                        0
+                    avg
+                        0
+                    EME
+                        0
+                    interval
+                        1m
+                            length
+                                full
+                            flags
+                                watch counter in log
+                            difference
+                                yes
+            file
+                /media/veracrypt8/tmp/entropy
+                    min
+                        512
+                    max
+                        0
+                    avg
+                        0
+                    EME
+                        0
+                    interval
+                        wait
+                            length
+                                full
+                            flags
+                            difference
+                                yes
+
+
 
 

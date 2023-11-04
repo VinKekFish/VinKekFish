@@ -56,7 +56,8 @@ public partial class Regime_Service
                     if (
                         interval.IntervalType == IntervalTypeEnum.continuously ||
                         interval.IntervalType == IntervalTypeEnum.fast ||
-                        interval.IntervalType == IntervalTypeEnum.time
+                        interval.IntervalType == IntervalTypeEnum.time ||
+                        interval.IntervalType == IntervalTypeEnum.waitAndOnce
                         )
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
@@ -298,6 +299,9 @@ public partial class Regime_Service
                                     if (!this.Terminated)
                                         Thread.Sleep(sleepTime);
                                 }
+
+                                if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
+                                    break;
                             }
                             catch (ThreadInterruptedException)
                             {
@@ -517,6 +521,9 @@ public partial class Regime_Service
                             Thread.Sleep(sleepTime);
 
                             lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
+
+                            if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
+                                break;
                         }
                         catch (ThreadInterruptedException)
                         {
