@@ -55,7 +55,8 @@ public partial class Regime_Service
                 {
                     if (
                         interval.IntervalType == IntervalTypeEnum.continuously ||
-                        interval.IntervalType == IntervalTypeEnum.fast
+                        interval.IntervalType == IntervalTypeEnum.fast ||
+                        interval.IntervalType == IntervalTypeEnum.time
                         )
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
@@ -237,18 +238,28 @@ public partial class Regime_Service
                 checked
                 {
                     int len     = 1024;                    // Значение должно быть строго больше KeccakPrime.BlockLen + dateLen
-                    var input   = stackalloc byte[len*2];  // Массив, из которого будет вводиться энтропия в губку keccak
-                    int pos     = 0;
-                    int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);
+                    int ilen    = len * 2;
+                    int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);    // Длина массива, выделенная для данных
+                    if (interval.Length!.Length > 0)
+                    {
+                        len = (int) (interval.Length!.Length + dateLen);
+                        if (len*2 > ilen)
+                            ilen = len * 2; // ilen не должен быть меньше 127-ми байтов
+                    }
+
+                    var input   = stackalloc byte[ilen];  // Массив, из которого будет вводиться энтропия в губку keccak
+                    int pos     = 0;                    
 
                     long lastTimeInLog  = DateTime.Now.Ticks;
                     nint lastBytesInLog = 0;
 
                     var buff = stackalloc byte[len];
-                    var span = new Span<byte>(buff, len - dateLen);
+                    var span = new Span<byte>(buff, len - dateLen); // Ровно столько, сколько запросил пользователь, если он вообще что-то запросил
 
                     nint totalBytes = 0;
                     var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+
+                    int sleepTime = interval.time > 0 ? (int) interval.time : 1049;
 
                     try
                     {
@@ -267,7 +278,7 @@ public partial class Regime_Service
                                 // то мы будем делать это не так и задержка в цикле будет другой
                                 if (interval.IntervalType == IntervalTypeEnum.fast)
                                 {
-                                    getEntropyFromFile_h(cgr, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes);
+                                    getEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
                                     if (!this.Terminated)
                                         Thread.Sleep(97);
                                 }
@@ -275,9 +286,11 @@ public partial class Regime_Service
                                 {
                                     // Здесь мы считываем файл постоянно.
                                     // Задержка нужна только на случай какой-либо ошибки файлового ввода-вывода
-                                    getEntropyFromFile_h(cgr, interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes);
+                                    var isSleeped = getEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
+
+                                    if (!isSleeped)
                                     if (!this.Terminated)
-                                        Thread.Sleep(1049);
+                                        Thread.Sleep(sleepTime);
                                 }
                             }
                             catch (ThreadInterruptedException)
@@ -334,7 +347,7 @@ public partial class Regime_Service
         }
     }
 
-    protected unsafe void getEntropyFromFile_h(ContinuouslyGetterRecord cgr, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, ref nint totalBytes)
+    protected unsafe bool getEntropyFromFile_h(ContinuouslyGetterRecord cgr, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int ilen, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, ref nint totalBytes, int sleepTime)
     {
         checked
         {
@@ -342,7 +355,7 @@ public partial class Regime_Service
             {
                 try
                 {
-                    getEntropyFromFile_h(interval, fileElement, len, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes);
+                    return getEntropyFromFile_h(interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes, sleepTime);
                 }
                 catch (ThreadInterruptedException)
                 {}
@@ -354,28 +367,33 @@ public partial class Regime_Service
                 finally
                 {}
             } // using
+
+            return true;        // Задержка в вызывающей функции уже не нужна: либо выполнена, либо произошло исключение, которое не подразумевает дополнительной задержки
         }
     }
 
-    protected unsafe void getEntropyFromFile_h
+    protected unsafe bool getEntropyFromFile_h
     (
         Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
         Options_Service.Input.Entropy.InputFileElement fileElement,
-        int len, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog,
+        int ilen, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog,
         byte* buff, Span<byte> span,
-        FileStream rs, ContinuouslyGetterRecord cgr, ref nint totalBytes
+        FileStream rs, ContinuouslyGetterRecord cgr, ref nint totalBytes, int sleepTime
     )
     {
         checked
         {
-            long lastDate = default;
-            bool ignored  = interval.flags!.ignored == Flags.FlagValue.yes;
-            bool doLog    = interval.flags!.log == Flags.FlagValue.yes;
+            bool isSleeped = false;
+            long lastDate  = default;
+            bool ignored   = interval.flags!.ignored == Flags.FlagValue.yes;
+            bool doLog     = interval.flags!.log == Flags.FlagValue.yes;
             while (true)
             {
+                // Количество байтов, получаемое за раз, регулируется вызывающей функцией
                 var bytesReaded = rs.Read(span);
                 if (bytesReaded <= 0 || Terminated)
                     break;
+
 // TODO: Добавить сравнение с предыдущим считанным результатом
                 // Если считываем только время, то пропускаем шаг цикла, если время совпадает
                 if (interval.flags!.date == Flags.FlagValue.dateOnly)
@@ -395,7 +413,7 @@ public partial class Regime_Service
                         using (var tmpRecord = new Record())
                         {
                             tmpRecord.array = input;
-                            tmpRecord.len   = span.Length;
+                            tmpRecord.len   = pos;
                             WriteToLog(tmpRecord, pos);
 
                             // Иначе будет обнуление буфера
@@ -414,12 +432,12 @@ public partial class Regime_Service
                         if (interval.flags!.watchInLog == Flags.FlagValue.yes)
                         {
                             var ticks = DateTime.Now.Ticks;
-// TODO: !!!!
+
                             if (ticks - lastTimeInLog >= ticksPerHour)
                                 if (lastBytesInLog != cgr.countOfBytesToUser)
                                 {
                                     SendGetterDebugMsgToConsole(fileElement, cgr);
-Console.WriteLine(ticks - lastTimeInLog);
+
                                     lastTimeInLog  = ticks;
                                     lastBytesInLog = cgr.countOfBytesToUser;
                                 }
@@ -430,7 +448,7 @@ Console.WriteLine(ticks - lastTimeInLog);
                 if (dateLen > 0)
                 {
                     var ticks = DateTime.Now.Ticks;
-                    BytesBuilder.ULongToBytes((ulong)ticks, input, KeccakPrime.BlockLen, pos);
+                    BytesBuilder.ULongToBytes((ulong)ticks, input, ilen, pos);
                     pos += dateLen;
 
                     if (interval.flags!.date == Flags.FlagValue.dateOnly)
@@ -440,13 +458,21 @@ Console.WriteLine(ticks - lastTimeInLog);
                 // Считываем данные только если указано, что источник энтропии можно считывать
                 if (interval.flags!.date != Flags.FlagValue.dateOnly)
                 {
-                    BytesBuilder.CopyTo(len, KeccakPrime.BlockLen, buff, input, pos, bytesReaded);
+                    BytesBuilder.CopyTo(span.Length, ilen, buff, input, pos, bytesReaded);
                     pos        += bytesReaded;
                     totalBytes += bytesReaded;
                 }
 
-                BytesBuilder.ToNull(len, buff);
+                BytesBuilder.ToNull(span.Length, buff);
+
+                // Если заявлена задержка, значит мы прочитали всё, что хотели
+                if (sleepTime > 0)
+                {
+                    break;
+                }
             }
+
+            return isSleeped;
         }
     }
 

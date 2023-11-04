@@ -44,21 +44,34 @@ public partial class Regime_Service
         if (!Terminated)
         {
             Terminated = true;
-            vkfListener    ?.Close();
+            vkfListener?.Close();
             vkfInfoListener?.Close();
         }
 
-        while (
-            willBlock
-         && vkfListener     != null && vkfListener    ?.ConnectionsCount > 0
-         && vkfInfoListener != null && vkfInfoListener?.ConnectionsCount > 0
-         )
+        while (willBlock && continueWaitForExit())
         {
             Thread.Sleep(100);
         }
 
         if (willBlock)
             Console.WriteLine("Regime_Service.doTerminate: exited");
+    }
+
+    public bool continueWaitForExit()
+    {
+        lock (continuouslyGetters)
+            if (continuouslyGetters.Count > 0)
+                return true;
+
+        if (vkfListener != null)
+        if (vkfListener.ConnectionsCount > 0)
+            return true;
+
+        if (vkfInfoListener != null)
+        if (vkfInfoListener.ConnectionsCount > 0)
+            return true;
+
+        return false;
     }
 
 

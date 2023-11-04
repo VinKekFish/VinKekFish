@@ -18,7 +18,7 @@ input
             cmd
                 cat
                 /proc/cpuinfo
-                    no entropy evaluation
+                    # no entropy evaluation
                     interval
                         once
                             length
@@ -230,10 +230,33 @@ input
                             length
                                 32
                             flags
+                        #15923ms
                         1s
                             length
                                 1
                             flags
+                                # log
+                            difference
+                                no
+            file
+                /inRamA/a.txt
+                    min
+                        1024
+                    max
+                        0
+                    avg
+                        0
+                    EME
+                        0
+                    interval
+                        #15923ms
+                        1s
+                            length
+                                3
+                            flags
+                                #log
+                                ignored
+                                date only
                             difference
                                 no
 

@@ -478,11 +478,17 @@ public partial class Options_Service
 
                 public override void Check()
                 {
-                    if (!entropy.isCorrect())
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values)");
-                    
                     if (interval == null)
                         throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one 'interval' element. Have no one 'interval' element");
+
+                    bool entropyMustCorrect = true;
+                    if (interval.inner.Count == 1)
+                    if (interval.inner[0].IntervalType == Interval.IntervalTypeEnum.once)
+                        entropyMustCorrect = false;
+
+                    if (entropyMustCorrect)
+                    if (!entropy.isCorrect())
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values)");
 
                     base.Check();
                 }
@@ -490,7 +496,7 @@ public partial class Options_Service
 
             public class Interval: Element
             {
-                public enum IntervalTypeEnum { none = 0, time = 1, once = 2, continuously = 3, fast = 4 };
+                public enum IntervalTypeEnum { none = 0, time = 1, once = 2, continuously = 3, fast = 4, waitAndOnce = 5 };
 
                 public Interval.Flags? flags;
 
@@ -522,6 +528,9 @@ public partial class Options_Service
                     }
                     else
                     {
+                        if (canonicalName == "wait" || canonicalName == "wait once")
+                            IntervalType = IntervalTypeEnum.waitAndOnce;
+
                         var timev = getTime(canonicalName);
                         if (timev <= -1)
                             throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
