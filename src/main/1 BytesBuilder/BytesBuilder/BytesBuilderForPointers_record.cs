@@ -36,7 +36,7 @@ namespace cryptoprime
             #endif
 
             // Конструктор. Не вызывается напрямую
-            /// <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory.<para>При вызове этого метода для создания копии, нужно учитывать, что Dispose обнуляет память. Чтобы Dispose не обнулил память, необходимо обнулить array.</para></summary>
+            /// <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory.<para>При вызове этого метода для создания копии, нужно учитывать, что Dispose обнуляет память. Чтобы Dispose не обнулил память, необходимо обнулить array до вызова Dispose с учётом возможного возникновения исключений.</para></summary>
             public Record(string? Name = null)
             {
                 this.Name = Name;

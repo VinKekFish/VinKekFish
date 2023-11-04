@@ -218,7 +218,7 @@ input
             file
                 /dev/random
                     min
-                        1
+                        2
                     max
                         0
                     avg
@@ -230,16 +230,17 @@ input
                             length
                                 32
                             flags
-                        #15923ms
-                        1s
+                        15923ms
                             length
-                                1
+                                2
                             flags
-                                # log
                             difference
                                 no
+
             file
-                /inRamA/a.txt
+                # /inRamA/a.txt
+                /proc/cpuinfo
+                # date
                     min
                         1024
                     max
@@ -250,13 +251,12 @@ input
                         0
                     interval
                         #15923ms
-                        1s
+                        15000ms
                             length
-                                3
+                                32
                             flags
-                                #log
+                                # log
                                 ignored
-                                date only
                             difference
                                 no
 
@@ -290,8 +290,10 @@ input
                             length
                                 full
                             flags
+                                log
                             difference
                                 no
+
             cmd
                 ping
                 127.0.0.1 -s 16 -UA -c 12

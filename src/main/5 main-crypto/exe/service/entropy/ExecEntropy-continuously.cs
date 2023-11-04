@@ -69,7 +69,7 @@ public partial class Regime_Service
                             break;
 
                             case Options_Service.Input.Entropy.InputCmdElement cmdElement:
-                                
+                                getRandomFromCommand_continuously(rnd, interval, cmdElement);
                             break;
 
                             case Options_Service.Input.Entropy.InputDirElement dirElement:
@@ -240,6 +240,12 @@ public partial class Regime_Service
                     int len     = 1024;                    // Значение должно быть строго больше KeccakPrime.BlockLen + dateLen
                     int ilen    = len * 2;
                     int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);    // Длина массива, выделенная для данных
+                    if (fileElement.fileInfo!.Length > len)
+                    {
+                        len = (int) fileElement.fileInfo!.Length;
+                        if (len*2 > ilen)
+                            ilen = len * 2; // ilen не должен быть меньше 127-ми байтов
+                    }
                     if (interval.Length!.Length > 0)
                     {
                         len = (int) (interval.Length!.Length + dateLen);
@@ -465,7 +471,10 @@ public partial class Regime_Service
 
                 BytesBuilder.ToNull(span.Length, buff);
 
-                // Если заявлена задержка, значит мы прочитали всё, что хотели
+                // Если заявлена задержка, значит мы прочитали всё, что хотели,
+                // т.к. при continuously задержка ставится 0,
+                // а при fast задержка вообще не ставится (тоже 0).
+                // Значит, эта задержка от периодического считывания
                 if (sleepTime > 0)
                 {
                     break;
@@ -476,13 +485,153 @@ public partial class Regime_Service
         }
     }
 
+    public unsafe void getRandomFromCommand_continuously
+    (
+        Options_Service.Input.Entropy.InputElement rnd,
+        Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
+        Options_Service.Input.Entropy.InputCmdElement cmdElement
+    )
+    {
+        var t = new Thread
+        (
+            () =>
+            {
+                long lastLogDate = default;
+
+                int Ex_cnt    = 0;
+                int sleepTime = interval.time > 0 ? (int) interval.time : 1049;
+                if (interval.IntervalType == IntervalTypeEnum.fast)
+                    sleepTime = 347;
+
+                var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+                lock (continuouslyGetters)
+                    continuouslyGetters.Add(cgr);
+
+                try
+                {
+                    while (!Terminated)
+                    {
+                        try
+                        {
+                            getRandomFromCommand_continuously_h(rnd, interval, cmdElement, cgr);
+                            Thread.Sleep(sleepTime);
+
+                            lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            Ex_cnt++;
+                            Console.Error.WriteLine(L("Error for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
+                            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+
+                            if (Ex_cnt > 5)
+                            {
+                                Console.Error.WriteLine(L("Continuously reading has been ended by repeated errors for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
+                                return;
+                            }
+
+                            Thread.Sleep(3557);
+                        }
+                        finally
+                        {}
+                    }
+                }
+                finally
+                {
+                    lock (continuouslyGetters)
+                        continuouslyGetters.Remove(cgr);
+
+                    cgr.Dispose();
+                }
+            }
+        );
+
+        t.IsBackground = true;
+        t.Start();
+    }
+
+    public unsafe long SendGetterDebugMsgToConsole(InnerIntervalElement interval, Options_Service.Input.Entropy.InputCmdElement cmdElement, long lastLogDate, ContinuouslyGetterRecord cgr)
+    {
+        var ticks = DateTime.Now.Ticks;
+        if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+            if (ticks - lastLogDate > ticksPerHour)
+                lock (entropy_sync)
+                {
+                    lastLogDate = ticks;
+                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for all the time of work).");
+                }
+
+        return lastLogDate;
+    }
+
+    // ::cp:all:ZwUElzYfZkK4PfXzUrO7:20231104
+    public unsafe void getRandomFromCommand_continuously_h
+    (
+        Options_Service.Input.Entropy.InputElement rnd,
+        Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
+        Options_Service.Input.Entropy.InputCmdElement cmdElement,
+        ContinuouslyGetterRecord cgr
+    )
+    {
+        checked
+        {
+            bool ignored   = interval.flags!.ignored == Flags.FlagValue.yes;
+            bool doLog     = interval.flags!.log == Flags.FlagValue.yes;
+
+            var psi = new ProcessStartInfo(cmdElement.PathString!)
+            {
+                UseShellExecute        = false,
+                RedirectStandardOutput = true,
+                StandardOutputEncoding = new ASCIIEncoding()
+            };
+            if (cmdElement.workingDir is not null)
+                psi.WorkingDirectory = cmdElement.workingDir;
+            if (!string.IsNullOrEmpty(cmdElement.parameters))
+                psi.Arguments = cmdElement.parameters;
+            if (cmdElement.userName is not null)
+            {
+                psi.UserName = cmdElement.userName;
+                if (psi.WorkingDirectory is null)
+                    psi.WorkingDirectory = Directory.GetCurrentDirectory();
+            }
+
+            var ps = Process.Start(psi);
+            ps!.WaitForExit();
+
+            int len = 256*1024;
+            if (interval.Length!.Length > 0)
+            {
+                len = (int) interval.Length!.Length;
+            }
+            var buffer  = stackalloc byte[len];
+            var buffRec = new Record() {array = buffer, len = len};
+
+            var readedLen = ps.StandardOutput.BaseStream.Read(buffRec);
+            if (readedLen > 0)
+            {
+                if (doLog && readedLen > 0)
+                    WriteToLog(buffRec, readedLen);
+
+                if (!ignored)
+                    cgr.addBytes(readedLen, readedLen, buffRec);
+            }
+
+            buffRec.array = null;
+            buffRec.Dispose();
+        }
+    }
+
     public unsafe void SendGetterDebugMsgToConsole(Options_Service.Input.Entropy.InputFileElement fileElement, ContinuouslyGetterRecord cgr)
     {
         checked
         {
             lock (entropy_sync)
             {
-                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges.");
+                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for all the time of work).");
             }
         }
     }

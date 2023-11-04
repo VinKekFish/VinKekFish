@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
 // Возникает ошибка сегментирования, ничего не работает
@@ -11,37 +12,36 @@ unsafe class Program
 {
     static void Main(string[] args)
     {
-        var ci  = new cuse_info();
-        var ops = new cuse_lowlevel_ops();
-/*
-        var opts = new fuse_cmdline_opts();
-        opts.foreground = 1;
-        opts.debug      = 1;
-*/
+        var ci  = stackalloc cuse_info[1];
+        var ops = stackalloc cuse_lowlevel_ops[1];
 
         var stra = stackalloc byte*[1];
         var str  = stackalloc byte[256];
         stra[0]  = str;
-        var name = "DEVNAME=/inRamA/vkf\u0000";
+        var name = Utf8StringMarshaller.ConvertToUnmanaged("DEVNAME=/inRamA/vkf\u0000");
+        var nlen = strlen(name);
 
-        for (int i = 0; i < name.Length; i++)
+        for (int i = 0; i < 256; i++)
+            str[i] = 0;
+
+        for (int i = 0; i < nlen; i++)
             str[i] = (byte) name[i];
-/*
-        opts.mountpoint = (char**) str;
-*/
 
 
-        ci.dev_info_argc = 1;
-        ci.dev_info_argv = (char**) stra;
+        ci->dev_info_argc = 1;
+        ci->dev_info_argv = (char**) stra;
 
-        ops.read = &FuseReadFunc;
-        ops.open = &FuseOpenFunc;
-        cuse_lowlevel_main(0, null, &ci, &ops, null);
+        ops->read = &FuseReadFunc;
+        ops->open = &FuseOpenFunc;
+        cuse_lowlevel_main(0, null, ci, ops, null);
+
+        Console.WriteLine("end");
 
         while (true);
     }
 
     // https://github.com/vzabavnov/dotnetcore.fuse/
+    // https://github.com/PlasticSCM/FuseSharp
     // https://github.com/libfuse/libfuse/blob/master/example/cuse.c
 
 
@@ -51,7 +51,7 @@ unsafe class Program
 
 // int cuse_lowlevel_main(int argc, char *argv[], const struct cuse_info *ci, const struct cuse_lowlevel_ops *clop, void *userdata);
     [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
-    public static extern unsafe int cuse_lowlevel_main(int argc, char** argv, cuse_info * cuseInfo, cuse_lowlevel_ops * ll_ops, void * userdata);
+    public static extern unsafe nint cuse_lowlevel_main(int argc, char** argv, cuse_info * cuseInfo, cuse_lowlevel_ops * ll_ops, void * userdata);
 
 
     // int fuse_reply_open(fuse_req_t req, const struct fuse_file_info *fi);
@@ -90,7 +90,7 @@ unsafe class Program
     // [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallingConvention.Cdecl) })]
     // delegate* unmanaged[Cdecl]<..., returnType> 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void FuseReadFunc(void* request, int size, int offset, fuse_file_info * fileInfo)
+    public static unsafe void FuseReadFunc(void* request, nint size, nint offset, fuse_file_info * fileInfo)
     {
         if (offset > 0)
         {
@@ -138,36 +138,46 @@ unsafe class Program
     [StructLayout(LayoutKind.Sequential)]
     public struct cuse_info
     {
-        public byte	dev_major;
-        public byte	dev_minor;
-        public byte	dev_info_argc;
+        public nint	dev_major;
+        public nint	dev_minor;
+        public nint	dev_info_argc;
         public char	**dev_info_argv;
-        public byte	flags;
+        public nint	flags;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct cuse_lowlevel_ops
     {
+        public cuse_lowlevel_ops()
+        {
+            init      = null;
+            init_done = null;
+            fsync     = null;
+            ioctl     = null;
+            poll      = null;
+        }
         public void *           init;
         public void *           init_done;
         public void *           destroy;
         public delegate* unmanaged[Cdecl]<void*,           fuse_file_info *, void> open;
-        public delegate* unmanaged[Cdecl]<void*, int, int, fuse_file_info *, void> read;
+        public delegate* unmanaged[Cdecl]<void*, nint, nint, fuse_file_info *, void> read;
         public void *           write;
         public void *           flush;
         public void *           release;
         public void *           fsync;
         public void *           ioctl;
         public void *           poll;
+
+        public void * r1, r2, r3;   // Этого нет в наличии в структуре: просто доп. поля на всякий случай
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct fuse_file_info
     {
-        public int   flags;
-        public uint  writepage, direct_io, keep_cache, parallel_direct_writes, flush, nonseekable, flock_release, cache_readdir, noflush, padding, padding2;
+        public nint   flags;
+        public nuint  writepage, direct_io, keep_cache, parallel_direct_writes, flush, nonseekable, flock_release, cache_readdir, noflush, padding, padding2;
         public ulong fh, lock_owner;
-        public uint  poll_events;
+        public nuint  poll_events;
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -240,6 +240,7 @@ public partial class Regime_Service
         }
     }
 
+    // ::cp:all:ZwUElzYfZkK4PfXzUrO7:20231104
     public unsafe nint getRandomFromCommand(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputCmdElement cmdElement, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
     {
         checked

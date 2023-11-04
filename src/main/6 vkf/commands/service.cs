@@ -32,8 +32,8 @@ public partial class Program
     {
         try
         {
-            service?.doTerminate(willBlock: true);
             e.Cancel = true;
+            service?.doTerminate(willBlock: false);
         }
         catch (Exception ex)
         {

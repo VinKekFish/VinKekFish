@@ -107,12 +107,12 @@ public partial class Regime_Service
                 while (!Terminated)
                 {
                     ExecEntropy();
-                    Thread.Sleep(100);
+                    Thread.Sleep(270);
                 }
             }
             finally
             {
-                doTerminate();
+                doTerminate(true);
             }
         }
         finally
