@@ -311,7 +311,8 @@ public partial class Regime_Service
                                     if (!this.Terminated)
                                         Thread.Sleep(sleepTime);
                                 }
-
+// TODO: добавить удаление параметров энтропии для wait, т.к. там они не учитываются: вводится ровно 512-ть байтов.
+// либо добавить возможность ввода непосредственно в саму губку
                                 if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
                                 {
                                     if (interval.flags!.ignored != Flags.FlagValue.yes)
@@ -322,11 +323,12 @@ public partial class Regime_Service
                                         totalBytes = 0;
                                     }
 // TODO: сделать аналогичное для команд cmd. Также сделать так,чтобы поток не висел всю жизнь программы, а просто добавил бы себя как надо.
-                                    SendGetterDebugMsgToConsole(fileElement, cgr);
 
                                     // Ожидание завершеня работы через Thread.Interrupt
                                     while (!Terminated && cgr.MandatoryUseGet)
-                                        Thread.Sleep(1000*3600);
+                                        Thread.Sleep(60*1000);
+
+                                    SendGetterDebugMsgToConsole(fileElement, cgr);
 
                                     break;
                                 }
