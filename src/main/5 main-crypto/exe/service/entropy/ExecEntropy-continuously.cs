@@ -95,8 +95,9 @@ public partial class Regime_Service
     /// <summary>Инкапсулирует в себя промежуточную губку и предоставляет методы для записи в неё байтов из источника энтропии и получения из неё байтов энтропии</summary>
     public unsafe class ContinuouslyGetterRecord: IDisposable
     {
-        public    readonly Thread          thread;
-        protected readonly Keccak_20200918 keccak;
+        public    readonly Thread                   thread;
+        protected readonly Keccak_20200918?         keccak;
+        protected readonly BytesBuilderForPointers? bb;
                                                                                             /// <summary>true, если объект уже удалён</summary>
         public    bool     disposed                   {get; protected set;} = false;        /// <summary>Количество байтов, полученное из этого источника (это количество сырых байтов, действительно полученных из источника, без учёта настроек {min,max,avg,EME})</summary>
         public    nint     countOfBytes               {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было выведено для пользователя функцией getBytes</summary>
@@ -106,10 +107,17 @@ public partial class Regime_Service
                                                                                             /// <summary>Элемент из настроек, описывающий параметры данного источника энтропии</summary>
         public readonly Options_Service.Input.Entropy.InputElement inputElement;
 
-        public ContinuouslyGetterRecord(Thread t, Options_Service.Input.Entropy.InputElement inputElement)
+        /// <summary></summary>
+        /// <param name="t">Созданный для данного объекта поток</param>
+        /// <param name="inputElement">Объект-описатель</param>
+        /// <param name="directInput">Если true, то промежуточная губка не используется</param>
+        public ContinuouslyGetterRecord(Thread t, Options_Service.Input.Entropy.InputElement inputElement, bool directInput = false)
         {
-            this.thread      = t;
-            this.keccak = new Keccak_20200918();
+            this.thread = t;
+            if (directInput)
+                this.bb = new BytesBuilderForPointers();
+            else
+                this.keccak = new Keccak_20200918();
 
             this.inputElement = inputElement;
         }
@@ -117,7 +125,7 @@ public partial class Regime_Service
         /// <summary>Получает байты из промежуточной губки. <para>Пользователь должен проверить, что isInited установлен перед тем, как использовать этот метод. Если isInited == false, то губка ещё не готова к получению из неё информации: её надо просто пропустить и взять значения из других источников.</para><para>Код безопасен с точки зрения многопоточности.</para><para>countOfBytesFromLastOutput сбрасывается в ноль вне зависимости от количества получаемых данных.</para></summary>
         /// <param name="data">Массив данных, принимающий накопленные байты энтропии из промежуточной губки</param>
         /// <param name="len">Количество байтов энтропии для чтения. Не более чем KeccakPrime.BlockLen (64 байта)</param>
-        public void getBytes(byte * data, nint len)
+        public nint getBytes(byte * data, nint len)
         {
             checked
             {
@@ -132,12 +140,33 @@ public partial class Regime_Service
                     if (!isDataReady(len))
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
 
-                    KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);
-                    isInited     = false;
-                    MandatoryUse = false;
-                    countOfBytesFromLastOutput = 0;
+                    if (keccak is not null)
+                    {
+                        KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);
+
+                        isInited     = false;
+                        MandatoryUse = false;
+                        countOfBytesFromLastOutput = 0;
+                    }
+                    else
+                    {
+                        if (bb!.Count < len)
+                            len = bb.Count;
+
+                        using var buffer = Keccak_abstract.allocator.AllocMemory(len, "ContinuouslyGetterRecord.getBytes");
+                        bb!.getBytesAndRemoveIt(buffer);
+                        BytesBuilder.CopyTo(len, len, buffer, data);
+
+                        countOfBytesFromLastOutput -= len;
+                        if (bb.Count <= 0)
+                        {
+                            isInited     = false;
+                            MandatoryUse = false;       // Сообщаем потоку-читателю, что можно завершаться
+                        }
+                    }
 
                     countOfBytesToUser += len;
+                    return len;
                 }
             }
         }
@@ -190,18 +219,25 @@ public partial class Regime_Service
                     if (bytes > len)
                         throw new ArgumentOutOfRangeException("bytes", "bytes > len");
 
-                    do
+                    if (keccak is not null)
                     {
-                        nint curLen = len;
-                        if (curLen > KeccakPrime.BlockLen)
-                            curLen = KeccakPrime.BlockLen;
+                        do
+                        {
+                            nint curLen = len;
+                            if (curLen > KeccakPrime.BlockLen)
+                                curLen = KeccakPrime.BlockLen;
 
-                        KeccakPrime.Keccak_Input64_512(input, (byte) curLen, keccak.S);
-                        keccak.CalcStep();
-                        len   -= curLen;
-                        input += curLen;
+                            KeccakPrime.Keccak_Input64_512(input, (byte) curLen, keccak.S);
+                            keccak.CalcStep();
+                            len   -= curLen;
+                            input += curLen;
+                        }
+                        while (len > 0);
                     }
-                    while (len > 0);
+                    else
+                    {
+                        bb!.addWithCopy(input, len, Keccak_abstract.allocator);
+                    }
 
                     isInited                    = true;
                     countOfBytes               += bytes;
@@ -217,7 +253,8 @@ public partial class Regime_Service
                 if (disposed)
                     throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
 
-                keccak.Dispose();
+                keccak?.Dispose();
+                bb    ?.Clear();
                 disposed = true;
             }
         }
@@ -237,12 +274,7 @@ public partial class Regime_Service
         Options_Service.Input.Entropy.InputFileElement fileElement
     )
     {
-        fileElement.fileInfo!.Refresh();/*
-        if (!fileElement.fileInfo.Exists)
-        {
-            Console.Error.WriteLine($"Regime_Service.StartContinuouslyGetter: file not found: {fileElement.fileInfo.FullName}");
-            return;
-        }*/
+        fileElement.fileInfo!.Refresh();
 
         var t = new Thread
         (
@@ -276,7 +308,7 @@ public partial class Regime_Service
                     var span = new Span<byte>(buff, len - dateLen); // Ровно столько, сколько запросил пользователь, если он вообще что-то запросил
 
                     nint totalBytes = 0;
-                    var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd);
+                    var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd, interval.IntervalType == IntervalTypeEnum.waitAndOnce);
 
                     int sleepTime = interval.time > 0 ? (int) interval.time : 1049;
 
@@ -506,12 +538,10 @@ public partial class Regime_Service
 
                 BytesBuilder.ToNull(span.Length, buff);
 
-                // Если заявлена задержка, значит мы прочитали всё, что хотели,
-                // т.к. при continuously задержка ставится 0,
-                // а при fast задержка вообще не ставится (тоже 0).
-                // Значит, эта задержка от периодического считывания
-                if (sleepTime > 0)
+                if (interval.IntervalType == IntervalTypeEnum.time)
                 {
+                    /*if (interval.flags.log == Flags.FlagValue.yes)
+                        Console.WriteLine("breaked: " + fileElement.fileInfo!.FullName);*/
                     break;
                 }
             }
@@ -606,7 +636,7 @@ public partial class Regime_Service
                 lock (entropy_sync)
                 {
                     lastLogDate = ticks;
-                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for entire the time of work).");
+                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
                 }
 
         return lastLogDate;
@@ -675,7 +705,7 @@ public partial class Regime_Service
         {
             lock (entropy_sync)
             {
-                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for entire the time of work).");
+                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
             }
         }
     }

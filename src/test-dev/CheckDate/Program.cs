@@ -35,9 +35,9 @@ unsafe class Program
                 }
 
                 var dt = new DateTime(ticks);
-                Console.WriteLine(dt.ToLongTimeString());
-            }
 
+                Console.WriteLine(dt.ToLongTimeString() + "." + dt.Millisecond + "." + dt.Microsecond);
+            }
         }
 
         Console.WriteLine();

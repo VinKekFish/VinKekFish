@@ -80,15 +80,15 @@ public partial class Regime_Service
         {
             return
             $"""
-                min
+                max (bytes)
                     {min}
-                max
-                    {max}
-                avg
+                avg (bytes)
                     {avg}
-                EME
+                min (bytes)
+                    {max}
+                EME (bytes)
                     {EME}
-                removed
+                removed (bytes)
                     {removedBytes}
 
             """;
@@ -116,8 +116,8 @@ public partial class Regime_Service
 
                 ConditionalInputEntropyToMainSponges(BlockLen);
 
-                getter.getBytes(buff + bufferRec_current, BlockLen);
-                bufferRec_current += BlockLen;
+                var readed = getter.getBytes(buff + bufferRec_current, BlockLen);
+                bufferRec_current += readed;
 
                 countOfBytesCounterTotal_h.addNumberToBytes(BlockLen, getter);
                 countOfBytesCounterCorr_h .addNumberToBytes(BlockLen, getter);
