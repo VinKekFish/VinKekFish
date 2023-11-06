@@ -19,7 +19,6 @@
 
 [VinKekFish/Docs/Dev/Crypto/keys-templates.md](./Docs/Dev/Crypto/keys-templates.md)
 
-
 # Каталоги
 
 

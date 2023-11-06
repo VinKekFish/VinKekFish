@@ -5,6 +5,7 @@ Fuse (libfuse)
 // https://github.com/libfuse/libfuse/blob/master/example/hello.c#L176
 // https://github.com/vzabavnov/dotnetcore.fuse
 // https://github.com/vzabavnov/dotnetcore.fuse/blob/master/src/fuse.interop/FuseOpt/Functions.cs
+https://github.com/LTRData/FuseDotNet
 
 Xml-документация
 	https://docs.microsoft.com/ru-ru/dotnet/csharp/codedoc
