@@ -123,6 +123,11 @@ public partial class Program
             return command_auto(args);
         }
 
+        if (is_command_check(args))
+        {
+            return command_check(args);
+        }
+
         if (is_command_service(args))
         {
             return command_service(args);
@@ -161,8 +166,10 @@ public partial class Program
     {
         Console.WriteLine(L("Full help see at the program url (above)"));
         Console.WriteLine();
-        Console.WriteLine("vkf service");
+        Console.WriteLine("vkf service conf.file");
         Console.WriteLine("\t" + L("for execute as service"));
+        Console.WriteLine("vkf check conf.file");
+        Console.WriteLine("\t" + L("for check service file"));
         Console.WriteLine("vkf auto");
         Console.WriteLine("\t" + L("for execute without human"));
         Console.WriteLine("vkf manual");

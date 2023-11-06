@@ -72,14 +72,14 @@ public partial class Regime_Service
                             case Options_Service.Input.Entropy.InputCmdElement cmdElement:
                                 getRandomFromCommand_continuously(rnd, interval, cmdElement);
                             break;
-
+/*
                             case Options_Service.Input.Entropy.InputDirElement dirElement:
 
                                 var files = dirElement.dirInfo!.GetFiles("*", SearchOption.AllDirectories);
                                 foreach (var file in files)
                                     ;
                             break;
-
+*/
                             default:
                                 throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
                         }

@@ -62,4 +62,6 @@ Error for command
     Ошибка для команды
 A signal for end has been received
     Получен сигнал завершения работы программы
+for check service file
+    для проверки конфигурационного файла для сервиса
 :
