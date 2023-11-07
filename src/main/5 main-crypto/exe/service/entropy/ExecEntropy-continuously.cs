@@ -282,6 +282,8 @@ public partial class Regime_Service
             {
                 checked
                 {
+                    WaitForFileExists(fileElement.fileInfo, L("File not found. Wait for creation:") + $" '{fileElement.fileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.fileInfo.FullName}'.");
+
                     int len     = 1024;                    // Значение должно быть строго больше KeccakPrime.BlockLen + dateLen
                     int ilen    = len * 2;
                     int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);    // Длина массива, выделенная для данных
