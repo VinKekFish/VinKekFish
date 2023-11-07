@@ -46,11 +46,45 @@ public partial class Regime_Service
             Terminated = true;
             vkfListener?.Close();
             vkfInfoListener?.Close();
+
+            Thread.Sleep(250);
+            lock (continuouslyGetters)
+            foreach (var getter in continuouslyGetters)
+            {
+                try
+                {
+                    getter.thread.Interrupt();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                }
+            }
         }
 
+        var errCnt  = 0;
+        var errTime = 0;
         while (willBlock && continueWaitForExit())
         {
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
+            lock (continuouslyGetters)
+            {
+                foreach (var getter in continuouslyGetters)
+                {
+                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString);
+                }
+
+                if (errCnt != continuouslyGetters.Count)
+                {
+                    errTime = 0;
+                    errCnt  = continuouslyGetters.Count;
+                }
+                else
+                    errTime++;
+            }
+
+            if (errTime > 15)
+                break;
         }
 
         if (willBlock)

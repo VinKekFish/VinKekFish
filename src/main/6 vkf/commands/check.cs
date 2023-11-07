@@ -13,6 +13,12 @@ public partial class Program
         var list  = new List<string>(args);
         list.RemoveAt(0);
 
+        if (args.Length < 2)
+        {
+            Console.Error.WriteLine("vkf chech conf.file");
+            Console.Error.WriteLine(L("Have no enough arguments"));
+            return ProgramErrorCode.noArgs;
+        }
         try
         {
             var fileString = File.ReadAllLines(args[1]);

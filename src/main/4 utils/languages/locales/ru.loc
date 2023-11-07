@@ -64,4 +64,10 @@ A signal for end has been received
     Получен сигнал завершения работы программы
 for check service file
     для проверки конфигурационного файла для сервиса
+Have no enough arguments
+    Недостаточно аргументов
+Wait for getter
+    Ждём обработчика энтропии
+Entropy saved for the file
+    Энтропия сохранена в служебный файл (не используйте его напрямую)
 :

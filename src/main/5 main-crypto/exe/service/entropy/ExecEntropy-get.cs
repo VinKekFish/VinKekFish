@@ -33,7 +33,9 @@ public partial class Regime_Service
                 WriteRecordToFileStream(ws, output);
             }
         }
+
         LastCurrentFile = ExecEntorpy_now;
+        Console.WriteLine(L("Entropy saved for the file") + ": " + RandomAtFolder_Current.FullName);
     }
 
     private unsafe FileInfo getOldestCurrentFile()

@@ -2,6 +2,8 @@
 using static VinKekFish_Utils.Language;
 
 namespace VinKekFish_console;
+
+using System.Runtime.InteropServices;
 using VinKekFish_EXE;
 
 public partial class Program
@@ -15,6 +17,11 @@ public partial class Program
 
 //      AppDomain.CurrentDomain.ProcessExit += ProcessExit;
         Console.CancelKeyPress += ProcessExit;
+        //PosixSignalRegistration.Create(PosixSignal.SIGTSTP, ProcessExit);
+        PosixSignalRegistration.Create(PosixSignal.SIGINT,  ProcessExit);
+        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ProcessExit);
+        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ProcessExit);
+
 
         service = new VinKekFish_EXE.Regime_Service();
         return service.Start(list);
@@ -26,6 +33,21 @@ public partial class Program
             return true;
 
         return false;
+    }
+
+    public static void ProcessExit(PosixSignalContext context)
+    {
+        context.Cancel = true;
+        Console.WriteLine(L("A signal for end has been received") + ": " + context.Signal.ToString());
+
+        try
+        {
+            service?.doTerminate(willBlock: true);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+        }
     }
 
     public static void ProcessExit(object? sender, ConsoleCancelEventArgs e)
@@ -44,7 +66,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(ex.Message + "\n" + ex.StackTrace);
+            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
         }
     }
 }

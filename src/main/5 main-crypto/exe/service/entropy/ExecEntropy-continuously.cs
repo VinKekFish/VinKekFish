@@ -462,7 +462,7 @@ public partial class Regime_Service
             long lastDate  = default;
             bool ignored   = interval.flags!.ignored == Flags.FlagValue.yes;
             bool doLog     = interval.flags!.log == Flags.FlagValue.yes;
-            while (true)
+            while (!Terminated)
             {
                 // Количество байтов, получаемое за раз, регулируется вызывающей функцией
                 var bytesReaded = rs.Read(span);
