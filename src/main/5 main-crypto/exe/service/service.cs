@@ -21,7 +21,8 @@ public partial class Regime_Service
     public string         OS_Entropy_path = "/dev/random";
                                                 /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям энтропии</summary>
     public UnixSocketListener? vkfListener     = null;  /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям информации о накопленной энтропии</summary>
-    public UnixSocketListener? vkfInfoListener = null;
+    public UnixSocketListener? vkfInfoListener = null;  /// <summary>Прослушиватель символьного устройства</summary>
+    public CuseStream?         vkfCuseListener = null;
     public Regime_Service()
     {
     }
@@ -130,6 +131,10 @@ public partial class Regime_Service
             {
                 vkfListener     = new UnixSocketListener(UnixStreamPath      !.FullName, this, UnixSocketListener.SocketinformationType.entropy);
                 vkfInfoListener = new UnixSocketListener(UnixStreamPathParams!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
+
+                if (options_service!.root!.output!.out_random!.device != null)
+                    vkfCuseListener = new CuseStream(options_service!.root!.output!.out_random!.device!.FullName, this);
+
                 StartEntropy();
                 StartContinuouslyEntropy();
             }

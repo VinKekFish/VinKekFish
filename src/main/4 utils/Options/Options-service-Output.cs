@@ -90,7 +90,8 @@ public partial class Options_Service
                 public class Path : Element
                 {                                                                   /// <summary>Определяет директорию для выхода потоков с псевдослучайными криптостойкими данными</summary>
                     public DirectoryInfo? dir;                                      /// <summary>Путь к файлу random</summary>
-                    public FileInfo?      file;
+                    public FileInfo?      file;                                     /// <summary>Путь к символьному устройству crandom</summary>
+                    public FileInfo?      device;
                     public FileInfo?      fileForParams;
                     public override  UnixStream? Parent => parent as UnixStream;
                     public Path(UnixStream? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
@@ -100,8 +101,9 @@ public partial class Options_Service
                     {
                         this!.Parent!.Parent!.Parent!.out_random = this;
 
-                        dir  = new DirectoryInfo(block.Name);
-                        file = new FileInfo(System.IO.Path.Combine(dir.FullName, "random"));
+                        dir    = new DirectoryInfo(block.Name);
+                        file   = new FileInfo(System.IO.Path.Combine(dir.FullName, "random"));
+                        device = new FileInfo(System.IO.Path.Combine(dir.FullName, "crandom"));
 
                         fileForParams = new FileInfo(System.IO.Path.Combine(dir.FullName, "params"));
                     }
@@ -110,6 +112,12 @@ public partial class Options_Service
                     {
                         if (file == null)
                             throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have a string with the path value. No found path value");
+
+                        if (!device!.DirectoryName!.StartsWith("/dev"))
+                        {
+                            device = null;
+                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found the output file path placed not in /dev. Character device \"crandom\" will not be created.");
+                        }
 
                         base.Check();
                     }

@@ -107,7 +107,7 @@ echo
 sleep 3
 
 echo 'Service status:'
-systemctl status -l --no-pager vkf
+systemctl status -l --no-pager vkf > /dev/null
 if [[ $? -ne 0 ]]
 then
     echo; echo;
@@ -146,7 +146,8 @@ echo "Wait for start the VinKekFish service (vkf service). This may take 5-7 min
 echo "ru: Ждём запуска программы VinKekFish (сервис vkf). Это может занять 5-7 минут."
 nc -UN /dev/vkf/random > /dev/null
 echo; echo;
-journalctl -e -u vkf --no-pager | tail -n 1
+# journalctl -e -u vkf --no-pager | tail -n 1
+systemctl status -l --no-pager vkf
 
 echo; date;
 echo;echo;

@@ -12,7 +12,6 @@ using static VinKekFish_Utils.Language;
 /// Класс для режима работы как службы
 /// Представляет собой прослушиватель unix-сокета
 /// Принимает входящие запросы и высылает ответы
-/// Пока не реализован полностью
 /// </summary>
 public class UnixSocketListener: IDisposable
 {

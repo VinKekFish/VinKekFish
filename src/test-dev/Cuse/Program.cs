@@ -10,68 +10,63 @@ using System.Text;
 namespace ConsoleTest;
 unsafe class Program
 {
+    static void * session = null;
+    // Без аргументов вызывается
     static void Main(string[] args)
-    {/*
-        var fuseOperations = new FuseOperations()
-        {
-            open   = fuse_open,
-            read   = fuse_read,
-            access = fuse_access,
-            getattr = GetAttr
-        };
-
-        fuse_main_real(args.Length, args, fuseOperations, Marshal.SizeOf(fuseOperations), 0);*/
-
+    {
         var ci  = stackalloc cuse_info[1];
         var ops = stackalloc cuse_lowlevel_ops[1];
 
         for (var i = 0; i < sizeof(cuse_lowlevel_ops); i++)
             ((byte*)ops)[i] = 0;
 
+        AppDomain.CurrentDomain.UnhandledException += (a, ex) => { Console.WriteLine((ex.ExceptionObject as Exception)!.Message); };
 
         var stra = stackalloc byte*[1];
-        var name = Utf8StringMarshaller.ConvertToUnmanaged("DEVNAME=vkf/crandom\u0000");
+        // Здесь определяется настоящий путь к устройству: /dev/vkf/crandom
+        var name = Utf8StringMarshaller.ConvertToUnmanaged("DEVNAME=vkf-test/crandom\u0000");
         var nlen = strlen(name);
 
         stra[0] = name;
 
         ci->dev_info_argc = 1;
         ci->dev_info_argv = stra;
-        ci->flags = 1;  // CUSE_UNRESTRICTED_IOCTL
+        ci->flags = 0;  // CUSE_UNRESTRICTED_IOCTL = 1
         ci->dev_major = 0;
         ci->dev_minor = 0;
 
-        var A = new string[] {"", "-f", "-d", args[0]};
+        // var A = new string[] {"", "-f", "-d"};
+        var A = new string[] {"", "-f"};
         GC.KeepAlive(A);
 
-        ops->read  = &CuseReadFunc;
-        ops->open  = &CuseOpenFunc;
-        ops->ioctl = &Cuse_ioctl;
-        ops->init  = &Cuse_init;
+        ops->read    = &CuseReadFunc;
+        ops->open    = &CuseOpenFunc;
+        ops->release = &Cuse_release;
+        // ops->ioctl   = &Cuse_ioctl;
+        ops->init    = &Cuse_init;
         ops->init_done  = &Cuse_init_done;
-        var r = cuse_lowlevel_main(A.Length, A, ci, ops, null);
+        //var r = cuse_lowlevel_main(A.Length, A, ci, ops, null);
+        int multithreaded = 0;
+        session = (void *) cuse_lowlevel_setup(A.Length, A, ci, ops, &multithreaded, null);
+        Console.WriteLine("session: " + (nint)session);
+        var r = fuse_session_loop(session);
+
+        cuse_lowlevel_teardown(session);
 
         Console.WriteLine("end with result: " + r);
     }
 
-    // https://github.com/vzabavnov/dotnetcore.fuse/
-    // https://github.com/PlasticSCM/FuseSharp
     // https://github.com/libfuse/libfuse/blob/master/example/cuse.c
-
-
-
-    [DllImport("libfuse3.so.3", EntryPoint = "fuse_opt_parse", CallingConvention = CallingConvention.Cdecl)]
-    public static extern unsafe int FuseOptParse(FuseArgs* args, void* data, FuseOpt* opts, FuseOptProc proc);
-
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-    internal static extern PosixResult fuse_main_real(int argc,
-        [In, MarshalAs(UnmanagedType.LPArray)] string[] argv,
-        [In] FuseOperations? operations, nint operationsSize, nint userData);
-
 
 // int cuse_lowlevel_main(int argc, char *argv[], const struct cuse_info *ci, const struct cuse_lowlevel_ops *clop, void *userdata);
     [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe nint cuse_lowlevel_main(int argc, [In, MarshalAs(UnmanagedType.LPArray)] string[] argv, cuse_info * cuseInfo, cuse_lowlevel_ops * ll_ops, void * userdata);
+
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe nint cuse_lowlevel_setup(int argc, [In, MarshalAs(UnmanagedType.LPArray)] string[] argv, cuse_info * cuseInfo, cuse_lowlevel_ops * ll_ops, int * multithreaded , void * userdata);
+
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe nint fuse_session_loop(void * session);
 
 
     // int fuse_reply_open(fuse_req_t req, const struct fuse_file_info *fi);
@@ -86,6 +81,22 @@ unsafe class Program
     [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_reply_err(void * request, int err);
 
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int fuse_reply_iov(void * req, nint * iov, int count);
+
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int fuse_session_exit(void * fuse_session);
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int fuse_session_unmount(void * fuse_session);
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int fuse_remove_signal_handlers(void * fuse_session);
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int fuse_session_destroy(void * fuse_session);
+
+    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    public static extern unsafe int cuse_lowlevel_teardown(void * fuse_session);
+
+
     public static int strlen(byte * str)
     {
         int len = 0;
@@ -98,99 +109,101 @@ unsafe class Program
         return len;
     }
 
-    public unsafe delegate int FuseOptProc(void* data, [MarshalAs(UnmanagedType.LPStr), In] string arg, int key, FuseArgs * outargs);
-
-    public static unsafe int FuseOptFunc(void* data, [MarshalAs(UnmanagedType.LPStr), In] string arg, int key, FuseArgs * outargs)
-    {
-        return 1;
-    }
-
-    // static void cusexmp_read(fuse_req_t req, size_t size, off_t off, struct fuse_file_info *fi)
-
-
-    public static int fuse_open(nint path, ref FuseFileInfo fileInfo)
-    {
-        Console.WriteLine("fuse_open !!!!!!!!!!!!");
-        return 0;
-    }
-
-    public static int fuse_read(nint path, nint buffer, nint size, long position, ref FuseFileInfo fileInfo)
-    {
-        Console.WriteLine("fuse_read !!!!!!!!!!!!");
-        return 0;
-    }
-
-    public static int fuse_access(nint path, PosixAccessMode mask)
-    {
-        Console.WriteLine("fuse_access !!!!!!!!!!!!");
-        return (int) PosixResult.Success;
-    }
-
-//    public static int GetAttr(byte * fileNamePtr, [Out] out FuseFileStat stat, ref FuseFileInfo fileInfo)
-    public static int GetAttr(byte * fileNamePtr, nint* stat, ref FuseFileInfo fileInfo)
-    {
-        Console.WriteLine("GetAttr !!!!!!!!!!!!");
-        var f = new FuseFileStat()
-            {
-                st_size = 4,
-                st_birthtim = new TimeSpec(),
-                st_mtim = new TimeSpec(),
-                st_ctim = new TimeSpec(),
-                st_atim = new TimeSpec(),
-                st_mode = PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead
-            };
-        
-        var gch = GCHandle.Alloc(f, GCHandleType.Pinned);
-        *stat = gch.AddrOfPinnedObject();
-
-        return (int) PosixResult.Success;
-    }
-
-
     // CUSE
 
     // [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallingConvention.Cdecl) })]
     // delegate* unmanaged[Cdecl]<..., returnType> 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void CuseReadFunc(void* request, nint size, nint offset, fuse_file_info * fileInfo)
-    {Console.WriteLine("CuseReadFunc !!!!!!!!!!!!");
+    public static unsafe void CuseReadFunc(fuse_req* request, nint size, nint offset, fuse_file_info * fileInfo)
+    {// Console.WriteLine("CuseReadFunc !!!!!!!!!!!!");
         if (offset > 0)
         {
-            fuse_reply_err(request, 0);
+            // https://learn.microsoft.com/en-us/cpp/c-runtime-library/errno-constants?view=msvc-170
+            // fuse_reply_err(request, 22);    // EINVAL = 22; ENOSYS = 40
+            fuse_reply_buf(request, null, 0);
+            return;
+        }
+/*Console.WriteLine("read " + fileInfo->fh);
+Console.WriteLine(fhs.Count);*/
+        bool exists = false;
+        lock (fhs)
+            exists = fhs.Remove(fileInfo->fh);
+/*Console.WriteLine(fhs.Count);
+Console.WriteLine(exists);*/
+        if (!exists)
+        {
+            Console.WriteLine("STOP for read");
+            fuse_reply_buf(request, null, 0);
             return;
         }
 
-        var a = stackalloc byte[] {48, 49, 50, 51, (byte) 'e'};
-        fuse_reply_buf(request, a, 5);
+        Console.WriteLine("start for read " + size);
+        var a = stackalloc byte[] {48, 49, 50, 51, (byte) 'e', 10};
+        fuse_reply_buf(request, a, 6);
+
+        // Завершаем сессию и размонтируем устройство
+        if (fileInfo->fh == 2)
+        ThreadPool.QueueUserWorkItem
+        (
+            (p) =>
+            {
+                Console.WriteLine("EXIT");
+                Thread.Sleep(10000);
+                fuse_session_exit(session); // Fuse будет ждать обращения к устройству и только потом размонтируется
+                File.ReadAllText("/dev/vkf-test/crandom");  // А вот и обращене, которого он будет ждать
+                // fuse_session_unmount(session);
+                // Остальное сделает cuse_lowlevel_teardown
+                // Console.WriteLine("session: " + (nint)session);
+                // fuse_remove_signal_handlers(session);
+                // fuse_session_destroy(session);
+            }
+        );
     }
 
+    public static ulong fileHandleLast = 0;
+
+    static List<ulong> fhs = new List<ulong>(128);
+
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void CuseOpenFunc(void* request, fuse_file_info * fileInfo)
-    {Console.WriteLine("CuseOpenFunc !!!!!!!!!!!!");
-        if (fileInfo->writepage != 0)
-        {
-            fuse_reply_err(request, 0);
-            return;
-        }
+    public static unsafe void CuseOpenFunc(fuse_req* request, fuse_file_info * fileInfo)
+    {//Console.WriteLine("CuseOpenFunc !!!!!!!!!!!!");
 
-        fileInfo->direct_io   = 1;
-        fileInfo->keep_cache  = 0;
-        fileInfo->noflush     = 1;
-        fileInfo->nonseekable = 1;
+        // https://github.com/libfuse/libfuse/blob/master/include/fuse_common.h#L50
+        // https://github.com/libfuse/libfuse/blob/master/include/fuse_lowlevel.h#L198
 
+        fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.direct_io; // direct_io
+        fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.keep_cache; // keep_cache
+        fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.noflush; // noflush
+        fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.nonseekable; // nonseekable
+        fileInfo->fh          = Interlocked.Increment(ref fileHandleLast);
+
+        lock (fhs)
+            fhs.Add(fileInfo->fh);
+//Console.WriteLine("added " + fileInfo->fh);
         fuse_reply_open(request, fileInfo);
     }
 
     // static void cusexmp_ioctl(fuse_req_t req, int cmd, void *arg, struct fuse_file_info *fi, unsigned flags, const void *in_buf, size_t in_bufsz, size_t out_bufsz)
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void Cuse_ioctl(void* request, int cmd, void * arg, fuse_file_info * fileInfo, int flags, void * in_buf, nint in_buf_size, nint out_buff_size)
+    public static unsafe void Cuse_ioctl(fuse_req* request, int cmd, void * arg, fuse_file_info * fileInfo, int flags, void * in_buf, nint in_buf_size, nint out_buff_size)
     {Console.WriteLine("Cuse_ioctl !!!!!!!!!!!!");
         Console.WriteLine(cmd);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void Cuse_init(void * a, void * b)
+    public static unsafe void Cuse_release(fuse_req* request, fuse_file_info * fileInfo)
+    {Console.WriteLine("Cuse_release !!!!!!!!!!!!");
+        lock (fhs)
+            fhs.Remove(fileInfo->fh);
+        // Console.WriteLine("remove " + fileInfo->fh);
+        fuse_reply_err(request, 0);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static unsafe void Cuse_init(void * a, fuse_conn_info * b)
     {
+        b->max_write = 0;
+        b->max_read  = 4096;
         Console.WriteLine("Cuse_init !!!!!!!!!!!!");
     }
 
@@ -201,19 +214,10 @@ unsafe class Program
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct FuseOpt
+    public struct fuse_req
     {
-        public nint  templ;
-        public ulong offset;
-        public int   value;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct FuseArgs
-    {
-        public int    argc;
-        public char** argv;
-        public int    allocated;
+        public void * session;
+        // Здесь есть ещё и другие поля!
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -227,22 +231,38 @@ unsafe class Program
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct fuse_conn_info
+    {
+        public int proto_major;
+        public int proto_minor;
+        public int max_write;
+        public int max_read;
+        public int max_readahead;
+        public int capable;
+        public int want;
+        public int max_background;
+        public int congestion_threshold;
+        public int time_gran;
+        public fixed int reserved[22];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct cuse_lowlevel_ops
     {
         public cuse_lowlevel_ops()
         {
         }
 
-        public delegate* unmanaged[Cdecl]<void*, void*, void> init = null;
+        public delegate* unmanaged[Cdecl]<void*, fuse_conn_info *, void> init = null;
         public delegate* unmanaged[Cdecl]<void*, void>        init_done = null;
         public void *           destroy = null;
-        public delegate* unmanaged[Cdecl]<void*,           fuse_file_info *, void> open;
-        public delegate* unmanaged[Cdecl]<void*, nint, nint, fuse_file_info *, void> read;
+        public delegate* unmanaged[Cdecl]<fuse_req*,           fuse_file_info *, void> open;
+        public delegate* unmanaged[Cdecl]<fuse_req*, nint, nint, fuse_file_info *, void> read;
         public void *           write = null;
         public void *           flush = null;
-        public void *           release = null;
+        public delegate* unmanaged[Cdecl]<fuse_req*, fuse_file_info *, void> release = null;
         public void *           fsync = null;
-        public delegate* unmanaged[Cdecl]<void*, int, void *, fuse_file_info *, int, void *, nint, nint, void>       ioctl = null;
+        public delegate* unmanaged[Cdecl]<fuse_req*, int, void *, fuse_file_info *, int, void *, nint, nint, void>       ioctl = null;
         public void *           poll = null;
 
         public void * r1, r2, r3;   // Этого нет в наличии в структуре: просто доп. поля на всякий случай
@@ -252,28 +272,14 @@ unsafe class Program
     public struct fuse_file_info
     {
         public int   flags;
-        public uint  writepage, direct_io, keep_cache, parallel_direct_writes, flush, nonseekable, flock_release, cache_readdir, noflush, padding, padding2;
+        public ulong bitFlags;
         public ulong fh, lock_owner;
         public uint  poll_events;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct fuse_cmdline_opts
-    {
-        int singlethread;
-        int foreground;
-        int debug;
-        int nodefault_subtype;
-        char *mountpoint;
-        int show_version;
-        int show_help;
-        int clone_fd;
-        uint max_idle_threads; /* discouraged, due to thread
-                                        * destruct overhead */
 
-        /* Added in libfuse-3.12 */
-        uint max_threads;
-    }
+// Далее - не нужно
+
 public enum PosixResult : int
 {
     Success = 0,   /* No error */
@@ -464,7 +470,7 @@ public enum PosixOpenFlags : int
     DirSync = 0x01000000
 }
 [Flags]
-public enum FuseFileInfoOptions : long
+public enum FuseFileInfoOptions : ulong
 {
     none = 0x0,
 
@@ -527,194 +533,4 @@ public struct FuseFileInfo
     public readonly uint poll_events;
 }
 
-[Flags]
-public enum PosixAccessMode
-{
-    Exists = 0x00,
-    Execute = 0x01,
-    Write = 0x02,
-    Read = 0x04
-}
-public struct FuseFileStat
-{
-    unsafe static FuseFileStat()
-    {
-    }
-
-    private unsafe delegate void fMarshalToNative(void* pNative, in FuseFileStat stat);
-
-    private static readonly fMarshalToNative pMarshalToNative;
-
-    public static int NativeStructSize { get; }
-
-    public readonly unsafe void MarshalToNative(void* pNative) => pMarshalToNative(pNative, this);
-
-    public readonly unsafe void MarshalToNative(nint pNative) => pMarshalToNative((void*)pNative, this);
-
-    public long st_size { get; set; }
-    public long st_nlink { get; set; }
-    public PosixFileMode st_mode { get; set; }
-    public long st_gen { get; set; }
-    public TimeSpec st_birthtim { get; set; }
-    public TimeSpec st_atim { get; set; }
-    public TimeSpec st_ctim { get; set; }
-    public TimeSpec st_mtim { get; set; }
-    public long st_ino { get; set; }
-    public long st_dev { get; set; }
-    public long st_rdev { get; set; }
-    public uint st_uid { get; set; }
-    public uint st_gid { get; set; }
-    public int st_blksize { get; set; }
-    public long st_blocks { get; set; }
-
-    public override readonly string ToString() => $"{{ Size = {st_size}, Mode = {st_mode}, Inode = {st_ino}, Uid = {st_uid}, Gid = {st_gid} }}";
-}
-[StructLayout(LayoutKind.Sequential)]
-public readonly struct TimeSpec
-{
-    public TimeSpec()
-    {
-        tv_sec = -1; tv_nsec = -1;
-    }
-
-    public readonly nint tv_sec;       /* seconds */
-    public readonly nint tv_nsec;        /* and nanoseconds */
-}
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-internal sealed class FuseOperations
-{
-    public FuseOperations()
-    {
-        this.access = null;
-        this.bmap = null;
-        this.chmod = null;
-        this.chown = null;
-        this.copy_file_range = null;
-        this.create = null;
-        this.destroy = null;
-        this.fallocate = null;
-        this.flock = null;
-        this.flush = null;
-        this.fsync = null;
-        this.fsyncdir = null;
-        this.getattr = null;
-        this.getxattr = null;
-        this.init = null;
-        this.ioctl = null;
-        this.link = null;
-        this.listxattr = null;
-        this.@lock = null;
-        this.lseek = null;
-        this.mkdir = null;
-        this.mknod = null;
-        this.open = null;
-        this.opendir = null;
-        this.poll = null;
-        this.read = null;
-        this.read_buf = null;
-        this.readdir = null;
-        this.readlink = null;
-        this.release = null;
-        this.releasedir = null;
-        this.removexattr = null;
-        this.rename = null;
-        this.rmdir = null;
-        this.setxattr = null;
-        this.statfs = null;
-        this.symlink = null;
-        this.truncate = null;
-        this.unlink = null;
-        this.utimens = null;
-        this.write = null;
-        this.write_buf = null;
-    }
-
-    #region Delegates
-
-    public delegate int empty();
-
-    public delegate int fuse_f_getattr(byte * fileNamePtr, nint* stat, ref FuseFileInfo fileInfo); //(nint path, nint stat, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_readlink(nint path, nint target, nint size);
-	public delegate int fuse_f_mknod(nint path, PosixFileMode mode, int dev);
-	public delegate int fuse_f_mkdir(nint path, PosixFileMode mode);
-	public delegate int fuse_f_unlink(nint path);
-	public delegate int fuse_f_rmdir(nint path);
-	public delegate int fuse_f_symlink(nint path, nint target);
-	public delegate int fuse_f_rename(nint path, nint target);
-	public delegate int fuse_f_link(nint path, nint target);
-	public delegate int fuse_f_chmod(nint path, PosixFileMode mode);
-	public delegate int fuse_f_chown(nint path, int uid, int gid);
-	public delegate int fuse_f_truncate(nint path, long size);
-	public delegate int fuse_f_open(nint path, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_read(nint path, nint buffer, nint size, long position, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_write(nint path, nint buffer, nint size, long position, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_flush(nint path, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_release(nint path, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_fsync(nint path, int datasync, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_setxattr(nint path, nint name, nint value, nint size, int flags);
-	public delegate int fuse_f_getxattr(nint path, nint name, nint value, nint size);
-	public delegate int fuse_f_listxattr(nint path, nint list, nint size);
-	public delegate int fuse_f_removexattr(nint path, nint target);
-	public delegate int fuse_f_opendir(nint path, ref FuseFileInfo fileInfo);
-// 	public delegate int fuse_f_readdir(nint path, nint buf, nint fuse_fill_dir_t, long offset, ref FuseFileInfo fileInfo, FuseReadDirFlags flags);
-	public delegate int fuse_f_releasedir(nint path, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_fsyncdir(nint path, int datasync, ref FuseFileInfo fileInfo);
-	public delegate void fuse_f_destroy(nint context);
-    public delegate int fuse_f_access(nint path, PosixAccessMode mask);
-	public delegate int fuse_f_create(nint path, PosixFileMode mode, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_lock(nint path, ref FuseFileInfo fileInfo, int cmd, nint flock);
-	public delegate int fuse_f_utimens(nint path, nint timespec, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_bmap(nint path, nint blocksize, out ulong idx);
-	public delegate int fuse_f_poll(nint path, ref FuseFileInfo fileInfo, nint fuse_pollhandle, ref uint reventsp);
-	public delegate int fuse_f_write_buf(nint path, nint fuse_bufvec, long off, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_read_buf(nint path, nint ppbuf, nint size, long off, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_flock(nint path, ref FuseFileInfo fileInfo, int op);
-	public delegate int fuse_f_fallocate(nint path, PosixFileMode mode, long offset, long length, ref FuseFileInfo fileInfo);
-	public delegate int fuse_f_copy_file_range(nint path_in, ref FuseFileInfo fi_in, long offset_in, nint path_out, ref FuseFileInfo fi_out, long offset_out, nint size, int flags);
-	public delegate int fuse_f_lseek(nint path, long offset, int whence, ref FuseFileInfo fileInfo);
-	#endregion Delegates
-
-	public fuse_f_getattr? getattr;
-	public fuse_f_readlink? readlink;
-	public fuse_f_mknod? mknod;
-	public fuse_f_mkdir? mkdir;
-	public fuse_f_unlink? unlink;
-	public fuse_f_rmdir? rmdir;
-	public fuse_f_symlink? symlink;
-	public fuse_f_rename? rename;
-	public fuse_f_link? link;
-	public fuse_f_chmod? chmod;
-	public fuse_f_chown? chown;
-	public fuse_f_truncate? truncate;
-	public fuse_f_open? open;
-	public fuse_f_read? read;
-	public fuse_f_write? write;
-	public empty? statfs;
-	public fuse_f_flush? flush;
-	public fuse_f_release? release;
-	public fuse_f_fsync? fsync;
-	public fuse_f_setxattr? setxattr;
-	public fuse_f_getxattr? getxattr;
-	public fuse_f_listxattr? listxattr;
-	public fuse_f_removexattr? removexattr;
-	public fuse_f_opendir? opendir;
-	public empty? readdir;
-	public fuse_f_releasedir? releasedir;
-	public fuse_f_fsyncdir? fsyncdir;
-	public empty? init;
-	public fuse_f_destroy? destroy;
-	public fuse_f_access? access;
-	public fuse_f_create? create;
-	public fuse_f_lock? @lock;
-	public fuse_f_utimens? utimens;
-	public fuse_f_bmap? bmap;
-	public empty? ioctl;
-	public fuse_f_poll? poll;
-	public fuse_f_write_buf? write_buf;
-	public fuse_f_read_buf? read_buf;
-	public fuse_f_flock? flock;
-	public fuse_f_fallocate? fallocate;
-	public fuse_f_copy_file_range? copy_file_range;
-	public fuse_f_lseek? lseek;
-}
 }
