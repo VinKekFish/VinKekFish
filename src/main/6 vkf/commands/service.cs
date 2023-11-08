@@ -15,6 +15,7 @@ public partial class Program
         var list  = new List<string>(args);
         list.RemoveAt(0);
 
+        // https://en.wikipedia.org/wiki/Signal_(IPC)
 //      AppDomain.CurrentDomain.ProcessExit += ProcessExit;
         Console.CancelKeyPress += ProcessExit;
         //PosixSignalRegistration.Create(PosixSignal.SIGTSTP, ProcessExit);

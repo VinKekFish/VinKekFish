@@ -106,7 +106,6 @@ echo
 echo
 sleep 3
 
-echo 'Service status:'
 systemctl status -l --no-pager vkf > /dev/null
 if [[ $? -ne 0 ]]
 then
@@ -126,6 +125,7 @@ echo -e "\033[32mThe vkf program is successfully installed (ru: программ
 echo
 echo 'Example for get random bytes:'
 echo 'ru: Пример получения случайных байтов от сервиса:'
+echo cat /dev/vkf/crandom ">>" /some/Path/file.key
 echo nc -UN /dev/vkf/random
 echo nc -UN /dev/vkf/random ">>" /some/Path/file.key
 echo
@@ -147,6 +147,7 @@ echo "ru: Ждём запуска программы VinKekFish (сервис vk
 nc -UN /dev/vkf/random > /dev/null
 echo; echo;
 # journalctl -e -u vkf --no-pager | tail -n 1
+echo 'Service status:'
 systemctl status -l --no-pager vkf
 
 echo; date;

@@ -176,16 +176,19 @@ public partial class Regime_Service
     /// <param name="rc2">Второе число.</param>
     public static unsafe void AddBytes(nint len, byte* rc1, byte* rc2)
     {
-        ushort cf = 0;
-        for (nint i = 0; i < len; i++)
-            checked
-            {
-                ushort a = rc1[i];
-                ushort b = rc2[i];
-                ushort c = (ushort)(a + b + cf);
+        unchecked
+        {
+            ushort cf = 0;
+            for (nint i = 0; i < len; i++)
+                checked
+                {
+                    ushort a = rc1[i];
+                    ushort b = rc2[i];
+                    ushort c = (ushort)(a + b + cf);
 
-                rc1[i] = unchecked((byte)c);
-                cf = (byte)(c >> 8);
-            }
+                    rc1[i] = unchecked((byte)c);
+                    cf = (byte)(c >> 8);
+                }
+        }
     }
 }

@@ -70,4 +70,8 @@ Wait for getter
     Ждём обработчика энтропии
 Entropy saved for the file
     Энтропия сохранена в служебный файл (не используйте его напрямую)
+character device
+    символьное устройство
+failed to create
+    создать не удалось
 :

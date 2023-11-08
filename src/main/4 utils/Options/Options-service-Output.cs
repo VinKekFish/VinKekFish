@@ -42,13 +42,15 @@ public partial class Options_Service
             {
             }
 
-            public UnixStream? unixStream;
+            public UnixStream?      unixStream;
+            public CharacterDevice? charDevice;
 
             public override void SelectBlock(Options.Block block, string canonicalName)
             {
                 Element e = canonicalName switch
                 {
-                    "unix stream"  => unixStream = new UnixStream(this, block.blocks, block),
+                    "unix stream"              => unixStream = new UnixStream     (this, block.blocks, block),
+                    "character device in /dev" => charDevice = new CharacterDevice(this, block.blocks, block),
                     _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
                 };
             }
@@ -57,6 +59,8 @@ public partial class Options_Service
             {
                 if (unixStream == null)
                     throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. Have no 'unix stream' element");
+                if (charDevice == null)
+                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'character device in /dev' element");
 
                 base.Check();
             }
@@ -90,8 +94,7 @@ public partial class Options_Service
                 public class Path : Element
                 {                                                                   /// <summary>Определяет директорию для выхода потоков с псевдослучайными криптостойкими данными</summary>
                     public DirectoryInfo? dir;                                      /// <summary>Путь к файлу random</summary>
-                    public FileInfo?      file;                                     /// <summary>Путь к символьному устройству crandom</summary>
-                    public FileInfo?      device;
+                    public FileInfo?      file;
                     public FileInfo?      fileForParams;
                     public override  UnixStream? Parent => parent as UnixStream;
                     public Path(UnixStream? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
@@ -103,7 +106,6 @@ public partial class Options_Service
 
                         dir    = new DirectoryInfo(block.Name);
                         file   = new FileInfo(System.IO.Path.Combine(dir.FullName, "random"));
-                        device = new FileInfo(System.IO.Path.Combine(dir.FullName, "crandom"));
 
                         fileForParams = new FileInfo(System.IO.Path.Combine(dir.FullName, "params"));
                     }
@@ -113,14 +115,37 @@ public partial class Options_Service
                         if (file == null)
                             throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have a string with the path value. No found path value");
 
-                        if (!device!.DirectoryName!.StartsWith("/dev"))
-                        {
-                            device = null;
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found the output file path placed not in /dev. Character device \"crandom\" will not be created.");
-                        }
-
                         base.Check();
                     }
+                }
+            }
+
+            public class CharacterDevice : Element
+            {
+                public override  Random? Parent => parent as Random;
+                public CharacterDevice(Random? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
+                {}
+
+                public string? path;
+
+                public override void SelectBlock(Options.Block block, string canonicalName)
+                {
+                    if (path != null)
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found two or more elements. Only one element required (/dev/value).");
+
+                    path = block.Name;
+                    if (path.StartsWith("/dev/"))
+                    {
+                        path = path.Substring("/dev/".Length);
+                    }
+                }
+
+                public override void Check()
+                {
+                    if (path == null)
+                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
+
+                    base.Check();
                 }
             }
         }

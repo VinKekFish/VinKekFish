@@ -11,6 +11,8 @@ output
         unix stream
             path
                 /dev/vkf/
+        character device in /dev
+            /dev/vkf/crandom
 
 input
     entropy

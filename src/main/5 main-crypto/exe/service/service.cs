@@ -132,8 +132,12 @@ public partial class Regime_Service
                 vkfListener     = new UnixSocketListener(UnixStreamPath      !.FullName, this, UnixSocketListener.SocketinformationType.entropy);
                 vkfInfoListener = new UnixSocketListener(UnixStreamPathParams!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
 
-                if (options_service!.root!.output!.out_random!.device != null)
-                    vkfCuseListener = new CuseStream(options_service!.root!.output!.out_random!.device!.FullName, this);
+                if (options_service?.root?.output?.random?.charDevice?.path != null)
+                {
+                    var crandomPath = options_service?.root?.output?.random?.charDevice?.path!;
+                    Console.WriteLine("Try to create character device by path /dev/" + crandomPath);
+                    vkfCuseListener = new CuseStream(crandomPath, this);
+                }
 
                 StartEntropy();
                 StartContinuouslyEntropy();

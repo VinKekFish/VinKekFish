@@ -632,14 +632,19 @@ public partial class Regime_Service
 
     public unsafe long SendGetterDebugMsgToConsole(InnerIntervalElement interval, Options_Service.Input.Entropy.InputCmdElement cmdElement, long lastLogDate, ContinuouslyGetterRecord cgr)
     {
-        var ticks = DateTime.Now.Ticks;
-        if (interval.flags!.watchInLog == Flags.FlagValue.yes)
-            if (ticks - lastLogDate > ticksPerHour)
-                lock (entropy_sync)
-                {
-                    lastLogDate = ticks;
-                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
-                }
+        try
+        {
+            var ticks = DateTime.Now.Ticks;
+            if (interval.flags!.watchInLog == Flags.FlagValue.yes)
+                if (ticks - lastLogDate > ticksPerHour)
+                    lock (entropy_sync)
+                    {
+                        lastLogDate = ticks;
+                        Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
+                    }
+        }
+        catch (ThreadInterruptedException)
+        {}
 
         return lastLogDate;
     }
@@ -705,10 +710,15 @@ public partial class Regime_Service
     {
         checked
         {
-            lock (entropy_sync)
+            try
             {
-                Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
+                lock (entropy_sync)
+                {
+                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
+                }
             }
+            catch (ThreadInterruptedException)
+            {}
         }
     }
 }
