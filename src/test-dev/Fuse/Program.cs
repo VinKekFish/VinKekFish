@@ -24,7 +24,9 @@ unsafe class Program
             read     = &fuse_read,
             access   = &fuse_access,
             getattr  = &GetAttr,
-            //getxattr = &GetXAttr
+            statfs   = &fuse_statfs,
+            opendir  = &fuse_openDir,
+            readdir  = &fuse_readDir
         };
 
         // fuse_main_real(args.Length, args, fuseOperations, Marshal.SizeOf(fuseOperations), 0);
@@ -70,7 +72,7 @@ unsafe class Program
     public static extern unsafe fuse_context * fuse_get_context();
     [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe void * fuse_get_session(fuse_context * context);
-    
+
 
     public static int strlen(byte * str)
     {
@@ -137,9 +139,33 @@ unsafe class Program
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static int GetXAttr(byte * fileNamePtr, byte * stat, byte * a, nint size)
+    public static int GetXAttr(byte * fileName, byte * stat, byte * a, nint size)
     {
         Console.WriteLine("GetXAttr !!!!!!!!!!!!");
+
+        return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static unsafe int fuse_statfs(nint a, void * b)
+    {
+        Console.WriteLine("fuse_statfs !!!!!!!!!!!!");
+
+        return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static unsafe int fuse_openDir(byte * fileName, FuseFileInfo * fi)
+    {
+        Console.WriteLine("fuse_openDir !!!!!!!!!!!!");
+
+        return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static unsafe int fuse_readDir(byte * dirName, void * buf, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int> filler, nint offset, FuseFileInfo * fi, FuseReadDirFlags flags)
+    {
+        Console.WriteLine("fuse_readDir !!!!!!!!!!!!");
 
         return (int) PosixResult.Success;
     }
@@ -591,8 +617,8 @@ public readonly struct TimeSpec
         public delegate* unmanaged[Cdecl]<byte*, byte*, byte*, nint, int> getxattr;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, int> listxattr;
         public delegate* unmanaged[Cdecl]<nint, nint, int> removexattr;
-        public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> opendir;
-        public delegate* unmanaged[Cdecl]<nint, nint, nint, long, FuseFileInfo*, FuseReadDirFlags, int> readdir;
+        public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> opendir;
+        public delegate* unmanaged[Cdecl]<byte*, void*, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int>, nint, FuseFileInfo*, FuseReadDirFlags, int> readdir;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> releasedir;
         public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsyncdir;
         public delegate* unmanaged[Cdecl]<nint, int> init;
