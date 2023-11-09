@@ -76,6 +76,12 @@ public partial class Regime_Service
         }
     }
 
+    /// <summary>Возвращает минимальный размер блока. Именно этот размер возвращает программа, когда выдаёт энтропию стронним приложениям.</summary>
+    public unsafe nint getMinBlockSize()
+    {
+        return Math.Min(VinKekFish.BLOCK_SIZE_KEY_K, CascadeSponge.maxDataLen >> 1);
+    }
+
     /// <summary>Получает случайный вывод, предназначенный для пользователя. Для безопасности при многопоточности, входит в блокировку entropy_sync.</summary>
     /// <param name="outputStrenght">Количество байтов случайного вывода, которое необходимо получить. Не менее чем sizeof(long) байтов</param>
     /// <param name="ignoreTerminated">Всегда false. true только для вызовов для записи файлов current при завершении</param>

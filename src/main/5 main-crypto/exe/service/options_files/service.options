@@ -286,6 +286,7 @@ input
                             length
                                 8
                             flags
+                                watch counter in log
                             difference
                                 no
 

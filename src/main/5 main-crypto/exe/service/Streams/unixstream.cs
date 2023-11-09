@@ -200,7 +200,7 @@ public class UnixSocketListener: IDisposable
 
         protected unsafe void SendEntropyToUser()
         {
-            var blockSize = Math.Min(listenSocket.service.VinKekFish.BLOCK_SIZE_KEY_K, listenSocket.service.CascadeSponge.maxDataLen >> 1);
+            nint blockSize = listenSocket.service.getMinBlockSize();
 
             using (var buff = listenSocket.service.getEntropyForOut(blockSize))
             {

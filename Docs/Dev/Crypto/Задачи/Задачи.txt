@@ -36,3 +36,13 @@ wait and once
 
 
 Всё-таки, попробовать сделать автоматические тесты на инициализацию губки.
+
+fuse делает, при выдаче энтропии, копию. Эта копия не очищается.
+
+Шифрование файла подкачки
+    https://qaa-engineer.ru/kak-zashifrovat-swap-v-linux/
+    https://askubuntu.com/questions/248158/how-do-i-setup-an-encrypted-swap-file
+        cryptsetup
+        https://web.archive.org/web/20160504140513/http://hydra.geht.net/tino/howto/linux/cryptswap/
+    https://www.geeksforgeeks.org/how-to-setup-encrypted-filesystems-and-swap-space-using-cryptsetup-tool-in-linux/
+

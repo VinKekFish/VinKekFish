@@ -218,8 +218,7 @@ public unsafe class CuseStream: IDisposable
             return;
         }
 
-        var blockSize = Math.Min(Cuse!.service.VinKekFish.BLOCK_SIZE_KEY_K, Cuse!.service.CascadeSponge.maxDataLen >> 1);
-
+        nint blockSize = Cuse!.service.getMinBlockSize();
         try
         {
             using (var buff = Cuse!.service.getEntropyForOut(blockSize))
