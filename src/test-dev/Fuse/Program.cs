@@ -1,4 +1,5 @@
 ﻿// dotnet publish --output ./build.dev -c Release --self-contained false --use-current-runtime true /p:PublishSingleFile=true
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -23,10 +24,11 @@ unsafe class Program
             open     = &fuse_open,
             read     = &fuse_read,
             access   = &fuse_access,
-            getattr  = &GetAttr,
+            getattr  = &fuse_getattr,
             statfs   = &fuse_statfs,
             opendir  = &fuse_openDir,
-            readdir  = &fuse_readDir
+            readdir  = &fuse_readDir,
+            init     = &fuse_init
         };
 
         // fuse_main_real(args.Length, args, fuseOperations, Marshal.SizeOf(fuseOperations), 0);
@@ -119,21 +121,17 @@ unsafe class Program
 
 //    public static int GetAttr(byte * fileNamePtr, [Out] out FuseFileStat stat, ref FuseFileInfo fileInfo)
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static int GetAttr(byte * fileNamePtr, nint* stat, FuseFileInfo * fileInfo)
+    public static int fuse_getattr(byte * fileNamePtr, FuseFileStat* stat, FuseFileInfo * fileInfo)
     {
-        Console.WriteLine("GetAttr !!!!!!!!!!!!");
-        var f = new FuseFileStat()
-            {
-                st_size = 4,
-                st_birthtim = new TimeSpec(),
-                st_mtim = new TimeSpec(),
-                st_ctim = new TimeSpec(),
-                st_atim = new TimeSpec(),
-                st_mode = PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead
-            };
-        
-        var gch = GCHandle.Alloc(f, GCHandleType.Pinned);
-        *stat = gch.AddrOfPinnedObject();
+        Console.WriteLine("GetAttr !!!!!!!!!!!! " + Utf8StringMarshaller.ConvertToManaged(fileNamePtr));
+// Console.WriteLine(sizeof(FuseFileStat));
+        var st = (byte *) stat;
+        for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
+            *st = 0;
+
+        stat->nlink = 2;
+        stat->size = 4;
+        stat->mode = PosixFileMode.Directory | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead;
 
         return (int) PosixResult.Success;
     }
@@ -168,6 +166,80 @@ unsafe class Program
         Console.WriteLine("fuse_readDir !!!!!!!!!!!!");
 
         return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static int fuse_init(void * connect, fuse_config * config)
+    {
+        var st = (byte *) config;
+        for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
+            *st = 0;
+
+        config->direct_io    = 1;
+        config->hard_remove  = 1;
+        config->kernel_cache = 0;
+        config->nullpath_ok  = 0;
+        config->parallel_direct_writes = 0;
+
+        return 0;
+    }
+
+    // https://github.com/libfuse/libfuse/blob/a466241b45d1dd0bf685513bdeefd6448b63beb6/include/fuse.h#L96
+    [StructLayout(LayoutKind.Sequential)]
+    public struct fuse_config
+    {
+                                	    /// <summary>If `set_gid` is non-zero, the st_gid attribute of each file is overwritten with the value of `gid`.</summary>
+        public int  set_gid;
+        public uint gid;
+                                        /// <summary>If `set_uid` is non-zero, the st_uid attribute of each file is overwritten with the value of `uid</summary>
+        public int  set_uid;
+        public uint uid;
+                                        /// <summary>If `set_mode` is non-zero, the any permissions bits set in `umask` are unset in the st_mode attribute of each file</summary>
+        public int  set_mode;
+	    public uint umask;
+                                                /// <summary>The timeout in seconds for which name lookups will be cached.</summary>
+        public double entry_timeout;            /// <summary>The timeout in seconds for which a negative lookup will be cached. This means, that if file did not exist (lookupreturned ENOENT), the lookup will only be redone after the timeout, and the file/directory will be assumed to not exist until then. A value of zero means that negative lookups are not cached.</summary>
+        public double negative_timeout;         /// <summary>The timeout in seconds for which file/directory attributes (as returned by e.g. the `getattr` handler) are cached.</summary>
+        public double attr_timeout;
+                                                /// <summary>Allow requests to be interrupted</summary>
+        public int intr;                        /// <summary>Specify which signal number to send to the filesystem when a request is interrupted.  The default is hardcoded to USR1.</summary>
+        public int intr_signal;                 /// <summary>Normally, FUSE assigns inodes to paths only for as long as the kernel is aware of them. With this option inodes are instead remembered for at least this many seconds.  This will require more memory, but may be necessary when using applications that make use of inode numbers. A number of -1 means that inodes will be remembered for the entire life-time of the file-system process.</summary>
+        public int remember;                    /// <summary>The default behavior is that if an open file is deleted, the file is renamed to a hidden file (.fuse_hiddenXXX), and only removed when the file is finally released.  This relieves the filesystem implementation of having to deal with this problem. This option disables the hiding behavior, and files are removed immediately in an unlink operation (or in a rename operation which overwrites an existing file). It is recommended that you not use the hard_remove option. When hard_remove is set, the following libc functions fail on unlinked files (returning errno of xattr(2), ftruncate(2), fstat(2), fchmod(2), fchown(2)</summary>
+        public int hard_remove;
+                                                /// <summary>Honor the st_ino field in the functions getattr() and fill_dir(). This value is used to fill in the st_ino field in the stat(2), lstat(2), fstat(2) functions and the d_ino field in the readdir(2) function. The filesystem does not have to guarantee uniqueness, however some applications rely on this value being unique for the whole filesystem. affect the inode that libfuse  and the kernel use internally (also called the "nodeid").</summary>
+        public int use_ino;                     /// <summary>If use_ino option is not given, still try to fill in the d_ino field in readdir(2). If the name was previously looked up, and is still in the cache, the inode number found there will be used.  Otherwise it will be set to -1. If use_ino option is given, this option is ignored.</summary>
+        public int readdir_ino;
+                                                /// <summary>This option disables the use of page cache (file content cache)
+/// in the kernel for this filesystem. This has several affects:
+///
+/// 1. Each read(2) or write(2) system call will initiate one
+///    or more read or write operations, data will not be
+///    cached in the kernel.
+///
+/// 2. The return value of the read() and write() system calls
+///    will correspond to the return values of the read and
+///    write operations. This is useful for example if the
+///    file size is not known in advance (before reading it).
+///
+/// Internally, enabling this option causes fuse to set the
+/// `direct_io` field of `struct fuse_file_info` - overwriting
+/// any value that was put there by the file system.
+/// </summary>
+        public int direct_io;                   /// <summary>This option disables flushing the cache of the file contents on every open(2).  This should only be enabled on filesystems where the file data is never changed externally (not through the mounted FUSE filesystem).  Thus it is not suitable for network filesystems and other intermediate filesystems. NOTE: if this option is not specified (and neither direct_io) data is still cached after the open(2), so a read(2) system call will not always initiate a read operation. Internally, enabling this option causes fuse to set the `keep_cache` field of `struct fuse_file_info` - overwriting any value that was put there by the file system.</summary>
+        public int kernel_cache;                /// <summary>This option is an alternative to `kernel_cache`. Instead of unconditionally keeping cached data, the cached data is invalidated on open(2) if if the modification time or the size of the file has changed since it was last opened.</summary>
+        public int auto_cache;                  /// <summary>By default, fuse waits for all pending writes to complete and calls the FLUSH operation on close(2) of every fuse fd. With this option, wait and FLUSH are not done for read-only fuse fd, similar to the behavior of NFS/SMB clients.</summary>
+        public int no_rofd_flush;
+                                                /// <summary>The timeout in seconds for which file attributes are cached for the purpose of checking if auto_cache should flush the file data on open.</summary>
+        public int ac_attr_timeout_set;
+	    public double ac_attr_timeout;
+                                                /// <summary>If this option is given the file-system handlers for the following operations will not receive path information: read, write, flush, release, fallocate, fsync, readdir, releasedir, fsyncdir, lock, ioctl and poll. For the truncate, getattr, chmod, chown and utimens operations the path will be provided only if the struct fuse_file_info argument is NULL.</summary>
+        public int nullpath_ok;                 /// <summary>Allow parallel direct-io writes to operate on the same file.  FUSE implementations which do not handle parallel writes on  same file/region should NOT enable this option at all as it  might lead to data inconsistencies.  For the FUSE implementations which have their own mechanism  of cache/data integrity are beneficiaries of this setting as  it now open doors to parallel writes on the same file (without  enabling this setting, all direct writes on the same file are  serialized, resulting in huge data bandwidth loss).</summary>
+        public int parallel_direct_writes;
+
+                                                /// <summary>The remaining options are used by libfuse internally and should not be touched.</summary>
+        public int show_help;
+        public char *modules;
+        public int debug;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -359,7 +431,7 @@ public enum PosixResult : int
 }
 
 [Flags]
-public enum PosixFileMode : ushort
+public enum PosixFileMode : int
 {
     None = 0x0,
     OthersExecute = 0x1,
@@ -464,7 +536,7 @@ public enum FuseFileInfoOptions : long
 	    on close. */
     noflush = 0x80,
 }
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct FuseFileInfo
 {
     static unsafe FuseFileInfo()
@@ -473,78 +545,91 @@ public struct FuseFileInfo
         {
             throw new PlatformNotSupportedException($"Invalid packing of structure FuseFileInfo. Should be 40 bytes, is {sizeof(FuseFileInfo)} bytes");
         }
-        else if (IntPtr.Size == 4 && sizeof(FuseFileInfo) != 32)
-        {
-            throw new PlatformNotSupportedException($"Invalid packing of structure FuseFileInfo. Should be 32 bytes, is {sizeof(FuseFileInfo)} bytes");
-        }
     }
 
     public readonly PosixOpenFlags flags;
     public FuseFileInfoOptions options;
-    public long fileHandle;
+    public ulong fileHandle;
     public ulong lock_owner;
     public readonly uint poll_events;
 }
 
-[Flags]
-public enum PosixAccessMode
-{
-    Exists = 0x00,
-    Execute = 0x01,
-    Write = 0x02,
-    Read = 0x04
-}
-
-public enum FuseReadDirFlags
-{
-
-}
-
-public struct FuseFileStat
-{
-    unsafe static FuseFileStat()
+    [Flags]
+    public enum PosixAccessMode
     {
+        Exists = 0x00,
+        Execute = 0x01,
+        Write = 0x02,
+        Read = 0x04
     }
 
-    private unsafe delegate void fMarshalToNative(void* pNative, in FuseFileStat stat);
-
-    private static readonly fMarshalToNative pMarshalToNative;
-
-    public static int NativeStructSize { get; }
-
-    public readonly unsafe void MarshalToNative(void* pNative) => pMarshalToNative(pNative, this);
-
-    public readonly unsafe void MarshalToNative(nint pNative) => pMarshalToNative((void*)pNative, this);
-
-    public long st_size { get; set; }
-    public long st_nlink { get; set; }
-    public PosixFileMode st_mode { get; set; }
-    public long st_gen { get; set; }
-    public TimeSpec st_birthtim { get; set; }
-    public TimeSpec st_atim { get; set; }
-    public TimeSpec st_ctim { get; set; }
-    public TimeSpec st_mtim { get; set; }
-    public long st_ino { get; set; }
-    public long st_dev { get; set; }
-    public long st_rdev { get; set; }
-    public uint st_uid { get; set; }
-    public uint st_gid { get; set; }
-    public int st_blksize { get; set; }
-    public long st_blocks { get; set; }
-
-    public override readonly string ToString() => $"{{ Size = {st_size}, Mode = {st_mode}, Inode = {st_ino}, Uid = {st_uid}, Gid = {st_gid} }}";
-}
-[StructLayout(LayoutKind.Sequential)]
-public readonly struct TimeSpec
-{
-    public TimeSpec()
+    public enum FuseReadDirFlags
     {
-        tv_sec = -1; tv_nsec = -1;
+
     }
 
-    public readonly nint tv_sec;       /* seconds */
-    public readonly nint tv_nsec;        /* and nanoseconds */
+/*
+// gcc a.c
+// ./a.out
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <linux/stat.h>
+
+int main()
+{
+    int number = sizeof(struct stat);
+    printf("%d\n", number);
+    number = sizeof(struct statx);
+    printf("%d\n", number);
+    return 0;
 }
+144
+256
+*/
+    // https://man7.org/linux/man-pages/man0/sys_stat.h.0p.html
+    // /usr/include/x86_64-linux-gnu/bits/struct_stat.h
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct FuseFileStat
+    {
+        public FuseFileStat()
+        {
+            this = default;
+        }
+
+                                             /// <summary>Device</summary>
+        public long dev;                     /// <summary>File serial number</summary>
+        public long ino;                     /// <summary>User ID of the file's owner</summary>
+        public long nlink;                   /// <summary>File mode</summary>
+        public PosixFileMode mode;           /// <summary>Link count</summary>
+        public int  uid;                     /// <summary>Group ID of the file's group</summary>
+        public int  gid;
+        public int  pad0;                     /// <summary>Device number, if device.</summary>
+        public long rdev;                    /// <summary>Size of file, in bytes</summary>
+        public long size;                    /// <summary>Optimal block size for I/O</summary>
+        public long blksize;                 /// <summary>Number 512-byte blocks allocated</summary>
+        public long blocks;
+                                            /// <summary>Time of last access</summary>
+        public TimeSpec atime;              /// <summary>Time of last modification</summary>
+        public TimeSpec mtime;              /// <summary>Time of last status change</summary>
+        public TimeSpec ctime;
+
+        public fixed long reserved[3];
+
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct TimeSpec
+    {
+        public TimeSpec()
+        {
+            // tv_sec = -1; tv_nsec = -1;
+        }
+
+        public readonly long tv_sec   = -1;         /* seconds */
+        public readonly long tv_nsec  = -1;        /* and nanoseconds */
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal sealed class FuseOperations
     {
@@ -594,7 +679,7 @@ public readonly struct TimeSpec
             this.write_buf = null;
         }
 
-        public delegate* unmanaged[Cdecl]<byte*, nint*, FuseFileInfo*, int> getattr;
+        public delegate* unmanaged[Cdecl]<byte*, FuseFileStat*, FuseFileInfo*, int> getattr;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, int> readlink;
         public delegate* unmanaged[Cdecl]<nint, PosixFileMode, int, int> mknod;
         public delegate* unmanaged[Cdecl]<nint, PosixFileMode, int> mkdir;
@@ -621,7 +706,7 @@ public readonly struct TimeSpec
         public delegate* unmanaged[Cdecl]<byte*, void*, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int>, nint, FuseFileInfo*, FuseReadDirFlags, int> readdir;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> releasedir;
         public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsyncdir;
-        public delegate* unmanaged[Cdecl]<nint, int> init;
+        public delegate* unmanaged[Cdecl]<void*, fuse_config*, int> init;
         public delegate* unmanaged[Cdecl]<nint> destroy;
         public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, int> access;
         public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, FuseFileInfo*, int> create;
