@@ -172,7 +172,7 @@ unsafe class Program
     public static int fuse_init(void * connect, fuse_config * config)
     {
         var st = (byte *) config;
-        for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
+        for (int i = 0; i < sizeof(fuse_config); i++, st++)
             *st = 0;
 
         config->direct_io    = 1;
@@ -188,6 +188,19 @@ unsafe class Program
     [StructLayout(LayoutKind.Sequential)]
     public struct fuse_config
     {
+        public fuse_config()
+        {
+            Clear();
+        }
+
+        public void Clear()
+        {
+            this.set_gid = 0; this.gid = 0; this.gid = 0; this.uid = 0; this.set_mode = 0; this.umask = 0;
+            this.entry_timeout = 0; this.negative_timeout = 0; this.attr_timeout = 0;
+            this.intr = 0; this.intr_signal = 0; this.remember = 0; this.hard_remove = 0;
+            this.use_ino = 0; this.readdir_ino = 0;
+        }
+
                                 	    /// <summary>If `set_gid` is non-zero, the st_gid attribute of each file is overwritten with the value of `gid`.</summary>
         public int  set_gid;
         public uint gid;
