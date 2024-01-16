@@ -110,32 +110,43 @@ public partial class Regime_Service
                 (
                     () =>
                     {
+                        byte * dt = stackalloc byte[sizeof(long)];
+
                         nint outLen = 0;
                         do
                         {
-                            BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, rec.array, sizeof(long));
+                            BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, dt, sizeof(long));
 
                             CascadeSponge.step
                             (
                                 ArmoringSteps: CascadeSponge.countStepsForKeyGeneration - 1,
-                                data: rec,
-                                dataLen: sizeof(long),
-                                regime: 11
+                                data:          dt,
+                                dataLen:       sizeof(long),
+                                regime:        11
                             );
 
-                            outLen += BytesBuilder.CopyTo(CascadeSponge.maxDataLen >> 1, rec.len, CascadeSponge.lastOutput, rec, outLen);
+                            outLen += BytesBuilder.CopyTo
+                            (
+                                sourceLength: CascadeSponge.maxDataLen >> 1,
+                                targetLength: rec.len,
+                                s:            CascadeSponge.lastOutput,
+                                t:            rec,
+                                targetIndex:  outLen
+                            );
                         }
                         while (outLen < outputStrenght);
                     },
 
                     () =>
                     {
+                        byte * dt = stackalloc byte[sizeof(long)];
+
                         var vkfData = recvk.array;
                         var outLen = outputStrenght;
                         do
                         {
-                            BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, recvk.array, sizeof(long));
-                            VinKekFish.input!.add(recvk, sizeof(long));
+                            BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, dt, sizeof(long));
+                            VinKekFish.input!.add(dt, sizeof(long));
 
                             VinKekFish.doStepAndIO
                             (
@@ -150,7 +161,7 @@ public partial class Regime_Service
 
                             VinKekFish.doOutput(vkfData, len);
                             vkfData += len;
-                            outLen -= len;
+                            outLen  -= len;
                         }
                         while (outLen > 0);
                     }

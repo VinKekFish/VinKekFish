@@ -105,22 +105,22 @@ public partial class Regime_Service
     /// Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии.</summary>
     protected unsafe virtual void InputEntropyFromSources()
     {
-        var BlockLen = KeccakPrime.BlockLen;
+        var KeccakBlockLen = KeccakPrime.BlockLen;
         lock (continuouslyGetters)
         {
             var buff = bufferRec!.array;
             foreach (var getter in continuouslyGetters)
             {
-                if (!getter.isDataReady(BlockLen))
+                if (!getter.isDataReady(KeccakBlockLen))
                     continue;
 
-                ConditionalInputEntropyToMainSponges(BlockLen);
+                ConditionalInputEntropyToMainSponges(KeccakBlockLen);
 
-                var readed = getter.getBytes(buff + bufferRec_current, BlockLen);
+                var readed = getter.getBytes(buff + bufferRec_current, KeccakBlockLen);
                 bufferRec_current += readed;
 
-                countOfBytesCounterTotal_h.addNumberToBytes(BlockLen, getter);
-                countOfBytesCounterCorr_h .addNumberToBytes(BlockLen, getter);
+                countOfBytesCounterTotal_h.addNumberToBytes(KeccakBlockLen, getter);
+                countOfBytesCounterCorr_h .addNumberToBytes(KeccakBlockLen, getter);
             }
 
             // Отрабатываем, если длина вводимых байтов больше, чем один шаг губки
@@ -129,20 +129,23 @@ public partial class Regime_Service
     }
 
     /// <summary>Ввести накопленную в bufferRec энтропию в основную губку и выполнить вспомогательные операции. Может быть вызвано пользователем для принудительного сброса накопленной энтропии в губку.</summary>
-    /// <param name="EmptyRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
-    public unsafe void ConditionalInputEntropyToMainSponges(nint EmptyRemainder)
+    /// <param name="EmptySpaceAcceptableRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
+    public unsafe void ConditionalInputEntropyToMainSponges(nint EmptySpaceAcceptableRemainder)
     {
         lock (entropy_sync)
         {
             if (bufferRec_current > 32) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
-            if (bufferRec!.len - bufferRec_current < EmptyRemainder)
             {
-                var enteredBytesCount = bufferRec_current;
-                InputBuffToSponges(bufferRec!, bufferRec_current);
-                SetCountOfBytesCounters_and_ClearBufferRec();
+                var EmptySpace = bufferRec!.len - bufferRec_current;
+                if (EmptySpace < EmptySpaceAcceptableRemainder)    // Высчитываем пустое место в буффере и сравниваем его с допустимым
+                {
+                    var enteredBytesCount = bufferRec_current;
+                    InputBuffToSponges(bufferRec!, bufferRec_current);
+                    SetCountOfBytesCounters_and_ClearBufferRec();
 
-                if (options_service?.root?.Options?.doLogEveryInputEntropyToSponge ?? false)
-                    Console.WriteLine(L("Entropy bytes entered to the main sponge (\"do log every input entropy to sponge\" option is setted). Entered") + $" {enteredBytesCount}");
+                    if (options_service?.root?.Options?.doLogEveryInputEntropyToSponge ?? false)
+                        Console.WriteLine(L("Entropy bytes entered to the main sponge (\"do log every input entropy to sponge\" option is setted). Entered") + $" {enteredBytesCount}");
+                }
             }
         }
     }

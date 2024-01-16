@@ -9,7 +9,7 @@ using VinKekFish_Utils.ProgramOptions;
 using System.Runtime.CompilerServices;
 
 
-// [TestTagAttribute("inWork")]
+[TestTagAttribute("inWork")]
 [TestTagAttribute("service", duration: 100, singleThread: false)]
 public class ServiceAutoTestFile_Input: ServiceAutoTests
 {

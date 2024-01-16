@@ -12,19 +12,20 @@
 		
 		[IEnumerable]:		System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
 			[values:]
-				00:     In the '.input' element (at line 9) of service option must have 'entropy' element. Have no 'entropy' element (for have no 'entropy')		[:String]
-				01:     Warning: In the '.input.Entropy' element (at line 10) of service options was not found 'standard' element
-Warning: In the '.input.Entropy.OS' element (at line 11) of service options was found no one element
+				00:     In the '.input' element (at line 9) of the service option must have 'entropy' element. Have no 'entropy' element (for have no 'entropy')		[:String]
+				01:     Warning: In the '.output.random' element (at line 5) of the service options was not found a 'character device in /dev' element
+Warning: In the '.input.Entropy' element (at line 10) of the service options was not found 'standard' element
+Warning: In the '.input.Entropy.OS' element (at line 11) of the service options was found no one element
  (for have no .input.Entropy.OS.*)
-				02:     The '.input.Entropy.OS' element (at line 11) of service option must represent the existing file path. Have no path value (example: '/dev/random') (for have no .input.Entropy.OS.file.path)
-				03:     At line 13 in the '.input.Entropy.OS.file' element found the not exists file '/dev/randomAAA'. The file must exists (for incorrect .input.Entropy.OS.file.path)
-				04:     The '.input.Entropy.OS' element (at line 11) of service option must represent the existing file path. Have no path value (example: '/dev/random') (for empty .input.Entropy.OS.file.path)
-				05:     In the '.input.Entropy.OS.file' element (at line 12) of service option must have one interval element. Have no interval element (for have no .input.Entropy.OS.file.path.*)
-				06:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.{min,max,EME})
-				07:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.min)
-				08:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.max)
-				09:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.EME)
-				10:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.innerInterval)
+				02:     The '.input.Entropy.OS' element (at line 11) of the service option must represent the existing file path. Have no path value (example: '/dev/random') (for have no .input.Entropy.OS.file.path)
+				03:     In the '.input.Entropy.OS.file' element (at line 12) of the service option must have one interval element. Have no interval element (for incorrect .input.Entropy.OS.file.path)
+				04:     The '.input.Entropy.OS' element (at line 11) of the service option must represent the existing file path. Have no path value (example: '/dev/random') (for empty .input.Entropy.OS.file.path)
+				05:     In the '.input.Entropy.OS.file' element (at line 12) of the service option must have one interval element. Have no interval element (for have no .input.Entropy.OS.file.path.*)
+				06:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.{min,max,EME})
+				07:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.min)
+				08:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.max)
+				09:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no .input.Entropy.OS.file.path.interval.EME)
+				10:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have one 'interval' element. Have no one 'interval' element (for have no .input.Entropy.OS.file.path.interval.innerInterval)
 				11:     At line 21 in the '.input.Entropy.OS./dev/random.interval' element found the value '0xA'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h' (for incorrect time in .input.Entropy.OS.file.path.interval.*)
 				12:     At line 21 in the '.input.Entropy.OS./dev/random.interval' element found the value '1b'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h' (for incorrect time in .input.Entropy.OS.file.path.interval.*)
 				13:     At line 21 in the '.input.Entropy.OS./dev/random.interval' element found the value '100,s'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h' (for incorrect time in .input.Entropy.OS.file.path.interval.*)
@@ -40,7 +41,7 @@ Warning: In the '.input.Entropy.OS' element (at line 11) of service options was 
 				23:     At line 22 in the '.input.Entropy.OS./dev/random.interval.100h' element found the element 'date'. Acceptable is 'length', 'flags', 'difference' (for have no a length element in .input.Entropy.OS.file.path.interval.*)
 				24:     At line 23 in the '.input.Entropy.OS./dev/random.interval.100h' element found the element 'date'. Acceptable is 'length', 'flags', 'difference' (for have no a length value in .input.Entropy.OS.file.path.interval.*)
 				25:     At line 24 in the '.input.Entropy.OS./dev/random.interval.100h' element found the element 'date'. Acceptable is 'length', 'flags', 'difference' (for have no a difference value in .input.Entropy.OS.file.path.interval.*)
-				26:     In the '.input.Entropy.OS./dev/random' element (at line 13) of service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no a date value in .input.Entropy.OS.file.path.interval.*)
+				26:     In the '.input.Entropy.OS./dev/random' element (at line 13) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values) (for have no a date value in .input.Entropy.OS.file.path.interval.*)
 				27:     At line 23 in the '.input.Entropy.OS./dev/random.interval.100h.Length' element found the value 'AAA'. Acceptable is value similary '1', '32', etc. (in bytes) (for incorrect a length value in .input.Entropy.OS.file.path.interval.*)
 			[end values]
 
