@@ -1,0 +1,52 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject	
+	{object number 0002}
+		
+		Capacity:		System.Int32		.enumerableObject.Capacity
+			8
+		
+		Count:		System.Int32		.enumerableObject.Count
+			8
+		
+		[IEnumerable]:		System.Collections.Generic.List`1[[System.Byte[], System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     		[:Byte[]]				
+				{object number 0003}
+				byte[17]:
+					FE02 070B 0F13 171B   1F23 272B 2F33 373B   3F
+				01:     				
+				{object number 0004}
+				byte[17]:
+					FE02 070B 0F13 171B   1F23 272B 2F33 373B   3F
+				02:     				
+				{object number 0005}
+				byte[17]:
+					FE00 0305 0709 0B0D   0F11 1315 1719 1B1D   1F
+				03:     				
+				{object number 0006}
+				byte[17]:
+					FE00 0305 0709 0B0D   0F11 1315 1719 1B1D   1F
+				04:     				
+				{object number 0007}
+				byte[17]:
+					4B4C 4C4C 4C4C 4C4C   4C4C 4C4C 4C4C 4C4C   4C
+				05:     				
+				{object number 0008}
+				byte[17]:
+					4B4C 4C4C 4C4C 4C4C   4C4C 4C4C 4C4C 4C4C   4C
+				06:     				
+				{object number 0009}
+				byte[17]:
+					0001 0101 0101 0101   0101 0101 0101 0101   01
+				07:     				
+				{object number 0010}
+				byte[17]:
+					0001 0101 0101 0101   0101 0101 0101 0101   01
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 

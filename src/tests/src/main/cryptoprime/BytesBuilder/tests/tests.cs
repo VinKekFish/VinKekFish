@@ -9,6 +9,7 @@
 
 namespace cryptoprime_tests;
 
+using System.Reflection.PortableExecutable;
 using System.Text;
 using cryptoprime;
 using DriverForTestsLib;
@@ -40,6 +41,15 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
     protected SaverParent parentSaver;
     protected abstract class SaverParent: TaskResultSaver
     {
+        /// <summary>
+        /// Создаёт инициализированный массив байтов. Инициализация по формуле (byte) (f + c*i + c2*(i + f2))
+        /// </summary>
+        /// <param name="len">Длина массива</param>
+        /// <param name="f">Константа, которой инициализируется каждый элемент массива</param>
+        /// <param name="c">Константа-множитель, определяющий значение, на которое домножается индекс (для f = 0 и c = 1 элемент массива равен его индексу)</param>
+        /// <param name="f2">Доп. константа</param>
+        /// <param name="c2">Доп. константа</param>
+        /// <returns></returns>
         public byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
         {
             var r = new byte[len];
@@ -638,6 +648,116 @@ public class BytesBuilder_test4: BytesBuilder_test_parent
             lst.Add(bb2.getBytes());
 
             return lst;
+        }
+    }
+}
+
+[TestTagAttribute("UP_BytesBuilder")]
+[TestTagAttribute("BytesBuilder", duration: 4)]
+public unsafe class BytesBuilder_test5_add: BytesBuilder_test_parent
+{
+    public BytesBuilder_test5_add(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            const int len = 17;
+
+            var bb1 = createByteArray(len, 127, 1, 0, 0);
+            var bb2 = createByteArray(len, 127, 3, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 127, 1, 0, 0);
+            bb2 = createByteArray(len, 127, 1, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 127, 1,   0, 0);
+            bb2 = createByteArray(len, 204, 255, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 129, 0, 0, 0);
+            bb2 = createByteArray(len, 127, 0, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            return lst;
+
+            static void TestMethod(List<byte[]> lst, int len, ref byte[] bb1, ref byte[] bb2)
+            {
+                byte[] bba1 = new byte[len];
+                byte[] bba2 = new byte[len];
+                BytesBuilder.CopyTo(bb1, bba1);
+                BytesBuilder.CopyTo(bb2, bba2);
+
+                fixed (byte* bp1 = bb1)
+                fixed (byte* bp2 = bb2)
+                {
+                    BytesBuilder.ArithmeticAddBytes(len, bp1, bp2);
+                }
+
+                fixed (byte* bpa1 = bba1)
+                fixed (byte* bpa2 = bba2)
+                {
+                    uint* upa1 = (uint*)bpa1;
+                    uint* upa2 = (uint*)bpa2;
+
+
+                    unchecked
+                    {
+                        ulong cf = 0, a, b;
+                        a = upa1[0];
+                        b = upa2[0];
+
+                        a += b;
+
+                        upa1[0] = (uint)(a);
+                        if (a > uint.MaxValue)
+                            cf++;
+
+
+                        a = upa1[1];
+                        b = upa2[1];
+
+                        a += b + cf; cf = 0;
+
+                        upa1[1] = (uint)(a);
+                        if (a > uint.MaxValue)
+                            cf++;
+
+
+                        a = upa1[2];
+                        b = upa2[2];
+
+                        a += b + cf; cf = 0;
+
+                        upa1[2] = (uint)(a);
+                        if (a > uint.MaxValue)
+                            cf++;
+
+
+                        a = upa1[3];
+                        b = upa2[3];
+
+                        a += b + cf; cf = 0;
+
+                        upa1[3] = (uint)(a);
+                        if (a > uint.MaxValue)
+                            cf++;
+
+                        bpa1[16] = (byte)((ulong)bpa1[16] + (ulong)bpa2[16] + cf);
+                    }
+                }
+
+                if (!BytesBuilder.UnsecureCompare(bb1, bba1))
+                    throw new Exception("BytesBuilder_test5_add: bb1 != bba1");
+
+                lst.Add(bb1);
+                lst.Add(bba1);
+            }
         }
     }
 }

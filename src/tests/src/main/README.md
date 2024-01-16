@@ -1,3 +1,5 @@
+Тесты вызываются автоматически при билде
+
 # cryptoprime
 Здесь тесты для BytesBuilder, cryptoprime и Utils, включая сгенерированный ThreeFish
 

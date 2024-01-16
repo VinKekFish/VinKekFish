@@ -241,6 +241,12 @@
             <param name="i">Индекс эленемта, который не совпадает</param>
             <returns><see langword="true"/> - если массивы совпадают</returns>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.ArithmeticAddBytes(System.IntPtr,System.Byte*,System.Byte*)">
+            <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу</summary>
+            <param name="len">Длина чисел (в байтах)</param>
+            <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
+            <param name="rc2">Второе число.</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.ClearString(System.String)">
             <summary>Попытка обнулить char-строку</summary>
             <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>

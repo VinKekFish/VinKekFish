@@ -987,6 +987,28 @@ namespace cryptoprime
             return true;
         }
 
+        /// <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу</summary>
+        /// <param name="len">Длина чисел (в байтах)</param>
+        /// <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
+        /// <param name="rc2">Второе число.</param>
+        public static unsafe void ArithmeticAddBytes(nint len, byte* rc1, byte* rc2)
+        {
+            unchecked
+            {
+                ushort cf = 0;
+                for (nint i = 0; i < len; i++)
+                    checked
+                    {
+                        ushort a = rc1[i];
+                        ushort b = rc2[i];
+                        ushort c = (ushort)(a + b + cf);
+
+                        rc1[i] = unchecked((byte)c);
+                        cf = (byte)(c >> 8);
+                    }
+            }
+        }
+
 
         /// <summary>Попытка обнулить char-строку</summary>
         /// <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>
