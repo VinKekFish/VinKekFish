@@ -987,25 +987,57 @@ namespace cryptoprime
             return true;
         }
 
+        /// <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу. Эта функция складывает числа побайтово, ArithmeticAddBytes может быть несколько быстрее.</summary>
+        /// <param name="len">Длина чисел (в байтах)</param>
+        /// <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
+        /// <param name="rc2">Второе число.</param>
+        /// <param name="cf">Флаг переноса или некоторое число (от 0 до 255 включительно), с которым надо сложить младший элемент массива.</param>
+        public static unsafe void ArithmeticAddBytesTail(nint len, byte* rc1, byte* rc2, ushort cf = 0)
+        {
+            checked
+            {
+                for (nint i = 0; i < len; i++)
+                {
+                    ushort a = rc1[i];
+                    ushort b = rc2[i];
+                    ushort c = (ushort)(a + b + cf);
+
+                    rc1[i] = unchecked((byte)c);
+                    cf = (byte)(c >> 8);
+                }
+            }
+        }
+
         /// <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу</summary>
         /// <param name="len">Длина чисел (в байтах)</param>
         /// <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
         /// <param name="rc2">Второе число.</param>
-        public static unsafe void ArithmeticAddBytes(nint len, byte* rc1, byte* rc2)
+        /// <param name="cf">Флаг переноса или некоторое число (от 0 до 2^32 не включая), с которым надо сложить младший элемент массива.</param>
+        public static unsafe void ArithmeticAddBytes(nint len, byte* rc1, byte* rc2, ulong cf = 0)
         {
-            unchecked
+            checked
             {
-                ushort cf = 0;
-                for (nint i = 0; i < len; i++)
-                    checked
-                    {
-                        ushort a = rc1[i];
-                        ushort b = rc2[i];
-                        ushort c = (ushort)(a + b + cf);
+                uint * rc1i = (uint *) rc1;
+                uint * rc2i = (uint *) rc2;
 
-                        rc1[i] = unchecked((byte)c);
-                        cf = (byte)(c >> 8);
-                    }
+                ulong a, b, c;
+                nint  i = 0;
+                for (; i < len - 3; i += 4, rc1i++, rc2i++)
+                {
+                    a = *rc1i;
+                    b = *rc2i;
+                    c = a + b + cf;
+
+                    *rc1i = unchecked((uint)c);
+                    cf = c >> 32;
+                }
+
+                if (len > i)
+                {
+                     rc1 = (byte *) rc1i;
+                     rc2 = (byte *) rc2i;
+                    ArithmeticAddBytesTail(len - i, rc1, rc2, (ushort) cf);
+                }
             }
         }
 

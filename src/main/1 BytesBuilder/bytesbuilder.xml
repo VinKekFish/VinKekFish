@@ -241,11 +241,19 @@
             <param name="i">Индекс эленемта, который не совпадает</param>
             <returns><see langword="true"/> - если массивы совпадают</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.ArithmeticAddBytes(System.IntPtr,System.Byte*,System.Byte*)">
+        <member name="M:cryptoprime.BytesBuilder.ArithmeticAddBytesTail(System.IntPtr,System.Byte*,System.Byte*,System.UInt16)">
+            <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу. Эта функция складывает числа побайтово, ArithmeticAddBytes может быть несколько быстрее.</summary>
+            <param name="len">Длина чисел (в байтах)</param>
+            <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
+            <param name="rc2">Второе число.</param>
+            <param name="cf">Флаг переноса или некоторое число (от 0 до 255 включительно), с которым надо сложить младший элемент массива.</param>
+        </member>
+        <member name="M:cryptoprime.BytesBuilder.ArithmeticAddBytes(System.IntPtr,System.Byte*,System.Byte*,System.UInt64)">
             <summary>Арифметически складывает два числа одного и того же размера, записанные в массивах rc1 и rc2: rc1 = rc1 + rc2. Младший байт по младшему адресу</summary>
             <param name="len">Длина чисел (в байтах)</param>
             <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
             <param name="rc2">Второе число.</param>
+            <param name="cf">Флаг переноса или некоторое число (от 0 до 2^32 не включая), с которым надо сложить младший элемент массива.</param>
         </member>
         <member name="M:cryptoprime.BytesBuilder.ClearString(System.String)">
             <summary>Попытка обнулить char-строку</summary>

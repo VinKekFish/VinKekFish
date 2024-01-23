@@ -696,7 +696,7 @@ public unsafe class BytesBuilder_test5_add: BytesBuilder_test_parent
                 fixed (byte* bp1 = bb1)
                 fixed (byte* bp2 = bb2)
                 {
-                    BytesBuilder.ArithmeticAddBytes(len, bp1, bp2);
+                    BytesBuilder.ArithmeticAddBytesTail(len, bp1, bp2);
                 }
 
                 fixed (byte* bpa1 = bba1)
@@ -762,3 +762,151 @@ public unsafe class BytesBuilder_test5_add: BytesBuilder_test_parent
     }
 }
 
+[TestTagAttribute("UP_BytesBuilder")]
+[TestTagAttribute("BytesBuilder", duration: 800)]
+public unsafe class BytesBuilder_test5_add4: BytesBuilder_test_parent
+{
+    public BytesBuilder_test5_add4(TestConstructor constructor):
+                            base (  constructor: constructor, parentSaver: new Saver()  )
+    {}
+
+    protected class Saver: SaverParent
+    {
+        public override object ExecuteTest(AutoSaveTestTask task)
+        {
+            List<byte[]> lst = new List<byte[]>();
+
+            const int len = 17*11;
+
+            var bb1 = createByteArray(len, 127, 1, 0, 0);
+            var bb2 = createByteArray(len, 127, 3, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 127, 1, 0, 0);
+            bb2 = createByteArray(len, 127, 1, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 127, 1,   0, 0);
+            bb2 = createByteArray(len, 204, 255, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            bb1 = createByteArray(len, 129, 0, 0, 0);
+            bb2 = createByteArray(len, 127, 0, 0, 0);
+            TestMethod(lst, len, ref bb1, ref bb2);
+
+            for (int i = 1; i <= byte.MaxValue; i++)
+            {
+                bb1 = createByteArray(len, i, 1, 0, 0);
+                bb2 = createByteArray(len, i, 3, 0, 0);
+                TestMethod(lst, len, ref bb1, ref bb2);
+
+                for (int j = 1; j <= byte.MaxValue; j++)
+                {
+                    bb1 = createByteArray(len, i, 0, 0, 0);
+                    bb2 = createByteArray(len, j, 0, 0, 0);
+                    TestMethod(lst, len, ref bb1, ref bb2, false);
+                }
+            }
+
+            return lst;
+
+            static void TestMethod(List<byte[]> lst, int len, ref byte[] bb1, ref byte[] bb2, bool addToList = true)
+            {
+                byte[] bba1 = new byte[len];
+                byte[] bba2 = new byte[len];
+                BytesBuilder.CopyTo(bb1, bba1);
+                BytesBuilder.CopyTo(bb2, bba2);
+
+                fixed (byte* bp1 = bb1)
+                fixed (byte* bp2 = bb2)
+                {
+                    BytesBuilder.ArithmeticAddBytesTail(len, bp1, bp2);
+                }
+
+                fixed (byte* bpa1 = bba1)
+                fixed (byte* bpa2 = bba2)
+                {
+                    BytesBuilder.ArithmeticAddBytes(len, bpa1, bpa2);
+                }
+
+                if (!BytesBuilder.UnsecureCompare(bb1, bba1))
+                    throw new Exception("BytesBuilder_test5_add4: bb1 != bba1");
+
+                if (addToList)
+                {
+                    lst.Add(bb1);
+                    lst.Add(bba1);
+                }
+            }
+        }
+    }
+}
+
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("UP_BytesBuilder")]
+[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("performance", duration: 2800d, singleThread: true)]
+public unsafe class BytesBuilder_test5_add_performance: TestTask
+{
+    public BytesBuilder_test5_add_performance(TestConstructor constructor):
+                                        base(nameof(BytesBuilder_test5_add_performance), constructor: constructor)
+    {
+        taskFunc = () =>
+        {
+
+            byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
+            {
+                var r = new byte[len];
+                for (int i = 0; i < r.Length; i++)
+                {
+                    r[i] = (byte) (f + c*i + c2*(i + f2));
+                }
+
+                return r;
+            }
+
+            const int len = 1000;
+            var bb1 = createByteArray(len, 0, 1, 0, 0);
+            var bb2 = createByteArray(len, 129, 3, 0, 0);
+            var bb3 = createByteArray(len, 0, 1, 0, 0);
+            var bb4 = createByteArray(len, 129, 3, 0, 0);
+
+            var st_etalon = new DriverForTestsLib.SimpleTimeMeter();
+            var st        = new DriverForTestsLib.SimpleTimeMeter();
+
+
+            const int cnt = 1000;
+            Parallel.Invoke
+            (
+                () =>
+                {
+                    fixed (byte* bp1 = bb1)
+                    fixed (byte* bp2 = bb2)
+                    using (st_etalon)
+                    {
+                        for (int i = 0; i < cnt; i++)
+                            BytesBuilder.ArithmeticAddBytesTail(len, bp1, bp2);
+                    }
+                },
+                () =>
+                {
+                    fixed (byte* bp3 = bb3)
+                    fixed (byte* bp4 = bb4)
+                    using (st)
+                    {
+                        for (int i = 0; i < cnt; i++)
+                            BytesBuilder.ArithmeticAddBytes(len, bp3, bp4);
+                    }
+                }
+            );
+
+            var k = st_etalon.TotalMilliseconds / (double) st.TotalMilliseconds;
+            this.Name += $" ({k:F3})";
+
+            double maxK = 1.2;
+            if (k < maxK)
+                throw new Exception($"BytesBuilder_test5_add_performance: k < {maxK}; k = {k};");
+        };
+    }
+}
