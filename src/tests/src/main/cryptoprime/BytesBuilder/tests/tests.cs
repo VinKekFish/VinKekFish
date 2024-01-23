@@ -904,7 +904,7 @@ public unsafe class BytesBuilder_test5_add_performance: TestTask
             var k = st_etalon.TotalMilliseconds / (double) st.TotalMilliseconds;
             this.Name += $" ({k:F3})";
 
-            double maxK = 1.2;
+            double maxK = 3;
             if (k < maxK)
                 throw new Exception($"BytesBuilder_test5_add_performance: k < {maxK}; k = {k};");
         };
