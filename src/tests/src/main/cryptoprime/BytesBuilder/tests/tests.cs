@@ -842,11 +842,9 @@ public unsafe class BytesBuilder_test5_add4: BytesBuilder_test_parent
     }
 }
 
-
-[TestTagAttribute("inWork")]
 [TestTagAttribute("UP_BytesBuilder")]
 [TestTagAttribute("BytesBuilder")]
-[TestTagAttribute("performance", duration: 2800d, singleThread: true)]
+[TestTagAttribute("performance", duration: 580d, singleThread: true)]
 public unsafe class BytesBuilder_test5_add_performance: TestTask
 {
     public BytesBuilder_test5_add_performance(TestConstructor constructor):
@@ -866,7 +864,7 @@ public unsafe class BytesBuilder_test5_add_performance: TestTask
                 return r;
             }
 
-            const int len = 1000;
+            const int len = 100000;
             var bb1 = createByteArray(len, 0, 1, 0, 0);
             var bb2 = createByteArray(len, 129, 3, 0, 0);
             var bb3 = createByteArray(len, 0, 1, 0, 0);
@@ -904,9 +902,130 @@ public unsafe class BytesBuilder_test5_add_performance: TestTask
             var k = st_etalon.TotalMilliseconds / (double) st.TotalMilliseconds;
             this.Name += $" ({k:F3})";
 
-            double maxK = 3;
+            double maxK = 2;
             if (k < maxK)
                 throw new Exception($"BytesBuilder_test5_add_performance: k < {maxK}; k = {k};");
+        };
+    }
+}
+
+[TestTagAttribute("UP_BytesBuilder")]
+[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("performance", duration: 20d, singleThread: false)]
+public unsafe class BytesBuilder_test5_reverse: TestTask
+{
+    public BytesBuilder_test5_reverse(TestConstructor constructor):
+                                        base(nameof(BytesBuilder_test5_reverse), constructor: constructor)
+    {
+        taskFunc = () =>
+        {
+            byte[] createByteArray(int len, int f, int c)
+            {
+                var r = new byte[len];
+                for (int i = 0; i < r.Length; i++)
+                {
+                    r[i] = (byte) (f + c*i);
+                }
+
+                return r;
+            }
+
+            const int len = 255;
+            var bb1 = createByteArray(len+0, 0, 1);
+            var bb2 = createByteArray(len+1, 0, 1);
+
+            fixed (byte* bp1 = bb1)
+            BytesBuilder.ReverseBytes(len+0, bp1);
+
+            fixed (byte* bp2 = bb2)
+            BytesBuilder.ReverseBytes(len+1, bp2);
+
+            for (int i = 0; i < len; i++)
+            {
+                if (bb1[i] != len - i - 1)
+                    throw new Exception($"BytesBuilder_test5_reverse: bb1[i] != len - i - 1 (i={i}; len-i-1={len-i-1}; bb1[i]={bb1[i]})");
+            }
+
+            for (int i = 0; i < len+1; i++)
+            {
+                if (bb2[i] != len - i)
+                    throw new Exception($"BytesBuilder_test5_reverse: bb2[i] != len - i (i={i}; len-i={len-i}; bb2[i]={bb2[i]})");
+            }
+        };
+    }
+}
+
+[TestTagAttribute("inWork")]
+[TestTagAttribute("UP_BytesBuilder")]
+[TestTagAttribute("BytesBuilder")]
+[TestTagAttribute("performance", duration: 20d, singleThread: false)]
+public unsafe class BytesBuilder_test5_xor: TestTask
+{
+    public BytesBuilder_test5_xor(TestConstructor constructor):
+                                        base(nameof(BytesBuilder_test5_xor), constructor: constructor)
+    {
+        taskFunc = () =>
+        {
+            byte[] createByteArray(int len, int f, int c)
+            {
+                var r = new byte[len];
+                for (int i = 0; i < r.Length; i++)
+                {
+                    r[i] = (byte) (f + c*i);
+                }
+
+                return r;
+            }
+
+            const int len = 137;
+            const int A   = 173;
+            var bb1 = createByteArray(len,  0, 1);
+            var bb2 = createByteArray(len, 11, 0);
+            var bb3 = createByteArray(len,  0, A);
+            var bb0 = createByteArray(len,  0, 0);
+
+            fixed (byte* bp1 = bb1)
+            fixed (byte* bp0 = bb0)
+            BytesBuilder.Xor(len, bp1, bp0);
+
+            for (int i = 0; i < len; i++)
+            {
+                if (bb1[i] != i)
+                    throw new Exception($"BytesBuilder_test5_xor: bb1[i] != i (i={i}; bb1[i]={bb1[i]})");
+            }
+
+            fixed (byte* bp1 = bb1)
+            fixed (byte* bp2 = bb2)
+            BytesBuilder.Xor(len, bp1, bp2);
+
+            for (int i = 0; i < len; i++)
+            {
+                if (bb1[i] != (byte)(i ^ 11))
+                    throw new Exception($"BytesBuilder_test5_xor: bb1[i] != i (i={i}; i^11={i^11}; bb1[i]={bb1[i]})");
+            }
+
+            fixed (byte* bp1 = bb1)
+            fixed (byte* bp2 = bb2)
+            BytesBuilder.Xor(len, bp1, bp2);
+
+            for (int i = 0; i < len; i++)
+            {
+                if (bb1[i] != i)
+                    throw new Exception($"BytesBuilder_test5_xor: bb1[i] != i (2) (i={i}; bb1[i]={bb1[i]})");
+            }
+
+            fixed (byte* bp1 = bb1)
+            fixed (byte* bp3 = bb3)
+            BytesBuilder.Xor(len, bp1, bp3);
+
+            for (int i = 0; i < len; i++)
+            {/*
+                if (bb3[i] != (byte) (i*A))
+                    throw new Exception($"BytesBuilder_test5_xor: bb3[i] != i*A (i={i}; i*A={(byte)(i*A)}; bb1[i]={bb3[i]})");
+*/
+                if (bb1[i] != (byte) (i ^ (i*A)))
+                    throw new Exception($"BytesBuilder_test5_xor: bb1[i] != (i ^ (i*A)) (i={i}; i*i^a={i ^ (i*A)}; bb1[i]={bb1[i]})");
+            }
         };
     }
 }

@@ -255,6 +255,17 @@
             <param name="rc2">Второе число.</param>
             <param name="cf">Флаг переноса или некоторое число (от 0 до 2^32 не включая), с которым надо сложить младший элемент массива.</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.Xor(System.IntPtr,System.Byte*,System.Byte*)">
+            <summary>Налагает гамму gamma на массив байтов text</summary>
+            <param name="len">Длина налагаемой гаммы. text должен быть не менее этой длины</param>
+            <param name="text">Текст, на который будет наложена гамма. Результат будет здесь же.</param>
+            <param name="gamma">Гамма для наложения на текст</param>
+        </member>
+        <member name="M:cryptoprime.BytesBuilder.ReverseBytes(System.IntPtr,System.Byte*)">
+            <summary>Обращает порядок байтов в массиве text</summary>
+            <param name="len">Длина массива text</param>
+            <param name="text">Текст, в котором будет обращён порядок байтов. (например, если бы 0 1 2 3, то станет 3 2 1 0)</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.ClearString(System.String)">
             <summary>Попытка обнулить char-строку</summary>
             <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>

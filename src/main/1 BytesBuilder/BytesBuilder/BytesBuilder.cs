@@ -1073,7 +1073,7 @@ namespace cryptoprime
         /// <summary>Обращает порядок байтов в массиве text</summary>
         /// <param name="len">Длина массива text</param>
         /// <param name="text">Текст, в котором будет обращён порядок байтов. (например, если бы 0 1 2 3, то станет 3 2 1 0)</param>
-        public static unsafe void RevertBytes(nint len, byte* text)
+        public static unsafe void ReverseBytes(nint len, byte* text)
         {
             checked
             {
