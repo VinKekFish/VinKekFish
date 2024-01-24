@@ -13,9 +13,13 @@ public enum ProgramErrorCode
     // Нет правильного аллокатора для памяти    
     wrongMemoryAllocator = 1,
 
+    // Работа программы досрочно прекращена пользователем
+    AbandonedByUser = 103,
+
     // Возвращаемы коды для работы в режиме сервиса
     noArgs_Service
         = 10_001,
     noOptions_Service
         = 10_002,
+
 };
