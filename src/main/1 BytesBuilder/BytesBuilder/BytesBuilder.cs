@@ -1041,6 +1041,54 @@ namespace cryptoprime
             }
         }
 
+        /// <summary>Налагает гамму gamma на массив байтов text</summary>
+        /// <param name="len">Длина налагаемой гаммы. text должен быть не менее этой длины</param>
+        /// <param name="text">Текст, на который будет наложена гамма. Результат будет здесь же.</param>
+        /// <param name="gamma">Гамма для наложения на текст</param>
+        public static unsafe void Xor(nint len, byte* text, byte* gamma)
+        {
+            checked
+            {
+                var T = (ulong *) text;
+                var G = (ulong *) gamma;
+
+                nint i = 0;
+                for (; i < len - 7; i += 8, T++, G++)
+                {
+                    *T ^= *G;
+                }
+
+                if (len > i)
+                {
+                    text  = (byte *) T;
+                    gamma = (byte *) G;
+                    for (; i < len; i++, text++, gamma++)
+                    {
+                        *text ^= *gamma;
+                    }
+                }
+            }
+        }
+
+        /// <summary>Обращает порядок байтов в массиве text</summary>
+        /// <param name="len">Длина массива text</param>
+        /// <param name="text">Текст, в котором будет обращён порядок байтов. (например, если бы 0 1 2 3, то станет 3 2 1 0)</param>
+        public static unsafe void RevertBytes(nint len, byte* text)
+        {
+            checked
+            {
+                var Tr = text + len - 1;
+                byte b;
+
+                for (; Tr > text; Tr--, text++)
+                {
+                    b     = *Tr;
+                    *Tr   = *text;
+                    *text = b;
+                }
+            }
+        }
+
 
         /// <summary>Попытка обнулить char-строку</summary>
         /// <param name="resultText">Строка для обнуления. Осторожно, resultText.substring(0) может возвращать указатель на ту же строку, т.к. .NET считает строки неизменяемыми</param>

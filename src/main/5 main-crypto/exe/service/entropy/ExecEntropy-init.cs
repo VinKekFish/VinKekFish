@@ -24,7 +24,7 @@ public partial class Regime_Service
     public FileInfo?      RandomAtFolder_Current1;
 
     public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
-    public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11
+    public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11, ThreadCount = 1
     public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
 
     public bool isInitiated { get; protected set; } = false;
@@ -95,7 +95,7 @@ public partial class Regime_Service
                         curLen = CascadeSponge.maxDataLen;
 
                     CascadeSponge.step(CascadeSponge.countStepsForKeyGeneration, regime: 7);
-                    BytesBuilder.CopyTo(curLen, rec.len, CascadeSponge.lastOutput, arr, sizeof(long) + pointer);
+                    BytesBuilder.CopyTo(curLen, rec.len, s: CascadeSponge.lastOutput, t: arr, targetIndex: sizeof(long) + pointer);
                 }
 
                 if (Terminated)

@@ -22,7 +22,8 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0, int ThreeFishInitSteps = 2)
+        /// <param name="prngToInit">Уже проинициализированная каскадная губка для инициализации таблиц перестановки. Если она не null, то key и OpenInitVector должны быть null</param>
+        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0, int ThreeFishInitSteps = 2, CascadeSponge_mt_20230930? prngToInit = null)
         {
             this.GenTables();
 
@@ -42,8 +43,8 @@ namespace vinkekfish
             if (gpKeyLen > key_length)
                 gpKeyLen = key_length;
 
-            using var prng = PreRoundsForTranspose >= Rounds  ? null
-                             : new CascadeSponge_mt_20230930(gpKeyLen);
+            using var prng = PreRoundsForTranspose >= Rounds ? null
+                             : prngToInit ?? new CascadeSponge_mt_20230930(gpKeyLen);
 
             if (key != null || OpenInitVector != null)
             if (prng == null)

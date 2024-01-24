@@ -160,7 +160,7 @@ public partial class Regime_Service
         }
         finally
         {
-            Console.WriteLine($"Regime_Service.Start: exiting at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Regime_Service.Start: exiting started at {DateTime.Now.ToString()}");
 
             StopEntropy();
 
