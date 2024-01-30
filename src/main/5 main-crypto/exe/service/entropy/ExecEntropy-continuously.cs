@@ -274,6 +274,24 @@ public partial class Regime_Service
         }
     }
 
+    public void Sleep(int milliseconds, int maxWait = 1000)
+    {
+        if (milliseconds < 0)
+            throw new ArgumentOutOfRangeException("milliseconds", $"milliseconds < 0 ({milliseconds})");
+
+        var cnt = milliseconds;
+        var cur = 0;
+        while (cnt > 0 && !Terminated)
+        {
+            cur = cnt;
+            if (cur > maxWait)
+                cur = maxWait;
+
+            Thread.Sleep(cur);
+            cnt -= cur;
+        }
+    }
+
     protected unsafe void StartContinuouslyGetter
     (
         Options_Service.Input.Entropy.InputElement rnd,
@@ -349,8 +367,7 @@ public partial class Regime_Service
                                     var isSleeped = getEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
 
                                     if (!isSleeped)
-                                    if (!this.Terminated)
-                                        Thread.Sleep(sleepTime);
+                                        Sleep(sleepTime);
                                 }
 // TODO: добавить удаление параметров энтропии для wait, т.к. там они не учитываются: вводится ровно 512-ть байтов.
 // либо добавить возможность ввода непосредственно в саму губку
@@ -391,7 +408,7 @@ public partial class Regime_Service
                             catch (Exception ex)
                             {
                                 Console.Error.WriteLine(formatException(ex));
-                                Thread.Sleep(3557);
+                                Sleep(3557);
                             }
                         }
 
@@ -459,7 +476,7 @@ public partial class Regime_Service
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine(formatException(ex));
-                    Thread.Sleep(3557);
+                    Sleep(3557);
                 }
                 finally
                 {
@@ -474,7 +491,7 @@ public partial class Regime_Service
             catch (Exception ex)
             {
                 Console.Error.WriteLine(formatException(ex));
-                Thread.Sleep(3557);
+                Sleep(3557);
             }
 
             return true;        // Задержка в вызывающей функции уже не нужна: либо выполнена, либо произошло исключение, которое не подразумевает дополнительной задержки
@@ -615,7 +632,7 @@ public partial class Regime_Service
                         try
                         {
                             getRandomFromCommand_continuously_h(rnd, interval, cmdElement, cgr);
-                            Thread.Sleep(sleepTime);
+                            Sleep(sleepTime);
 
                             lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
 
@@ -645,7 +662,7 @@ public partial class Regime_Service
                                 return;
                             }
 
-                            Thread.Sleep(3557);
+                            Sleep(3557);
                         }
                         finally
                         {}
@@ -716,7 +733,8 @@ public partial class Regime_Service
             }
 
             var ps = Process.Start(psi);
-            ps!.WaitForExit();
+            while (!ps!.WaitForExit(1000) && !Terminated)
+            {}
 
             int len = 256*1024;
             if (interval.Length!.Length > 0)

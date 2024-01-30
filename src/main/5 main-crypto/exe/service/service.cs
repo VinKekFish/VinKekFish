@@ -44,6 +44,10 @@ public partial class Regime_Service
     {
         if (!Terminated)
         {
+            // Сначала мы вводим остатки данных, потому что иначе они могут потеряться,
+            // если потоки завершатся ранее, чем дойдёт дело до впитывания.
+            InputEntropyFromSourcesWhile(int.MaxValue, 0);
+
             Terminated = true;
             TryToDispose(vkfListener);
             TryToDispose(vkfInfoListener);
@@ -82,7 +86,8 @@ public partial class Regime_Service
                 InputEntropyFromSourcesWhile(int.MaxValue, 0);
                 foreach (var getter in continuouslyGetters)
                 {
-                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput})");
+                    if (time > 0 || getter.countOfBytesFromLastOutput > 0)
+                        Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput})");
                 }
 
                 time++;

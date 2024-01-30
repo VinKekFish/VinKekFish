@@ -195,6 +195,7 @@ public partial class Options_Service
                             result.Add(dir);
                             break;
 */
+                        // Для быстрого отключения команды без предупреждений
                         case "none":
                             break;
 
