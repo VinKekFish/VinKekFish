@@ -2,5 +2,5 @@ namespace VinKekFish_console;
 
 public partial class Program
 {
-    public static readonly string ProgramVersion_RiWiWak6ObEcc ="2024.01.24.2317";
+    public static readonly string ProgramVersion_RiWiWak6ObEcc ="2024.01.30.2039";
 }

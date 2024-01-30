@@ -17,8 +17,7 @@ public partial class Regime_Service
                                                        /// <summary>Путь к папке, где программой создаётся unix stream. Берётся из конфигурационного файла</summary>
     public DirectoryInfo? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream для получения энтропии</summary>
     public FileInfo?      UnixStreamPath;              /// <summary>Полное имя файла (с путём) unix stream для получения параметров накопления энтропии</summary>
-    public FileInfo?      UnixStreamPathParams;        /// <summary>Путь к производителю энтропии (/dev/random)</summary>
-    public string         OS_Entropy_path = "/dev/random";
+    public FileInfo?      UnixStreamPathParams;
                                                 /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям энтропии</summary>
     public UnixSocketListener? vkfListener     = null;  /// <summary>Прослушиватель сокета, предназначенного для выдачи другим приложениям информации о накопленной энтропии</summary>
     public UnixSocketListener? vkfInfoListener = null;  /// <summary>Прослушиватель символьного устройства</summary>
@@ -40,13 +39,27 @@ public partial class Regime_Service
         doTerminate(true);
     }
 
+    public void TryToDispose(IDisposable? vkf)
+    {
+        try
+        {
+            vkf?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+        }
+    }
+
     public void doTerminate(bool willBlock = false)
     {
+        int countOfThreadsNotInterrupted = 0;
         if (!Terminated)
         {
             Terminated = true;
-            vkfListener?.Close();
-            vkfInfoListener?.Close();
+            TryToDispose(vkfListener);
+            TryToDispose(vkfInfoListener);
+            TryToDispose(vkfCuseListener);
 
             Thread.Sleep(250);
             lock (continuouslyGetters)
@@ -54,6 +67,9 @@ public partial class Regime_Service
             {
                 try
                 {
+                    if (getter.thread.ThreadState != ThreadState.WaitSleepJoin && getter.thread.ThreadState != ThreadState.Background && getter.thread.ThreadState != ThreadState.Running)
+                        countOfThreadsNotInterrupted++;
+
                     getter.thread.Interrupt();
                 }
                 catch (Exception ex)
@@ -65,27 +81,42 @@ public partial class Regime_Service
 
         var errCnt  = 0;
         var errTime = 0;
+        var time    = 0;
+
+        // Первый раз ждём все потоки на завершение
+        // Затем cntT уже больше нуля и позволяет нам завершиться,
+        // не ожидая завершения потоков, которые, скорее всего, уже и не завершатся,
+        // т.к. ждут файлового ввода-вывода
         while (willBlock && continueWaitForExit())
         {
             Thread.Sleep(1000);
             lock (continuouslyGetters)
             {
+                // Дополнительно вводим энтропию из потоков, чтобы там был ноль ожидающих данных
+                // Когда ноль ожидающих данных, continueWaitForExit может вернуть ноль, даже если поток ещё не завершён
+                InputEntropyFromSources(1);
                 foreach (var getter in continuouslyGetters)
                 {
-                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString);
+                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" ({getter.isDataReady(1)})");
                 }
 
+                time++;
                 if (errCnt != continuouslyGetters.Count)
                 {
                     errTime = 0;
                     errCnt  = continuouslyGetters.Count;
                 }
                 else
+                {
                     errTime++;
+                }
             }
 
             if (errTime > 15)
+            {
+                Console.WriteLine(L("Wait for threads has been terminated by timeout") + $" ({time} s / {errCnt} threads)");
                 break;
+            }
         }
 
         if (willBlock)
@@ -94,10 +125,6 @@ public partial class Regime_Service
 
     public bool continueWaitForExit()
     {
-        lock (continuouslyGetters)
-            if (continuouslyGetters.Count > 0)
-                return true;
-
         if (vkfListener != null)
         if (vkfListener.ConnectionsCount > 0)
             return true;
@@ -105,6 +132,32 @@ public partial class Regime_Service
         if (vkfInfoListener != null)
         if (vkfInfoListener.ConnectionsCount > 0)
             return true;
+
+        lock (continuouslyGetters)
+        {
+            if (continuouslyGetters.Count > 0)
+            {
+                foreach (var getter in continuouslyGetters)
+                {
+                    try
+                    {
+                        lock (getter)
+                        if (getter.GetCountOfReadyBytes() > 0)
+                            return true;
+
+                        // Пытаемся ещё раз прервать поток исполнения
+                        // и в первый раз прервать поток ввода-вывода
+                        getter.thread.Interrupt();
+                        lock (getter)
+                            getter.StreamForClose?.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                    }
+                }
+            }
+        }   
 
         return false;
     }
@@ -135,12 +188,15 @@ public partial class Regime_Service
                 if (options_service?.root?.output?.random?.charDevice?.path != null)
                 {
                     var crandomPath = options_service?.root?.output?.random?.charDevice?.path!;
-                    Console.WriteLine("Try to create character device by path /dev/" + crandomPath);
+                    Console.WriteLine(L("Try to create character device by path /dev/") + crandomPath);
                     vkfCuseListener = new CuseStream(crandomPath, this);
                 }
 
-                StartEntropy();
+                // Сразу берём источники энтропии, до того, как будем губку инициализировать,
+                // т.к. эти источники от инициализации губки не зависят
                 StartContinuouslyEntropy();
+                StartEntropy();
+                ExecEntropy();
             }
 
             Console.WriteLine($"{L("service started at")} {DateTime.Now.ToString()}");

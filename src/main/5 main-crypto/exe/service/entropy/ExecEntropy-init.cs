@@ -14,6 +14,7 @@ using static VinKekFish_Utils.Language;
 using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval;
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
+using alien_SkeinFish;
 
 public partial class Regime_Service
 {
@@ -79,9 +80,11 @@ public partial class Regime_Service
 
                 // Делаем первичную инициализацию временем при старте
                 // Ограничиваем вывод, иначе получается слишком долго
-                var sz = (int)(realRandomLength + rndCount);
+                /*var sz = (int)(realRandomLength + rndCount);
                 if (sz > OutputStrenght)
                     sz = OutputStrenght;
+                    */
+                var sz = threefish_slowly.twLen - sizeof(long);
 
                 var arr = stackalloc byte[sizeof(long) + sz];
                 using var rec = new Record() { array = arr, len = sizeof(long) + sz };
@@ -102,7 +105,7 @@ public partial class Regime_Service
                     return;
 
                 Console.WriteLine(L("Deep initialization has begun: initialization continues"));
-
+/*
                 Parallel.Invoke
                 (
                     () =>
@@ -125,7 +128,24 @@ public partial class Regime_Service
                         CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);
                         CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
                     }
+                );*/
+
+                VinKekFish.input = new BytesBuilderStatic(MAX_RANDOM_AT_START_FILE_LENGTH);
+
+                VinKekFish.Init1
+                (
+                    PreRoundsForTranspose: VinKekFish.EXTRA_ROUNDS_K - VinKekFish.Calc_OptimalRandomPermutationCount(rec.len),
+                    prngToInit: CascadeSponge
                 );
+                Console.WriteLine(L("Deep initialization: VinKekFish.Init1 ended"));
+                VinKekFish.Init2(key: rnd, TweakInit: rec);
+                Console.WriteLine(L("Deep initialization: VinKekFish.Init2 ended"));
+
+                // Вводим здесь только время и снова переопределяем ключи шифрования ThreeFish
+                CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);
+                CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
+
+                Console.WriteLine(L("Deep initialization: CascadeSponge.InitThreeFishByCascade ended"));
 
                 SetCountOfBytesCounters_and_ClearBufferRec();
                 isInitiated = true;

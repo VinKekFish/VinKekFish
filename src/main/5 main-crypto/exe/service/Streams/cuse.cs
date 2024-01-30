@@ -140,7 +140,12 @@ public unsafe class CuseStream: IDisposable
             if (session != null)
             {
                 fuse_session_exit(session);
-                File.ReadAllText(fi.FullName);  // Читаем данные из символьного устройства, чтобы дать событие для завершения сессии
+                try
+                {
+                    File.ReadAllText(fi.FullName);  // Читаем данные из символьного устройства, чтобы дать событие для завершения сессии
+                }
+                catch
+                {}
             }
 
             isDisposed = true;

@@ -19,6 +19,8 @@ public partial class Regime_Service
     {
         lock (entropy_sync)
         {
+            InputEntropyFromSources(1);
+
             if (isInitiated)
                 MandatoryWriteCurrentFile();
 

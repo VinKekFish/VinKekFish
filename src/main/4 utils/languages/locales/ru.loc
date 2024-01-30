@@ -44,10 +44,18 @@ is exists. Will not replaced. Check this is correct manually
     существует. Файл не будет перезаписан. Проверьте его правильность вручную. Если необходимо, удалите файл и запустите установку заново
 The .service file
     .service файл
+Try to create character device by path /dev/
+    Пробуем создать символьное устройство по пути /dev/
 Startup entropy absorption has begun: initialization continues
     Начато предварительное поглощение энтропии при запуске: инициализация продолжается
 Deep initialization has begun: initialization continues
     Начата основная инициализация: инициализация продолжается
+Deep initialization: VinKekFish.Init1 ended
+    Основная инициализация: VinKekFish.Init1 закончено
+Deep initialization: VinKekFish.Init2 ended
+    Основная инициализация: VinKekFish.Init2 закончено
+Deep initialization: CascadeSponge.InitThreeFishByCascade ended
+    Основная инициализация: CascadeSponge.InitThreeFishByCascade закончено
 Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted). Entered
     Байты энтропии были введены в главную губку (установлена настройка "do log every input entropy to sponge" для создания данной записи в логе). Введено
 'daemon-reload' and 'systemctl enable vkf' executed
@@ -74,4 +82,8 @@ character device
     символьное устройство
 failed to create
     создать не удалось
+Wait for threads has been terminated by timeout
+    Ожидание потоков было прервано по таймауту
+From the file got zero bytes
+    Из файла получено 0 байтов
 :

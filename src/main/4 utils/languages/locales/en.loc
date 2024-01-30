@@ -44,10 +44,18 @@ is exists. Will not replaced. Check this is correct manually
     is exists. Will not rewrited. Check this is correct manually. If need then delete the file and restart the installation again
 The .service file
     The .service file
+Try to create character device by path /dev/
+    Try to create character device by path /dev/
 Startup entropy absorption has begun: initialization continues
     The preliminary startup entropy absorption has begun: initialization continues
 Deep initialization has begun: initialization continues
     The main initialization has begun: initialization continues
+Deep initialization: VinKekFish.Init1 ended
+    Deep initialization: VinKekFish.Init1 ended
+Deep initialization: VinKekFish.Init2 ended
+    Deep initialization: VinKekFish.Init2 ended
+Deep initialization: CascadeSponge.InitThreeFishByCascade ended
+    Deep initialization: CascadeSponge.InitThreeFishByCascade ended
 Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted). Entered
     Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted for make this log record). Entered
 'daemon-reload' and 'systemctl enable vkf' executed
@@ -74,4 +82,8 @@ character device
     character device
 failed to create
     failed to create
+Wait for threads has been terminated by timeout
+    Wait for threads has been terminated by timeout
+From the file got zero bytes
+    From the file got zero bytes
 :

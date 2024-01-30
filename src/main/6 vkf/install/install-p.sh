@@ -8,7 +8,8 @@ vkfDir=$1
 # Полный путь к архиву с VinKekFish
 arcDir=$2
 
-
+echo
+date
 echo
 
 user=`whoami`
@@ -65,7 +66,6 @@ mkdir -p data
 chmod -R o-rwx options
 chmod -R o-rwx data
 
-date
 systemctl disable vkf
 systemctl stop vkf
 
@@ -126,7 +126,6 @@ echo
 echo 'Example for get random bytes:'
 echo 'ru: Пример получения случайных байтов от сервиса:'
 echo cat /dev/vkf/crandom ">>" /some/Path/file.key
-echo nc -UN /dev/vkf/random
 echo nc -UN /dev/vkf/random ">>" /some/Path/file.key
 echo
 echo

@@ -103,24 +103,42 @@ public partial class Regime_Service
 
     /// <summary>Это должно быть вызвано в lock (entropy_sync).
     /// Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии.</summary>
-    protected unsafe virtual void InputEntropyFromSources()
+    /// <param name="BlockLen">Минмальное количество данных, которое будет введено из промежуточной губки</param>
+    protected unsafe virtual void InputEntropyFromSources(int BlockLen = KeccakPrime.BlockLen)
     {
-        var KeccakBlockLen = KeccakPrime.BlockLen;
+        if (BlockLen <= 0)
+            throw new ArgumentOutOfRangeException("BlockLen", $"ERROR in InputEntropyFromSources: BlockLen = {BlockLen}; BlockLen must be > 0");
+
         lock (continuouslyGetters)
         {
             var buff = bufferRec!.array;
             foreach (var getter in continuouslyGetters)
             {
-                if (!getter.isDataReady(KeccakBlockLen))
-                    continue;
+                lock (getter)
+                {
+                    if (!getter.isDataReady(BlockLen))
+                        continue;
 
-                ConditionalInputEntropyToMainSponges(KeccakBlockLen);
+                    int curLen = (int) getter.GetCountOfReadyBytes();
+                    if (curLen > KeccakPrime.BlockLen)
+                        curLen = KeccakPrime.BlockLen;
 
-                var readed = getter.getBytes(buff + bufferRec_current, KeccakBlockLen);
-                bufferRec_current += readed;
+                    if (curLen <= 0)
+                    {
+                        if (getter.countOfBytesFromLastOutput <= 0)
+                            Console.WriteLine($"ERROR in InputEntropyFromSources: curLen = {curLen} ({getter.countOfBytesFromLastOutput}); BlockLen = {BlockLen}; MandatoryUseGet = {getter.MandatoryUseGet}");
 
-                countOfBytesCounterTotal_h.addNumberToBytes(KeccakBlockLen, getter);
-                countOfBytesCounterCorr_h .addNumberToBytes(KeccakBlockLen, getter);
+                        curLen = 1; // Чисто на всякий случай берём один байт (там дата чтения из файла появляется и, возможно, какие-то небольшие байты из файла, количество которых округлилось до нуля при переводе его в количество энтропии)
+                    }
+
+                    ConditionalInputEntropyToMainSponges(curLen);
+
+                    var readed = getter.getBytes(buff + bufferRec_current, curLen);
+                    bufferRec_current += readed;
+
+                    countOfBytesCounterTotal_h.addNumberToBytes(readed, getter);
+                    countOfBytesCounterCorr_h .addNumberToBytes(readed, getter);
+                }
             }
 
             // Отрабатываем, если длина вводимых байтов больше, чем один шаг губки

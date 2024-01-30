@@ -43,7 +43,7 @@ namespace vinkekfish
             if (gpKeyLen > key_length)
                 gpKeyLen = key_length;
 
-            using var prng = PreRoundsForTranspose >= Rounds ? null
+            var prng = PreRoundsForTranspose >= Rounds ? null
                              : prngToInit ?? new CascadeSponge_mt_20230930(gpKeyLen);
 
             if (key != null || OpenInitVector != null)
@@ -113,6 +113,9 @@ namespace vinkekfish
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table1);
                 BytesBuilder.ToNull(table1.Length * sizeof(ushort), (byte *) Table2);
             }
+
+            if (prngToInit == null && prng != null)
+                prng.Dispose();
 
             CheckAllPermutationTables (result, rCheck, len1, "after VinKekFishBase_KN_20210525.GenStandardPermutationTables");
 

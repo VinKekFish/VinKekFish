@@ -98,6 +98,8 @@ public partial class Regime_Service
         public    readonly Thread                   thread;
         protected readonly Keccak_20200918?         keccak;
         protected readonly BytesBuilderForPointers? bb;
+                                                                                            /// <summary>Это служебное поле для того, чтобы открытый поток можно было завершить вручную, если необходимо закончить поток, ожидающий ввода-вывода.</summary>
+        public volatile FileStream? StreamForClose = null;
                                                                                             /// <summary>true, если объект уже удалён</summary>
         public    bool     disposed                   {get; protected set;} = false;        /// <summary>Количество байтов, полученное из этого источника (это количество сырых байтов, действительно полученных из источника, без учёта настроек {min,max,avg,EME})</summary>
         public    nint     countOfBytes               {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было выведено для пользователя функцией getBytes</summary>
@@ -181,11 +183,11 @@ public partial class Regime_Service
                 if (!isInited)
                     return false;
 
-                if (MandatoryUse)
+                if (MandatoryUse && countOfBytesFromLastOutput > 0)
                     return true;
 
                 var ReadyBytes = GetCountOfReadyBytes();
-                return askedBytes < ReadyBytes;
+                return askedBytes <= ReadyBytes;
             }
         }
 
@@ -351,6 +353,10 @@ public partial class Regime_Service
                                 {
                                     if (interval.flags!.ignored != Flags.FlagValue.yes)
                                     {
+                                        if (pos <= 0)
+                                        {
+                                            Console.WriteLine(L("From the file got zero bytes") + $": {fileElement.fileInfo.FullName}");
+                                        }
                                         cgr.addBytes(totalBytes, pos, input);
                                         cgr.CorrectEntropyForMandatoryUse();
                                         pos = 0;
@@ -426,8 +432,13 @@ public partial class Regime_Service
     {
         checked
         {
-            using (var rs = fileElement.fileInfo!.OpenRead())
+            try
             {
+                var rs = fileElement.fileInfo!.OpenRead();
+
+                lock (cgr)
+                cgr.StreamForClose = rs;
+
                 try
                 {
                     return getEntropyFromFile_h(interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes, sleepTime);
@@ -440,8 +451,20 @@ public partial class Regime_Service
                     Thread.Sleep(3557);
                 }
                 finally
-                {}
-            } // using
+                {
+                    // Закрываем поток именно так, т.к. он может быть закрыт ранее внешним потоком
+                    lock (cgr)
+                    {
+                        cgr.StreamForClose?.Close();
+                        cgr.StreamForClose = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                Thread.Sleep(3557);
+            }
 
             return true;        // Задержка в вызывающей функции уже не нужна: либо выполнена, либо произошло исключение, которое не подразумевает дополнительной задержки
         }
