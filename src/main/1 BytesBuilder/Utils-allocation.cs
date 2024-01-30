@@ -5,6 +5,8 @@ using cryptoprime;
 using Record = cryptoprime.BytesBuilderForPointers.Record;
 using System.Runtime.CompilerServices;
 
+using static Utils;
+
 // ::warn:onlylinux:sOq1JvFKRxQyw7FQ:
 
 // find /usr/include -iname "mman.h"
@@ -255,27 +257,6 @@ public unsafe static class Memory
             _allocatedMemory -= size;
             allocatedRegions.Remove(addr);
         }
-    }
-
-    /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
-    /// <param name="ex">Исключение</param>
-    public static string formatException(Exception ex)
-    {
-        var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
-
-        sb.AppendLine("----------------------------------------------------------------");
-        sb.AppendLine(ex.Message);
-        sb.AppendLine(ex.StackTrace);
-        if (ex.InnerException is not null)
-        {
-            sb.AppendLine("Inner exception");
-            sb.AppendLine(formatException(ex.InnerException));
-        }
-
-        sb.AppendLine("----------------------------------------------------------------");
-        sb.AppendLine();
-
-        return sb.ToString();
     }
 
     /// <summary>Это - функция аварийной очистки памяти. Если в конце программы allocatedMemory != 0, то можно вызвать эту функцию, сообщив пользователю об ошибке (и очистив всю память; в том числе, память перезаписывается нулями).</summary>

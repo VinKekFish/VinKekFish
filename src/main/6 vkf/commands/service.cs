@@ -2,6 +2,7 @@
 using static VinKekFish_Utils.Language;
 
 namespace VinKekFish_console;
+using static VinKekFish_Utils.Utils;
 
 using System.Runtime.InteropServices;
 using VinKekFish_EXE;
@@ -47,7 +48,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+            Console.Error.WriteLine(formatException(ex));
         }
     }
 
@@ -67,7 +68,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+            Console.Error.WriteLine(formatException(ex));
         }
     }
 }

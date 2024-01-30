@@ -7,6 +7,7 @@ using cryptoprime;
 
 namespace VinKekFish_EXE;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 
 /// <summary>
 /// Класс для режима работы как службы
@@ -190,7 +191,7 @@ public class UnixSocketListener: IDisposable
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(   VinKekFish_Utils.Memory.formatException(ex)   );
+                Console.Error.WriteLine(  formatException(ex)  );
             }
             finally
             {

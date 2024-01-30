@@ -1,4 +1,28 @@
-﻿Составить общее описание того, что я буду делать, как это будет выглядеть
+﻿Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication tha>
+янв 30 23:35:29 vinny vkf[134478]:    at cryptoprime.BytesBuilder.ToNull(IntPtr, Byte*, UInt64, IntPtr, IntPtr)
+янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.ClearState()
+янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.Clear(Boolean)
+янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_base_20200918.Clear(Boolean)
+янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.Dispose(Boolean)
+янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.Dispose()
+янв 30 23:35:29 vinny vkf[134478]:    at VinKekFish_EXE.Regime_Service+ContinuouslyGetterRecord.Dispose()
+янв 30 23:35:29 vinny vkf[134478]:    at VinKekFish_EXE.Regime_Service+<>c__DisplayClass4_0.<StartContinuouslyGetter>b__0()
+
+
+
+70 bytes got from '/sys/class/net/enx00093bf01a40/statistics/rx_bytes'; 0 sended to the main sponges (for the entire time >
+
+
+
+янв 31 00:26:40 vinny vkf[153662]: Ошибка при завершении работы программы: обнаружена утечка памяти в mmap: 38 952
+янв 31 00:26:40 vinny vkf[153662]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+янв 31 00:26:40 vinny vkf[153662]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+янв 31 00:26:40 vinny vkf[153662]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+
+
+
+
+Составить общее описание того, что я буду делать, как это будет выглядеть
 
 Fuse (libfuse)
 // System.Runtime.InteropServices.UnmanagedFunctionPointer

@@ -101,14 +101,41 @@ public partial class Regime_Service
     public CountOfBytesCounter countOfBytesCounterTotal { get; protected set; } = new CountOfBytesCounter();    /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии.</summary>
     public CountOfBytesCounter countOfBytesCounterCorr  { get; protected set; } = new CountOfBytesCounter();
 
-    /// <summary>Это должно быть вызвано в lock (entropy_sync).
-    /// Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии.</summary>
-    /// <param name="BlockLen">Минмальное количество данных, которое будет введено из промежуточной губки</param>
-    protected unsafe virtual void InputEntropyFromSources(int BlockLen = KeccakPrime.BlockLen)
+    /// <summary>Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии. Функция принимает данные в цикле, так что вводит неограниченное количество данных.</summary>
+    /// <param name="BlockLen">Минмальное количество данных, которое будет введено из промежуточной губки. Если ноль, то это говорит о том, что любое количество данных должно быть введено из промежуточной губки, даже если они не дотягивают до одного байта энтропии.</param>
+    protected unsafe virtual long InputEntropyFromSourcesWhile(int count = 1024, int BlockLen = KeccakPrime.BlockLen)
     {
-        if (BlockLen <= 0)
-            throw new ArgumentOutOfRangeException("BlockLen", $"ERROR in InputEntropyFromSources: BlockLen = {BlockLen}; BlockLen must be > 0");
+        var  cnt    = count;
+        long result = 0, lastResult;
+        bool isMandatory = false;
+        do
+        {
+            lock (entropy_sync)
+            {
+                lastResult = InputEntropyFromSources(out isMandatory, BlockLen);
+            }
+            result += lastResult;
+            cnt--;
+            Thread.Sleep(0);
+        }
+        while (cnt >= 0 && lastResult > 0);
 
+        // Если вводилось MandatoryUse данные, то всегда вызываем губку
+        // (здесь может быть лишний холостой вызов губки)
+        if (isMandatory)
+            ConditionalInputEntropyToMainSponges(nint.MaxValue);
+
+        return result;
+    }
+
+    /// <summary>Это должно быть вызвано в lock (entropy_sync). Вместо этой функции нужно вызывать InputEntropyFromSourcesWhile.
+    /// Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии.</summary>
+    /// <param name="isMandatory">Если был ввод данных из промежуточной губки, помеченной как MandatoryUse, данная переменная будет установлена в true.</param>
+    /// <param name="BlockLen">Минмальное количество данных, которое будет введено из промежуточной губки</param>
+    protected unsafe virtual long InputEntropyFromSources(out bool isMandatory, int BlockLen = KeccakPrime.BlockLen)
+    {
+        long result    = 0;
+           isMandatory = false;
         lock (continuouslyGetters)
         {
             var buff = bufferRec!.array;
@@ -133,8 +160,12 @@ public partial class Regime_Service
 
                     ConditionalInputEntropyToMainSponges(curLen);
 
-                    var readed = getter.getBytes(buff + bufferRec_current, curLen);
+                    if (getter.MandatoryUseGet)
+                        isMandatory = true;
+
+                    var readed = getter.getBytes(buff + bufferRec_current, curLen, BlockLen == 0);
                     bufferRec_current += readed;
+                    result            += readed;
 
                     countOfBytesCounterTotal_h.addNumberToBytes(readed, getter);
                     countOfBytesCounterCorr_h .addNumberToBytes(readed, getter);
@@ -144,10 +175,12 @@ public partial class Regime_Service
             // Отрабатываем, если длина вводимых байтов больше, чем один шаг губки
             ConditionalInputEntropyToMainSponges(bufferRec.len - Math.Max(VinKekFish.BLOCK_SIZE_K, CascadeSponge.maxDataLen));
         }
+
+        return result;
     }
 
     /// <summary>Ввести накопленную в bufferRec энтропию в основную губку и выполнить вспомогательные операции. Может быть вызвано пользователем для принудительного сброса накопленной энтропии в губку.</summary>
-    /// <param name="EmptySpaceAcceptableRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
+    /// <param name="EmptySpaceAcceptableRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec при запуске губки (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
     public unsafe void ConditionalInputEntropyToMainSponges(nint EmptySpaceAcceptableRemainder)
     {
         lock (entropy_sync)

@@ -9,6 +9,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 
 public partial class Regime_Service
 {                                                                                           /// <summary>Этот объект используется для синхронизации доступа к объектам, накапливающим энтропию</summary>
@@ -19,15 +20,15 @@ public partial class Regime_Service
     {
         lock (entropy_sync)
         {
-            InputEntropyFromSources(1);
+            InputEntropyFromSourcesWhile(int.MaxValue, 0);
 
             if (isInitiated)
                 MandatoryWriteCurrentFile();
 
             isInitiated = false;
-            VinKekFish   ?.Dispose();
-            CascadeSponge?.Dispose();
-            bufferRec    ?.Dispose();
+            TryToDispose(VinKekFish);
+            TryToDispose(CascadeSponge);
+            TryToDispose(bufferRec);
 
             Monitor.PulseAll(entropy_sync);
         }
@@ -40,11 +41,14 @@ public partial class Regime_Service
     protected long LastCurrentFile = default;
     protected unsafe virtual void ExecEntropy()
     {
+        // Эта функция сама получает блокировку entropy_sync
+        if (InputEntropyFromSourcesWhile() <= 0)
+            return;
+
         lock (entropy_sync)
         {
             ExecEntorpy_now = DateTime.Now.Ticks;
 
-            InputEntropyFromSources();
             MayBeWriteCurrentFile();
 
             Monitor.PulseAll(entropy_sync);

@@ -75,9 +75,9 @@ for check service file
 Have no enough arguments
     Have no enough arguments
 Wait for getter
-    Wait for getter
+    Wait for an entropy getter
 Entropy saved for the file
-    Entropy saved for the service file (do not use directly)
+    Entropy (hashed) saved for the service file (do not use directly)
 character device
     character device
 failed to create

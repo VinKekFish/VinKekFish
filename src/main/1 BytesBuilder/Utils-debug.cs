@@ -72,4 +72,37 @@ public unsafe static partial class Utils
             File.AppendAllText(getLogFileName(logName), msg + "\n\n");
         }
     }
+
+    /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
+    /// <param name="ex">Исключение</param>
+    public static string formatException(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
+
+        sb.AppendLine("----------------------------------------------------------------");
+        sb.AppendLine(ex.Message);
+        sb.AppendLine(ex.StackTrace);
+        if (ex.InnerException is not null)
+        {
+            sb.AppendLine("Inner exception");
+            sb.AppendLine(formatException(ex.InnerException));
+        }
+
+        sb.AppendLine("----------------------------------------------------------------");
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    public static void TryToDispose(IDisposable? vkf)
+    {
+        try
+        {
+            vkf?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(formatException(ex));
+        }
+    }
 }

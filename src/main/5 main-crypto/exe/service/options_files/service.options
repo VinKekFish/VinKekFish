@@ -418,7 +418,7 @@ input
                             difference
                                 yes
 
-            file
+            none
                 # /inRamA/a.txt
                 /proc/cpuinfo
                 # date

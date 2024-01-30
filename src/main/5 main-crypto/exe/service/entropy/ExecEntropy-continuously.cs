@@ -11,6 +11,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval;
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
@@ -127,7 +128,8 @@ public partial class Regime_Service
         /// <summary>Получает байты из промежуточной губки. <para>Пользователь должен проверить, что isInited установлен перед тем, как использовать этот метод. Если isInited == false, то губка ещё не готова к получению из неё информации: её надо просто пропустить и взять значения из других источников.</para><para>Код безопасен с точки зрения многопоточности.</para><para>countOfBytesFromLastOutput сбрасывается в ноль вне зависимости от количества получаемых данных.</para></summary>
         /// <param name="data">Массив данных, принимающий накопленные байты энтропии из промежуточной губки</param>
         /// <param name="len">Количество байтов энтропии для чтения. Не более чем KeccakPrime.BlockLen (64 байта)</param>
-        public nint getBytes(byte * data, nint len)
+        /// <param name="allowSmallData">Если true, то допускает, что готовой энтропии меньше, чем len</param>
+        public nint getBytes(byte * data, nint len, bool allowSmallData = false)
         {
             checked
             {
@@ -139,7 +141,7 @@ public partial class Regime_Service
                         throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({len} > {KeccakPrime.BlockLen})");
                     if (!isInited)
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited. You must check the 'isDataReady()' function and skip the object, if the return value is false");
-                    if (!isDataReady(len))
+                    if (!isDataReady(  allowSmallData ? 0 : len  ))
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
 
                     if (keccak is not null)
@@ -185,6 +187,9 @@ public partial class Regime_Service
 
                 if (MandatoryUse && countOfBytesFromLastOutput > 0)
                     return true;
+
+                if (askedBytes == 0)
+                    return countOfBytesFromLastOutput > 0;
 
                 var ReadyBytes = GetCountOfReadyBytes();
                 return askedBytes <= ReadyBytes;
@@ -357,17 +362,23 @@ public partial class Regime_Service
                                         {
                                             Console.WriteLine(L("From the file got zero bytes") + $": {fileElement.fileInfo.FullName}");
                                         }
-                                        cgr.addBytes(totalBytes, pos, input);
-                                        cgr.CorrectEntropyForMandatoryUse();
+                                        lock (cgr)
+                                        {
+                                            cgr.addBytes(totalBytes, pos, input);
+                                            cgr.CorrectEntropyForMandatoryUse();
+                                        }
                                         pos = 0;
                                         totalBytes = 0;
                                     }
-// TODO: сделать аналогичное для команд cmd. Также сделать так,чтобы поток не висел всю жизнь программы, а просто добавил бы себя как надо.
 
                                     // Ожидание завершеня работы через Thread.Interrupt
+                                    // Теперь Thread.Interrupt отсутствует
                                     while (!Terminated && cgr.MandatoryUseGet)
-                                        Thread.Sleep(60*1000);
+                                        Thread.Sleep(1000);
 
+                                    // Логирование идёт именно сейчас, когда флаг MandatoryUseGet сброшен.
+                                    // Это означает, что данные действительно были введены в основную губку.
+                                    // Т.к. ввод идёт не сразу весь, то это может занять какое-то время.
                                     SendGetterDebugMsgToConsole(fileElement, cgr);
 
                                     break;
@@ -379,7 +390,7 @@ public partial class Regime_Service
                             }
                             catch (Exception ex)
                             {
-                                Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                                Console.Error.WriteLine(formatException(ex));
                                 Thread.Sleep(3557);
                             }
                         }
@@ -447,7 +458,7 @@ public partial class Regime_Service
                 {}
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                    Console.Error.WriteLine(formatException(ex));
                     Thread.Sleep(3557);
                 }
                 finally
@@ -462,7 +473,7 @@ public partial class Regime_Service
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                Console.Error.WriteLine(formatException(ex));
                 Thread.Sleep(3557);
             }
 
@@ -611,8 +622,9 @@ public partial class Regime_Service
                             if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
                             {
                                 // Ожидание завершеня работы через Thread.Interrupt
-                                while (!Terminated)
-                                    Thread.Sleep(1000*3600);
+                                // Теперь Thread.Interrupt отсутствует
+                                while (!Terminated && cgr.MandatoryUseGet)
+                                    Thread.Sleep(1000);
 
                                 break;
                             }
@@ -625,7 +637,7 @@ public partial class Regime_Service
                         {
                             Ex_cnt++;
                             Console.Error.WriteLine(L("Error for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
-                            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                            Console.Error.WriteLine(formatException(ex));
 
                             if (Ex_cnt > 5)
                             {
@@ -721,7 +733,14 @@ public partial class Regime_Service
                     WriteToLog(buffRec, readedLen);
 
                 if (!ignored)
-                    cgr.addBytes(readedLen, readedLen, buffRec);
+                {
+                    lock (cgr)
+                    {
+                        cgr.addBytes(readedLen, readedLen, buffRec);
+                        if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
+                            cgr.CorrectEntropyForMandatoryUse();
+                    }
+                }
             }
 
             buffRec.array = null;

@@ -5,6 +5,7 @@ namespace VinKekFish_EXE;
 
 using VinKekFish_Utils.ProgramOptions;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 
 /// <summary>
 /// Класс, реализующий функциональность программы в режиме работы сервиса "service"
@@ -39,21 +40,8 @@ public partial class Regime_Service
         doTerminate(true);
     }
 
-    public void TryToDispose(IDisposable? vkf)
-    {
-        try
-        {
-            vkf?.Dispose();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
-        }
-    }
-
     public void doTerminate(bool willBlock = false)
     {
-        int countOfThreadsNotInterrupted = 0;
         if (!Terminated)
         {
             Terminated = true;
@@ -61,22 +49,19 @@ public partial class Regime_Service
             TryToDispose(vkfInfoListener);
             TryToDispose(vkfCuseListener);
 
-            Thread.Sleep(250);
+            Thread.Sleep(250);/*
             lock (continuouslyGetters)
             foreach (var getter in continuouslyGetters)
             {
                 try
                 {
-                    if (getter.thread.ThreadState != ThreadState.WaitSleepJoin && getter.thread.ThreadState != ThreadState.Background && getter.thread.ThreadState != ThreadState.Running)
-                        countOfThreadsNotInterrupted++;
-
-                    getter.thread.Interrupt();
+                    // getter.thread.Interrupt();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                    Console.WriteLine(formatException(ex));
                 }
-            }
+            }*/
         }
 
         var errCnt  = 0;
@@ -94,10 +79,10 @@ public partial class Regime_Service
             {
                 // Дополнительно вводим энтропию из потоков, чтобы там был ноль ожидающих данных
                 // Когда ноль ожидающих данных, continueWaitForExit может вернуть ноль, даже если поток ещё не завершён
-                InputEntropyFromSources(1);
+                InputEntropyFromSourcesWhile(int.MaxValue, 0);
                 foreach (var getter in continuouslyGetters)
                 {
-                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" ({getter.isDataReady(1)})");
+                    Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput})");
                 }
 
                 time++;
@@ -147,13 +132,13 @@ public partial class Regime_Service
 
                         // Пытаемся ещё раз прервать поток исполнения
                         // и в первый раз прервать поток ввода-вывода
-                        getter.thread.Interrupt();
+                        // getter.thread.Interrupt();
                         lock (getter)
                             getter.StreamForClose?.Close();
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+                        Console.WriteLine(formatException(ex));
                     }
                 }
             }

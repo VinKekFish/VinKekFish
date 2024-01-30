@@ -360,8 +360,13 @@ namespace vinkekfish
             lock (this)
             {
                 Clear();    // tablesForPermutations очищаются здесь
-                try     {  output? .Dispose(); input?  .Dispose(); inputRecord?.Dispose(); }
-                finally {  rState1?.Dispose(); rState2?.Dispose(); rTweaks?    .Dispose(); }
+
+                TryToDispose(output);
+                TryToDispose(input);
+                TryToDispose(inputRecord);
+                TryToDispose(rState1);
+                TryToDispose(rState2);
+                TryToDispose(rTweaks);
 
                 output      = null;
                 input       = null;

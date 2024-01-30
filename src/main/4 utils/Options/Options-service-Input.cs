@@ -184,7 +184,7 @@ public partial class Options_Service
 
                             result.Add(cmd);
                             break;
-                        
+/*
                         case "dir":
                         case "directory":
                             var dir = new InputDirElement(parent, block.blocks, block);
@@ -193,6 +193,9 @@ public partial class Options_Service
                                 throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
 
                             result.Add(dir);
+                            break;
+*/
+                        case "none":
                             break;
 
                         default:

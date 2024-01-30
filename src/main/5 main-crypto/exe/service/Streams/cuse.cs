@@ -9,6 +9,8 @@ using cryptoprime;
 
 namespace VinKekFish_EXE;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
+
 
 /// <summary>
 /// Это - синглтон
@@ -235,7 +237,7 @@ public unsafe class CuseStream: IDisposable
         catch (Exception ex)
         {
             Console.Error.WriteLine("CuseStream.CuseReadFunc error");
-            Console.Error.WriteLine(VinKekFish_Utils.Memory.formatException(ex));
+            Console.Error.WriteLine(formatException(ex));
 
             fuse_reply_err(request, PosixErrorCode.ENOMEM);
         }
