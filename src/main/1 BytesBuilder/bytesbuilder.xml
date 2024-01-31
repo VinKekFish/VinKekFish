@@ -4,6 +4,9 @@
         <name>bytesbuilder</name>
     </assembly>
     <members>
+        <member name="T:cryptoprime.BitToBytes">
+            <summary>Реализует функциональность битового массива (BitArray)</summary>
+        </member>
         <member name="M:cryptoprime.BitToBytes.getBit(System.Byte[],System.IntPtr)">
             <summary>Получить бит из битово массива</summary>
             <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>

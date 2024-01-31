@@ -65,7 +65,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
             if (!isDisposed)
             {
                 doThreadsDispose();
-                stepBuffer?.Dispose();
+                
+                VinKekFish_Utils.Utils.TryToDispose(stepBuffer);
                 stepBuffer = null;
 
                 if (ThreadsExecuted <= 0)

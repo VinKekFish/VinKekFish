@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace cryptoprime
 {
+    /// <summary>Реализует функциональность битового массива (BitArray)</summary>
     public unsafe static class BitToBytes
     {
         public static readonly byte[] BitMask =

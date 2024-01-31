@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -153,9 +153,9 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 
 // [TestTagAttribute("inWork")]
 [TestTagAttribute("CascadeSponge", duration: 210e3, singleThread: false)]
-public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
+public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
 {
-    public CascadeSponge_1t_20230905_exampleTest(TestConstructor constructor):
+    public CascadeSponge_mt_20230930_exampleTest(TestConstructor constructor):
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {
         #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
@@ -181,7 +181,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
     protected unsafe class Saver: SaverParent
     {
         public string primaryTaskName = "";
-        public CascadeSponge_1t_20230905? cascade;
+        public CascadeSponge_mt_20230930? cascade;
         public override List<string> ExecuteTest(AutoSaveTestTask task)
         {
             primaryTaskName = task.Name;
@@ -210,7 +210,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 
             // Инициализация губки стойкостью 1536 битов (192 байта)
             // Сразу же инициализируем ключи ThreeFish от основного ключа
-            var cascade1 = new CascadeSponge_1t_20230905(192);
+            var cascade1 = new CascadeSponge_mt_20230930(192);
             cascade1.initKeyAndOIV(rkey, null, 2);
 
             // Вводим некоторые данные для шифрования или хеширования
@@ -223,14 +223,14 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 
 
             // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три (более сложно для криптоанализа)
-            var cascade2 = new CascadeSponge_1t_20230905(192);
+            var cascade2 = new CascadeSponge_mt_20230930(192);
             cascade2.initKeyAndOIV(rkey, null, 3);
             cascade2.step(data: data, dataLen: DataLen);
             addToList(lst, cascade2);
             cascade2.Dispose();
 
             // Без инициализации ThreeFish
-            var cascade3 = new CascadeSponge_1t_20230905(192);
+            var cascade3 = new CascadeSponge_mt_20230930(192);
             cascade3.initKeyAndOIV(rkey, null, 0);
             cascade3.step(data: data, dataLen: DataLen);
             addToList(lst, cascade3);
@@ -249,7 +249,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
             {
                 try
                 {
-                    cascade1 = new CascadeSponge_1t_20230905(len); this.cascade = cascade1;
+                    cascade1 = new CascadeSponge_mt_20230930(len); this.cascade = cascade1;
                     cascade1.initKeyAndOIV(rkey, null, 2);
                     cascade1.step(data: data, dataLen: DataLen);
                     bb.addWithCopy(cascade1.lastOutput);        // Берём данные с выхода
@@ -267,7 +267,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
                 }
             };
 
-            cascade1 = new CascadeSponge_1t_20230905(1024*256/8); this.cascade = cascade1;
+            cascade1 = new CascadeSponge_mt_20230930(1024*256/8); this.cascade = cascade1;
             var cuttedKey = rkey << cascade1.maxDataLen*2;          // Делаем ключ поменьше, чтобы можно было меньше ждать
             cascade1.InitEmptyThreeFish(1, 2);
             cascade1.step(regime: 1);
@@ -292,7 +292,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 
 
 
-            cascade1 = new CascadeSponge_1t_20230905(_wide: 4, _tall: 4); this.cascade = cascade1;
+            cascade1 = new CascadeSponge_mt_20230930(_wide: 4, _tall: 4); this.cascade = cascade1;
             cascade1.initKeyAndOIV(rkey, null, 3);
             cascade1.step(data: data, dataLen: DataLen);
             cascade1.step(1024);
@@ -309,7 +309,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
 
             return lst;
 
-            static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
+            static void addToList(List<string> lst, CascadeSponge_mt_20230930 cascade1)
             {
                 // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
                 lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
@@ -318,7 +318,7 @@ public class CascadeSponge_1t_20230905_exampleTest: Keccak_test_parent
     }
 }
 
-// [TestTagAttribute("inWork")]
+
 [TestTagAttribute("CascadeSponge", duration: 500, singleThread: false)]
 public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 {
@@ -380,16 +380,16 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // wide = 4
             var output = stackalloc byte[64 * 4];
             var revcon = stackalloc byte[64 * 4];
-            var buff   = stackalloc byte[64 * 4];
+            var buff = stackalloc byte[64 * 4];
             var Threef = stackalloc byte[256 * 4];    // Это твики и ключи ThreeFish обратной связи. По 256 на каждый ключ (128+8 байтов ключ + 16 байтов твик)
 
             // Инициализируем ключи и твики обратной связи
             BytesBuilder.ToNull(256 * 4, Threef);
 
-            var TFl      = (ulong*)Threef;      // 192/8=24
-            TFl[24]      = CascadeSponge_1t_20230905.TweakInitIncrement;    // 2743445726634853529
-            TFl[25]      = 0;
-            TFl[26]      = TFl[24] ^ TFl[25];
+            var TFl = (ulong*)Threef;      // 192/8=24
+            TFl[24] = CascadeSponge_1t_20230905.TweakInitIncrement;    // 2743445726634853529
+            TFl[25] = 0;
+            TFl[26] = TFl[24] ^ TFl[25];
             TFl[32 + 24] = TFl[24] + CascadeSponge_1t_20230905.TweakInitIncrement;  // 2743445726634853529+2743445726634853529=5486891453269707058
             TFl[32 + 25] = 0;
             TFl[32 + 26] = TFl[32 + 24] ^ TFl[32 + 25];
@@ -401,16 +401,16 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
 
             var key = CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[0]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[1]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[2]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[3]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[4]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[5]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[6]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[7]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[8]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[9]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[0] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[1] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[2] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[3] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[4] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[5] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[6] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[7] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[8] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[9] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[10] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[11] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[12] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
@@ -419,16 +419,16 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[15] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[16] = threefish_slowly.C240 ^ TFl[0] ^ TFl[1] ^ TFl[2] ^ TFl[3] ^ TFl[4] ^ TFl[5] ^ TFl[6] ^ TFl[7] ^ TFl[8] ^ TFl[9] ^ TFl[10] ^ TFl[11] ^ TFl[12] ^ TFl[13] ^ TFl[14] ^ TFl[15];
 
-            TFl[32 + 0]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 1]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 2]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 3]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 4]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 5]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 6]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 7]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 8]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 9]  = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 0] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 1] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 2] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 3] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 4] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 5] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 6] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 7] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 8] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
+            TFl[32 + 9] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 10] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 11] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 12] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
@@ -462,11 +462,10 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 
             // Ввводим 83 байта ввода в верхнюю губку
             BytesBuilder.ToNull(256, revcon);
-            BytesBuilder.CopyTo(21, 256, a +  0, revcon +   0);
-            BytesBuilder.CopyTo(21, 256, a + 21, revcon +  64);
+            BytesBuilder.CopyTo(21, 256, a + 0, revcon + 0);
+            BytesBuilder.CopyTo(21, 256, a + 21, revcon + 64);
             BytesBuilder.CopyTo(21, 256, a + 42, revcon + 128);
             BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
-
 
             // Вводим данные и делаем шаг (тут сразу двойной шаг). Имитируем, что вводим синхропосылку и ключ
             cascade.step(data: data, dataLen: dlen, regime: 255);
@@ -478,10 +477,13 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 
             BytesBuilder.CopyTo(256, 256, revcon, output);
             BytesBuilder.CopyTo(256, 256, revcon, buff);
-            Threefish1024_step(TFl +  0, TFl +  0 + 24, (ulong*) output);       // Обратная связь
+            Threefish1024_step(TFl + 0,  TFl + 0 + 24,  (ulong*)output);       // Обратная связь
             Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
-//            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
-//            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
+            //            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
+            //            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
+
+            // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
+            SubstituteEmpty(output);
 
             // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
 
@@ -504,25 +506,26 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[32 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[32 + 25] += 0;  // Здесь всё ещё нет переполнения
             TFl[32 + 26] = TFl[32 + 24] ^ TFl[32 + 25];
-/*          Вывод не делался - твики остаются неизменными
-            TFl[64 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
-            TFl[64 + 25] += 0;
-            TFl[64 + 26] = TFl[64 + 24] ^ TFl[64 + 25];
+            /*          Вывод не делался - твики остаются неизменными
+                        TFl[64 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
+                        TFl[64 + 25] += 0;
+                        TFl[64 + 26] = TFl[64 + 24] ^ TFl[64 + 25];
 
-            TFl[96 + 24] += CascadeSponge_1t_20230905.CounterIncrement; // 10973782906539414116 + 3148241843069173559 = 14122024749608587675
-            TFl[96 + 25] += 0;  // Здесь всё ещё нет переполнения
-            TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
-*/
+                        TFl[96 + 24] += CascadeSponge_1t_20230905.CounterIncrement; // 10973782906539414116 + 3148241843069173559 = 14122024749608587675
+                        TFl[96 + 25] += 0;  // Здесь всё ещё нет переполнения
+                        TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
+            */
             BytesBuilder.CopyTo(256, 256, revcon, output);
             BytesBuilder.CopyTo(256, 256, revcon, buff);
-            Threefish1024_step(TFl +  0, TFl +  0 + 24, (ulong*) output);       // Обратная связь
+            Threefish1024_step(TFl + 0,  TFl + 0 + 24,  (ulong*)output);       // Обратная связь
             Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
-            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод
+            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*)buff);         // Вывод
             Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
 
             // Транспонируем вывод: по 128-мь байтов блок
+            SubstituteEmpty(output);
             Transpose128_2(output, revcon);
-            Transpose128_2(buff,   output);
+            Transpose128_2(buff, output);
 
             // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
             // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
@@ -559,8 +562,9 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
 
             // Транспонируем вывод: по 128-мь байтов блок
-            Transpose128_2(output, revcon);
-            Transpose128_2(buff,   output);
+            /*SubstituteEmpty(output);
+            Transpose128_2(output, revcon);*/
+            Transpose128_2(buff, output);
 
             // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
             // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
@@ -572,6 +576,15 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
         {
             cascade.Dispose();
         }
+    }
+
+    private static void SubstituteEmpty(byte* revcon)
+    {
+        // 64 байта на ширину 4 = 256.
+        // 256 байтов - это 128-мь значений ushort
+        var rv = (ushort*) revcon;
+        for (int i = 0; i < 128; i++)
+            rv[i] ^= 44381;
     }
 
     /// <summary>Транспонирует массив output, длиной 256-ть байтов в массив revcon. Строки по 128-мь байтов</summary>

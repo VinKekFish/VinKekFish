@@ -50,7 +50,8 @@ public partial class Regime_Service
                 bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
 
                 CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
-                CascadeSponge.InitThreeFishByCascade(1, false);
+                CascadeSponge.InitSubstitutionTable((ushort) ExecEntorpy_now);
+                CascadeSponge.InitThreeFishByCascade(1, false, countOfSteps: 1);    // Упрощённая предварительная инициализация с пониженным количеством шагов
 
                 nint realRandomLength = 0;
 

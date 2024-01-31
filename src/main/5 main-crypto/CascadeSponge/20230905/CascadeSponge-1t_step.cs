@@ -169,11 +169,13 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public byte lastRegime { get; protected set;}
 
     // code::docs:Wt74dfPfEIcGzPN5Jrxe:
-    /// <summary>Инициализирует ThreeFish с помощью каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
+    /// <summary>Инициализирует ThreeFish и таблицы подстановок с помощью этого же каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
     /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз, либо еслив дальнейшем будет проведён повторный вызов данного метода.</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
     /// <param name="dataLenFromStep">Параметр определяет, сколько будет взято байтов для ключей ThreeFish с каждого шага губки. Не более maxDataLen</param>
-    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0)
+    /// <param name="noInitSubstitutionTables">Если true, то не делает инициализацию таблиц подстановок.</param>
+    /// <param name="countOfSteps">Количество шагов, которые будет делать губка для генерации одного вывода губки. 0 - это количество шагов по умолчанию (1 шаг). Этот параметр передаётся в функцию step. Релевантные значения: 0 (==countStepsForKeyGeneration), 1,  countStepsForHardening, countStepsForKeyGeneration</param>
+    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0)
     {
         // Защита от вызова на непроинициализированной губке
         if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration)
@@ -182,6 +184,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 2");
         if (stepToKeyConst < 1)
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 1");
+
+        if (countOfSteps <= 0)
+            countOfSteps = countStepsForKeyGeneration;
 
         haveOutput  = false;     // Сбрасываем, чтобы если случилась ошибка, флаг был бы сброшен и не дал бы дальше работать
         var needLen = countOfThreeFish*threefish_slowly.keyLen + countOfThreeFish*threefish_slowly.twLen;
@@ -197,13 +202,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         try
         {
-            // Делаем инициализацию ключей два раза
+            // Делаем инициализацию ключей два раза (точнее, stepToKeyConst раз)
             for (int stepToKey = 0; stepToKey < stepToKeyConst; stepToKey++)
             {
+                InitSubstitutionTable(countOfSteps);
+
                 // Берём данные из губки для инициализации ключей
                 do
                 {
-                    step(countStepsForKeyGeneration, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
+                    step(countOfSteps, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
                     buffer.add(lastOutput, dataLenFromStep);
                 }
                 while (buffer.Count < needLen);
@@ -226,9 +233,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
                 // Расширяем ключи и твики как надо
                 ExpandThreeFish();
-                step(countStepsForKeyGeneration,  regime: 2);
-                step(1,                           inputRegime: overwrite, regime: 3);
-                step(countStepsForKeyGeneration,  regime: 5);
+                step(countOfSteps, regime: 2);
+                step(1           , regime: 3, inputRegime: overwrite);
+                step(countOfSteps, regime: 5);
             }
 
             haveOutput = true;
@@ -237,6 +244,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         {
             buffer.Dispose();
         }
+    }
+
+    /// <summary>Эту функцию не нужно вызывать напрямую (но можно вызвать дополнительно, если нужно подготовить значения с более стойким countOfSteps). Она вызывается из InitThreeFishByCascade. Функция инициализирует таблицу подстановок обратной связи с помощью самой губки.</summary>
+    /// <param name="countOfSteps">Количество шагов, которые будет делать губка для генерации одного вывода губки. 0 - это количество шагов по умолчанию (1 шаг). Этот параметр передаётся в функцию step и не является аналогом параметра stepToKeyConst в функции InitThreeFishByCascade. Релевантные значения: 0 (==1), countStepsForHardening, countStepsForKeyGeneration (в порядке возрастания трудоёмкости)</param>
+    public void InitSubstitutionTable(nint countOfSteps = 0)
+    {
+        var tmp = stackalloc byte[SubstitutionTableLen_inBytes];
+
+        BytesBuilder.CopyTo(SubstitutionTableLen_inBytes, SubstitutionTableLen_inBytes, SubstitutionTable, tmp);
+        this.doRandomPermutationForUShorts(SubstitutionTableLen_inUShort, (ushort *) tmp, countOfSteps, 7);
+        BytesBuilder.CopyTo(SubstitutionTableLen_inBytes, SubstitutionTableLen_inBytes, tmp, SubstitutionTable);
+
+        if (!SubstitutionTable_IsCorrect())
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.InitSubstitutionTable: !SubstitutionTable_IsCorrect");
     }
 
     // code::docs:CJXTMlFBHbtxFNSpqeC8:

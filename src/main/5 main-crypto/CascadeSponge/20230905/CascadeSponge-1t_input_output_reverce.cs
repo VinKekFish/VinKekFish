@@ -119,6 +119,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         // Выполняем преобразование обратной связи
         doThreeFish(rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
+        doSubstitution(rcOutput);
 
         // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
 
@@ -149,6 +150,19 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905.transposeOutput: k != MaxInputForKeccak ({k} != {MaxInputForKeccak})");
 
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
+    }
+
+    protected void doSubstitution(Record data)
+    {
+        CheckMagicNumber(data, "CascadeSponge_1t_20230905.doSubstitution: magic != MagicNumber_ReverseConnectionLink_forInput");
+
+        var len = ReserveConnectionLen >> 1;
+        var dt  = (ushort *) data.array;
+        var sb  = (ushort*) SubstitutionTable;
+        for (nint i = 0; i < len; i++)
+        {
+            dt[i] = sb[ dt[i] ];
+        }
     }
 
     /// <summary>Сделать поблочное преобразование ThreeFish1024 для массива обратной связи (указан в параметре data)</summary>

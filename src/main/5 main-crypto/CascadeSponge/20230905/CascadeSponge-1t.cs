@@ -1,6 +1,7 @@
 // TODO: tests
 namespace vinkekfish;
 
+using System.Collections;
 using System.Diagnostics.Tracing;
 using cryptoprime;
 using maincrypto.keccak;
@@ -30,12 +31,17 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                                                                 /// <summary>Не нужно пользователю. Значение для инкремента счётчика обратной связи. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
     public const    ulong  CounterIncrement   = 3148241843069173559; /// <summary>Не нужно пользователю. Значение для инкремента tweak при пустой инициализации. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(62, 1024*80) [ https://github.com/hellman/libnum ]</summary>
     public const    ulong  TweakInitIncrement = 2743445726634853529; /// <summary>Не нужно пользователю. Значение для инкремента key при пустой инициализации. Это значение, вероятно, простое число. Найдено с помощью libnum.generate_prime(63, 1024*80) [ https://github.com/hellman/libnum ]</summary>
-    public const    ulong  KeyInitIncrement   = 7825219255190903851;
+    public const    ulong  KeyInitIncrement   = 7825219255190903851; /// <summary>Параметр по-умолчанию для простой инициализации таблицы подстановок.</summary>
+    public const    ushort SubstituteInit     = 44381;
                                                                 /// <summary>Выходные данные для пользователя. Заполняется при вызове step (точнее, после вызова outputAllData). Если пользователь хочет увеличить стойкость, он может взять только половину этого массива.</summary>
     public    readonly Record lastOutput;                       /// <summary>Полный вывод всех губок. Массив используется для формирования пользовательского вывода lastOutput, для вычисления ThreeFish на месте для пользовательского выхода.</summary>
     protected readonly Record fullOutput;                       /// <summary>Полный вывод всех губок. Используется для формирования и вычисления обратной связи чере ThreeFish</summary>
     protected readonly Record   rcOutput;                       /// <summary>Если true, значит в lastOutput есть данные после шага. false говорит о том, что кто-то сбросил этот флаг и данные из lastOutput использовать уже нельзя.</summary>
     public             bool   haveOutput = false;
+                                                                /// <summary>Таблица подстановок. Инициализируется в InitThreeFishByCascade вызовом InitSubstitutionTable. При использовании не забывать приводить к ushort *.</summary>
+    protected readonly Record SubstitutionTable;
+    protected readonly int    SubstitutionTableLen_inBytes  = 1 << 17;
+    protected readonly int    SubstitutionTableLen_inUShort = 1 << 16;
                                                                 /// <summary>Стойкость шифрования в байтах. Это tall*MaxInputForKeccak</summary>
     public    readonly nint   strenghtInBytes = 0;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи. Реально ключей в два раза больше</summary>
     public    readonly nint   countOfThreeFish_RC;              /// <summary>Количество ключей, которые нужны для шифрования обратной связи и для шифрования выхода</summary>
@@ -163,57 +169,96 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         try
         {
 
-        // Выделяем под губки память сразу для всех губок, иначе, с учётом защитный полей, получается очень много памяти выделяется
-        keccakStateLen = (KeccakPrime.S_len2 + KeccakPrime.S_len + KeccakPrime.S_len2) << 3;
-        keccakStateLen = VinKekFish_Utils.Utils.calcAlignment(keccakStateLen, 128);  // На всякий случай, берём выравнивание 128-мь байтов, хотя 64-ре вполне достаточно (здесь достаточно выравнивания на границу линии кеша)
-        keccakStatesLayerLen = keccakStateLen * wide;
-        keccakStatesFullLen  = keccakStateLen * tall * wide;
-        keccaks = Keccak_abstract.allocator.AllocMemory(keccakStatesFullLen, "CascadeSponge_1t_20230905.keccaks");
-        keccaks.Clear();
+            // Выделяем под губки память сразу для всех губок, иначе, с учётом защитный полей, получается очень много памяти выделяется
+            keccakStateLen = (KeccakPrime.S_len2 + KeccakPrime.S_len + KeccakPrime.S_len2) << 3;
+            keccakStateLen = VinKekFish_Utils.Utils.calcAlignment(keccakStateLen, 128);  // На всякий случай, берём выравнивание 128-мь байтов, хотя 64-ре вполне достаточно (здесь достаточно выравнивания на границу линии кеша)
+            keccakStatesLayerLen = keccakStateLen * wide;
+            keccakStatesFullLen = keccakStateLen * tall * wide;
+            keccaks = Keccak_abstract.allocator.AllocMemory(keccakStatesFullLen, "CascadeSponge_1t_20230905.keccaks");
+            keccaks.Clear();
 
-        // Проверяем, что расчёт длин верный
-        if (keccakStatesLayerLen*tall != keccakStatesFullLen)
-            throw new CascadeSpongeException($"CascadeSponge_1t_20230905: fatal algorithmic error: keccakStatesLayerLen*tall != keccakStatesFullLen");
+            // Проверяем, что расчёт длин верный
+            if (keccakStatesLayerLen * tall != keccakStatesFullLen)
+                throw new CascadeSpongeException($"CascadeSponge_1t_20230905: fatal algorithmic error: keccakStatesLayerLen*tall != keccakStatesFullLen");
 
 
-        (W, Wn) = CalcW(tall);
+            SubstitutionTable = Keccak_abstract.allocator.AllocMemory(SubstitutionTableLen_inBytes, "CascadeSponge_1t_20230905.SubstitutionTable");
+            InitEmptySubstitutionTable();
 
-        maxDataLen                 = Wn*wide;
-        ReserveConnectionLen       = MaxInputForKeccak*wide;
-        ReserveConnectionFullLen   = ReserveConnectionLen + 8;
-        strenghtInBytes            = tall*MaxInputForKeccak;
+            (W, Wn) = CalcW(tall);
 
-        // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
-        // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
-        // countStepsForHardening     = (nint) 1;
-        countStepsForKeyGeneration    = (nint) Math.Ceiling(  2*Math.Log2(3*tall) + 1  );
-        countStepsForHardening        = (nint) Math.Ceiling(  Math.Log2(tall)  );
+            maxDataLen = Wn * wide;
+            ReserveConnectionLen = MaxInputForKeccak * wide;
+            ReserveConnectionFullLen = ReserveConnectionLen + 8;
+            strenghtInBytes = tall * MaxInputForKeccak;
 
-        lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
-        fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
-          rcOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.rcOutput");
-        BytesBuilder.ToNull(maxDataLen,               lastOutput);
-        BytesBuilder.ToNull(ReserveConnectionFullLen, fullOutput);
-        BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
-        BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput,   rcOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
+            // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
+            // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
+            // countStepsForHardening     = (nint) 1;
+            countStepsForKeyGeneration = (nint)Math.Ceiling(2 * Math.Log2(3 * tall) + 1);
+            countStepsForHardening     = (nint)Math.Ceiling(Math.Log2(tall));
 
-        // Для выравнивания, считаем, что на один ThreeFish приходится 256 байтов. Это используется в setThreeFishKeysAndTweak
-        countOfThreeFish_RC = wide >> 1;
-        countOfThreeFish    = wide;
-        threefishCrypto     = Keccak_abstract.allocator.AllocMemory(256*countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
+            lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
+            fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
+            rcOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.rcOutput");
+            BytesBuilder.ToNull(maxDataLen, lastOutput);
+            BytesBuilder.ToNull(ReserveConnectionFullLen, fullOutput);
+            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
+            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, rcOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
 
-        fullLengthOfThreeFishKeys = countOfThreeFish * threefish_slowly.keyLen;
+            // Для выравнивания, считаем, что на один ThreeFish приходится 256 байтов. Это используется в setThreeFishKeysAndTweak
+            countOfThreeFish_RC = wide >> 1;
+            countOfThreeFish = wide;
+            threefishCrypto = Keccak_abstract.allocator.AllocMemory(256 * countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
 
-        // На всякий случай, сразу же инициализируем ключи и твики ThreeFish, чтобы их можно было дальше использовать
-        InitEmptyThreeFish();
+            fullLengthOfThreeFishKeys = countOfThreeFish * threefish_slowly.keyLen;
 
-        // Console.WriteLine(this);
+            // На всякий случай, сразу же инициализируем ключи и твики ThreeFish, чтобы их можно было дальше использовать
+            InitEmptyThreeFish();
+
+            // Console.WriteLine(this);
         }
         catch
         {
             Dispose();
             throw;
         }
+    }
+
+    /// <summary>Выполняет простую инициализацию таблицы подстановок</summary>
+    /// <param name="value">Число 0 до 65535 для инициализации</param>
+    public void InitEmptySubstitutionTable(ushort value = SubstituteInit)
+    {
+        var sb = (ushort*) SubstitutionTable;
+        for (int i = 0; i <= ushort.MaxValue; i++)
+        {
+            sb[i] = (ushort) (i ^ value);
+        }
+
+        if (!SubstitutionTable_IsCorrect())
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.InitEmptySubstitutionTable: !SubstitutionTable_IsCorrect");
+
+    }
+
+    public bool SubstitutionTable_IsCorrect()
+    {
+        var len = SubstitutionTableLen_inUShort;
+        var b   = stackalloc byte[len >> 3];
+
+        for (int i = 0; i < len; i++)
+            BitToBytes.resetBit(b, i);
+
+        var sb = (ushort*) SubstitutionTable;
+        for (int i = 0; i <= ushort.MaxValue; i++)
+        {
+            BitToBytes.setBit(b, sb[i]);
+        }
+
+        for (int i = 0; i < len; i++)
+            if (!BitToBytes.getBit(b, i))
+                return false;
+
+        return true;
     }
 
     public static nint CalcTallAndWideByStrenght(nint _strenghtInBytes, ref nint _wide)
@@ -428,15 +473,17 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         }
 
         if (lastOutput is not null && lastOutput.array is not null)
-            lastOutput.Dispose();
+            VinKekFish_Utils.Utils.TryToDispose(lastOutput);
         if (fullOutput is not null && fullOutput.array is not null)
-            fullOutput.Dispose();
+            VinKekFish_Utils.Utils.TryToDispose(fullOutput);
         if (rcOutput is not null && rcOutput.array is not null)
-            rcOutput  .Dispose();
+            VinKekFish_Utils.Utils.TryToDispose(rcOutput);
         if (keccaks is not null && keccaks.array is not null)
-            keccaks   .Dispose();
+            VinKekFish_Utils.Utils.TryToDispose(keccaks);
+        if (SubstitutionTable is not null && SubstitutionTable.array is not null)
+            VinKekFish_Utils.Utils.TryToDispose(SubstitutionTable);
 
-        threefishCrypto?.Dispose();
+        VinKekFish_Utils.Utils.TryToDispose(threefishCrypto);
         threefishCrypto = null;
 
         isDisposed = true;
