@@ -159,12 +159,16 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var len = ReserveConnectionLen >> 1;
         var dt  = (ushort *) data.array;
         var sb  = (ushort*) SubstitutionTable;
-        for (nint i = 0; i < len; i += 4)
+        for (nint i = 0; i < len; i += 8)
         {
             dt[i+0] = sb[ dt[i+0] ];
             dt[i+1] = sb[ dt[i+1] ];
             dt[i+2] = sb[ dt[i+2] ];
             dt[i+3] = sb[ dt[i+3] ];
+            dt[i+4] = sb[ dt[i+4] ];
+            dt[i+5] = sb[ dt[i+5] ];
+            dt[i+6] = sb[ dt[i+6] ];
+            dt[i+7] = sb[ dt[i+7] ];
         }
     }
 

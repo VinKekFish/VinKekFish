@@ -1,4 +1,15 @@
-﻿Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication tha>
+﻿Неизвестно откуда получается, что
+фев 01 23:26:39 vinny vkf[202399]: Байты энтропии были введены в главную губку (установлена настройка "do log every input entropy to sponge" для создания данн
+ой записи в логе). Введено 1504
+фев 01 23:27:09 vinny vkf[202399]: Энтропия (хешированная) сохранена в служебный файл (не используйте его напрямую): /opt/VinKekFish/data/random_at_start_fold
+er/current.3
+фев 01 23:27:09 vinny vkf[202399]: сервис запущен в 01.02.2024 23:27:09
+фев 01 23:27:10 vinny vkf[202399]: 1212 байтов получено из '/media/veracrypt8/tmp/entropy'; 1212 послано в главные губки (за всё время работы программы).
+
+Но если байты были получены и посланы, то это mandatory-байты и они должны были быть отдельно поглощены губкой.
+
+
+Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication tha>
 янв 30 23:35:29 vinny vkf[134478]:    at cryptoprime.BytesBuilder.ToNull(IntPtr, Byte*, UInt64, IntPtr, IntPtr)
 янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.ClearState()
 янв 30 23:35:29 vinny vkf[134478]:    at maincrypto.keccak.Keccak_abstract.Clear(Boolean)

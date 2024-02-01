@@ -123,7 +123,7 @@ public partial class Regime_Service
         // Если вводилось MandatoryUse данные, то всегда вызываем губку
         // (здесь может быть лишний холостой вызов губки)
         if (isMandatory)
-            ConditionalInputEntropyToMainSponges(nint.MaxValue);
+            ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
 
         return result;
     }
@@ -181,14 +181,14 @@ public partial class Regime_Service
 
     /// <summary>Ввести накопленную в bufferRec энтропию в основную губку и выполнить вспомогательные операции. Может быть вызвано пользователем для принудительного сброса накопленной энтропии в губку.</summary>
     /// <param name="EmptySpaceAcceptableRemainder">Максимальное количество незаполненного места, которое может остаться в bufferRec при запуске губки (если незаполненного места больше, то ввод в губку производиться не будет). Если нужно срабатывание всегда, то можно подать nint.MaxValue; чем больше эта величина, тем больше вероятность срабатывания.</param>
-    public unsafe void ConditionalInputEntropyToMainSponges(nint EmptySpaceAcceptableRemainder)
+    public unsafe void ConditionalInputEntropyToMainSponges(nint EmptySpaceAcceptableRemainder, bool isMandatory = false)
     {
         lock (entropy_sync)
         {
-            if (bufferRec_current > 32) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
+            if (bufferRec_current > 32 || (isMandatory && bufferRec_current > 0)) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
             {
                 var EmptySpace = bufferRec!.len - bufferRec_current;
-                if (EmptySpace < EmptySpaceAcceptableRemainder)    // Высчитываем пустое место в буффере и сравниваем его с допустимым
+                if (EmptySpace < EmptySpaceAcceptableRemainder || isMandatory)    // Высчитываем пустое место в буффере и сравниваем его с допустимым
                 {
                     var enteredBytesCount = bufferRec_current;
                     InputBuffToSponges(bufferRec!, bufferRec_current);

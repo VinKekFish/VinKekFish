@@ -12,9 +12,9 @@ using static VinKekFish_Utils.Utils;
 /// </summary>
 public partial class Regime_Service
 {
-                                                /// <summary>Полное имя файла конфигурации</summary>
-    public string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
-    public bool    Terminated     = false;
+                                                         /// <summary>Полное имя файла конфигурации</summary>
+    public          string? ConfigFileName = null;       /// <summary>Если true - получен сигнал завершения программы или самого прослушивателя</summary>
+    public volatile bool    Terminated     = false;
                                                        /// <summary>Путь к папке, где программой создаётся unix stream. Берётся из конфигурационного файла</summary>
     public DirectoryInfo? UnixStreamDir;               /// <summary>Полное имя файла (с путём) unix stream для получения энтропии</summary>
     public FileInfo?      UnixStreamPath;              /// <summary>Полное имя файла (с путём) unix stream для получения параметров накопления энтропии</summary>
