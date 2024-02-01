@@ -8,6 +8,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 
 public partial class Regime_Service
 {
@@ -39,28 +40,20 @@ public partial class Regime_Service
 
     private unsafe FileInfo getOldestCurrentFile()
     {
-        RandomAtFolder_Current0!.Refresh(); RandomAtFolder_Current1!.Refresh();
+        randomAtFolder_Current!.Refresh();
 
-        var RandomAtFolder_Current = RandomAtFolder_Current0;
         try
         {
-            if (!RandomAtFolder_Current0.Exists)
-                return RandomAtFolder_Current0;
-            if (!RandomAtFolder_Current1.Exists)
-                return RandomAtFolder_Current1;
-
-            if (RandomAtFolder_Current0.Length < OutputStrenght)
-                return RandomAtFolder_Current0;
-            if (RandomAtFolder_Current1.Length < OutputStrenght)
-                return RandomAtFolder_Current1;
-
-            if (RandomAtFolder_Current.LastWriteTime > RandomAtFolder_Current1.LastWriteTime)
-                RandomAtFolder_Current = RandomAtFolder_Current1;
+            var file = randomAtFolder_Current.GetFirstNotExists();
+            if (file != null)
+                return file;
         }
-        catch
-        {}
+        catch (Exception ex)
+        {
+            formatException(ex);
+        }
 
-        return RandomAtFolder_Current;
+        return randomAtFolder_Current.GetOldestFile();
     }
 
     public static unsafe void WriteRecordToFileStream(FileStream ws, Record output, int size = 0)

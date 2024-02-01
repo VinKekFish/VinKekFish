@@ -692,7 +692,7 @@ public partial class Regime_Service
                     lock (entropy_sync)
                     {
                         lastLogDate = ticks;
-                        Console.WriteLine($"{cgr.countOfBytes} bytes got from '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
+                        Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}.");
                     }
         }
         catch (ThreadInterruptedException)
@@ -774,7 +774,7 @@ public partial class Regime_Service
             {
                 lock (entropy_sync)
                 {
-                    Console.WriteLine($"{cgr.countOfBytes} bytes got from '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} sended to the main sponges (for the entire time of work).");
+                    Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}.");
                 }
             }
             catch (ThreadInterruptedException)

@@ -86,4 +86,8 @@ Wait for threads has been terminated by timeout
     Ожидание потоков было прервано по таймауту
 From the file got zero bytes
     Из файла получено 0 байтов
+sended to the main sponges (for the entire time of work)
+    послано в главные губки (за всё время работы программы)
+bytes got from
+    байтов получено из
 :

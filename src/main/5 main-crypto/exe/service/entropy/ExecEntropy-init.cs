@@ -23,8 +23,8 @@ public partial class Regime_Service
                                                                                             /// <summary>Указывает папку, где содержатся данные, хранящиеся между запусками программы. В том числе, данные по рандомизации на старте</summary>
     public DirectoryInfo? RandomAtFolder;
     public DirectoryInfo? RandomAtFolder_Static;
-    public FileInfo?      RandomAtFolder_Current0;
-    public FileInfo?      RandomAtFolder_Current1;
+    public RandomAtFolder_Current? randomAtFolder_Current;
+    public const int RandomAtFolder_Current_countOfFiles = 4;
 
     public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
     public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11, ThreadCount = 1
@@ -60,6 +60,10 @@ public partial class Regime_Service
                 sb.AppendLine("CLR Version: " + Environment.Version);
                 sb.AppendLine("User: "        + Environment.UserName);
                 sb.AppendLine("Cur. dir.: "   + Environment.CurrentDirectory);
+                sb.AppendLine("MTI: "         + Environment.CurrentManagedThreadId);
+                sb.AppendLine("MN: "          + Environment.MachineName);
+                sb.AppendLine("PID: "         + Environment.ProcessId);
+                sb.AppendLine("PC: "          + Environment.ProcessorCount);
 
                 // Console.WriteLine(sb.ToString().Length);
                 // Console.WriteLine(sb.ToString());
@@ -436,8 +440,7 @@ public partial class Regime_Service
 
         Console.WriteLine($"RandomAtFolder = {RandomAtFolder.FullName}");
 
-        RandomAtFolder_Current0 = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current.0")  );
-        RandomAtFolder_Current1 = new FileInfo(  Path.Combine(RandomAtFolder_Static.FullName, "current.1")  );
+        randomAtFolder_Current = new RandomAtFolder_Current(this);
     }
 
     public const int MAX_RANDOM_AT_START_FILE_LENGTH = 256*1024;
