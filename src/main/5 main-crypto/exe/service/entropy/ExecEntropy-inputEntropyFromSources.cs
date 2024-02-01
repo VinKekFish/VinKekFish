@@ -123,7 +123,10 @@ public partial class Regime_Service
         // Если вводилось MandatoryUse данные, то всегда вызываем губку
         // (здесь может быть лишний холостой вызов губки)
         if (isMandatory)
+        {
             ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
+            Console.WriteLine("isMandatory (debug)"); // TODO: убрать
+        }
 
         return result;
     }

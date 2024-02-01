@@ -266,7 +266,7 @@ public partial class Regime_Service
             }
         }
 
-        protected bool MandatoryUse = false;
+        protected volatile bool MandatoryUse = false;
         public    bool MandatoryUseGet => MandatoryUse;
         public void CorrectEntropyForMandatoryUse()
         {
