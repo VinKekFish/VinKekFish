@@ -93,6 +93,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     protected ManualResetEvent Event = new ManualResetEvent(false);
 
 
+    protected bool ThreadSleep = true;
     /// <summary>Функция, выполняемая потоками</summary>
     protected virtual void ThreadsFunction(nint ThreadIndex)
     {
@@ -119,16 +120,18 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                         Thread_keccak(ThreadIndex);
                     break;
                 case 2:
-                        break;
+                    break;
                 default:            // Пустая функция
-                        break;
+                    if (ThreadSleep)
+                        Thread.Sleep(0);    // Если это не сделать, похоже, иногда потоки начинают крутиться вхолостую слишком сильно. Производительность падает в десятки раз относительно производительности однопоточной реализации.
+                    break;
             }
         }
     }
 
     public int[] debug_t;
     //                                                        /// <summary>Текущий номер последнего необработанного индекса губки нужного слоя</summary>
-    //protected volatile int KeccakNumberForThreads = 0;
+    protected volatile int KeccakNumberForThreads = 0;
     /// <summary>Функция преобразования keccak</summary>
     protected void Thread_keccak(nint ThreadIndex)
     {
@@ -140,10 +143,16 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         byte * st = (byte *) stepBuffer;
         try
         {
-            for (; index < wide; index += ThreadsCount)
+            index = 0;
+            //for (; index < wide; index += ThreadsCount)
+            while (true)
             {
                 // var index = Interlocked.Increment(ref KeccakNumberForThreads) - 1;
-                // debug_t[ThreadIndex]++;
+                index = Interlocked.Increment(ref KeccakNumberForThreads) - 1;
+                if (index >= wide)
+                    break;
+
+                debug_t[ThreadIndex]++;
 
                 if (curStepBuffer < 0)
                 {

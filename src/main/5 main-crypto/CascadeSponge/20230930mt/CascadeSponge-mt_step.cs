@@ -88,6 +88,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, rcOutput, inputRegime);
 
+        // ThreadSleep = false;     // Закомментировал, т.к. иногда это увеличивает вероятность падения производительности
         var buffer  = (byte *) stepBuffer;
         this.regime = regime;
         if (inputRegime == overwrite)
@@ -102,7 +103,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             // Рассчитываем для данного уровня все данные
             ThreadsLayer           = layer;
             ThreadsExecuted        = (int) ThreadsCount; // На один больше, чем Threads.Length
-            // KeccakNumberForThreads = 0;                 // Устанавливаем счётчик выполненной работы: это текущий номер последнего необработанного индекса губки нужного слоя
+            KeccakNumberForThreads = 0;                 // Устанавливаем счётчик выполненной работы: это текущий номер последнего необработанного индекса губки нужного слоя
 
             // Clear_Debug_t();
             if (ThreadsError)
@@ -117,10 +118,11 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             {
                 Thread_keccak(ThreadsCount-1);
 
+                ThreadSleep = true;
                 while (ThreadsExecuted > 0 && !ThreadsError)
                 {
                     // Monitor.Wait(ThreadsStop);
-                    // Thread.Sleep(0);
+                    Thread.Sleep(0);
                 }
 
                 // Event.Reset();  // Именно здесь, т.к. потоки могут не начаться до того, как будет ожидание ThreadsStop
@@ -129,8 +131,9 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
             if (ThreadsError)
                 throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted");
-
-            // Console.WriteLine(  toString_Debug_t()  );
+/*
+            Console.WriteLine(  toString_Debug_t()  );
+            Clear_Debug_t();*/
         }
 
         // Последний уровень губки, включая преобразование обратной связи
