@@ -5,6 +5,7 @@ namespace VinKekFish_EXE;
 
 using System;
 using System.Text.RegularExpressions;
+using System.Net.Sockets;
 using VinKekFish_Utils.ProgramOptions;
 using static VinKekFish_EXE.AutoCrypt.Command;
 using static VinKekFish_Utils.Language;
@@ -15,33 +16,44 @@ public partial class AutoCrypt
     public class EncCommand: Command
     {
         public bool isDebugMode = false;
-        public EncCommand()
+        public EncCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
-
-        public int  VinKekFish_K         = 0;
-        public int  VinKekFish_Rounds    = 0;
-        public int  VinKekFish_PreRounds = 0;
+                                                                            /// <summary>Коэффициент стойкости VinKekFish (K=1,3,5,7,...)</summary>
+        public int  VinKekFish_K         = 1;                               /// <summary>Количество раундов</summary>
+        public int  VinKekFish_Rounds    = 0;                               /// <summary>Количество раундов со стандартными таблицами перестановки</summary>
+        public int  VinKekFish_PreRounds = 0;                               /// <summary>Стойкость каскадной губки в байтах</summary>
         public int  Cascade_Bytes        = 512;
 
         public override ProgramErrorCode Exec()
         {
+            ThreadPool.QueueUserWorkItem(   (x) => Connect()      );
+
             start:
 
-            var command = CommandOption.ReadAndParseLine(() => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nregime:1.1\r\ncascade:512\r\n[cascade:bytes of strength]"));
+            var command = CommandOption.ReadAndParseLine(() => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nout:path_to_file\r\nregime:1.0\r\ncascade:512\r\n[cascade:bytes of strength]"));
             switch (command.name)
             {
                 case "vinkekfish":
                 case "vkf":
-                        ParseVinKekFishOptions(command.value);
+                        ParseVinKekFishOptions(command.value.Trim());
                     break;
                 case "cascade":
-                        ParseCascadeOptions(command.value);
+                        ParseCascadeOptions(command.value.Trim());
                     break;
                 case "file":
-                        ParseFileOptions(command.value);
+                        ParseFileOptions(command.value.TrimStart());
+                    break;
+                case "out":
+                        ParseFileOptions(command.value.TrimStart());
                     break;
                 case "regime":
-                        ParseRegimeOptions(command.value);
+                        ParseRegimeOptions(command.value.Trim());
+                    break;
+                case "start":
+                    if (Terminated)
+                        return ProgramErrorCode.Abandoned;
+                    // TODO: стартовать шифрование
+                    InitSponges();
                     break;
                 case "end":
                     return ProgramErrorCode.AbandonedByUser;
@@ -98,9 +110,9 @@ public partial class AutoCrypt
 
         /// <summary>Распарсить опции команды regime</summary>
         /// <param name="value">Опции, разделённые пробелом.</param>
-        protected void ParseFileOptions(string value)
+        protected FileInfo? ParseFileOptions(string value)
         {
-            
+            return null;
         }
 
         /// <summary>Распарсить опции команды regime</summary>
@@ -110,7 +122,7 @@ public partial class AutoCrypt
             var values = ToSpaceSeparated(value);
             if (values.Length >= 1)
             {
-                var val   = values[0].Trim();
+                var val = values[0].Trim();
             }
         }
 

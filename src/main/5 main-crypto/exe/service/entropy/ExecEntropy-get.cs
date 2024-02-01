@@ -68,10 +68,14 @@ public partial class Regime_Service
         }
     }
 
+    /// <summary>Минимальный размер блока. Именно этот размер возвращает программа, когда выдаёт энтропию стронним приложениям.</summary>
+    public const int MinBlockSize = 404;
+
     /// <summary>Возвращает минимальный размер блока. Именно этот размер возвращает программа, когда выдаёт энтропию стронним приложениям.</summary>
     public unsafe nint getMinBlockSize()
     {
-        return Math.Min(VinKekFish.BLOCK_SIZE_KEY_K, CascadeSponge.maxDataLen >> 1);
+        return MinBlockSize;
+        // return Math.Min(VinKekFish.BLOCK_SIZE_KEY_K, CascadeSponge.maxDataLen >> 1);
     }
 
     /// <summary>Получает случайный вывод, предназначенный для пользователя. Для безопасности при многопоточности, входит в блокировку entropy_sync.</summary>

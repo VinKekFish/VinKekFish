@@ -12,7 +12,7 @@ public partial class AutoCrypt
     /// <summary>Класс представляет собой пустую команду, ведущую к завершению работы программы</summary>
     public class EndCommand: Command
     {
-        public EndCommand()
+        public EndCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 
         public override ProgramErrorCode Exec()

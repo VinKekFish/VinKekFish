@@ -10,10 +10,10 @@ using static VinKekFish_Utils.Language;
 public partial class AutoCrypt
 {
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
-    public class DecCommand: Command
+    public class GenKeyCommand: Command
     {
         public bool isDebugMode = false;
-        public DecCommand(AutoCrypt autoCrypt): base(autoCrypt)
+        public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 
         public override ProgramErrorCode Exec()

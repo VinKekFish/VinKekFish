@@ -90,4 +90,6 @@ sended to the main sponges (for the entire time of work)
     послано в главные губки (за всё время работы программы)
 bytes got from
     байтов получено из
+Command is unknown (enter 'debug:' at the vkf start for more bit information)
+    Неизвестная команда (введите "debug:" при старте программы для получения чуть большей информации)
 :

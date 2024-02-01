@@ -9,8 +9,15 @@ using static VinKekFish_Utils.Language;
 public partial class AutoCrypt
 {
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
-    public abstract class Command
+    public abstract partial class Command
     {
+        public bool Terminated = false;
+        public AutoCrypt autoCrypt;
+        public Command(AutoCrypt autoCrypt)
+        {
+            this.autoCrypt = autoCrypt;
+        }
+
         public class CommandException: Exception
         {
             public CommandException(string message): base(message)
