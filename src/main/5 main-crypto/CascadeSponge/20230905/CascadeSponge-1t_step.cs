@@ -175,7 +175,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="dataLenFromStep">Параметр определяет, сколько будет взято байтов для ключей ThreeFish с каждого шага губки. Не более maxDataLen</param>
     /// <param name="noInitSubstitutionTables">Если true, то не делает инициализацию таблиц подстановок.</param>
     /// <param name="countOfSteps">Количество шагов, которые будет делать губка для генерации одного вывода губки. 0 - это количество шагов по умолчанию (1 шаг). Этот параметр передаётся в функцию step. Релевантные значения: 0 (==countStepsForKeyGeneration), 1,  countStepsForHardening, countStepsForKeyGeneration</param>
-    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0)
+    /// <param name="countOfStepsForSubstitutionTable">Количество шагов, которые будет делать губка для генерации одного вывода губки при формировании таблицы подстановок. Формирование таблицы подстановок может занимать длительное время, поэтому не рекомендуется увеличивать количество шагов. Параметр по умолчанию 0 означает 1 шаг</param>
+    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0, nint countOfStepsForSubstitutionTable = 0)
     {
         // Защита от вызова на непроинициализированной губке
         if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration)
@@ -205,7 +206,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Делаем инициализацию ключей два раза (точнее, stepToKeyConst раз)
             for (int stepToKey = 0; stepToKey < stepToKeyConst; stepToKey++)
             {
-                InitSubstitutionTable(countOfSteps);
+                InitSubstitutionTable(countOfStepsForSubstitutionTable);
 
                 // Берём данные из губки для инициализации ключей
                 do

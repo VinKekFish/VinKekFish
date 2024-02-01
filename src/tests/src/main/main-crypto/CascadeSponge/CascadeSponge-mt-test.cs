@@ -118,7 +118,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_
     }
 }
 
-[TestTagAttribute("A")]
+
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif

@@ -20,6 +20,9 @@
     <!-- Это предупреждения, сгенерированные из-за недостаточной xml-документации -->
     <NoWarn>CS1591</NoWarn>
 
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+
     <!-- Этот проект не оптимизируется, т.к. в этом проекте функции должны быть безопасны от тайминг-атак -->
     <Optimize>false</Optimize>
 

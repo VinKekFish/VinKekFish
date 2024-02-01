@@ -15,6 +15,8 @@ using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Inter
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
 using alien_SkeinFish;
+using System.Collections;
+using System.Runtime.InteropServices;
 
 public partial class Regime_Service
 {
@@ -49,14 +51,40 @@ public partial class Regime_Service
                 ExecEntorpy_now = DateTime.Now.Ticks;
                 bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
 
+                var sb = new StringBuilder();
+                var eVars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
+                foreach (DictionaryEntry entry in eVars)
+                    sb.AppendLine((entry.Key as String) + ": " + (entry.Value as String));
+
+                sb.AppendLine("OSVersion: "   + Environment.OSVersion);
+                sb.AppendLine("CLR Version: " + Environment.Version);
+                sb.AppendLine("User: "        + Environment.UserName);
+                sb.AppendLine("Cur. dir.: "   + Environment.CurrentDirectory);
+
+                // Console.WriteLine(sb.ToString().Length);
+                // Console.WriteLine(sb.ToString());
+                var bb = new UTF8Encoding().GetBytes(  sb.ToString()  );
+
+                var simpleData = stackalloc byte[sizeof(long) + bb.Length];
+                BytesBuilder.ULongToBytes((ulong)ExecEntorpy_now, simpleData, sizeof(long));
+
+                if (bb.Length > 0)
+                {
+                    fixed (byte * bp = bb)
+                        BytesBuilder.CopyTo(bb.Length, bb.Length, bp, simpleData + sizeof(long));
+                }
+                else
+                {
+                    Console.WriteLine("Regime_Service.StartEntropy: Warning: Environment.GetEnvironmentVariables return null");
+                }
+
                 CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
-                CascadeSponge.InitSubstitutionTable((ushort) ExecEntorpy_now);
+                CascadeSponge.InitEmptySubstitutionTable((ushort) ExecEntorpy_now);
+                CascadeSponge.step(regime: 3, data: simpleData, dataLen: sizeof(long) + bb.Length);
                 CascadeSponge.InitThreeFishByCascade(1, false, countOfSteps: 1);    // Упрощённая предварительная инициализация с пониженным количеством шагов
 
                 nint realRandomLength = 0;
-
-
-                nint rndCount = 0;
+                nint rndCount         = 0;
                 using (var rndbytes = new BytesBuilderForPointers())
                 {
                     realRandomLength = getRandomFromOSEntropy_Startup(bufferRec, rndbytes, realRandomLength);
