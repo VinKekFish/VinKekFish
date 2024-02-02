@@ -125,7 +125,7 @@ public partial class Regime_Service
         if (isMandatory)
         {
             ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
-            Console.WriteLine("isMandatory (debug)"); // TODO: убрать
+            // Console.WriteLine("isMandatory (debug)");
         }
 
         return result;
@@ -164,7 +164,10 @@ public partial class Regime_Service
                     ConditionalInputEntropyToMainSponges(curLen);
 
                     if (getter.MandatoryUseGet)
+                    {
                         isMandatory = true;
+                        Monitor.PulseAll(getter);
+                    }
 
                     var readed = getter.getBytes(buff + bufferRec_current, curLen, BlockLen == 0);
                     bufferRec_current += readed;
@@ -175,8 +178,7 @@ public partial class Regime_Service
                 }
             }
 
-            // Отрабатываем, если длина вводимых байтов больше, чем один шаг губки
-            ConditionalInputEntropyToMainSponges(bufferRec.len - Math.Max(VinKekFish.BLOCK_SIZE_K, CascadeSponge.maxDataLen));
+            ConditionalInputEntropyToMainSponges(KeccakPrime.BlockLen);
         }
 
         return result;
@@ -190,7 +192,7 @@ public partial class Regime_Service
         {
             if (bufferRec_current > 32 || (isMandatory && bufferRec_current > 0)) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
             {
-                var EmptySpace = bufferRec!.len - bufferRec_current;
+                var EmptySpace = getMaxBlockSize() - bufferRec_current;
                 if (EmptySpace < EmptySpaceAcceptableRemainder || isMandatory)    // Высчитываем пустое место в буффере и сравниваем его с допустимым
                 {
                     var enteredBytesCount = bufferRec_current;

@@ -13,7 +13,7 @@ fi
 
 if [ -z "$testTags" ]
 then
-    testTags="+mandatory +inWork <10 ?"
+    testTags="+Mandatory +inWork <10 ?"
 fi
 
 

@@ -191,7 +191,7 @@ namespace vinkekfish
         {/*
             foreach (var t in threads!)
             {
-                if (t.ThreadState != ThreadState.Running && t.ThreadState != ThreadState.WaitSleepJoin)
+                if (t.ThreadState.HasFlag(ThreadState.Unstarted))
                     t.Start();
             }
 

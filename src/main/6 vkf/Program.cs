@@ -32,8 +32,8 @@ public partial class Program
             {
                 // Пытаемся искусственно спровоцировать вызов деструкторов
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
-                int cnt = 1024;
-                for (int i = 0; i < 2; i++)
+                int cnt = 0;
+                for (int i = 0; i < 4; i++)
                 {
                     try
                     {
@@ -46,8 +46,8 @@ public partial class Program
                     {
                         Console.Error.WriteLine(formatException(iex));
                         if (cnt > 0)
-                            i--;
-                        cnt--;
+                            i++;
+                        cnt++;
                     }
                 }
             }
@@ -67,7 +67,7 @@ public partial class Program
 
             if (VinKekFish_Utils.Memory.allocatedMemory != 0)
             {
-                Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0"));
+                Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0") + " (" + VinKekFish_Utils.Memory.AllocatedRegionsCount.ToString("#,0") + ")");
                 DeallocateAtBreakage();
             }
         }

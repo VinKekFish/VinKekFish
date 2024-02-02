@@ -200,6 +200,8 @@ public unsafe static class Memory
     /// <summary>Представляет выделенные mmap фрагменты памяти: &lt;Пользовательский указатель, Пользовательская длина&gt;</summary>
     private static SortedList<nint, nint> allocatedRegions = new SortedList<nint, nint>(256);
 
+    public static int AllocatedRegionsCount { get => allocatedRegions.Count; }
+
     /// <summary>
     /// Выделяет память через mmap (импорт из libc.so.6; Linux). Память ограничивается дополнительными защищёнными от чтения и записи страницами слева и справа. Память помечается как невыгружаемая в файл подкачки
     /// </summary>
@@ -248,14 +250,28 @@ public unsafe static class Memory
         var size   = len + getPadSizeForMMap(len);
         BytesBuilder.ToNull(size - PAGE_SIZE*2, (byte *) addr);
 
-        lock (sync)
+        start:
+        //lock (sync)
+        try
         {
+            Monitor.Enter(sync);
+
             var result = munmap(addr - PAGE_SIZE, size);
             if (result != 0)
                 throw new Exception("FreeMMap: result != 0");
 
             _allocatedMemory -= size;
             allocatedRegions.Remove(addr);
+        }
+        // Если поток прерван при освобождении памяти - не позволяем ему прерваться
+        catch (ThreadInterruptedException)
+        {
+            goto start;
+        }
+        finally
+        {
+            if (Monitor.IsEntered(sync))
+                Monitor.Exit(sync);
         }
     }
 

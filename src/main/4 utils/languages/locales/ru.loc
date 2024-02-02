@@ -87,9 +87,13 @@ Wait for threads has been terminated by timeout
 From the file got zero bytes
     Из файла получено 0 байтов
 sended to the main sponges (for the entire time of work)
-    послано в главные губки (за всё время работы программы)
+    послано в очередь главных губок (за всё время работы программы)
 bytes got from
     байтов получено из
 Command is unknown (enter 'debug:' at the vkf start for more bit information)
     Неизвестная команда (введите "debug:" при старте программы для получения чуть большей информации)
+bytes from all sources
+    байтов из всех источников
+Awaiting processing in the queue
+    Ожидают обработки
 :

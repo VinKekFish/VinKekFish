@@ -12,7 +12,6 @@ public partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public class DecCommand: Command
     {
-        public bool isDebugMode = false;
         public DecCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 

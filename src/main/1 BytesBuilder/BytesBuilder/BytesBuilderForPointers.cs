@@ -17,8 +17,8 @@ namespace cryptoprime
     public unsafe partial class BytesBuilderForPointers: IDisposable
     {
         /// <summary>Добавленные блоки байтов</summary>
-        public readonly List<Record> bytes = new List<Record>();
-
+        public readonly List<Record> bytes  = new List<Record>();                                                                            /// <summary>Имя записи для отладки потерь памяти: вводится в создаваемые Record как их отладочные имена . Не обязательно.</summary>
+        public string?  debugNameForRecords = null;
 
         /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count => count;
@@ -41,7 +41,7 @@ namespace cryptoprime
         /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         public void addWithCopy(byte * bytesToAdded, nint len, AllocatorForUnsafeMemoryInterface allocator, int index = -1)
         {
-            var rec = CloneBytes(bytesToAdded, 0, len, allocator);
+            var rec = CloneBytes(bytesToAdded, 0, len, allocator, debugNameForRecords);
 
             add(rec, index);
         }
@@ -51,11 +51,13 @@ namespace cryptoprime
         /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         public void addWithCopy(Record bytesToAdded, AllocatorForUnsafeMemoryInterface? allocator = null, int index = -1)
         {
-            var rec = CloneBytes(
-                                bytesToAdded, 0, bytesToAdded.len,
-                                allocator ?? bytesToAdded.allocator ??
-                                throw new ArgumentNullException("BytesBuilderForPointers.addWithCopy: allocator = null")
-                                );
+            var rec = CloneBytes
+            (
+                bytesToAdded, 0, bytesToAdded.len,
+                allocator ?? bytesToAdded.allocator ??
+                throw new ArgumentNullException("BytesBuilderForPointers.addWithCopy: allocator = null"),
+                debugNameForRecords
+            );
 
             add(rec, index);
         }
@@ -66,7 +68,7 @@ namespace cryptoprime
         /// <remarks>Обратите внимание, массив bytesToAdded лучше после этого нигде не использовать. Так как после удаления его из буфера, он будет автоматически перезаписан нулями. Необходима доп. проверка на то, что вызывающая функция нигде не использует данный объект</remarks>
         public void addWithoutCopy(ref byte * bytesToAdded, nint len, int index = -1)
         {
-            var rec = new Record() { len = len, array = bytesToAdded };
+            var rec = new Record() { len = len, array = bytesToAdded, Name = debugNameForRecords };
 
             add(rec, index);
 

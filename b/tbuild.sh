@@ -10,7 +10,7 @@ fi
 
 if [ -z "$testTags" ]
 then
-    testTags="+mandatory +inWork <2000 ?"
+    testTags="+Mandatory +inWork <2000 ?"
 fi
 
 # Вызов билда

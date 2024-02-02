@@ -37,7 +37,8 @@ public partial class Regime_Service
 
     ~Regime_Service()
     {
-        doTerminate(true);
+        if (!Terminated)
+            doTerminate(true);
     }
 
     public void doTerminate(bool willBlock = false)
@@ -110,7 +111,35 @@ public partial class Regime_Service
         }
 
         if (willBlock)
-            Console.WriteLine("Regime_Service.doTerminate: exited");
+        {
+            for (int i = 0; i < 4; i++)
+                if (getCountOfNonStoppedGetterThreads() > 0)
+                    Thread.Sleep(500);
+                else
+                    break;
+
+            lock (continuouslyGetters)
+            foreach (var getter in continuouslyGetters)
+            {
+                if (!getter.thread.ThreadState.HasFlag(ThreadState.Stopped))
+                    Console.WriteLine(L("Getter has not be ended") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput}; ThreadState = {getter.thread.ThreadState}); StreamForClose = {getter.StreamForClose} ");
+            }
+
+            Console.WriteLine("Regime_Service.doTerminate: ended");
+        }
+    }
+
+    public int getCountOfNonStoppedGetterThreads()
+    {
+        int result = 0;
+        lock (continuouslyGetters)
+        foreach (var getter in continuouslyGetters)
+        {
+            if (!getter.thread.ThreadState.HasFlag(ThreadState.Stopped))
+                result++;
+        }
+
+        return result;
     }
 
     public bool continueWaitForExit()

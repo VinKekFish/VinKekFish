@@ -82,7 +82,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     {
         foreach (var t in Threads!)
         {
-            if (t.ThreadState != ThreadState.Running && t.ThreadState != ThreadState.WaitSleepJoin)
+            if (t.ThreadState.HasFlag(ThreadState.Unstarted))
                 t.Start();
         }
 

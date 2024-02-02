@@ -286,6 +286,9 @@
         <member name="F:cryptoprime.BytesBuilderForPointers.bytes">
             <summary>Добавленные блоки байтов</summary>
         </member>
+        <member name="F:cryptoprime.BytesBuilderForPointers.debugNameForRecords">
+            <summary>Имя записи для отладки потерь памяти: вводится в создаваемые Record как их отладочные имена . Не обязательно.</summary>
+        </member>
         <member name="P:cryptoprime.BytesBuilderForPointers.Count">
             <summary>Количество всех сохранённых байтов в этом объекте</summary>
         </member>

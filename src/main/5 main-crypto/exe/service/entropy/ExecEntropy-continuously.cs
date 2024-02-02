@@ -118,7 +118,7 @@ public partial class Regime_Service
         {
             this.thread = t;
             if (directInput)
-                this.bb = new BytesBuilderForPointers();
+                this.bb = new BytesBuilderForPointers() { debugNameForRecords = "ContinuouslyGetterRecord" };
             else
                 this.keccak = new Keccak_20200918();
 
@@ -219,6 +219,9 @@ public partial class Regime_Service
         {
             checked
             {
+                if (disposed)
+                    throw new ObjectDisposedException("ContinuouslyGetterRecord.addBytes: disposed (you must check the 'disposed' field and skip the object, if disposed)");
+
                 lock (this)
                 {
                     if (len <= 0)
@@ -260,8 +263,9 @@ public partial class Regime_Service
                 if (disposed)
                     throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
 
-                keccak?.Dispose();
-                bb    ?.Clear();
+                TryToDispose(keccak);
+                TryToDispose(bb);
+
                 disposed = true;
             }
         }
@@ -369,8 +373,7 @@ public partial class Regime_Service
                                     if (!isSleeped)
                                         Sleep(sleepTime);
                                 }
-// TODO: добавить удаление параметров энтропии для wait, т.к. там они не учитываются: вводится ровно 512-ть байтов.
-// либо добавить возможность ввода непосредственно в саму губку
+
                                 if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
                                 {
                                     if (interval.flags!.ignored != Flags.FlagValue.yes)
@@ -689,10 +692,10 @@ public partial class Regime_Service
             var ticks = DateTime.Now.Ticks;
             if (interval.flags!.watchInLog == Flags.FlagValue.yes)
                 if (ticks - lastLogDate > ticksPerHour)
-                    lock (entropy_sync)
+                    lock (cgr)
                     {
                         lastLogDate = ticks;
-                        Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}.");
+                        Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
                     }
         }
         catch (ThreadInterruptedException)
@@ -772,9 +775,9 @@ public partial class Regime_Service
         {
             try
             {
-                lock (entropy_sync)
+                lock (cgr)
                 {
-                    Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}.");
+                    Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
                 }
             }
             catch (ThreadInterruptedException)

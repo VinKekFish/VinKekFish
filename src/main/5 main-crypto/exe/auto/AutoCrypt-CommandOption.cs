@@ -3,6 +3,8 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.Text.RegularExpressions;
+using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static VinKekFish_Utils.Language;
 
@@ -11,7 +13,8 @@ public partial class AutoCrypt
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
     public abstract partial class Command
     {
-        public bool Terminated = false;
+        public bool isDebugMode = false;
+        public bool Terminated  = false;
         public AutoCrypt autoCrypt;
         public Command(AutoCrypt autoCrypt)
         {
@@ -37,6 +40,28 @@ public partial class AutoCrypt
         }
 
         public abstract ProgramErrorCode Exec();
+
+        public class VinKekFishOptions
+        {                                             /// <summary>Коэффициент стойкости VinKekFish (K=1,3,5,7,...)</summary>
+            public int   K         = 1;               /// <summary>Количество раундов</summary>
+            public int   Rounds    = 0;               /// <summary>Количество раундов со стандартными таблицами перестановки</summary>
+            public int   PreRounds = 0;               /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
+            public float KOut      = 1;
+
+            public void SetK(int K)
+            {
+                Rounds    = VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(K);
+                PreRounds = Rounds - VinKekFishBase_KN_20210525.Calc_OptimalRandomPermutationCountK(K);
+                if (PreRounds < VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K))
+                    PreRounds = VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K);
+            }
+        }
+
+        public class CascadeOptions
+        {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
+            public int   StrengthInBytes = 512;     /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
+            public float K = 1;
+        }
 
         public class CommandOption
         {

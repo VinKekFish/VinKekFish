@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -84,7 +84,8 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
 }
 
 // [TestTagAttribute("inWork")]
-[TestTagAttribute("CascadeSponge", duration: 620, singleThread: false)]
+[TestTagAttribute("Mandatory")]
+[TestTagAttribute("CascadeSponge", duration: 2200, singleThread: false)]
 public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 {
     public CascadeSponge_1t_20230905_simpleTest(TestConstructor constructor):

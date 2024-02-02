@@ -12,7 +12,6 @@ public partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public class GenPwdCommand: Command
     {
-        public bool isDebugMode = false;
         public GenPwdCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 

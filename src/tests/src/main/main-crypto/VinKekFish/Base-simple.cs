@@ -16,6 +16,7 @@ using System.Text.Json.Serialization;
 
 
 // [TestTagAttribute("inWork")]
+[TestTagAttribute("Mandatory")]
 [TestTagAttribute("VinKekFish", duration: 500, singleThread: false)]
 public unsafe class VinKekFish_test_simplebase : TestTask
 {

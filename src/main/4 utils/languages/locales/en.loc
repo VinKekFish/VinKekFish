@@ -87,9 +87,13 @@ Wait for threads has been terminated by timeout
 From the file got zero bytes
     From the file got zero bytes
 sended to the main sponges (for the entire time of work)
-    sended to the main sponges (for the entire time of work)
+    sended to the main sponge queue (for the entire time of work)
 bytes got from
     bytes got from
 Command is unknown (enter 'debug:' at the vkf start for more bit information)
     Command is unknown (enter 'debug:' at the vkf start for more bit information)
+bytes from all sources
+    bytes from all sources
+Awaiting processing in the queue
+    Awaiting processing in the queue
 :
