@@ -96,4 +96,18 @@ bytes from all sources
     bytes from all sources
 Awaiting processing in the queue
     Awaiting processing in the queue
+Incorrect line
+    Incorrect line
+The command line must contain a colon
+    The command line must contain a colon
+The command name not found
+    The command name not found
+Command name not found for line
+    Command name not found for line
+Right
+    Right
+Input 'name:value'
+    Input 'name:value'
+K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
 :

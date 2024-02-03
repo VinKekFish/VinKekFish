@@ -23,7 +23,7 @@ public partial class AutoCrypt
 
             start:
 
-            var command = CommandOption.ReadAndParseLine(() => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
+            var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
             switch (command.name)
             {
                 case "file":
@@ -39,7 +39,7 @@ public partial class AutoCrypt
                     if (Terminated)
                         return ProgramErrorCode.Abandoned;
                     // TODO: стартовать шифрование
-                    InitSponges();
+                    // InitSponges();
                     break;
                 case "end":
                     return ProgramErrorCode.AbandonedByUser;

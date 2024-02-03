@@ -96,4 +96,18 @@ bytes from all sources
     байтов из всех источников
 Awaiting processing in the queue
     Ожидают обработки
+Incorrect line
+    Некорректная строка
+The command line must contain a colon
+    Команда должна содержать двоеточие
+The command name not found
+    Имя команды не найдено
+Command name not found for line
+    В строке не найдено имя команды
+Right
+    Правильно
+Input 'name:value'
+    Введите 'имя:значение'
+K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    K может быть только 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
 :

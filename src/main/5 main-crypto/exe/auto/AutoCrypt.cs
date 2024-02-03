@@ -20,7 +20,7 @@ public partial class AutoCrypt
 
     public          UnixDomainSocketEndPoint RandomSocketPoint;
 
-    public string  RandomStreamName = "/dev/vkf/random";
+    public string  RandomStreamName = "/dev/vkf/random";    // TODO: прочитать из конфига
     public string  RandomNameFromOS = "/dev/random";
 
 
@@ -32,7 +32,7 @@ public partial class AutoCrypt
 
         start:
 
-        var command = CommandOption.ReadAndParseLine(() => Console.WriteLine("Input 'operation_name:'.\r\nExamles: debug:, enc:, dec:, key:, pwd:, end:"), isDebugMode: isDebugMode);
+        var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key:, pwd:, end:"), isDebugMode: isDebugMode);
 
         switch (command.name)
         {

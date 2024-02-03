@@ -722,6 +722,7 @@ public partial class Regime_Service
             {
                 UseShellExecute        = false,
                 RedirectStandardOutput = true,
+                RedirectStandardError  = true,
                 StandardOutputEncoding = new ASCIIEncoding()
             };
             if (cmdElement.workingDir is not null)
@@ -746,6 +747,13 @@ public partial class Regime_Service
             }
             var buffer  = stackalloc byte[len];
             var buffRec = new Record() {array = buffer, len = len};
+
+            var errorStr = ps.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(errorStr))
+            {
+                Console.WriteLine(L("Error occured with command") + $": {cmdElement.PathString} {cmdElement.parameters ?? ""}");
+                Console.WriteLine(errorStr);
+            }
 
             var readedLen = ps.StandardOutput.BaseStream.Read(buffRec);
             if (readedLen > 0)

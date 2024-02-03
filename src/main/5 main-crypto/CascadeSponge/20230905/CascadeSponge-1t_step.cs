@@ -267,7 +267,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void initKeyAndOIV(Record key, Record? OIV, int InitThreeFishByCascade_stepToKeyConst, bool doCheckSafty = true)
+    public void initKeyAndOIV(Record key, Record? OIV = null, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
         initKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
@@ -277,7 +277,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void initKeyAndOIV(byte * key, nint key_length, byte * OIV, nint OIV_length, int InitThreeFishByCascade_stepToKeyConst, bool doCheckSafty = true)
+    public void initKeyAndOIV(byte * key, nint key_length, byte * OIV = null, nint OIV_length = 0, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
         if (OIV is not null)
         {

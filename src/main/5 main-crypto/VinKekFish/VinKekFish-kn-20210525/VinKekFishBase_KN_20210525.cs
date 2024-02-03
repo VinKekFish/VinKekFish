@@ -100,8 +100,8 @@ namespace vinkekfish
         /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
-            BLOCK_SIZE_K     = K * BLOCK_SIZE;
-            BLOCK_SIZE_KEY_K = (int) Math.Floor( BLOCK_SIZE_K/(2.0*Math.Log2(8*K)+1.0) );
+            BLOCK_SIZE_K     = CalcBlockSize      (K);
+            BLOCK_SIZE_KEY_K = CalcBlockSizeForKey(K);
             MAX_OIV_K        = K * MAX_OIV;
             MAX_SINGLE_KEY_K = K * MAX_SINGLE_KEY;
 
@@ -132,12 +132,12 @@ namespace vinkekfish
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525: (K & 1) == 0. Read VinKekFish.md");
 
             this.CountOfRounds = CountOfRounds;
-            this.K             = K;
-            FullLen            = K * CryptoStateLen + CryptoStateLenExtension;
-            FullLen            = (int)calcAlignment(FullLen);
-            Len                = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
-            LenInThreeFish     = Len / ThreeFishBlockLen;
-            LenInKeccak        = Len / KeccakBlockLen;
+            this.K         = K;
+            FullLen        = K * CryptoStateLen + CryptoStateLenExtension;
+            FullLen        = (int)calcAlignment(FullLen);
+            Len            = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
+            LenInThreeFish = Len / ThreeFishBlockLen;
+            LenInKeccak    = Len / KeccakBlockLen;
 
             if ((Len & 127) > 0 || (Len & 255) == 0)
             {
@@ -187,6 +187,16 @@ namespace vinkekfish
                         }
             */
             isState1Main = true;
+        }
+
+        public static int CalcBlockSize(int K)
+        {
+            return K * BLOCK_SIZE;
+        }
+
+        public static int CalcBlockSizeForKey(int K)
+        {
+            return (int) Math.Floor(CalcBlockSize(K) / (2.0 * Math.Log2(8 * K) + 1.0));
         }
 
         public static int Calc_MIN_ROUNDS_K(int K)
