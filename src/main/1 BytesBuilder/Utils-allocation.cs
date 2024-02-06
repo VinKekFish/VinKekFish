@@ -288,7 +288,7 @@ public unsafe static class Memory
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(formatException(ex));
+            formatException(ex);
         }
     }
 

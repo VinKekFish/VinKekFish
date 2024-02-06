@@ -6,6 +6,7 @@ using cryptoprime;
 
 using static cryptoprime.VinKekFish.VinKekFishBase_etalonK1;
 using static cryptoprime.BytesBuilderForPointers;
+using static VinKekFish_Utils.Utils;
 
 // #nullable disable
 
@@ -172,11 +173,11 @@ namespace vinkekfish
 
             ClearState();
 
-            pTablesHandle        ?.Dispose();
-            _transpose200_3200   ?.Dispose();
-            _transpose200_3200_8 ?.Dispose();
+            TryToDispose(pTablesHandle);
+            TryToDispose(_transpose200_3200);
+            TryToDispose(_transpose200_3200_8);
+            TryToDispose(stateHandle);
 
-            stateHandle?.Dispose();
             stateHandle = null;
             _state      = null;
             _state2     = null;

@@ -5,6 +5,7 @@
 using cryptoprime;
 using static cryptoprime.KeccakPrime;
 using static cryptoprime.BytesBuilderForPointers;
+using static VinKekFish_Utils.Utils;
 
 // В эту версию внесены правки в 2023-ем году, 25 мая и далее
 
@@ -220,9 +221,9 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
         try
         {
-            inputTo     ?.Dispose();
-            output      ?.Dispose();
-            outputBuffer?.Dispose();
+            TryToDispose(inputTo);
+            TryToDispose(output);
+            TryToDispose(outputBuffer);
         }
         finally
         {

@@ -410,7 +410,7 @@ public partial class Regime_Service
                             }
                             catch (Exception ex)
                             {
-                                Console.Error.WriteLine(formatException(ex));
+                                formatException(ex);
                                 Sleep(3557);
                             }
                         }
@@ -478,7 +478,7 @@ public partial class Regime_Service
                 {}
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine(formatException(ex));
+                    formatException(ex);
                     Sleep(3557);
                 }
                 finally
@@ -493,7 +493,7 @@ public partial class Regime_Service
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(formatException(ex));
+                formatException(ex);
                 Sleep(3557);
             }
 
@@ -657,7 +657,7 @@ public partial class Regime_Service
                         {
                             Ex_cnt++;
                             Console.Error.WriteLine(L("Error for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
-                            Console.Error.WriteLine(formatException(ex));
+                            Console.Error.WriteLine(formatException(ex, false));
 
                             if (Ex_cnt > 5)
                             {

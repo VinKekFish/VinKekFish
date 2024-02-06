@@ -107,8 +107,9 @@ namespace cryptoprime
         /// <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
+        /// <param name="RecordDebugName">Имя создаваемой записи (для отладки). Используется, только если resultA != null.</param>
         /// <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
-        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
         {
             if (resultCount == -1)
                 resultCount = count;
@@ -121,11 +122,11 @@ namespace cryptoprime
             if (resultA != null && resultA.len < resultCount)
                 throw new BytesBuilder.ResultAIsTooSmall(resultA.len, resultCount);
 
-            var result = resultA ?? allocator?.AllocMemory(resultCount);
+            var result = resultA ?? allocator?.AllocMemory(resultCount, RecordDebugName);
             if (result == null)
             {
                 if (count > 0)
-                    result = bytes[0]?.allocator?.AllocMemory(resultCount) ?? throw new ArgumentNullException("BytesBuilderForPointers.getBytes");
+                    result = bytes[0]?.allocator?.AllocMemory(resultCount, RecordDebugName) ?? throw new ArgumentNullException("BytesBuilderForPointers.getBytes");
                 else
                     throw new BytesBuilder.NotFoundAllocator();
             }
@@ -317,7 +318,19 @@ namespace cryptoprime
             if (bytes.Count > 0)
             {
                 Clear();
-                throw new Exception("~BytesBuilderForPointers: bytes.Count > 0");
+                var sb = new StringBuilder();
+                if (this.debugNameForRecords != null)
+                    sb.AppendLine(debugNameForRecords);
+
+                foreach (var r in bytes)
+                    if (r.Name != null)
+                        sb.AppendLine(r.Name);
+
+                var emsg = "~BytesBuilderForPointers: bytes.Count > 0;\r\n" + sb.ToString();
+                if (BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor)
+                    throw new Exception(emsg);
+                else
+                    Console.Error.WriteLine(emsg);
             }
         }
     }

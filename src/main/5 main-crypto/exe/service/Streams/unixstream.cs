@@ -191,7 +191,7 @@ public class UnixSocketListener: IDisposable
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(  formatException(ex)  );
+                formatException(ex);
             }
             finally
             {

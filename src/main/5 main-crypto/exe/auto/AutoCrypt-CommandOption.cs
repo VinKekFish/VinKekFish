@@ -3,6 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -15,9 +16,10 @@ public partial class AutoCrypt
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
     public abstract partial class Command
     {
-        public bool isDebugMode = false;
-        public bool Terminated  = false;
-        public AutoCrypt autoCrypt;
+        public    bool isDebugMode = false;
+        public    bool Terminated  = false;
+        public    AutoCrypt autoCrypt;
+        protected Socket?   RandomSocket;
         public Command(AutoCrypt autoCrypt)
         {
             this.autoCrypt = autoCrypt;

@@ -172,7 +172,7 @@ public partial class Regime_Service
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(formatException(ex));
+                        formatException(ex);
                     }
                 }
             }

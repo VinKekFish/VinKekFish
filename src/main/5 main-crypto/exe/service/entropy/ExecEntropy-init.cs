@@ -11,6 +11,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 using static VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval;
 using Options_Service_Exception = VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception;
 using Flags = VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.Flags;
@@ -190,7 +191,7 @@ public partial class Regime_Service
             }
             finally
             {
-                rnd?.Dispose();
+                TryToDispose(rnd);
                 Monitor.PulseAll(entropy_sync);
             }
         }

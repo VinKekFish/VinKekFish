@@ -327,11 +327,12 @@
             <summary>Обнуляет объект</summary>
             <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве и очищает память, выделенную под эти объекты</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы. Ничего не удаляет и не очищает</summary>
             <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
             <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования</param>
+            <param name="RecordDebugName">Имя создаваемой записи (для отладки). Используется, только если resultA != null.</param>
             <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte*,System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
@@ -799,9 +800,10 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.formatException(System.Exception)">
+        <member name="M:VinKekFish_Utils.Utils.formatException(System.Exception,System.Boolean)">
             <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
             <param name="ex">Исключение</param>
+            <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
         </member>
         <member name="T:VinKekFish_Utils.Memory">
             <summary>

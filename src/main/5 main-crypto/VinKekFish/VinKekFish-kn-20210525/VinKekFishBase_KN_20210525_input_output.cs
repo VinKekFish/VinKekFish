@@ -22,7 +22,7 @@ namespace vinkekfish
         protected Record?             inputRecord = null;
 
         /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата. Данные для ввода в шаги берутся из переменной input. while (VinKekFish.input!.Count > 0) doStepAndIO();</summary>
-        /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K</param>
+        /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K. -1 - взять максимальное количество раундов, указанное при конструировании объекта.</param>
         /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K</param>
         /// <param name="Overwrite">Если true - режим overwrite. Если false - режим xor</param>
         /// <param name="regime">Номер режима работы схемы шифрования</param>
@@ -34,6 +34,9 @@ namespace vinkekfish
             if (!isInit1 || !isInit2)
                 throw new Exception("VinKekFishBase_KN_20210525.step: you must call Init1 and Init2 before doing this");
 
+            if (countOfRounds == -1)
+                countOfRounds = this.CountOfRounds;
+
             if (outputLen < 0)
                 outputLen = BLOCK_SIZE_K;
             else
@@ -42,7 +45,7 @@ namespace vinkekfish
             if (countOfRounds < MIN_ROUNDS_K)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: countOfRounds < MIN_ROUNDS_K");
 
-            if (input != null)
+            if (input != null && input.Count > 0)
             {
                 lock (input)
                 {

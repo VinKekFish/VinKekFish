@@ -75,7 +75,8 @@ public unsafe static partial class Utils
 
     /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
     /// <param name="ex">Исключение</param>
-    public static string formatException(Exception ex)
+    /// <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
+    public static string formatException(Exception ex, bool toConsole = true)
     {
         var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
 
@@ -91,7 +92,11 @@ public unsafe static partial class Utils
         sb.AppendLine("----------------------------------------------------------------");
         sb.AppendLine();
 
-        return sb.ToString();
+        var msg = sb.ToString();
+        if (toConsole)
+            Console.Error.WriteLine(msg);
+
+        return msg;
     }
 
     public static void TryToDispose(IDisposable? vkf)
@@ -102,7 +107,7 @@ public unsafe static partial class Utils
         }
         catch (Exception ex)
         {
-            Console.WriteLine(formatException(ex));
+            formatException(ex);
         }
     }
 }

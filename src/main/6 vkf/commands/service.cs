@@ -48,7 +48,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(formatException(ex));
+            formatException(ex);
         }
     }
 
@@ -68,7 +68,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(formatException(ex));
+            formatException(ex);
         }
     }
 }
