@@ -24,6 +24,8 @@ public unsafe abstract class Keccak_abstract: IDisposable
     /// <param name="noInit">Если true, то не будет делать инициализацию полей нулями</param>
     public Keccak_abstract(bool noInit = false)
     {
+        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
         StatePtr = allocator.AllocMemory(StateLen); //Marshal.AllocHGlobal(StateLen);
         State    = StatePtr.array;
         getStatesArray();

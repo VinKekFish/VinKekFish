@@ -39,8 +39,20 @@ public unsafe partial class AutoCrypt
                             };
         }
 
+        protected readonly List<FileInfo> rnd        = new List<FileInfo>(0);
+        protected readonly List<FileInfo> outParts   = new List<FileInfo>(0);
+        protected readonly FileInfo?      outKeyFile = null;
+
         public override ProgramErrorCode Exec()
         {
+            VinKekFish_KeyOpts   .Rounds = -1;
+            VinKekFish_CipherOpts.Rounds = -1;
+            Cascade_KeyOpts      .KOut   = 2;
+            Cascade_CipherOpts   .KOut   = 2;
+
+            Cascade_KeyOpts   .ArmoringSteps = (int) CascadeSponge_mt_20230930.CalcCountStepsForKeyGeneration(176);
+            Cascade_CipherOpts.ArmoringSteps = Cascade_KeyOpts.ArmoringSteps;
+
             start:
 
             var command = (CommandOption) CommandOption.ReadAndParseLine
@@ -51,12 +63,16 @@ public unsafe partial class AutoCrypt
                         Commands (not all):
                         start:
                         out:path_to_file
+                        out-part:path_to_file
                         rnd:path_to_file
                         regime:1.0
-                        cascade-c:512
-                        vkf-c:1
+                        fregime:1.0
+                        cascade-c:11264 2
+                        cascade-c:11264 2 0
+                        vkf-c:11
                         cascade-k:11264 2
                         vkf-k:11
+                        end:
                         """
                     )
             );
@@ -65,19 +81,21 @@ public unsafe partial class AutoCrypt
             {
                 case "vinkekfish-k":
                 case "vkf-k":
-                        VinKekFish_KeyOpts.Rounds = -1;
-                        ParseVinKekFishOptions(command.value.Trim(), VinKekFish_KeyOpts);
+                        VinKekFish_KeyOpts.Rounds = -1;     // Показываем, что это - генерация ключа
+                        VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_KeyOpts);
                     goto start;
                 case "cascade-k":
                         Cascade_KeyOpts.KOut = 2;
-                        ParseCascadeOptions(command.value.Trim(), Cascade_KeyOpts);
+                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_KeyOpts);
                     goto start;
                 case "vinkekfish-c":
                 case "vkf-c":
-                        ParseVinKekFishOptions(command.value.Trim(), VinKekFish_CipherOpts);
+                        VinKekFish_CipherOpts.Rounds = -1;
+                        VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_CipherOpts);
                     goto start;
                 case "cascade-c":
-                        ParseCascadeOptions(command.value.Trim(), Cascade_CipherOpts);
+                        Cascade_CipherOpts.KOut = 2;
+                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_CipherOpts);
                     goto start;
                 case "random":
                 case "rnd":
@@ -86,7 +104,13 @@ public unsafe partial class AutoCrypt
                 case "out":
                         ParseFileOptions(command.value.TrimStart());
                     goto start;
+                case "out-part":
+                        ParseFileOptions(command.value.TrimStart());
+                    goto start;
                 case "regime":
+                        ParseRegimeOptions(command.value.Trim());
+                    goto start;
+                case "fregime":
                         ParseRegimeOptions(command.value.Trim());
                     goto start;
                 case "start":
@@ -94,13 +118,15 @@ public unsafe partial class AutoCrypt
                         return ProgramErrorCode.Abandoned;
 
                     InitOptions();
-                    InitSponges();
+                    InitSponges(out int _, out int _);
                     break;
                 case "end":
+                    Terminated = true;
                     return ProgramErrorCode.AbandonedByUser;
                 default:
                     if (!isDebugMode)
-                        throw new CommandException("Command is unknown");
+                        throw new CommandException(L("Command is unknown"));
+
                     goto start;
             }
 
@@ -132,110 +158,26 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        /// <summary>Распарсить опции команды vinkekfish</summary>
-        /// <param name="value">Опции, разделённые пробелом. K Rounds PreRounds KOut</param>
-        protected void ParseVinKekFishOptions(string value, VinKekFishOptions opts)
-        {
-            var values = ToSpaceSeparated(value);
-            if (values.Length >= 1)     // K
-            {
-                var val = values[0].Trim();
-                var K   = int.Parse(val);
-                if (K == 0)
-                {
-                    if (opts.Rounds == -1)
-                        opts.SetK(11);
-                    else
-                        opts.SetK(1);
-                }
-
-                if ((K & 1) != 1)
-                    throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
-
-                if (K >= 1 && K <= 19)
-                {
-                    opts.K = K;
-                    opts.SetK(K);
-                }
-                else
-                    throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
-            }
-
-            if (values.Length >= 2)     // Rounds
-            {
-                var val    = values[1].Trim();
-                var Rounds = int.Parse(val);
-                if (Rounds != 0)
-                {
-                    opts.Rounds = Rounds;
-                }
-            }
-
-            if (values.Length >= 3)     // PreRounds
-            {
-                var val = values[2].Trim();
-                var PR  = int.Parse(val);
-                if (PR != 0)
-                {
-                    opts.PreRounds = PR;
-                }
-            }
-
-            if (values.Length >= 4)     // KOut
-            {
-                var val = values[3].Trim();
-                var KO  = float.Parse(val, System.Globalization.NumberStyles.Float);
-                if (KO != 0)
-                {
-                    opts.KOut = KO;
-                }
-            }
-
-            if (isDebugMode)
-                Console.WriteLine(opts);
-        }
-
-        /// <summary>Распарсить опции команды cascade</summary>
-        /// <param name="value">Опции, разделённые пробелом.</param>
-        protected void ParseCascadeOptions(string value, CascadeOptions opts)
-        {
-            var values = ToSpaceSeparated(value);
-            if (values.Length >= 1)
-            {
-                var val   = values[0].Trim();
-                var bytes = int.Parse(val);
-                if (bytes > 0)
-                {
-                    opts.StrengthInBytes = bytes;
-                }
-            }
-
-            if (values.Length >= 2)
-            {
-                var val = values[1].Trim();
-                var K   = int.Parse(val);
-                if (K > 0)
-                {
-                    opts.KOut = K;
-                }
-            }
-
-            if (isDebugMode)
-                Console.WriteLine(opts);
-        }
-
         /// <summary>Инициализирует вспомогательные губки для инициализации ключей</summary>
-        public void InitSponges()
+        public void InitSponges(out int status, out int countOfTasks)
         {
             PrintOptionsToConsole();
 
             Record? br = new Record("GenKeyCommand.InitSponges.br") { len = 32 };
-            byte* b = stackalloc byte[(int)br.len];
-            br.array = b;
+            byte*   b  = stackalloc byte[(int)br.len];
+            br.array   = b;
+
+            status = 0;
+            countOfTasks = 12;
+            if (isDebugMode)
+            {
+                Console.WriteLine(L("The primary initialization has started. This may take a long time."));
+                Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+            }
 
             try
             {
-                Cascade_Key = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
+                Cascade_Key    = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
                 Cascade_Cipher = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);        // Cascade_KeyOpts - это правильно, т.к. это шифровальщик ключа, а не шифровальщик пользовательского текста
 
                 // ------------------------------------------------
@@ -243,6 +185,10 @@ public unsafe partial class AutoCrypt
                 // от br будет далее проинициализированы обе губки
                 using (var fs = new FileStream(autoCrypt.RandomNameFromOS, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     fs.Read(br);
+
+                status++;                   // 1
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 Parallel.Invoke
                 (
@@ -253,6 +199,10 @@ public unsafe partial class AutoCrypt
                         Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 1, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
                     }
                 );
+
+                status++;                   // 2
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // TODO: добавить ввод из rnd
 
@@ -265,15 +215,29 @@ public unsafe partial class AutoCrypt
                 Cascade_Key.step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 2, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
 
+
+                status++;                   // 3
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 // Набираем данные, достаточные для полной инициализации каскадной губки.
                 // Берём из сервиса vkf.
                 while (bbp.Count < Cascade_KeyOpts.StrengthInBytes)
                     Connect();
 
+
+                status++;                   // 4
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 // Вводим полученную из vkf первичную информацию в каскадную губку.
                 // Снова переинициализируем ключи и таблицу подстановок быстрым способом.
                 Cascade_Key.step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 2, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
+
+                status++;                   // 5
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // Это дополнительная информация, полученная из vkf
                 using var br3 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
@@ -291,8 +255,17 @@ public unsafe partial class AutoCrypt
                     PreRoundsForTranspose: VinKekFish_KeyOpts.PreRounds,
                     prngToInit: Cascade_Key
                 );
+
+                status++;                   // 6
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 // Инициализируем из /dev/random
                 VinKekFish_Key.Init2(key: br, RoundsForFirstKeyBlock: VinKekFish_Key.REDUCED_ROUNDS_K, RoundsForTailsBlock: VinKekFish_Key.REDUCED_ROUNDS_K);
+
+                status++;                   // 7
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // Подготавливаем буфер ввода в губку VinKekFish к приёму данных для инициализации от vkf.
                 // Реальная стойкость VinKekFish примерно в два раза больше номинальной длины ключа.
@@ -319,6 +292,10 @@ public unsafe partial class AutoCrypt
                     VinKekFish_Key.doStepAndIO(regime: 3, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);      // Режим может быть любой, главное, чтобы он не совпадал с последующим и предыдущим режимами
 
 
+                status++;                   // 8
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 // ------------------------------------------------
                 // Дополнительно генерируем ещё один блок из каскадной губки
                 // и вводим этот блок в буфер ввода губки VinKekFish.
@@ -330,6 +307,10 @@ public unsafe partial class AutoCrypt
                     VinKekFish_Key.input.add(Cascade_Key.lastOutput, Cascade_Key.lastOutput.len >> 1);  // Получаем данные в режиме генерации ключа каскадной губкой: пол блока и увеличенное количество раундов
                 }
 
+                status++;                   // 9
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 // Вводим подготовленные данные в губку VinKekFish
                 // Данные вводим в режиме Overwrite, чтобы выполнить необратимое перезатирание части данных.
                 // Теперь предыдущие данные (полученные из vkf и введённые сразу в обе губки) будет тяжело воссоздать даже в случае уязвимости губки VinKekFish.
@@ -338,6 +319,9 @@ public unsafe partial class AutoCrypt
 
                 // Считаем губку VinKekFish_Key проинициализированной, но дальше ещё будем с ней работать при перекрёстной инициализации каскадной губки
 
+                status++;                   // 10
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // ------------------------------------------------
                 // Перекрёстная инициализация: теперь делаем ввод из VinKekFish в каскадную губку
@@ -347,6 +331,10 @@ public unsafe partial class AutoCrypt
                 // Обратное уже сделано: губка VinKekFish рандомизирована данными из каскадной губки.
                 while (VinKekFish_Key.output.Count < VinKekFish_Key.BLOCK_SIZE_K * 2)
                     VinKekFish_Key.doStepAndIO(outputLen: VinKekFish_Key.BLOCK_SIZE_KEY_K, regime: 1); // Получаем данные в режиме генерации ключа
+
+                status++;                   // 11
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 var s = stackalloc byte[(int)VinKekFish_Key.output.Count];
                 using var sr = new Record() { len = VinKekFish_Key.output.Count, array = s, Name = "GenKeyCommand.InitSponges.s" };
@@ -368,9 +356,13 @@ public unsafe partial class AutoCrypt
                 (
                     stepToKeyConst: 1,
                     dataLenFromStep: Cascade_Key.lastOutput.len >> 1,
-                    countOfStepsForSubstitutionTable: 2,     // Это увеличение количества шагов при генерации, т.к. обычно генерация идёт с одним шагом
+                    countOfStepsForSubstitutionTable: 1,    // 1 - это нормальное количество шагов для генерации таблицы подстановок
                     doCheckSafty: false
                 );
+
+                status++;                   // 12
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // ------------------------------------------------
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
@@ -391,26 +383,30 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        public void PrintOptionsToConsole()        
+        public void PrintOptionsToConsole()
         {
             if (isDebugMode)
             {
-                Console.WriteLine("vkf-k: "   + VinKekFish_KeyOpts);
-                Console.WriteLine("vkf-c: "   + VinKekFish_CipherOpts);
-                Console.WriteLine("cascade-k" + Cascade_Key);
-                Console.WriteLine("cascade-c" + Cascade_Cipher);
+                Console.WriteLine("vkf-k:\t\t"   + VinKekFish_KeyOpts);
+                Console.WriteLine("vkf-c:\t\t"   + VinKekFish_CipherOpts);
+                Console.WriteLine("cascade-k:\t" + Cascade_KeyOpts);
+                Console.WriteLine("cascade-c:\t" + Cascade_CipherOpts);
             }
         }
 
-        /// <summary>Проверить, что все опции заданы и задать, если не заданы.</summary>
+        /// <summary>Проверить, что все опции заданы, и задать, если не заданы.</summary>
         public void InitOptions()
         {
             try
             {
                 if (VinKekFish_KeyOpts.Rounds <= 0)
-                    ParseVinKekFishOptions("11", VinKekFish_KeyOpts);
+                    VinKekFishOptions.ParseVinKekFishOptions(false, "11", VinKekFish_KeyOpts);
                 if (VinKekFish_CipherOpts.Rounds <= 0)
-                    ParseVinKekFishOptions("11", VinKekFish_CipherOpts);
+                    VinKekFishOptions.ParseVinKekFishOptions(false, "11", VinKekFish_CipherOpts);
+                if (Cascade_KeyOpts.StrengthInBytes <= 0)
+                    CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_KeyOpts, true);
+                if (Cascade_CipherOpts.StrengthInBytes <= 0)
+                    CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_CipherOpts, true);
 
                 foreach (var opt in CryptoOptions)
                 {

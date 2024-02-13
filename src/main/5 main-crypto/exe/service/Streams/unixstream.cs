@@ -28,6 +28,8 @@ public class UnixSocketListener: IDisposable
     // Для проверки можно использовать nc -UN path_to_socket
     public UnixSocketListener(string path, Regime_Service service, SocketinformationType typeOfInformation , int backlog = 64)
     {
+        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
         this.typeOfInformation = typeOfInformation;
 
         this.path = new FileInfo(path);

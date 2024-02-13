@@ -24,6 +24,8 @@ namespace cryptoprime
         public const int MIN_SIZE = 2;
         public BytesBuilderStatic(nint Size, AllocatorForUnsafeMemoryInterface? allocator = null)
         {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
             if (Size < MIN_SIZE)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.BytesBuilderStatic: Size < MIN_SIZE");
 

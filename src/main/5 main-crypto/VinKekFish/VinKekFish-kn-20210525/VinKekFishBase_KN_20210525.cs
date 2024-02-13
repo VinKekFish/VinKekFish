@@ -100,6 +100,8 @@ namespace vinkekfish
         /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
             BLOCK_SIZE_K     = CalcBlockSize      (K);
             BLOCK_SIZE_KEY_K = CalcBlockSizeForKey(K);
             MAX_OIV_K        = K * MAX_OIV;
@@ -259,6 +261,7 @@ namespace vinkekfish
             return key;
         }
 
+        // В целом, приблизительно мы считаем, что в одной таблице перестановок может быть зашито примерно столько битов, сколько у нас длина ключа, или более
         /// <summary>Рассчитывает оптимальное количество случайных таблиц перестановок для VinKekFish, исходя из значения K (можно больше, но инициализация может затянуться).<para>Количество раундов со случайными перестановками рассчитывается исходя из минимального значения Calc_OptimalRandomPermutationCountK и Calc_OptimalRandomPermutationCountKey</para></summary>
         /// <param name="K">Параметр K (множитель стойкости и размера шифра)</param>
         public static int Calc_OptimalRandomPermutationCountK(int K)

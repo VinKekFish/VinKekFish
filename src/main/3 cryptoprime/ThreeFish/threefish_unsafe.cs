@@ -27,6 +27,8 @@ namespace cryptoprime
         /// <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
         public Threefish1024(byte* Key, nint kLen, byte* Tweak, nint tLen)
         {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
             if (Key == null || Tweak == null) throw new ArgumentNullException("cryptoprime.Threefish1024.Threefish1024: Key == null || Tweak == null");
 
             tweak = (ulong*)memory.array;

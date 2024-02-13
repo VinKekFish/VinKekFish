@@ -16,6 +16,11 @@ namespace cryptoprime
     /// </summary>
     public unsafe partial class BytesBuilderForPointers: IDisposable
     {
+        public BytesBuilderForPointers()
+        {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        }
+
         /// <summary>Добавленные блоки байтов</summary>
         public readonly List<Record> bytes  = new List<Record>();                                                                            /// <summary>Имя записи для отладки потерь памяти: вводится в создаваемые Record как их отладочные имена . Не обязательно.</summary>
         public string?  debugNameForRecords = null;

@@ -26,6 +26,8 @@ public partial class AutoCrypt: IDisposable
 
     public AutoCrypt()
     {
+        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
         // RandomSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         RandomSocketPoint = new UnixDomainSocketEndPoint(RandomStreamName);
         // RandomSocket.Connect(un);
@@ -38,6 +40,7 @@ public partial class AutoCrypt: IDisposable
         {
             case "debug":
                     isDebugMode = true;
+                    Console.WriteLine(L("Debug mode enabled"));
                 goto start;
             case "enc":
                     CurrentCommand = new EncCommand(this) {isDebugMode = isDebugMode};

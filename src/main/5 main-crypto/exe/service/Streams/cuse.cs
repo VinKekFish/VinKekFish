@@ -31,6 +31,8 @@ public unsafe class CuseStream: IDisposable
     // Для проверки можно использовать cat path_to_socket
     public CuseStream(string path, Regime_Service service)
     {
+        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
         if (Cuse != null)
         {
             throw new ArgumentException("CuseStream: Cuse != null");

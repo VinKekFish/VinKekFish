@@ -116,6 +116,8 @@ public partial class Regime_Service
         /// <param name="directInput">Если true, то промежуточная губка не используется</param>
         public ContinuouslyGetterRecord(Thread t, Options_Service.Input.Entropy.InputElement inputElement, bool directInput = false)
         {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
             this.thread = t;
             if (directInput)
                 this.bb = new BytesBuilderForPointers() { debugNameForRecords = "ContinuouslyGetterRecord" };

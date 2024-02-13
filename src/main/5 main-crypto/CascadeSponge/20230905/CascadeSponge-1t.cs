@@ -129,6 +129,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="_strenghtInBytes">Потребная стойкость губки в байтах (4096 битов стойкости - 512 байтов)</param>
     public CascadeSponge_1t_20230905(nint _strenghtInBytes = 192, nint _wide = 0, nint _tall = 0)
     {
+        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+
         if ((_wide & 1) > 0)
             _wide++;
 
@@ -187,20 +189,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             (W, Wn) = CalcW(tall);
 
-            maxDataLen = Wn * wide;
-            ReserveConnectionLen = MaxInputForKeccak * wide;
+            maxDataLen               = Wn * wide;
+            ReserveConnectionLen     = MaxInputForKeccak * wide;
             ReserveConnectionFullLen = ReserveConnectionLen + 8;
-            strenghtInBytes = tall * MaxInputForKeccak;
+            strenghtInBytes          = tall * MaxInputForKeccak;
 
             // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
             // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );
             // countStepsForHardening     = (nint) 1;
-            countStepsForKeyGeneration = (nint)Math.Ceiling(2 * Math.Log2(3 * tall) + 1);
-            countStepsForHardening     = (nint)Math.Ceiling(Math.Log2(tall));
+            countStepsForKeyGeneration = CalcCountStepsForKeyGeneration(tall);
+            countStepsForHardening     = CalcCountStepsForHardening    (tall);
 
             lastOutput = Keccak_abstract.allocator.AllocMemory(maxDataLen, "CascadeSponge_1t_20230905.lastOutput");
             fullOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.fullOutput");
-            rcOutput = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.rcOutput");
+            rcOutput   = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.rcOutput");
             BytesBuilder.ToNull(maxDataLen, lastOutput);
             BytesBuilder.ToNull(ReserveConnectionFullLen, fullOutput);
             BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
@@ -208,8 +210,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             // Для выравнивания, считаем, что на один ThreeFish приходится 256 байтов. Это используется в setThreeFishKeysAndTweak
             countOfThreeFish_RC = wide >> 1;
-            countOfThreeFish = wide;
-            threefishCrypto = Keccak_abstract.allocator.AllocMemory(256 * countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
+            countOfThreeFish    = wide;
+            threefishCrypto     = Keccak_abstract.allocator.AllocMemory(256 * countOfThreeFish, "CascadeSponge_1t_20230905.reverseCrypto");
 
             fullLengthOfThreeFishKeys = countOfThreeFish * threefish_slowly.keyLen;
 
@@ -223,6 +225,22 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             Dispose();
             throw;
         }
+    }
+
+    /// <summary>Вычислить количество дополнительных шагов для работы в режиме повышенной стойкости (с холостыми шагами)</summary>
+    /// <param name="tall">Высота губки. Приблизительно высоту губки можно рассчитать путём деления стойкости губки в байтах на 64. tall никогда не бывает менее 4-х.</param>
+    /// <returns>Возвращает количество дополнительных (холостых) шагов, которые нужно сделать для повышения стойкости губки.</returns>
+    public static nint CalcCountStepsForHardening(nint tall)
+    {
+        return (nint) Math.Ceiling(Math.Log2(tall));
+    }
+
+    /// <summary>Вычислить количество дополнительных шагов для работы в режиме генерации ключа (с холостыми шагами)</summary>
+    /// <param name="tall">Высота губки. Приблизительно высоту губки можно рассчитать путём деления стойкости губки в байтах на 64. tall никогда не бывает менее 4-х.</param>
+    /// <returns>Возвращает количество дополнительных (холостых) шагов, которые нужно сделать для повышения стойкости губки при работе в режиме генерации ключа.</returns>
+    public static nint CalcCountStepsForKeyGeneration(nint tall)
+    {
+        return (nint) Math.Ceiling(2 * Math.Log2(3 * tall) + 1);
     }
 
     /// <summary>Выполняет простую инициализацию таблицы подстановок</summary>

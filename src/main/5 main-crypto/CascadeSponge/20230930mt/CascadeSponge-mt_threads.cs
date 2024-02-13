@@ -13,7 +13,7 @@ using System.Text;
 public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 {
                                                                 /// <summary>Потоки, выделенные для этой губки. Не более, чем wide</summary>
-    protected Thread[]   Threads;
+    protected Thread[] Threads;
                                                                 /// <summary>Общий номер задачи, который надо выполнить. -1 (EmptyTaskSlot) - нет задачи. EndTask - завершаем потоки.</summary>
     protected volatile nint[] ThreadsFunc;                      /// <summary>Номер слоя для обработки keccak</summary>
     protected volatile nint   ThreadsLayer    = EmptyTaskSlot;  /// <summary>Количество запущенных потоков</summary>

@@ -17,6 +17,11 @@ namespace cryptoprime
     /// </summary>
     public partial class BytesBuilder: IDisposable
     {
+        public BytesBuilder()
+        {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        }
+
         /// <summary>Добавленные блоки байтов</summary>
         public readonly List<byte[]> bytes = new List<byte[]>();
 

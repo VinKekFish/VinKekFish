@@ -22,6 +22,7 @@ public partial class AutoCrypt
         protected Socket?   RandomSocket;
         public Command(AutoCrypt autoCrypt)
         {
+            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
             this.autoCrypt = autoCrypt;
         }
 
@@ -52,7 +53,7 @@ public partial class AutoCrypt
 
         public class VinKekFishOptions: isCorrectAvailable
         {                                             /// <summary>Коэффициент стойкости VinKekFish (K=1,3,5,7,...)</summary>
-            public int   K         = 1;               /// <summary>Количество раундов</summary>
+            public int   K         = 0;               /// <summary>Количество раундов. Число -1 говорит о том, что количество раундов и KOut должно быть рассчитано исходя из режима генерации ключа.</summary>
             public int   Rounds    = 0;               /// <summary>Количество раундов со стандартными таблицами перестановки</summary>
             public int   PreRounds = 0;               /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
             public float KOut      = 1;
@@ -66,7 +67,7 @@ public partial class AutoCrypt
                 else
                     Rounds    = VinKekFishBase_KN_20210525.Calc_NORMAL_ROUNDS_K(K);
 
-                PreRounds = Rounds - VinKekFishBase_KN_20210525.Calc_OptimalRandomPermutationCountK(K);
+                PreRounds = Rounds - 4; //Rounds - VinKekFishBase_KN_20210525.Calc_OptimalRandomPermutationCountK(K);
                 if (PreRounds < VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K))
                     PreRounds = VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K);
 
@@ -100,16 +101,82 @@ public partial class AutoCrypt
 
                 return new CommandOption.ParseResult();
             }
+
+            /// <summary>Распарсить опции команды vinkekfish</summary>
+            /// <param name="isDebugMode">true, если включён режим отладки. Если true, выводит на экран установленные после парсинга опции.</param>
+            /// <param name="value">Опции, разделённые пробелом. K Rounds PreRounds KOut</param>
+            /// <param name="opts">Объект опций, подлежащий заполнению</param>
+            public static void ParseVinKekFishOptions(bool isDebugMode, string value, VinKekFishOptions opts)
+            {
+                var values = ToSpaceSeparated(value);
+                if (values.Length >= 1)     // K
+                {
+                    var val = values[0].Trim();
+                    var K   = int.Parse(val);
+                    if (K == 0)
+                    {
+                        if (opts.Rounds == -1)
+                            opts.SetK(11);
+                        else
+                            opts.SetK(1);
+                    }
+
+                    if ((K & 1) != 1)
+                        throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
+
+                    if (K >= 1 && K <= 19)
+                    {
+                        opts.K = K;
+                        opts.SetK(K);
+                    }
+                    else
+                        throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
+                }
+
+                if (values.Length >= 2)     // Rounds
+                {
+                    var val    = values[1].Trim();
+                    var Rounds = int.Parse(val);
+                    if (Rounds != 0)
+                    {
+                        opts.Rounds = Rounds;
+                    }
+                }
+
+                if (values.Length >= 3)     // PreRounds
+                {
+                    var val = values[2].Trim();
+                    var PR  = int.Parse(val);
+                    if (PR != 0)
+                    {
+                        opts.PreRounds = PR;
+                    }
+                }
+
+                if (values.Length >= 4)     // KOut
+                {
+                    var val = values[3].Trim();
+                    var KO  = float.Parse(val, System.Globalization.NumberStyles.Float);
+                    if (KO != 0)
+                    {
+                        opts.KOut = KO;
+                    }
+                }
+
+                if (isDebugMode)
+                    Console.WriteLine(opts);
+            }
         }
 
         public class CascadeOptions: isCorrectAvailable
         {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
-            public int   StrengthInBytes = 512;     /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
-            public float KOut = 1;
+            public int   StrengthInBytes = 0;       /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
+            public float KOut            = 1f;
+            public int   ArmoringSteps   = 0;
 
             public override string ToString()
             {
-                return $"StrengthInBytes={StrengthInBytes};KOut={KOut};";
+                return $"StrengthInBytes={StrengthInBytes};KOut={KOut};ArmoringSteps={ArmoringSteps}";
             }
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
@@ -120,6 +187,52 @@ public partial class AutoCrypt
                     return new CommandOption.ParseError($"KOut < 1.0 ({KOut})");
 
                 return new CommandOption.ParseResult();
+            }
+
+            /// <summary>Распарсить опции команды cascade</summary>
+            /// <param name="isDebugMode">true, если включён режим отладки. Если true, выводит на экран установленные после парсинга опции.</param>
+            /// <param name="value">Опции, разделённые пробелом.</param>
+            /// <param name="opts">Объект опций, подлежащий заполнению</param>
+            /// <param name="forKey">true, если ArmoringSteps нужно рассчитать (если не установлен) для режима генерации ключа</param>
+            public static void ParseCascadeOptions(bool isDebugMode, string value, CascadeOptions opts, bool forKey = false)
+            {
+                var values = ToSpaceSeparated(value);
+                if (values.Length >= 1)
+                {
+                    var val   = values[0].Trim();
+                    var bytes = int.Parse(val);
+                    if (bytes > 0)
+                    {
+                        opts.StrengthInBytes = bytes;
+                    }
+                }
+
+                if (values.Length >= 2)
+                {
+                    var val = values[1].Trim();
+                    var K   = float.Parse(val, System.Globalization.NumberStyles.AllowDecimalPoint);
+                    if (K > 0)
+                    {
+                        opts.KOut = K;
+                    }
+                    else
+                        opts.KOut = forKey ? 2 : 1;
+                }
+
+                if (values.Length >= 3)
+                {
+                    var val           = values[2].Trim();
+                    var ArmoringSteps = int.Parse(val);
+                    if (ArmoringSteps > 0)
+                    {
+                        opts.ArmoringSteps = ArmoringSteps;
+                    }
+                    else
+                        opts.ArmoringSteps = forKey ? (int) CascadeSponge_1t_20230905.CalcCountStepsForKeyGeneration(opts.StrengthInBytes / 64) : 0;
+                }
+
+                if (isDebugMode)
+                    Console.WriteLine(opts);
             }
         }
 

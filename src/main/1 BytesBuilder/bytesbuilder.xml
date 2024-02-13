@@ -408,6 +408,10 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.String)">
             <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory.<para>При вызове этого метода для создания копии, нужно учитывать, что Dispose обнуляет память. Чтобы Dispose не обнулил память, необходимо обнулить array до вызова Dispose с учётом возможного возникновения исключений.</para></summary>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(System.Object)">
+            <summary>Регистрирует деструктор для вызова с помощью GC.ReRegisterForFinalize. Иначе деструктор может быть не вызван.</summary>
+            <param name="obj">Объект, деструктор которого должен быть зарегистрирован для вызова.</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
             <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>

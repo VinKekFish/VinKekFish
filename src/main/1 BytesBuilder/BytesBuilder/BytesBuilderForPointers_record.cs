@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using VinKekFish_Utils;
+using static VinKekFish_Utils.Utils;
 using static VinKekFish_Utils.Memory;
 
 // #pragma warning disable CA1034 // Nested types should not be visible
@@ -40,12 +41,28 @@ namespace cryptoprime
             public Record(string? Name = null)
             {
                 this.Name = Name;
+                doRegisterDestructor(this);
 
                 #if RECORD_DEBUG
                 DebugNum = CurrentDebugNum++;
                 // if (DebugNum == 7)
                 StackTraceString = new System.Diagnostics.StackTrace(true).ToString();
                 #endif
+            }
+
+            // cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor
+            /// <summary>Регистрирует деструктор для вызова с помощью GC.ReRegisterForFinalize. Иначе деструктор может быть не вызван.</summary>
+            /// <param name="obj">Объект, деструктор которого должен быть зарегистрирован для вызова.</param>
+            public static void doRegisterDestructor(object obj)
+            {
+                try
+                {
+                    GC.ReRegisterForFinalize(obj);     // Без этого деструктор, обычно, не вызывается
+                }
+                catch (Exception ex)
+                {
+                    formatException(ex);
+                }
             }
 
             /// <summary>Создать запись и скопировать туда содержимое массива байтов</summary>

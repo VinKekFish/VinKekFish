@@ -43,8 +43,8 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
         debug_t = new int[ThreadsCount];
 
         this.ThreadsCount = ThreadsCount;
-        Threads         = new Thread[ThreadsCount-1];   // Основной поток тоже занят вычислениями, поэтому мы создаём на 1 поток меньше. Основной поток имеет последний индекс
-        ThreadsFunc     = new nint[ThreadsCount * AlignmentMultipler];
+        Threads           = new Thread[ThreadsCount-1];   // Основной поток тоже занят вычислениями, поэтому мы создаём на 1 поток меньше. Основной поток имеет последний индекс
+        ThreadsFunc       = new nint[ThreadsCount * AlignmentMultipler];
         for (nint i = 0; i < Threads.Length; i++)
         {
             var _i = i;
@@ -65,7 +65,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
             if (!isDisposed)
             {
                 doThreadsDispose();
-                
+
                 VinKekFish_Utils.Utils.TryToDispose(stepBuffer);
                 stepBuffer = null;
 

@@ -168,7 +168,7 @@ public partial class Regime_Service
 
                 VinKekFish.Init1
                 (
-                    PreRoundsForTranspose: VinKekFish.EXTRA_ROUNDS_K - VinKekFish.Calc_OptimalRandomPermutationCount(rec.len),
+                    PreRoundsForTranspose: VinKekFish.EXTRA_ROUNDS_K - 4, // VinKekFish.Calc_OptimalRandomPermutationCount(K),
                     prngToInit: CascadeSponge
                 );
                 Console.WriteLine(L("Deep initialization: VinKekFish.Init1 ended"));

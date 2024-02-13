@@ -45,7 +45,7 @@ public partial class AutoCrypt
                     return ProgramErrorCode.AbandonedByUser;
                 default:
                     if (!isDebugMode)
-                        throw new CommandException("Command is unknown");
+                        throw new CommandException(L("Command is unknown"));
                     goto start;
             }
 
