@@ -16,7 +16,7 @@ using static VinKekFish_Utils.Utils;
 public unsafe partial class AutoCrypt
 {
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
-    public class GenKeyCommand: Command, IDisposable
+    public partial class GenKeyCommand: Command, IDisposable
     {                                                                               /// <summary>Опции шифрования ключа</summary>
         public VinKekFishOptions VinKekFish_KeyOpts    = new VinKekFishOptions();       /// <summary>Опции шифрования открытого текста</summary>
         public VinKekFishOptions VinKekFish_CipherOpts = new VinKekFishOptions();       /// <summary>Опции шифрования ключа</summary>
@@ -485,11 +485,6 @@ public unsafe partial class AutoCrypt
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
             }
 
-        }
-
-        protected void CreateKeyFiles(ref int status, int countOfTasks)
-        {
-            throw new NotImplementedException();
         }
 
         protected void GenerateSimpleKey(ref int status, int countOfTasks)
