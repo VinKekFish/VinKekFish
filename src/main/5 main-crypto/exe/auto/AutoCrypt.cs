@@ -34,7 +34,7 @@ public partial class AutoCrypt: IDisposable
 
         start:
 
-        var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key:, pwd:, end:"), isDebugMode: isDebugMode);
+        var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
 
         switch (command.name)
         {
@@ -48,8 +48,9 @@ public partial class AutoCrypt: IDisposable
             case "dec":
                     CurrentCommand = new DecCommand(this) {isDebugMode = isDebugMode};
                 break;
-            case "key":
-            case "key_gen":
+            case "key-main":
+            case "key_gen_main":
+            case "key-gen-main":
                     CurrentCommand = new GenKeyCommand(this) {isDebugMode = isDebugMode};
                 break;
             case "pwd":
