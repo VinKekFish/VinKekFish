@@ -30,6 +30,7 @@ public unsafe partial class AutoCrypt
 
         public isCorrectAvailable[] CryptoOptions;
         public bool                 isSimpleOutKey = false;
+        public int                  newKeyLen      = 11264;
 
         public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {
@@ -50,8 +51,6 @@ public unsafe partial class AutoCrypt
         {
             VinKekFish_KeyOpts   .Rounds = -1;
             VinKekFish_CipherOpts.Rounds = -1;
-            Cascade_KeyOpts      .KOut   = 2;
-            Cascade_CipherOpts   .KOut   = 2;
 
             Cascade_KeyOpts   .ArmoringSteps = (int) CascadeSponge_mt_20230930.CalcCountStepsForKeyGeneration(176);
             Cascade_CipherOpts.ArmoringSteps = Cascade_KeyOpts.ArmoringSteps;
@@ -74,11 +73,19 @@ public unsafe partial class AutoCrypt
                         vkf-c:11
                         cascade-k:11264 2
                         vkf-k:11
+                        len:11264
                         start:
                         end:
 
                         Example:
                         out:/inRam/new.key
+                        start:
+
+                        Example:
+                        rnd:/inRamA/random.file
+                        rnd:
+                        out:/inRamA/new.simple.key
+                        simple:true
                         start:
 
 
@@ -94,7 +101,6 @@ public unsafe partial class AutoCrypt
                         VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_KeyOpts);
                     goto start;
                 case "cascade-k":
-                        Cascade_KeyOpts.KOut = 2;
                         CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_KeyOpts);
                     goto start;
                 case "vinkekfish-c":
@@ -103,8 +109,10 @@ public unsafe partial class AutoCrypt
                         VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_CipherOpts);
                     goto start;
                 case "cascade-c":
-                        Cascade_CipherOpts.KOut = 2;
                         CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_CipherOpts);
+                    goto start;
+                case "len":
+                        newKeyLen = int.Parse(command.value.Trim());
                     goto start;
                 case "random":
                 case "rnd":
@@ -208,7 +216,7 @@ public unsafe partial class AutoCrypt
             br.array = b;
 
             status = 0;
-            countOfTasks = 12;
+            countOfTasks = 15;
             if (isDebugMode)
             {
                 Console.WriteLine(L("The primary initialization has started. This may take a long time."));
@@ -224,6 +232,11 @@ public unsafe partial class AutoCrypt
                 try
                 {
                     InitKeyGenerationSponges(ref status, countOfTasks, br, out br2, out br3);
+
+                    if (isSimpleOutKey)
+                        GenerateSimpleKey(ref status, countOfTasks);
+                    else
+                        CreateKeyFiles(ref status, countOfTasks);
                 }
                 finally
                 {
@@ -472,6 +485,82 @@ public unsafe partial class AutoCrypt
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
             }
 
+        }
+
+        protected void CreateKeyFiles(ref int status, int countOfTasks)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected void GenerateSimpleKey(ref int status, int countOfTasks)
+        {
+            // VinKekFish_Key
+            // Cascade_Key
+            // newKeyLen
+
+            var keyVKF     = Keccak_abstract.allocator.AllocMemory(newKeyLen, "GenerateSimpleKey.keyVKF");
+            var keyCascade = Keccak_abstract.allocator.AllocMemory(newKeyLen, "GenerateSimpleKey.keyCascade");
+
+            try
+            {
+                VinKekFish_Key!.output!.Clear();
+                var reqLen  = keyVKF.len;
+                var current = keyVKF.array;
+                do
+                {
+                    VinKekFish_Key.doStepAndIO(outputLen: VinKekFish_Key.BLOCK_SIZE_KEY_K, regime: 1);
+
+                    var reqLenCurrent = Math.Min(reqLen, VinKekFish_Key.BLOCK_SIZE_KEY_K);
+                    VinKekFish_Key.output.getBytesAndRemoveIt(current, reqLenCurrent);
+
+                    reqLen  -= reqLenCurrent;
+                    current += reqLenCurrent;
+                }
+                while (reqLen > 0);
+
+                status++;   // 13
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
+                reqLen    = keyCascade.len;
+                current   = keyCascade.array;
+                var block = Cascade_Key!.lastOutput.len / 2;
+                do
+                {
+                    Cascade_Key.step(ArmoringSteps: Cascade_KeyOpts.ArmoringSteps, regime: 1);
+                    BytesBuilder.CopyTo(block, reqLen, Cascade_Key.lastOutput, current);
+
+                    reqLen  -= block;
+                    current += block;
+                }
+                while (reqLen > 0);
+
+                status++;   // 14
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
+                // Складываем два сгенерированных числа
+                // keyVKF содержит результат.
+                BytesBuilder.ArithmeticAddBytes(newKeyLen, keyVKF, keyCascade);
+
+                using (var fs = new FileStream(outKeyFile!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    fs.Write(keyVKF);
+                    fs.Flush();
+                }
+
+                if (isDebugMode)
+                    Console.WriteLine(L("Simple key was writed to") + " " + outKeyFile!.FullName);
+
+                status++;   // 15
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+            }
+            finally
+            {
+                TryToDispose(keyVKF);
+                TryToDispose(keyCascade);
+            }
         }
 
         /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>

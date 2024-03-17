@@ -55,8 +55,7 @@ public partial class AutoCrypt
         {                                             /// <summary>Коэффициент стойкости VinKekFish (K=1,3,5,7,...)</summary>
             public int   K         = 0;               /// <summary>Количество раундов. Число -1 говорит о том, что количество раундов и KOut должно быть рассчитано исходя из режима генерации ключа.</summary>
             public int   Rounds    = 0;               /// <summary>Количество раундов со стандартными таблицами перестановки</summary>
-            public int   PreRounds = 0;               /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
-            public float KOut      = 1;
+            public int   PreRounds = 0;
 
             public void SetK(int K)
             {
@@ -70,14 +69,11 @@ public partial class AutoCrypt
                 PreRounds = Rounds - 4; //Rounds - VinKekFishBase_KN_20210525.Calc_OptimalRandomPermutationCountK(K);
                 if (PreRounds < VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K))
                     PreRounds = VinKekFishBase_KN_20210525.Calc_MIN_ROUNDS_K(K);
-
-                if (isKey)
-                    KOut = VinKekFishBase_KN_20210525.CalcBlockSize(K) / VinKekFishBase_KN_20210525.CalcBlockSizeForKey(K);
             }
 
             public override string ToString()
             {
-                return $"K={K};Rounds={Rounds};PreRounds={PreRounds};KOut={KOut};";
+                return $"K={K};Rounds={Rounds};PreRounds={PreRounds};";
             }
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
@@ -95,9 +91,6 @@ public partial class AutoCrypt
 
                 if (PreRounds > Rounds)
                     return new CommandOption.ParseError($"PreRounds > Rounds ({PreRounds} > {Rounds})");
-
-                if (KOut < 1f)
-                    return new CommandOption.ParseError($"KOut < 1.0 ({KOut})");
 
                 return new CommandOption.ParseResult();
             }
@@ -153,16 +146,6 @@ public partial class AutoCrypt
                     }
                 }
 
-                if (values.Length >= 4)     // KOut
-                {
-                    var val = values[3].Trim();
-                    var KO  = float.Parse(val, System.Globalization.NumberStyles.Float);
-                    if (KO != 0)
-                    {
-                        opts.KOut = KO;
-                    }
-                }
-
                 if (isDebugMode)
                     Console.WriteLine(opts);
             }
@@ -170,22 +153,18 @@ public partial class AutoCrypt
 
         public class CascadeOptions: isCorrectAvailable
         {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
-            public int   StrengthInBytes = 0;       /// <summary>Коэффициент использования выхода (K = 2 означает, что будет использовано только половина байтов выхода относительно стандартного выхода)</summary>
-            public float KOut            = 1f;
+            public int   StrengthInBytes = 0;
             public int   ArmoringSteps   = 0;
 
             public override string ToString()
             {
-                return $"StrengthInBytes={StrengthInBytes};KOut={KOut};ArmoringSteps={ArmoringSteps}";
+                return $"StrengthInBytes={StrengthInBytes};ArmoringSteps={ArmoringSteps}";
             }
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
             /// <returns>Возвращает пустой CommandOption.ParseResult в случае успеха (error == null). Если неуспешно, то возвращает ParseResult с установленным значением error</returns>
             public CommandOption.ParseResult isCorrect()
             {
-                if (KOut < 1f)
-                    return new CommandOption.ParseError($"KOut < 1.0 ({KOut})");
-
                 return new CommandOption.ParseResult();
             }
 
@@ -209,19 +188,7 @@ public partial class AutoCrypt
 
                 if (values.Length >= 2)
                 {
-                    var val = values[1].Trim();
-                    var K   = float.Parse(val, System.Globalization.NumberStyles.AllowDecimalPoint);
-                    if (K > 0)
-                    {
-                        opts.KOut = K;
-                    }
-                    else
-                        opts.KOut = forKey ? 2 : 1;
-                }
-
-                if (values.Length >= 3)
-                {
-                    var val           = values[2].Trim();
+                    var val           = values[1].Trim();
                     var ArmoringSteps = int.Parse(val);
                     if (ArmoringSteps > 0)
                     {
