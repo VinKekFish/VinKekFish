@@ -3,6 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.Reflection;
 using cryptoprime;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
@@ -61,7 +62,6 @@ public unsafe partial class AutoCrypt
                     (
                         """
                         Commands (not all):
-                        start:
                         out:path_to_file
                         out-part:path_to_file
                         rnd:path_to_file
@@ -72,7 +72,12 @@ public unsafe partial class AutoCrypt
                         vkf-c:11
                         cascade-k:11264 2
                         vkf-k:11
+                        start:
                         end:
+
+                        Example:
+                        out:/inRam/new.key
+                        start:
                         """
                     )
             );
@@ -159,13 +164,15 @@ public unsafe partial class AutoCrypt
         }
 
         /// <summary>Инициализирует вспомогательные губки для инициализации ключей</summary>
+        /// <param name="status">Количество выполненных задач.</param>
+        /// <param name="countOfTasks">Общее количество задач.</param>
         public void InitSponges(out int status, out int countOfTasks)
         {
             PrintOptionsToConsole();
 
             Record? br = new Record("GenKeyCommand.InitSponges.br") { len = 32 };
-            byte*   b  = stackalloc byte[(int)br.len];
-            br.array   = b;
+            byte* b = stackalloc byte[(int)br.len];
+            br.array = b;
 
             status = 0;
             countOfTasks = 12;
@@ -180,6 +187,35 @@ public unsafe partial class AutoCrypt
                 Cascade_Key    = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
                 Cascade_Cipher = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);        // Cascade_KeyOpts - это правильно, т.к. это шифровальщик ключа, а не шифровальщик пользовательского текста
 
+                Record? br2 = null, br3 = null;
+                try
+                {
+                    InitKeyGenerationSponges(ref status, countOfTasks, br, out br2, out br3);
+                }
+                finally
+                {
+                    TryToDispose(br2);
+                    TryToDispose(br3);
+                    TryToDispose(sr);
+                }
+            }
+            catch (Exception ex)
+            {
+                formatException(ex);
+                Terminated = true;
+            }
+            finally
+            {
+                TryToDispose(this.Cascade_Key);       Cascade_Key       = null;
+                TryToDispose(this.Cascade_Cipher);    Cascade_Cipher    = null;
+                TryToDispose(this.VinKekFish_Key);    VinKekFish_Key    = null;       // input тоже тут освобождается
+                TryToDispose(this.VinKekFish_Cipher); VinKekFish_Cipher = null;
+
+                TryToDispose(br);
+            }
+
+            void InitKeyGenerationSponges(ref int status, int countOfTasks, Record br, out Record br2, out Record br3)
+            {
                 // ------------------------------------------------
                 // Вводим данные из /dev/random и получаем в буфер bbp данные из сервиса vkf
                 // от br будет далее проинициализированы обе губки
@@ -203,12 +239,7 @@ public unsafe partial class AutoCrypt
                 status++;                   // 2
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-
-                // TODO: добавить ввод из rnd
-
-                // ------------------------------------------------
-                // Подготавливаем данные, полученные из сервиса vkf
-                using var br2 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br2");
+                br2 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br2");
                 bbp.Clear();
 
                 // Впитываем данные из сервиса vkf и переинициализируем ключи и таблицы подстановок. Инициализация губки, при этом, не теряется.
@@ -238,9 +269,7 @@ public unsafe partial class AutoCrypt
                 status++;                   // 5
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-
-                // Это дополнительная информация, полученная из vkf
-                using var br3 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
+                br3 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
 
 
                 // Проводим инициализацию губки VinKekFish с использованием каскадной губки (перекрёстная инициализация)
@@ -337,20 +366,22 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 var s = stackalloc byte[(int)VinKekFish_Key.output.Count];
-                using var sr = new Record() { len = VinKekFish_Key.output.Count, array = s, Name = "GenKeyCommand.InitSponges.s" };
-                VinKekFish_Key.output.getBytesAndRemoveIt(sr);
+                using (var sr = new Record() { len = VinKekFish_Key.output.Count, array = s, Name = "GenKeyCommand.InitSponges.s" })
+                {
+                    VinKekFish_Key.output.getBytesAndRemoveIt(sr);
 
-                VinKekFish_Key.doStepAndIO(Overwrite: true);    // Обеспечиваем необратимость, перезатирая часть данных губки
+                    VinKekFish_Key.doStepAndIO(Overwrite: true);    // Обеспечиваем необратимость, перезатирая часть данных губки
 
-                // Также делаем ввод в режиме необратимой перезаписи для того,
-                // чтобы затруднить восстановление данных, которые были введены для инициализации,
-                // даже если каскадная губка будет уязвима
-                Cascade_Key.step
-                (
-                    ArmoringSteps: Cascade_Key.countStepsForKeyGeneration - 1,
-                    regime: 2, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite,
-                    data: sr, dataLen: sr.len
-                );
+                    // Также делаем ввод в режиме необратимой перезаписи для того,
+                    // чтобы затруднить восстановление данных, которые были введены для инициализации,
+                    // даже если каскадная губка будет уязвима
+                    Cascade_Key.step
+                    (
+                        ArmoringSteps: Cascade_Key.countStepsForKeyGeneration - 1,
+                        regime: 2, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite,
+                        data: sr, dataLen: sr.len
+                    );
+                }
 
                 Cascade_Key.InitThreeFishByCascade
                 (
@@ -367,20 +398,7 @@ public unsafe partial class AutoCrypt
                 // ------------------------------------------------
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
             }
-            catch (Exception ex)
-            {
-                formatException(ex);
-                Terminated = true;
-            }
-            finally
-            {
-                TryToDispose(this.Cascade_Key);       Cascade_Key       = null;
-                TryToDispose(this.Cascade_Cipher);    Cascade_Cipher    = null;
-                TryToDispose(this.VinKekFish_Key);    VinKekFish_Key    = null;       // input тоже тут освобождается
-                TryToDispose(this.VinKekFish_Cipher); VinKekFish_Cipher = null;
 
-                TryToDispose(br);
-            }
         }
 
         public void PrintOptionsToConsole()
@@ -400,11 +418,11 @@ public unsafe partial class AutoCrypt
             try
             {
                 if (VinKekFish_KeyOpts.Rounds <= 0)
-                    VinKekFishOptions.ParseVinKekFishOptions(false, "11", VinKekFish_KeyOpts);
+                    VinKekFishOptions.ParseVinKekFishOptions(false, "11", VinKekFish_KeyOpts);  // K = 11
                 if (VinKekFish_CipherOpts.Rounds <= 0)
                     VinKekFishOptions.ParseVinKekFishOptions(false, "11", VinKekFish_CipherOpts);
                 if (Cascade_KeyOpts.StrengthInBytes <= 0)
-                    CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_KeyOpts, true);
+                    CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_KeyOpts, true);    // Стойкость 11 кибибайтов
                 if (Cascade_CipherOpts.StrengthInBytes <= 0)
                     CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_CipherOpts, true);
 
