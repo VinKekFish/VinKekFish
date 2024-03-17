@@ -42,6 +42,8 @@ class Program
         {
             Console.WriteLine("!!! ERROR !!!");
             Console.WriteLine("BytesBuilderForPointers.Record.errorsInDispose is true");
+            foreach (var error in BytesBuilderForPointers.Record.errorsInDispose_List)
+                Console.WriteLine(error);
         }
 
 /*

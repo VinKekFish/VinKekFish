@@ -8,6 +8,7 @@ using System.Text;
 using VinKekFish_Utils;
 using static VinKekFish_Utils.Utils;
 using static VinKekFish_Utils.Memory;
+using System.Diagnostics;
 
 // #pragma warning disable CA1034 // Nested types should not be visible
 namespace cryptoprime
@@ -291,6 +292,8 @@ namespace cryptoprime
                 Dispose(true);
             }
 
+            public readonly static List<string> errorsInDispose_List = new List<string>();
+
             protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
             public    static          bool  errorsInDispose
             {
@@ -298,6 +301,10 @@ namespace cryptoprime
                 set
                 {
                     _errorsInDispose = true;
+
+                    lock (errorsInDispose_List)
+                    errorsInDispose_List.Add(  new StackTrace().ToString()  );
+
                     if (!value)
                         throw new ArgumentOutOfRangeException("Record: errorsInDispose can be set only to true");
                 }

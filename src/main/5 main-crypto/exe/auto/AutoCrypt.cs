@@ -74,12 +74,14 @@ public partial class AutoCrypt: IDisposable
     private bool isDisposed = false;
     protected virtual void Dispose(bool fromDestructor = false)
     {
+        var id = isDisposed;
         if (!isDisposed)
         {
             TryToDispose(CurrentCommand);
             isDisposed = true;
         }
 
+        if (!id)
         if (fromDestructor)
         {
             var msg = $"AutoCrypt.Dispose ~AutoCrypt() executed with a not disposed state.";

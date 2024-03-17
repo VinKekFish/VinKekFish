@@ -350,13 +350,14 @@ namespace vinkekfish
         public    bool IsDisposed => isDisposed;                            /// <summary>Очищает объект и освобождает все выделенные под него ресурсы</summary>
         protected virtual void Dispose(bool fromDispose = true)
         {
+            var id = isDisposed;
             if (isDisposed)
             {
-                Record.errorsInDispose = true;
-
                 var msg = "VinKekFishBase_KN_20210525: Dispose executed twiced";
                 if (fromDispose)
                 {
+                    Record.errorsInDispose = true;
+
                     if (Record.doExceptionOnDisposeTwiced)
                     {
                         throw new Exception(msg);
@@ -388,6 +389,7 @@ namespace vinkekfish
                 isDisposed = true;
             }
 
+            if (!id)
             if (!fromDispose)
             {
                 Record.errorsInDispose = true;

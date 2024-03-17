@@ -49,12 +49,14 @@ public unsafe partial class AutoCrypt
         protected bool isDisposed = false;
         public virtual void Dispose(bool fromDestructor = false)
         {
+            var id = isDisposed;
             if (!isDisposed)
             {
                 TryToDispose(bbp);
                 isDisposed = true;
             }
 
+            if (!id)
             if (fromDestructor)
             {
                 var msg = $"AutoCrypt.Command.Dispose AutoCrypt.~Command() executed with a not disposed state.";

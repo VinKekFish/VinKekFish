@@ -63,6 +63,9 @@ public partial class Program
             if (cryptoprime.BytesBuilderForPointers.Record.errorsInDispose)
             {
                 Console.Error.WriteLine(L("Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose"));
+
+                foreach (var error in cryptoprime.BytesBuilderForPointers.Record.errorsInDispose_List)
+                    Console.Error.WriteLine(error);
             }
 
             if (VinKekFish_Utils.Memory.allocatedMemory != 0)

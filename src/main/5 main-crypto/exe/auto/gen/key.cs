@@ -5,6 +5,7 @@ namespace VinKekFish_EXE;
 
 using System.Reflection;
 using cryptoprime;
+using maincrypto.keccak;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
@@ -28,6 +29,7 @@ public unsafe partial class AutoCrypt
         public CascadeSponge_mt_20230930?  Cascade_Cipher;
 
         public isCorrectAvailable[] CryptoOptions;
+        public bool                 isSimpleOutKey = false;
 
         public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {
@@ -42,7 +44,7 @@ public unsafe partial class AutoCrypt
 
         protected readonly List<FileInfo> rnd        = new List<FileInfo>(0);
         protected readonly List<FileInfo> outParts   = new List<FileInfo>(0);
-        protected readonly FileInfo?      outKeyFile = null;
+        protected               FileInfo? outKeyFile = null;
 
         public override ProgramErrorCode Exec()
         {
@@ -78,6 +80,8 @@ public unsafe partial class AutoCrypt
                         Example:
                         out:/inRam/new.key
                         start:
+
+
                         """
                     )
             );
@@ -104,13 +108,22 @@ public unsafe partial class AutoCrypt
                     goto start;
                 case "random":
                 case "rnd":
-                        ParseFileOptions(command.value.TrimStart());
+                        // Парсим опцию и добавляем файл в список rnd. Если введно "rnd:", то вызывается визуальное окно выбора файла
+                        var rndFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.exists, rnd);
+                        if (rndFile == null)
+                        {
+                            if (!isDebugMode)
+                                throw new CommandException(L("File not found or an another file system error occured"));
+
+                            goto start;
+                        }
+
                     goto start;
                 case "out":
-                        ParseFileOptions(command.value.TrimStart());
+                        outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists)!;
                     goto start;
                 case "out-part":
-                        ParseFileOptions(command.value.TrimStart());
+                        ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
                     goto start;
                 case "regime":
                         ParseRegimeOptions(command.value.Trim());
@@ -118,9 +131,29 @@ public unsafe partial class AutoCrypt
                 case "fregime":
                         ParseRegimeOptions(command.value.Trim());
                     goto start;
+                case "issimple":
+                case "simple":
+                    if (command.value.Trim() == "true" || command.value.Trim() == "yes")
+                        isSimpleOutKey = true;
+                    else
+                        isSimpleOutKey = false;
+
+                    if (isDebugMode)
+                        Console.WriteLine("simple:" + isSimpleOutKey);
+
+                    goto start;
                 case "start":
                     if (Terminated)
                         return ProgramErrorCode.Abandoned;
+                    if (outKeyFile is null)
+                    {
+                        if (!isDebugMode)
+                            throw new CommandException("outKeyFile is null");
+                        else
+                            Console.WriteLine(L("outKeyFile is null"));
+
+                        goto start;
+                    }
 
                     InitOptions();
                     InitSponges(out int _, out int _);
@@ -255,6 +288,46 @@ public unsafe partial class AutoCrypt
                 while (bbp.Count < Cascade_KeyOpts.StrengthInBytes)
                     Connect();
 
+                // Читаем данные из дополнительных файлов с рандомизирующей информацией.
+                var rndFilesLen = getRndFileLen(rnd);
+                if (rndFilesLen > 0)
+                {
+                    var rndBuffp = stackalloc byte[rndFilesLen];
+                    var rndBuff  = new Record { array = rndBuffp, len = rndFilesLen, Name = "rndFilesLen > 0" };
+
+                    var inputted = 0L;
+                    foreach (var rndFile in rnd)
+                    {
+                        var fileLen = rndFile.Length;
+                        using (var content = rndFile.OpenRead())
+                        {
+                            do
+                            {
+                                var readed = content.Read(rndBuff);
+
+                                // Отладочный вывод
+                                if (isDebugMode)
+                                {
+                                    Console.WriteLine($"{readed} bytes from {rndFile.FullName}");
+                                    // using var ff = File.OpenWrite("/inRamA/tmp");
+                                    // ff.Write(new ReadOnlySpan<byte>(rndBuff, readed));
+                                }
+
+                                bbp.addWithCopy(rndBuff, (nint) readed, Keccak_abstract.allocator);
+                                fileLen  -= readed;
+                                inputted += readed;
+                            }
+                            while (fileLen > 0);
+                        }
+
+                        rndBuff.Clear();
+                    }
+
+                    rndBuff.Dispose();
+
+                    if (isDebugMode)
+                        Console.WriteLine(L("Bytes received from additional random files") + $": {inputted}");
+                }
 
                 status++;                   // 4
                 if (isDebugMode)
@@ -268,6 +341,7 @@ public unsafe partial class AutoCrypt
                 status++;                   // 5
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 br3 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
 
 
@@ -398,6 +472,25 @@ public unsafe partial class AutoCrypt
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
             }
 
+        }
+
+        /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>
+        /// <param name="rnd">Список файлов. К каждому элементу списка применяется Refresh() перед получением длины файла.</param>
+        /// <param name="maxLen">Если файл более, чем maxLen, то его размер не будет учтён.</param>
+        protected int getRndFileLen(List<FileInfo> rnd, int maxLen = 65536)
+        {
+            var result = 0;
+            foreach (var rndFile in rnd)
+            {
+                rndFile.Refresh();
+                var len = rndFile.Length;
+
+                if (len > result)
+                if (len <= maxLen)
+                    result = (int) len;
+            }
+
+            return result;
         }
 
         public void PrintOptionsToConsole()
