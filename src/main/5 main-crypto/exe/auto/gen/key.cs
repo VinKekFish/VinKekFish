@@ -196,7 +196,6 @@ public unsafe partial class AutoCrypt
                 {
                     TryToDispose(br2);
                     TryToDispose(br3);
-                    TryToDispose(sr);
                 }
             }
             catch (Exception ex)
