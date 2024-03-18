@@ -31,14 +31,14 @@ public unsafe partial class AutoCrypt
                 list.Add(sponge);
         }
 
-        public override void getBytes(byte* forData, nint len)
+        public override void getBytes(byte* forData, nint len, byte regime)
         {
             if (list.Count <= 0)
                 throw new GetDataFromSpongeException("GetDataByAdd.getBytes: list.Count <= 0");
 
             if (list.Count == 1)
             {
-                list[0].getBytes(forData, len);
+                list[0].getBytes(forData, len, regime);
                 return;
             }
 
@@ -52,7 +52,7 @@ public unsafe partial class AutoCrypt
                     var sub = Keccak_abstract.allocator.AllocMemory(len, "GenerateSimpleKey." + NameForRecord + "." + i);
                     try
                     {
-                        list[i].getBytes(sub);
+                        list[i].getBytes(sub, regime);
 
                         lock (this)
                         BytesBuilder.ArithmeticAddBytes(len, forData, sub);
@@ -74,6 +74,20 @@ public unsafe partial class AutoCrypt
             // Выделить место в оперативной памяти для шифрования
             // Рассчитать с помощью иерархических классов потребное место
             throw new NotImplementedException();
+        }
+
+        protected override void DisposeSponge()
+        {
+            foreach (var sponge in list)
+            {
+                TryToDispose(sponge);
+            }
+        }
+
+        public override nint blockLen { get => throw new InvalidOperationException(NameForRecord); set => throw new InvalidOperationException(NameForRecord); }
+        protected override void doCorrectBlockLen()
+        {
+            throw new InvalidOperationException(NameForRecord);
         }
     }
 }

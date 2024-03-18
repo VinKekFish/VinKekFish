@@ -11,7 +11,7 @@ public partial class Program
     public static ProgramErrorCode command_auto(string[] args)
     {
         isAutomaticProgram = true;
-        using var ac = new AutoCrypt();
+        using var ac = new AutoCrypt(args);
 
         return ac.Exec();
     }

@@ -247,17 +247,26 @@ public partial class AutoCrypt
                 public ParseError?    error;
 
                 public static implicit operator ParseResult(CommandOption opts)
-                {
+                {/*
+                    if (opts == null)
+                        return null;*/
+
                     return new ParseResult() {opts = opts};
                 }
 
                 public static implicit operator ParseResult(ParseError error)
-                {
+                {/*
+                    if (error == null)
+                        return null;*/
+
                     return new ParseResult() {error = error};
                 }
 
                 public static implicit operator CommandOption(ParseResult result)
-                {
+                {/*
+                    if (result == null)
+                        return null;*/
+
                     if (result.opts != null)
                         return result.opts;
 

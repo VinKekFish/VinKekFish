@@ -24,47 +24,74 @@ public partial class AutoCrypt: IDisposable
     public string  RandomStreamName = "/dev/vkf/random";    // TODO: прочитать из конфига
     public string  RandomNameFromOS = "/dev/random";
 
-    public AutoCrypt()
+    public AutoCrypt(string[] args)
     {
         cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
 
         // RandomSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         RandomSocketPoint = new UnixDomainSocketEndPoint(RandomStreamName);
         // RandomSocket.Connect(un);
+        doCorrectRandomStreamName();
 
-        start:
+        if (args.Length > 1)
+        {
+            var FileName = args[1];
+            var fs = new StreamReader(new FileStream(FileName, FileMode.Open, FileAccess.Read));
+            Console.SetIn(fs);
+        }
 
-        var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
+    start:
+
+        var command = (CommandOption)CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
 
         switch (command.name)
         {
             case "debug":
-                    isDebugMode = true;
-                    Console.WriteLine(L("Debug mode enabled"));
+                isDebugMode = true;
+                Console.WriteLine(L("Debug mode enabled"));
                 goto start;
             case "enc":
-                    CurrentCommand = new EncCommand(this) {isDebugMode = isDebugMode};
+                CurrentCommand = new EncCommand(this) { isDebugMode = isDebugMode };
                 break;
             case "dec":
-                    CurrentCommand = new DecCommand(this) {isDebugMode = isDebugMode};
+                CurrentCommand = new DecCommand(this) { isDebugMode = isDebugMode };
                 break;
             case "key-main":
             case "key_gen_main":
             case "key-gen-main":
-                    CurrentCommand = new GenKeyCommand(this) {isDebugMode = isDebugMode};
+                CurrentCommand = new GenKeyCommand(this) { isDebugMode = isDebugMode };
                 break;
             case "pwd":
             case "pwd_gen":
-                    CurrentCommand = new GenPwdCommand(this) {isDebugMode = isDebugMode};
+                CurrentCommand = new GenPwdCommand(this) { isDebugMode = isDebugMode };
                 break;
             case "end":
-                    CurrentCommand = new EndCommand(this);
+                CurrentCommand = new EndCommand(this);
                 return;
             default:
                 if (!isDebugMode)
                     throw new CommandException(L("Command is unknown (enter 'debug:' at the vkf start for more bit information)"));
                 goto start;
         }
+    }
+
+    /// <summary>Взять из конфигурации имя файла, через который сервис vkf даёт энтропию</summary>
+    public void doCorrectRandomStreamName()
+    {
+        try
+        {
+            var fileString = File.ReadAllLines("options/service.options");
+            var opt = new Options(new List<string>(fileString));
+            // Console.WriteLine(opt.ToString());
+            var options_service = new Options_Service(opt);
+
+            var out_random = options_service!.root!.output!.out_random!;
+            RandomStreamName = Path.Combine(out_random.dir!.FullName, "random");
+        }
+        catch
+        {}
+
+        Console.WriteLine("The vkf random stream: " + RandomStreamName);
     }
 
     public ProgramErrorCode Exec()

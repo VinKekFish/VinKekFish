@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 public partial class CascadeSponge_1t_20230905
 {
+    // Ниже аналогичный код!
     public unsafe void doRandomPermutationForUShorts(nint len, ushort* T, nint countOfSteps = 0, byte regime = 1)
     {
         ushort a, err = 0;
@@ -94,5 +95,50 @@ public partial class CascadeSponge_1t_20230905
         e[1] = 0;
 
         return r;
+    }
+
+    public unsafe void doRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1)
+    {
+        byte a, err = 0;
+        nint index;
+
+        using var bb = new BytesBuilderStatic(this.maxDataLen*2);
+
+        // Алгоритм тасования Дурштенфельда
+        // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
+        for (nint i = 0; i < len - 1; i++)
+        {
+            // var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);ulong
+            // index = getUnsignedInteger(0, cutoff) + i;
+
+            // Берём сразу 8 байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
+            if (bb.Count < 8)
+            {
+                step(countOfSteps: countOfSteps, regime: regime);
+                bb.add(lastOutput);
+                this.haveOutput = false;
+            }
+
+            // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
+            try
+            {
+                index = getUnsignedInteger(len - i - 1, bb) + i;
+                err = 0;
+            }
+            catch (NotEnoughtBytesException)
+            {
+                if (err > 0)
+                    throw;
+
+                err = 1;
+                continue;
+            }
+
+            a        = T[i];
+            T[i]     = T[index];
+            T[index] = a;
+        }
+
+        a = 0;
     }
 }

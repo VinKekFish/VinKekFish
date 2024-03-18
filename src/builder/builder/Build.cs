@@ -66,7 +66,7 @@ partial class Program
         return (ErrorCode.Success, di);
     }
 
-    protected static string[] isActualVersion_sourcePattern_cs = new string[] { "*.cs", "*.loc" };
+    protected static string[] isActualVersion_sourcePattern_cs = new string[] { "*.cs" };
 
     /// <summary>Проверяет, что исходники не старше, чем файлы библиотек</summary>
     /// <param name="output_di">Директория, где мы ищем dll</param>

@@ -174,7 +174,7 @@ public partial class Program
         Console.WriteLine("\t" + L("for execute as service"));
         Console.WriteLine("vkf check conf.file");
         Console.WriteLine("\t" + L("for check service file"));
-        Console.WriteLine("vkf auto");
+        Console.WriteLine("vkf auto command.file");
         Console.WriteLine("\t" + L("for execute without human"));
         Console.WriteLine("vkf manual");
         Console.WriteLine("\t" + L("for execute for human friendly"));

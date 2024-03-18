@@ -36,7 +36,8 @@ public unsafe partial class AutoCrypt
             // Зашифровать ключ
             // Выравнять файл на границу, кратную 16, но не менее 4096-ти
             // Что делать со вторым ключом? Как обеспечить отказуемое шифрование?
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
+            new PasswordEnter(Cascade_Key!, 1, doErrorMessage: true);
         }
     }
 }

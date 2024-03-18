@@ -26,7 +26,7 @@ public partial class AutoCrypt
             return values;
         }
 
-        protected enum FileMustExists { error = 0, exists = 1, notExists = 2, indifferent = 3 };
+        protected enum FileMustExists { error = 0, exists = 1, notExists = 2, indifferent = 4 };
 
         /// <summary>Распарсить опции команды regime</summary>
         /// <param name="PathToFile">Опции, разделённые пробелом.</param>
@@ -61,7 +61,8 @@ public partial class AutoCrypt
             if (mustExists.HasFlag(FileMustExists.exists))
                 if (!r.Exists || r.Length <= 0)
                     r = null;
-            else
+
+            if (r is not null)
             if (mustExists.HasFlag(FileMustExists.notExists))
                 if (r.Exists)
                     r = null;
@@ -74,7 +75,12 @@ public partial class AutoCrypt
             else
             {
                 if (isDebugMode)
-                    Console.Error.WriteLine(L("File not found or an another file system error occured") + $": {PathToFile}");
+                {
+                    if (mustExists.HasFlag(FileMustExists.notExists))
+                        Console.Error.WriteLine(L("File already exists or an another file system error occured") + $": {PathToFile}");
+                    else
+                        Console.Error.WriteLine(L("File not found or an another file system error occured") + $": {PathToFile}");
+                }
             }
 
             return r;

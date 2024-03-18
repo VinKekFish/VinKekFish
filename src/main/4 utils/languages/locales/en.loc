@@ -119,9 +119,11 @@ The primary initialization has started. This may take a long time.
 File not found or an another file system error occured
     File not found or an another file system error occured
 outKeyFile is null
-   The result file for the new key is not defined
+    The result file for the new key is not defined or exists (out:path/to/file)
 Bytes received from additional random files
     Bytes received from additional random files
 Simple key was writed to
     Simple key was writed to
+Password length is too small
+    Password length is too small
 :

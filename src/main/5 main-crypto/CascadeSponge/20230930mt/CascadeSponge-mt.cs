@@ -14,6 +14,7 @@ using static CascadeSponge_1t_20230905;
 
 /// <summary>
 /// Это многопоточная реализация каскадной губки. Не имеет смысла использовать при wide < 8.
+/// <remarks>См. также класс GetDataFromCascadeSponge (обёртка для удобного получения данных из этой губки).</remarks>
 /// </summary>
 public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905, IDisposable
 {

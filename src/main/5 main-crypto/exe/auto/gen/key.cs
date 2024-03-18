@@ -128,7 +128,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "out":
-                        outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists)!;
+                        outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists);
                     goto start;
                 case "out-part":
                         ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
@@ -484,7 +484,6 @@ public unsafe partial class AutoCrypt
                 // ------------------------------------------------
                 // Обе губки готовы для генерации ключевой информации и синхропосылки
             }
-
         }
 
         protected void GenerateSimpleKey(ref int status, int countOfTasks)
@@ -493,51 +492,21 @@ public unsafe partial class AutoCrypt
             // Cascade_Key
             // newKeyLen
 
-            var keyVKF     = Keccak_abstract.allocator.AllocMemory(newKeyLen, "GenerateSimpleKey.keyVKF");
-            var keyCascade = Keccak_abstract.allocator.AllocMemory(newKeyLen, "GenerateSimpleKey.keyCascade");
+            var main = new GetDataByAdd();
+            var vkf  = new GetDataFromVinKekFishSponge(VinKekFish_Key!);
+            var csc  = new GetDataFromCascadeSponge(Cascade_Key!);
+            vkf.blockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;
+            csc.blockLen = Cascade_Key!.lastOutput.len >> 1;
+
+            main.AddSponge(vkf);
+            main.AddSponge(csc);
+
+            main.NameForRecord = "GenKeyCommand.GenerateSimpleKey";
+
+            var keyVKF = main.getBytes(newKeyLen, regime: 1);
 
             try
             {
-                VinKekFish_Key!.output!.Clear();
-                var reqLen  = keyVKF.len;
-                var current = keyVKF.array;
-                do
-                {
-                    VinKekFish_Key.doStepAndIO(outputLen: VinKekFish_Key.BLOCK_SIZE_KEY_K, regime: 1);
-
-                    var reqLenCurrent = Math.Min(reqLen, VinKekFish_Key.BLOCK_SIZE_KEY_K);
-                    VinKekFish_Key.output.getBytesAndRemoveIt(current, reqLenCurrent);
-
-                    reqLen  -= reqLenCurrent;
-                    current += reqLenCurrent;
-                }
-                while (reqLen > 0);
-
-                status++;   // 13
-                if (isDebugMode)
-                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-
-                reqLen    = keyCascade.len;
-                current   = keyCascade.array;
-                var block = Cascade_Key!.lastOutput.len / 2;
-                do
-                {
-                    Cascade_Key.step(ArmoringSteps: Cascade_KeyOpts.ArmoringSteps, regime: 1);
-                    BytesBuilder.CopyTo(block, reqLen, Cascade_Key.lastOutput, current);
-
-                    reqLen  -= block;
-                    current += block;
-                }
-                while (reqLen > 0);
-
-                status++;   // 14
-                if (isDebugMode)
-                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-
-                // Складываем два сгенерированных числа
-                // keyVKF содержит результат.
-                BytesBuilder.ArithmeticAddBytes(newKeyLen, keyVKF, keyCascade);
-
                 using (var fs = new FileStream(outKeyFile!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(keyVKF);
@@ -546,16 +515,20 @@ public unsafe partial class AutoCrypt
 
                 if (isDebugMode)
                     Console.WriteLine(L("Simple key was writed to") + " " + outKeyFile!.FullName);
-
-                status++;   // 15
-                if (isDebugMode)
-                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
             }
             finally
             {
-                TryToDispose(keyVKF);
-                TryToDispose(keyCascade);
+                vkf.sponge = null;  // Мы не хотим сейчас очищать губку
+                vkf.Dispose();
+                csc.sponge = null;
+                csc.Dispose();
+                keyVKF.Dispose();
             }
+
+            status += 3;   // 12+3=15
+            if (isDebugMode)
+                Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
         }
 
         /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>

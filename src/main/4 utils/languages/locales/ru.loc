@@ -119,9 +119,11 @@ The primary initialization has started. This may take a long time.
 File not found or an another file system error occured
     Файл не найден или произошла другая ошибка файловой системы
 outKeyFile is null
-    Файл результата для создаваемого ключа не указан
+    Файл результата для создаваемого ключа не указан или существует (out:path/to/file)
 Bytes received from additional random files
     Байтов получено из дополнительных случайных файлов
 Simple key was writed to
     Простой ключ записан в
+Password length is too small
+    Длина пароля слишком мала
 :

@@ -21,6 +21,7 @@ namespace vinkekfish
     /// <remarks>IsDisposed == true означает, что объект более не пригоден для использования.</remarks>
     /// <remarks>Обязательная инициализация вызовом Init1 и Init2</remarks>
     /// <remarks>При работе в разных потоках с одним экземпляром объекта использовать для синхронизации отдельно созданный объект либо lock (this). В некоторых случаях, сигналы можно получать через sync</remarks>
+    /// <remarks>См.также GetDataFromVinKekFishSponge</remarks>
     public unsafe partial class VinKekFishBase_KN_20210525: IDisposable
     {
         /// <summary>Здесь содержатся таблицы перестановок, длина CountOfRounds*4*Len*ushort</summary>
