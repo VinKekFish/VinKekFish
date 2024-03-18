@@ -106,8 +106,8 @@ public unsafe partial class PasswordEnter: IDisposable
 
             if (pwdLen < 8)
             {
-                Console.WriteLine(L("Password length is too small") + $": {pwdLen}");
-                throw new Exception("PasswordEnter: " + L("Password length is too small") + $": {pwdLen}");
+                Console.WriteLine(L("Password length is too small") + $": {pwdLen} < 8");
+                throw new Exception("PasswordEnter: " + L("Password length is too small") + $": {pwdLen} < 8");
             }
         }
         finally
