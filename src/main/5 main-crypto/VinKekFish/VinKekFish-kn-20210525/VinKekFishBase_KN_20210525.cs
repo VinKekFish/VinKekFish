@@ -376,6 +376,17 @@ namespace vinkekfish
             {
                 Clear();    // tablesForPermutations очищаются здесь
 
+                if (input is not null && input.Count > 0)
+                {
+                    Record.errorsInDispose = true;
+                    var iemsg = "VinKekFishBase_KN_20210525.Dispose: input.Count > 0 in Dispose (data to input has not been processed)";
+
+                    if (Record.doExceptionOnDisposeInDestructor)
+                        throw new Exception(iemsg);
+                    else
+                        Console.Error.WriteLine(iemsg);
+                }
+
                 TryToDispose(output);
                 TryToDispose(input);
                 TryToDispose(inputRecord);

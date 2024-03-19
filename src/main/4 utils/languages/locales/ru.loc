@@ -126,4 +126,12 @@ Simple key was writed to
     Простой ключ записан в
 Password length is too small
     Длина пароля слишком мала
+The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+    Пароль не может быть сброшен. Введено слишком много символов. Сбросить введённые символы можно только если введено количество символов менее
+The entered password characters have been reset. Start entering the password again.
+    Введённые символы пароля сброшены. Начните ввод парольных символов сначала.
+HELP MESSAGE FOR PasswordEnter
+    Ввод этого символа не засчитан. Ввод символов идёт в следующем порядке: номер строки (один символ), номер столбца (один символ). Повторите ввод парольного символа. Ввод должен осуществляться на английской раскладке клавиатуры. "Enter" или "пробел" - закончить ввод пароля. Если вы допустили ошибку при вводе номера строки или забыли номер столбца, нажмите символ q. "Escape" - сбросить весь введённый пароль. Сбрасывание пароля через "Escape" работает только если введено символов не более
+Press Enter to continue
+    Нажмите "Enter" для продолжения
 :

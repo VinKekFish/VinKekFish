@@ -25,20 +25,25 @@ public unsafe partial class PasswordEnter: IDisposable
     /// <summary>Разрешённые символы для стандартного пароля</summary>
     public static readonly string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@";
 
-    protected CascadeSponge_mt_20230930 sponge;
+    protected CascadeSponge_mt_20230930  sponge;
+    protected VinKekFishBase_KN_20210525 vkf;
     protected Record passwordArray;
     /// <summary>x - вертикальная координата, как при индексировании матриц.</summary>
     public readonly int x = 16, y = 16;
     public readonly byte regime = 0;
 
-    public PasswordEnter(CascadeSponge_mt_20230930 sponge, byte regime, nint countOfSteps = 0, bool doErrorMessage = false)
+    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfSteps = 0, bool doErrorMessage = false)
     {
         // На всякий случай переоткрываем поток ввода, т.к. он может быть перенаправлен с помощью SetIn для получения конфигурации
         Console.SetIn(new StreamReader(Console.OpenStandardInput()));
         Console.Clear();
 
         this.sponge   = sponge;
+        this.vkf      = vkf;
         this.regime   = regime;
+
+        if (this.vkf.input is null || this.vkf.input.size < this.sponge.maxDataLen)
+            throw new ArgumentOutOfRangeException("PasswordEnter: this.vkf.input.size < this.sponge.maxDataLen");
 
         var len = x * y * 2;
         if (len % GrantedSymbols.Length != 0)
@@ -64,19 +69,32 @@ public unsafe partial class PasswordEnter: IDisposable
                 if (c1 == -1)
                     break;
 
+                if (c1 == -3)
+                {
+                    ClearPassword(sponge, ref cur, ref pwdLen);
+                    continue;
+                }
+
+                if (c1 < 0)
+                {
+                    DisplayErrorMessage(sponge, doErrorMessage);
+                    continue;
+                }
+
+                Clear();
                 var c2 = readKey();
                 if (c2 == -1)
                     break;
 
-                if (c1 == -2 || c2 == -2)
+                if (c2 == -3)
                 {
-                    if (doErrorMessage)
-                    {
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Clear("!");
-                        Console.ReadLine();
-                    }
+                    ClearPassword(sponge, ref cur, ref pwdLen);
+                    continue;
+                }
 
+                if (c1 < 0 || c2 < 0)
+                {
+                    DisplayErrorMessage(sponge, doErrorMessage);
                     continue;
                 }
 
@@ -88,8 +106,13 @@ public unsafe partial class PasswordEnter: IDisposable
                 pwdLen++;
                 if (cur >= sponge.maxDataLen)
                 {
-                    cur = 0;
                     sponge.step(countOfSteps: countOfSteps, regime: regime, data: passwd, dataLen: cur);
+
+                    vkf.input!.add(passwd, cur);
+                    while (vkf.input.Count > 0)
+                        vkf.doStepAndIO(regime: regime);
+
+                    cur = 0;
                 }
             }
             while (true);
@@ -97,6 +120,10 @@ public unsafe partial class PasswordEnter: IDisposable
             if (cur > 0)
             {
                 sponge.step(countOfSteps: countOfSteps, regime: regime, data: passwd, dataLen: cur);
+
+                vkf.input!.add(passwd, cur);
+                while (vkf.input.Count > 0)
+                    vkf.doStepAndIO(regime: regime);
             }
 
             // Console.WriteLine("\x1b[0m\x1b[0m");
@@ -114,12 +141,43 @@ public unsafe partial class PasswordEnter: IDisposable
         {
             Dispose();
         }
+
+        void ClearPassword(CascadeSponge_mt_20230930 sponge, ref nint cur, ref nint pwdLen)
+        {
+            Clear();
+            if (pwdLen > cur)
+            {
+                Console.Clear();
+                throw new Exception(L("The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than") + $" {sponge.maxDataLen}");
+            }
+
+            cur    = 0;
+            pwdLen = 0;
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine(L("The entered password characters have been reset. Start entering the password again.") + " " + L("Press Enter to continue"));
+            Console.ReadLine();
+        }
+
+        void DisplayErrorMessage(CascadeSponge_mt_20230930 sponge, bool doErrorMessage)
+        {
+            if (doErrorMessage)
+            {
+                Console.BackgroundColor = ConsoleColor.Red;
+                Clear("!");
+                Console.SetCursorPosition(0, 0);
+                Console.WriteLine(L("HELP MESSAGE FOR PasswordEnter") + $" {sponge.maxDataLen}. " + L("Press Enter to continue"));
+                Console.ReadLine();
+            }
+        }
     }
 
     public void Clear(string c = " ")
     {
-        for (int i = 0; i < stepsH[stepsH.Length-1]+1; i++)
-        for (int j = 0; j < stepsV[stepsV.Length-1]+1; j++)
+        //for (int i = 0; i < stepsH[stepsH.Length-1]+1; i++)
+        //for (int j = 0; j < stepsV[stepsV.Length-1]+1; j++)
+        for (int i = 0; i < Console.LargestWindowWidth;  i++)
+        for (int j = 0; j < Console.LargestWindowHeight; j++)
         {
             Console.SetCursorPosition(i, j);
             Console.Write(c);
@@ -131,6 +189,9 @@ public unsafe partial class PasswordEnter: IDisposable
         var key = Console.ReadKey(true);
         if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
             return -1;
+
+        if (key.Key == ConsoleKey.Escape)
+            return -3;
 
         int c1 = (int) key.Key;
         if (c1 >= 48 && c1 <= 57)

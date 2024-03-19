@@ -126,4 +126,12 @@ Simple key was writed to
     Simple key was writed to
 Password length is too small
     Password length is too small
+The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+    The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+The entered password characters have been reset. Start entering the password again.
+    The entered password characters have been reset. Start entering the password again.
+HELP MESSAGE FOR PasswordEnter
+    The input of this character is not counted. The characters are entered in the following order: row number (one character), column number (one character). Let's re-enter the password character. The input must be done on the English keyboard layout. "Enter" or "space" - complete the password entry. If you made a mistake when entering the row number or forgot the column number, press the q symbol. "Escape" - reset the entire entered password. Password reset via "Escape" works only if no more than characters are entered
+Press Enter to continue
+    Press "Enter" to continue
 :

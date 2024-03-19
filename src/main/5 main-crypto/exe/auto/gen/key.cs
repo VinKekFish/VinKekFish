@@ -24,9 +24,7 @@ public unsafe partial class AutoCrypt
         public CascadeOptions    Cascade_CipherOpts    = new CascadeOptions();
 
         public VinKekFishBase_KN_20210525? VinKekFish_Key;
-        public VinKekFishBase_KN_20210525? VinKekFish_Cipher;
         public CascadeSponge_mt_20230930?  Cascade_Key;
-        public CascadeSponge_mt_20230930?  Cascade_Cipher;
 
         public isCorrectAvailable[] CryptoOptions;
         public bool                 isSimpleOutKey = false;
@@ -101,15 +99,15 @@ public unsafe partial class AutoCrypt
                         VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_KeyOpts);
                     goto start;
                 case "cascade-k":
-                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_KeyOpts);
+                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_KeyOpts, forKey: true);
                     goto start;
                 case "vinkekfish-c":
                 case "vkf-c":
-                        VinKekFish_CipherOpts.Rounds = -1;
+                        VinKekFish_CipherOpts.Rounds = -1;     // Показываем, что это - генерация ключа
                         VinKekFishOptions.ParseVinKekFishOptions(isDebugMode, command.value.Trim(), VinKekFish_CipherOpts);
                     goto start;
                 case "cascade-c":
-                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_CipherOpts);
+                        CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_CipherOpts, forKey: true);
                     goto start;
                 case "len":
                         newKeyLen = int.Parse(command.value.Trim());
@@ -226,7 +224,6 @@ public unsafe partial class AutoCrypt
             try
             {
                 Cascade_Key    = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
-                Cascade_Cipher = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);        // Cascade_KeyOpts - это правильно, т.к. это шифровальщик ключа, а не шифровальщик пользовательского текста
 
                 Record? br2 = null, br3 = null;
                 try
@@ -252,9 +249,7 @@ public unsafe partial class AutoCrypt
             finally
             {
                 TryToDispose(this.Cascade_Key);       Cascade_Key       = null;
-                TryToDispose(this.Cascade_Cipher);    Cascade_Cipher    = null;
                 TryToDispose(this.VinKekFish_Key);    VinKekFish_Key    = null;       // input тоже тут освобождается
-                TryToDispose(this.VinKekFish_Cipher); VinKekFish_Cipher = null;
 
                 TryToDispose(br);
             }

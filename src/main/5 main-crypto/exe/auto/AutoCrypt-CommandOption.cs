@@ -182,6 +182,9 @@ public partial class AutoCrypt
                     var bytes = int.Parse(val);
                     if (bytes > 0)
                     {
+                        if (bytes < 256)
+                            bytes = 256;
+
                         opts.StrengthInBytes = bytes;
                     }
                 }
@@ -195,11 +198,19 @@ public partial class AutoCrypt
                         opts.ArmoringSteps = ArmoringSteps;
                     }
                     else
-                        opts.ArmoringSteps = forKey ? (int) CascadeSponge_1t_20230905.CalcCountStepsForKeyGeneration(opts.StrengthInBytes / 64) : 0;
+                        doCalcAndSetArmoringSteps(opts, forKey);
                 }
+                else
+                    doCalcAndSetArmoringSteps(opts, forKey);
+
 
                 if (isDebugMode)
                     Console.WriteLine(opts);
+
+                static void doCalcAndSetArmoringSteps(CascadeOptions opts, bool forKey)
+                {
+                    opts.ArmoringSteps = forKey ? (int)CascadeSponge_1t_20230905.CalcCountStepsForKeyGeneration(opts.StrengthInBytes / 64) : 0;
+                }
             }
         }
 

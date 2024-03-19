@@ -166,6 +166,19 @@ public partial class Program
         Console.WriteLine();
     }
 
+    public static string genVersionNumber()
+    {
+        // "2024.03.19.1112"
+        var now = DateTime.Now;
+        var str =    now.Year  .ToString("D4");
+        str += "." + now.Month .ToString("D2");
+        str += "." + now.Day   .ToString("D2");
+        str += "." + now.Hour  .ToString("D2");
+        str +=       now.Minute.ToString("D2");
+
+        return str;
+    }
+
     public static void PrintHelp()
     {
         Console.WriteLine(L("Full help see at the program url (above)"));

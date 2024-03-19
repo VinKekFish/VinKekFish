@@ -37,7 +37,26 @@ public unsafe partial class AutoCrypt
             // Выравнять файл на границу, кратную 16, но не менее 4096-ти
             // Что делать со вторым ключом? Как обеспечить отказуемое шифрование?
             // throw new NotImplementedException();
-            new PasswordEnter(Cascade_Cipher!, 1, doErrorMessage: true);
+
+            VinKekFishBase_KN_20210525? VinKekFish_Cipher = null;
+            CascadeSponge_mt_20230930?  Cascade_Cipher    = null;
+
+            try
+            {
+                Cascade_Cipher    = new CascadeSponge_mt_20230930(Cascade_CipherOpts.StrengthInBytes);
+                VinKekFish_Cipher = new VinKekFishBase_KN_20210525(VinKekFish_CipherOpts.Rounds, K: VinKekFish_CipherOpts.K, ThreadCount: 1);
+                VinKekFish_Cipher.Init1(VinKekFish_CipherOpts.PreRounds, prngToInit: Cascade_Cipher);
+                VinKekFish_Cipher.Init2(key: null);
+
+                VinKekFish_Cipher.input = new BytesBuilderStatic(Cascade_Cipher.maxDataLen);
+
+                new PasswordEnter(Cascade_Cipher!, VinKekFish_Cipher!, regime: 1, doErrorMessage: true);
+            }
+            finally
+            {
+                TryToDispose(Cascade_Cipher);
+                TryToDispose(VinKekFish_Cipher);
+            }
         }
     }
 }
