@@ -303,7 +303,7 @@ namespace cryptoprime
                     _errorsInDispose = true;
 
                     lock (errorsInDispose_List)
-                    errorsInDispose_List.Add(  new StackTrace().ToString()  );
+                    errorsInDispose_List.Add(  new StackTrace(true).ToString()  );
 
                     if (!value)
                         throw new ArgumentOutOfRangeException("Record: errorsInDispose can be set only to true");

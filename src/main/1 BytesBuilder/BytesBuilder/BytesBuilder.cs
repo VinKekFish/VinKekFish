@@ -835,10 +835,11 @@ namespace cryptoprime
 
         /// <summary>Записывает в массив специальную сжатую кодировку числа</summary>
         /// <param name="data">Число для записи</param>
-        /// <param name="target">Массив для записи</param>
+        /// <param name="target">Массив для записи. Может быть null.</param>
         /// <param name="start">Индекс в массиве для записи туда числа</param>
-        public unsafe static void VariableULongToBytes(ulong data, ref byte[]? target, nint start = 0)
+        public unsafe static int VariableULongToBytes(ulong data, ref byte[]? target, nint start = 0)
         {
+            int result = 0;
             if (start < 0)
                 throw new IndexOutOfRangeException();
 
@@ -856,6 +857,7 @@ namespace cryptoprime
                 else
                     target[i] = b;
 
+                result++;
                 if (data == 0)
                     break;
             }
@@ -868,6 +870,7 @@ namespace cryptoprime
             }
 
             data = 0;
+            return result;
         }
 
         /// <summary>Сравнивает два массива. Тайминг-небезопасный метод</summary>

@@ -30,6 +30,8 @@ public unsafe partial class AutoCrypt
         public bool                 isSimpleOutKey = false;
         public int                  newKeyLen      = 11264;
 
+        public string RegimeName = "main.pwd.2024.1";
+
         public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {
             CryptoOptions = new isCorrectAvailable[]
@@ -182,12 +184,7 @@ public unsafe partial class AutoCrypt
         /// <param name="value">Опции, разделённые пробелом.</param>
         protected void ParseRegimeOptions(string value)
         {
-                value  = value.Replace('.', ' ');
-            var values = ToSpaceSeparated(value);
-            if (values.Length >= 1)
-            {
-                var val = values[0].Trim();
-            }
+            RegimeName = value;
         }
 
         /// <summary>Распарсить опции команды regime</summary>
@@ -223,7 +220,7 @@ public unsafe partial class AutoCrypt
 
             try
             {
-                Cascade_Key    = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
+                Cascade_Key = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
 
                 Record? br2 = null, br3 = null;
                 try
@@ -498,7 +495,7 @@ public unsafe partial class AutoCrypt
 
             main.NameForRecord = "GenKeyCommand.GenerateSimpleKey";
 
-            var keyVKF = main.getBytes(newKeyLen, regime: 1);
+            var keyVKF = main.getBytes(newKeyLen, regime: 11);
 
             try
             {

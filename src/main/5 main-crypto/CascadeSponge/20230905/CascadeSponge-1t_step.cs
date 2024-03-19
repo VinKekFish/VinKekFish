@@ -169,7 +169,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public byte lastRegime { get; protected set;}
 
     // code::docs:Wt74dfPfEIcGzPN5Jrxe:
-    /// <summary>Инициализирует ThreeFish и таблицы подстановок с помощью этого же каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV). Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1</summary>
+    /// <summary>Инициализирует ThreeFish и таблицы подстановок с помощью этого же каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV).<remarks>Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 7, если инициализируются таблицы подстановок, и режим 1, если инициализация таблиц подстановок не происходит.<remarks></summary>
     /// <param name="stepToKeyConst">Рекомендуется не менее чем 2 раза. Количество раз, которое губка выполняет инициализацию ключей и твиков ThreeFish (каждый раз с вновь вычисленными значениями). В случае, если не особо нужна стойкость, для рандомизации ключей можно вызвать только один раз, либо еслив дальнейшем будет проведён повторный вызов данного метода.</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
     /// <param name="dataLenFromStep">Параметр определяет, сколько будет взято байтов для ключей ThreeFish с каждого шага губки. Не более maxDataLen</param>
@@ -206,8 +206,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Делаем инициализацию ключей два раза (точнее, stepToKeyConst раз)
             for (int stepToKey = 0; stepToKey < stepToKeyConst; stepToKey++)
             {
-                InitSubstitutionTable(countOfStepsForSubstitutionTable);
-
                 // Берём данные из губки для инициализации ключей
                 do
                 {
@@ -215,6 +213,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                     buffer.add(lastOutput, dataLenFromStep);
                 }
                 while (buffer.Count < needLen);
+
+                if (!noInitSubstitutionTables)
+                    InitSubstitutionTable(countOfStepsForSubstitutionTable);
 
                 // Копируем значения ключей
                 var rc = threefishCrypto!.array + 0;    // Сразу выполняем переход на ключи

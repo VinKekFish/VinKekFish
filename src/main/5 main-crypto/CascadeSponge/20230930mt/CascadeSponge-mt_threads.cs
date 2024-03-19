@@ -58,7 +58,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         Event.Set();
 
         var cnt = 0;
-        while (ThreadsExecuted > 0 && cnt < 5)
+        while (ThreadsExecuted > 0 && cnt < 15)
         {
             Thread.Sleep(cnt * 50);
             cnt++;

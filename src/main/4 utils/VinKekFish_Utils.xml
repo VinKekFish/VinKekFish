@@ -4,6 +4,23 @@
         <name>4 utils</name>
     </assembly>
     <members>
+        <member name="T:VinKekFish_Utils.AlignUtils">
+            <summary>Класс для временного переопределения параметров консоли</summary>
+        </member>
+        <member name="M:VinKekFish_Utils.AlignUtils.Align(System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>Выравнивает величину на значение, кратное mod, но не менее чем min</summary>
+            <param name="val">Значение для выравнивания</param>
+            <param name="mod">Кратность</param>
+            <param name="min">Минимальное значение</param>
+            <returns>Выравненное значение</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.AlignUtils.AlignDegree(System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>Выравнивает величину на значение, полученное путём возведения в степень mod и домножения на min. То есть значение не менее min, далее mod*min, mod*mod*min и т.п.</summary>
+            <param name="val">Значение для выравнивания</param>
+            <param name="mod">Кратность</param>
+            <param name="min">Минимальное значение</param>
+            <returns>Выравненное значение</returns>
+        </member>
         <member name="T:VinKekFish_Utils.console.ConsoleOptions">
             <summary>Класс для временного переопределения параметров консоли</summary>
             <remarks>Использование:
