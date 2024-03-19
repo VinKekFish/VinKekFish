@@ -84,7 +84,8 @@ public unsafe partial class AutoCrypt
 
                 VinKekFish_Cipher.input = new BytesBuilderStatic(Cascade_Cipher.maxDataLen);
 
-                new PasswordEnter(Cascade_Cipher!, VinKekFish_Cipher!, regime: 1, doErrorMessage: true);
+                if (!noPwd)
+                    new PasswordEnter(Cascade_Cipher!, VinKekFish_Cipher!, regime: 1, doErrorMessage: true);
             }
             finally
             {
