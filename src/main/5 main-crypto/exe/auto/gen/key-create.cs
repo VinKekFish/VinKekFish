@@ -89,8 +89,18 @@ public unsafe partial class AutoCrypt
             }
             finally
             {
+                vkf.sponge = null;
+                csc.sponge = null;
+
+                TryToDispose(main);
                 TryToDispose(Cascade_Cipher);
                 TryToDispose(VinKekFish_Cipher);
+                TryToDispose(OIV);
+
+                TryToDispose(keyVKF1);
+                TryToDispose(keyCSC1);
+                TryToDispose(keyVKF2);
+                TryToDispose(keyCSC2);
 
                 foreach (var part in OIV_parts)
                     TryToDispose(part);
@@ -119,9 +129,9 @@ public unsafe partial class AutoCrypt
 
         protected void addStartPart(GetDataByAdd main, FileParts file, Record OIV)
         {
-            var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
-            var obfRegimeName   = main.getBytes(asciiRegimeName.Length, regime: 23);
-            var recRegimeName   = Record.getRecordFromBytesArray(asciiRegimeName);
+                  var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
+            using var obfRegimeName   = main.getBytes(asciiRegimeName.Length, regime: 23);
+            using var recRegimeName   = Record.getRecordFromBytesArray(asciiRegimeName);
             BytesBuilder.ArithmeticAddBytes(obfRegimeName.len, recRegimeName, obfRegimeName);
 
             // Рассчитываем длину байтов, содержащих длины записываемых массивов

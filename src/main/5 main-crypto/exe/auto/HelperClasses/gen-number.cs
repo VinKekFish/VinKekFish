@@ -49,7 +49,7 @@ public unsafe partial class AutoCrypt
                 0, list.Count,
                 (int i) =>
                 {
-                    var sub = Keccak_abstract.allocator.AllocMemory(len, "GenerateSimpleKey." + NameForRecord + "." + i);
+                    var sub = Keccak_abstract.allocator.AllocMemory(len, "GetDataByAdd.getBytes." + NameForRecord + "." + i);
                     try
                     {
                         list[i].getBytes(sub, regime);
@@ -76,12 +76,22 @@ public unsafe partial class AutoCrypt
             throw new NotImplementedException();
         }
 
+        public void ClearList(bool doDispose = true)
+        {
+            if (doDispose)
+                DisposeSponge();
+            else
+                list.Clear();
+        }
+
         protected override void DisposeSponge()
         {
             foreach (var sponge in list)
             {
                 TryToDispose(sponge);
             }
+
+            list.Clear();
         }
 
         public override nint blockLen { get => throw new InvalidOperationException(NameForRecord); set => throw new InvalidOperationException(NameForRecord); }

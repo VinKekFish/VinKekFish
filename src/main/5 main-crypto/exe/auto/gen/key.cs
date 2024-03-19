@@ -96,6 +96,8 @@ public unsafe partial class AutoCrypt
                     )
             );
 
+            var value = command.value.Trim().ToLowerInvariant();
+
             switch (command.name)
             {
                 case "vinkekfish-k":
@@ -144,7 +146,7 @@ public unsafe partial class AutoCrypt
                     goto start;
                 case "issimple":
                 case "simple":
-                    if (command.value.Trim() == "true" || command.value.Trim() == "yes" || command.value.Trim() == "1")
+                    if (value == "true" || value == "yes" || value == "1")
                         isSimpleOutKey = true;
                     else
                         isSimpleOutKey = false;
@@ -154,7 +156,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "nopwd":
-                        if (command.value.Trim() == "true" || command.value.Trim() == "yes" || command.value.Trim() == "1")
+                        if (value == "true" || value == "yes" || value == "1")
                             noPwd = true;
                         else
                             noPwd = false;
