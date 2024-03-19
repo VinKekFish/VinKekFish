@@ -35,13 +35,16 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
 
         haveOutput = false;         // На всякий случай устанавливаем значение в false. Если где что упадёт, это не даст дальше работать в некоторых функциях
         if (!isThreeFishInitialized)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: !isThreeFishInitialized. See ThreeFish key initialization for reverse connection");
+
+        if (data != null && dataLen < 0)
+            throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: data != null && dataLen < 0");
 
         if (countOfSteps < 1)
         {
@@ -263,8 +266,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     // code::docs:CJXTMlFBHbtxFNSpqeC8:
-    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
-    /// <param name="key">Ключ шифрования</param>
+    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Можно вызывать не один раз. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
+    /// <param name="key">Ключ шифрования либо иной объект инициализации.</param>
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
@@ -273,8 +276,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         initKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
 
-    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
-    /// <param name="key">Ключ шифрования</param>
+    /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Можно вызывать не один раз. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
+    /// <param name="key">Ключ шифрования либо иной объект инициализации.</param>
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>

@@ -54,38 +54,62 @@ public unsafe partial class AutoCrypt
 
             var file = new FileParts { Name = "Entire file" };
 
-            var keyVKF1 = main.getBytes(newKeyLen, regime: 11);
-            var keyCSC1 = main.getBytes(newKeyLen, regime: 13);
-            var keyVKF2 = main.getBytes(newKeyLen, regime: 11);
-            var keyCSC2 = main.getBytes(newKeyLen, regime: 13);
+            var keyVKF0 = main.getBytes(newKeyLen, regime: 11);
+            var keyCSC0 = main.getBytes(newKeyLen, regime: 13);
 
             // Отбиваем основные ключи от информации, которую будем генерировать далее
             // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
-            Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 2);
+            Cascade_Key.InitThreeFishByCascade();
 
             var OIV = main.getBytes(newKeyLen, regime: 17);
 
             List<Record> OIV_parts = new List<Record>(this.outParts.Count);
 
-            VinKekFishBase_KN_20210525? VinKekFish_Cipher = null;
-            CascadeSponge_mt_20230930?  Cascade_Cipher    = null;
+            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator = null;
+            CascadeSponge_mt_20230930?  Cascade_KeyGenerator    = null;
 
             try
             {
                 // Генерация отдельных частей синхропосылки
-                GenerateAndWriteOivParts(main, OIV_parts);
+                var oiv_part_len = AlignUtils.Align(newKeyLen, 2, 65536);
+                GenerateAndWriteOivParts(main, OIV_parts, oiv_part_len);
 
+                // Добавляем описания начала файла и генерируем синхропосылку
                 addStartPart(main, file, OIV);
 
-                Cascade_Cipher = new CascadeSponge_mt_20230930(Cascade_CipherOpts.StrengthInBytes);
-                VinKekFish_Cipher = new VinKekFishBase_KN_20210525(VinKekFish_CipherOpts.Rounds, K: VinKekFish_CipherOpts.K, ThreadCount: 1);
-                VinKekFish_Cipher.Init1(VinKekFish_CipherOpts.PreRounds, prngToInit: Cascade_Cipher);
-                VinKekFish_Cipher.Init2(key: null);
+                status++;                   // 13
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
-                VinKekFish_Cipher.input = new BytesBuilderStatic(Cascade_Cipher.maxDataLen);
+                // Инициализируем генераторы ключей
+                var regime_KG = 3;
+                Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
+                Cascade_KeyGenerator.step(data: OIV, dataLen: OIV.len, regime: 1);
+                foreach (var part in OIV_parts)
+                    Cascade_KeyGenerator.step(data: part, dataLen: part.len, regime: (byte) regime_KG++);
+
+                Cascade_KeyGenerator.InitThreeFishByCascade(countOfSteps: 1, doCheckSafty: false);
+
+                var inputLen = Math.Max(Cascade_KeyGenerator.maxDataLen, newKeyLen*2);
+                    inputLen = Math.Max(inputLen, oiv_part_len);
+
+                VinKekFish_KeyGenerator = new VinKekFishBase_KN_20210525(VinKekFish_KeyOpts.Rounds, K: VinKekFish_KeyOpts.K, ThreadCount: 1);
+                VinKekFish_KeyGenerator.input = new BytesBuilderStatic(inputLen);
+
+                VinKekFish_KeyGenerator.Init1(VinKekFish_KeyOpts.PreRounds, prngToInit: Cascade_KeyGenerator);
+                VinKekFish_KeyGenerator.Init2(key: keyVKF0, OpenInitializationVector: OIV);
+
+                regime_KG = 3;
+                foreach (var part in OIV_parts)
+                {
+                    regime_KG++;
+                    VinKekFish_KeyGenerator.input.add(part);
+                    while (VinKekFish_KeyGenerator.input.Count > 0)
+                        VinKekFish_KeyGenerator.doStepAndIO(regime: (byte) regime_KG);
+                }
 
                 if (!noPwd)
-                    new PasswordEnter(Cascade_Cipher!, VinKekFish_Cipher!, regime: 1, doErrorMessage: true);
+                    new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true);
             }
             finally
             {
@@ -93,14 +117,12 @@ public unsafe partial class AutoCrypt
                 csc.sponge = null;
 
                 TryToDispose(main);
-                TryToDispose(Cascade_Cipher);
-                TryToDispose(VinKekFish_Cipher);
+                TryToDispose(Cascade_KeyGenerator);
+                TryToDispose(VinKekFish_KeyGenerator);
                 TryToDispose(OIV);
 
-                TryToDispose(keyVKF1);
-                TryToDispose(keyCSC1);
-                TryToDispose(keyVKF2);
-                TryToDispose(keyCSC2);
+                TryToDispose(keyVKF0);
+                TryToDispose(keyCSC0);
 
                 foreach (var part in OIV_parts)
                     TryToDispose(part);
@@ -110,9 +132,9 @@ public unsafe partial class AutoCrypt
         /// <summary>Если у ключевого файла есть части, то этот метод генерирует эти части и записывает их в файлы.</summary>
         /// <param name="main">Описатель суммарной губки, которая используется для генерации синхропосылки.</param>
         /// <param name="OIV_parts"></param>
-        protected void GenerateAndWriteOivParts(GetDataByAdd main, List<Record> OIV_parts)
+        /// <param name="oiv_part_len"></param>
+        protected void GenerateAndWriteOivParts(GetDataByAdd main, List<Record> OIV_parts, nint oiv_part_len)
         {
-            var oiv_part_len = AlignUtils.Align(newKeyLen, 2, 65536);
             for (int scNum = 0; scNum < outParts.Count; scNum++)
             {
                 var partRegime = unchecked((byte)(13 + scNum));
