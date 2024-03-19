@@ -57,6 +57,7 @@ public partial class AutoCrypt: IDisposable
                 CurrentCommand = new DecCommand(this) { isDebugMode = isDebugMode };
                 break;
             case "key-main":
+            case "key-primary":
             case "key_gen_main":
             case "key-gen-main":
                 CurrentCommand = new GenKeyCommand(this) { isDebugMode = isDebugMode };
