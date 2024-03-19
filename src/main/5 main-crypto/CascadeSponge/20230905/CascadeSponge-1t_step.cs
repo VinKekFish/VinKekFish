@@ -27,7 +27,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
-    /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen</param>
+    /// <param name="countOfSteps">Количество шагов алгоритма. 0 - значение будет рассчитано исходя из dataLen (не менее одного шага)</param>
     /// <param name="ArmoringSteps">Количество усиливающих шагов алгоритма, которые будут проведены вхолостую после каждого шага поглощения. Не ноль для усиленных режимов, например, инициализации или генерации ключа. См. countStepsForKeyGeneration и countStepsForHardening.</param>
     /// <param name="data">Данные для ввода, не более maxDataLen на один шаг</param>
     /// <param name="dataLen">Количество данных для ввода</param>

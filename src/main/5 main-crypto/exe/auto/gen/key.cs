@@ -581,6 +581,10 @@ public unsafe partial class AutoCrypt
                     CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_KeyOpts, true);    // Стойкость 11 кибибайтов
                 if (Cascade_CipherOpts.StrengthInBytes <= 0)
                     CascadeOptions.ParseCascadeOptions(false, "11264 2", Cascade_CipherOpts, true);
+                if (Cascade_KeyOpts.StrengthInBytes < 256)
+                    Cascade_KeyOpts.StrengthInBytes = 256;
+                if (Cascade_CipherOpts.StrengthInBytes < 256)
+                    Cascade_CipherOpts.StrengthInBytes = 256;
 
                 foreach (var opt in CryptoOptions)
                 {

@@ -182,12 +182,11 @@ public partial class AutoCrypt
                     var bytes = int.Parse(val);
                     if (bytes > 0)
                     {
-                        if (bytes < 256)
-                            bytes = 256;
-
                         opts.StrengthInBytes = bytes;
                     }
                 }
+                if (opts.StrengthInBytes < 256)
+                    opts.StrengthInBytes = 256;
 
                 if (values.Length >= 2)
                 {

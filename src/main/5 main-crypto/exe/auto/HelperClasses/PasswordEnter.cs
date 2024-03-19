@@ -32,7 +32,7 @@ public unsafe partial class PasswordEnter: IDisposable
     public readonly int x = 16, y = 16;
     public readonly byte regime = 0;
 
-    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfSteps = 0, bool doErrorMessage = false)
+    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false)
     {
         // На всякий случай переоткрываем поток ввода, т.к. он может быть перенаправлен с помощью SetIn для получения конфигурации
         Console.SetIn(new StreamReader(Console.OpenStandardInput()));
@@ -62,7 +62,7 @@ public unsafe partial class PasswordEnter: IDisposable
         {
             do
             {
-                sponge.doRandomPermutationForBytes(len, passwordArray, countOfSteps, regime);
+                sponge.doRandomPermutationForBytes(len, passwordArray, countOfStepsForPermitations, regime);
                 doShowPasswordTable();
 
                 var c1 = readKey();
@@ -106,7 +106,7 @@ public unsafe partial class PasswordEnter: IDisposable
                 pwdLen++;
                 if (cur >= sponge.maxDataLen)
                 {
-                    sponge.step(countOfSteps: countOfSteps, regime: regime, data: passwd, dataLen: cur);
+                    sponge.step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
 
                     vkf.input!.add(passwd, cur);
                     while (vkf.input.Count > 0)
@@ -119,7 +119,7 @@ public unsafe partial class PasswordEnter: IDisposable
 
             if (cur > 0)
             {
-                sponge.step(countOfSteps: countOfSteps, regime: regime, data: passwd, dataLen: cur);
+                sponge.step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
 
                 vkf.input!.add(passwd, cur);
                 while (vkf.input.Count > 0)
