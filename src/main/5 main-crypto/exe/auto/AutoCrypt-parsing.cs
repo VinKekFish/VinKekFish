@@ -71,6 +71,9 @@ public partial class AutoCrypt
             {
                 if (fileList is not null)
                     fileList.Add(r);
+
+                if (isDebugMode)
+                    Console.WriteLine("out-part:" + r.FullName);
             }
             else
             {

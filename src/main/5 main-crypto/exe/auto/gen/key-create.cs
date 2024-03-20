@@ -50,9 +50,10 @@ public unsafe partial class AutoCrypt
             var file = new FileParts { Name = "Entire file" };
 
             // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем, то есть они будут сохранены в файле и зашифрованы.
-            var keyVKF2 = main.getBytes(newKeyLen, regime: 11);
             var keyCSC1 = main.getBytes(newKeyLen, regime: 13);
-            var keyCSC2 = main.getBytes(newKeyLen, regime: 13);
+            var keyCSC2 = main.getBytes(newKeyLen, regime: 15);
+            var keyVKF3 = main.getBytes(newKeyLen, regime: 11);
+            var keyCSC3 = main.getBytes(newKeyLen, regime: 13);
             var keyVKF4 = main.getBytes(newKeyLen, regime: 11);
             var keyCSCP = main.getBytes(newKeyLen, regime: 13);     // Ключ для перестановок
             var keyCSCN = main.getBytes(newKeyLen, regime: 11);     // Ключ для шума
@@ -75,7 +76,7 @@ public unsafe partial class AutoCrypt
             try
             {
                 // Генерация отдельных частей синхропосылки
-                var oiv_part_len = AlignUtils.Align(newKeyLen, 2, 65536);
+                var oiv_part_len = AlignUtils.Align(newKeyLen, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
                 GenerateAndWriteOivParts(main, OIV_parts, oiv_part_len);
 
                 // Добавляем описания начала файла и генерируем синхропосылку
@@ -85,6 +86,9 @@ public unsafe partial class AutoCrypt
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
+                // Пароль вводится здесь. Он вводится после генерации синхропосылки и её частей,
+                // т.к. ввод сразу в губку,
+                // а губка должна быть проинициализирована до этого синхропосылками
                 gdKeyGenerator = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator, out Cascade_KeyGenerator, oiv_part_len);
 
                 // Генерируем ключи шифрования для шифрования ключевого файла
@@ -92,9 +96,19 @@ public unsafe partial class AutoCrypt
                 keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 2));  // Окончательное гаммирование с обратной связью
                 keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 3));  // Первичное гаммирование с обратной связью
                 keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 4));  // Гаммирование
+                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 3));  // Вторичное гаммирование с обратной связью
                 keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 5));  // Перестановки
                 keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 6));  // Генерация шума
                 keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 7));  // Генерация шума
+
+                file.AddFilePart("keyCSC1", keyCSC1, true);
+                file.AddFilePart("keyCSCN", keyCSCN, true);
+                file.AddFilePart("keyVKFN", keyVKFN, true);
+                file.AddFilePart("keyCSC2", keyCSC2, true);
+                file.AddFilePart("keyCSCP", keyCSCP, true);
+                file.AddFilePart("keyCSC3", keyCSC3, true);
+                file.AddFilePart("keyVKF3", keyVKF3, true);
+                file.AddFilePart("keyVKF4", keyVKF4, true);
             }
             finally
             {
@@ -112,9 +126,10 @@ public unsafe partial class AutoCrypt
                 TryToDispose(obfRegimeName);
                 TryToDispose(OIV);
 
-                TryToDispose(keyVKF2);
+                TryToDispose(keyVKF3);
                 TryToDispose(keyCSC1);
                 TryToDispose(keyVKF4);
+                TryToDispose(keyCSC3);
                 TryToDispose(keyCSC2);
                 TryToDispose(keyCSCP);
                 TryToDispose(keyCSCN);
@@ -220,16 +235,15 @@ public unsafe partial class AutoCrypt
             BytesBuilder.ArithmeticAddBytes(obfRegimeName.len, recRegimeName, obfRegimeName);
 
             // Рассчитываем длину байтов, содержащих длины записываемых массивов
-            byte[]? OIV_len_record = null, asciiRegimeName_len_record = null;
+            byte[]? asciiRegimeName_len_record = null;
             BytesBuilder.VariableULongToBytes((ulong)asciiRegimeName.Length, ref asciiRegimeName_len_record);
-            BytesBuilder.VariableULongToBytes((ulong)OIV.len, ref OIV_len_record);
 
             file.AddFilePart("Regime name len", asciiRegimeName_len_record!);
             file.AddFilePart("Regime name",     recRegimeName);
             file.AddFilePart("Regime name add", obfRegimeName);
 
-            file.AddFilePart("OIV len", OIV_len_record!);
-            file.AddFilePart("OIV",     OIV);
+            // file.AddFilePart("OIV len", OIV_len_record!);
+            file.AddFilePart("OIV", OIV, createLengthArray: true);
         }
     }
 }

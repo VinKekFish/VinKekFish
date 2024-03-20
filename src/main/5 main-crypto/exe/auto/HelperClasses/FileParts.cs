@@ -71,8 +71,8 @@ public unsafe partial class FileParts
         }
     }
 
-                                                                                /// <summary>Содержимое части</summary>
-    public Record? content   = null;                                            /// <summary>Содержимое части</summary>
+                                                                                /// <summary>Содержимое части. Если это поле записывается с помощью setArrayToRecord, то переопределяется и поле size.</summary>
+    public Record? content   = null;                                            /// <summary>Содержимое части. Если есть и content, и btContent, сначала идёт btContent.</summary>
     public byte[]? btContent = null;
 
     public required string Name {get; init;}
@@ -97,7 +97,7 @@ public unsafe partial class FileParts
         }
     }
                                                                 /// <summary>Поле, используемое свойством size. Не рекомендуется использовать, т.к. size автоматически производит перерасчёт адресов при изменении размера.</summary>
-    public Approximation _size = Approximation.Null;            /// <summary>Оценка размера. Если это не лист, то может иметь нулевой размер. Ненулевой размер у узла сдвигает подчинённые узлы на этот размер (то есть этот блок идёт перед подчинёнными узлами).</summary>
+    public Approximation _size = Approximation.Null;            /// <summary>Оценка размера. Если это не лист, то может иметь нулевой размер. Ненулевой размер у узла сдвигает подчинённые узлы на этот размер (то есть этот блок идёт перед подчинёнными узлами). Если записывается содержимое с помощью setArrayToRecord, то размер переопределяется.</summary>
     public virtual Approximation size
     {
         get => _size;
@@ -162,13 +162,13 @@ public unsafe partial class FileParts
     /// <param name="Name">Имя добавляемой части файла</param>
     /// <param name="content">Содержимое части</param>
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
-    public (int, FileParts) AddFilePart(string Name, Record content)
+    /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
+    public (int, FileParts) AddFilePart(string Name, Record content, bool createLengthArray = false)
     {
         var result = new FileParts() {Name = Name};
         innerParts.Add(result);
 
-        result.size    = new Approximation(content.len, content.len);
-        result.content = content;
+        result.setArrayToRecord(content, createLengthArray);
 
         return (innerParts.Count - 1, result);
     }
@@ -186,5 +186,24 @@ public unsafe partial class FileParts
         }
 
         return (-1, null);
+    }
+
+    /// <summary>Задать значение поля content и свойства size.</summary>
+    /// <param name="content">Содержимое части файла.</param>
+    /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
+    public void setArrayToRecord(Record content, bool createLengthArray = false)
+    {
+        if (createLengthArray)
+        {
+            if (btContent != null)
+                throw new InvalidOperationException("FileParts.setArrayToRecord: btContent != null");
+
+            BytesBuilder.VariableULongToBytes((ulong) content.len, ref btContent);
+        }
+
+        this.content = content;
+
+        var btLen = btContent is null ? 0 : btContent.Length;
+        this.size = new Approximation(content.len + btLen);
     }
 }

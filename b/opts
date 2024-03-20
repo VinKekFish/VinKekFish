@@ -1,0 +1,10 @@
+debug:
+key-main:
+out:/inRamA/2
+out-part:/inRamA/2
+vkf-k:1
+vkf-c:1
+cascade-k:1
+cascade-c:1
+nopwd:true
+start:
