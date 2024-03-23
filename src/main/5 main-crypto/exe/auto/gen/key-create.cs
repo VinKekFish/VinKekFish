@@ -50,20 +50,14 @@ public unsafe partial class AutoCrypt
             var file = new FileParts { Name = "Entire file" };
 
             // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем, то есть они будут сохранены в файле и зашифрованы.
-            var keyCSC1 = main.getBytes(newKeyLen, regime: 13);
-            var keyCSC2 = main.getBytes(newKeyLen, regime: 15);
-            var keyVKF3 = main.getBytes(newKeyLen, regime: 11);
-            var keyCSC3 = main.getBytes(newKeyLen, regime: 13);
-            var keyVKF4 = main.getBytes(newKeyLen, regime: 11);
-            var keyCSCP = main.getBytes(newKeyLen, regime: 13);     // Ключ для перестановок
-            var keyCSCN = main.getBytes(newKeyLen, regime: 11);     // Ключ для шума
-            var keyVKFN = main.getBytes(newKeyLen, regime: 13);     // Ключ для шума
+            var keyCSC = main.getBytes(newKeyLenCsc, regime: 13);
+            var keyVKF = main.getBytes(newKeyLenVkf, regime: 15);
 
             // Отбиваем основные ключи от информации, которую будем генерировать далее
             // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
             Cascade_Key.InitThreeFishByCascade();
 
-            var OIV = main.getBytes(newKeyLen, regime: 17);
+            var OIV = main.getBytes(newKeyLenMax, regime: 17);
 
             List<Record> OIV_parts = new List<Record>(this.outParts.Count);
 
@@ -76,7 +70,7 @@ public unsafe partial class AutoCrypt
             try
             {
                 // Генерация отдельных частей синхропосылки
-                var oiv_part_len = AlignUtils.Align(newKeyLen, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
+                var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
                 GenerateAndWriteOivParts(main, OIV_parts, oiv_part_len);
 
                 // Добавляем описания начала файла и генерируем синхропосылку
@@ -101,14 +95,8 @@ public unsafe partial class AutoCrypt
                 keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 6));  // Генерация шума
                 keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 7));  // Генерация шума
 
-                file.AddFilePart("keyCSC1", keyCSC1, true);
-                file.AddFilePart("keyCSCN", keyCSCN, true);
-                file.AddFilePart("keyVKFN", keyVKFN, true);
-                file.AddFilePart("keyCSC2", keyCSC2, true);
-                file.AddFilePart("keyCSCP", keyCSCP, true);
-                file.AddFilePart("keyCSC3", keyCSC3, true);
-                file.AddFilePart("keyVKF3", keyVKF3, true);
-                file.AddFilePart("keyVKF4", keyVKF4, true);
+                file.AddFilePart("keyCSC", keyCSC, true);
+                file.AddFilePart("keyVKF", keyVKF, true);
             }
             finally
             {
@@ -126,14 +114,8 @@ public unsafe partial class AutoCrypt
                 TryToDispose(obfRegimeName);
                 TryToDispose(OIV);
 
-                TryToDispose(keyVKF3);
-                TryToDispose(keyCSC1);
-                TryToDispose(keyVKF4);
-                TryToDispose(keyCSC3);
-                TryToDispose(keyCSC2);
-                TryToDispose(keyCSCP);
-                TryToDispose(keyCSCN);
-                TryToDispose(keyVKFN);
+                TryToDispose(keyCSC);
+                TryToDispose(keyVKF);
 
                 foreach (var part in OIV_parts)
                     TryToDispose(part);
@@ -155,7 +137,7 @@ public unsafe partial class AutoCrypt
             // Cascade_KeyGenerator проинициализирован всеми сихропосылками
 
             // Инициализируем VinKekFish
-            var inputLen = Math.Max(Cascade_KeyGenerator.maxDataLen, newKeyLen * 2);
+            var inputLen = Math.Max(Cascade_KeyGenerator.maxDataLen, newKeyLenMax * 2);
             inputLen = Math.Max(inputLen, oiv_part_len);
             inputLen = Math.Max(inputLen, Cascade_KeyOpts.StrengthInBytes);
             inputLen = Math.Max(inputLen, VinKekFishBase_KN_20210525.CalcBlockSize(VinKekFish_KeyOpts.K) * 4);  // Берём с запасом

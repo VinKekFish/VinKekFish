@@ -5,6 +5,7 @@ namespace VinKekFish_EXE;
 
 using System.Reflection;
 using cryptoprime;
+using cryptoprime.VinKekFish;
 using maincrypto.keccak;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
@@ -29,9 +30,13 @@ public unsafe partial class AutoCrypt
         public isCorrectAvailable[] CryptoOptions;                                      /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
         public bool                 isSimpleOutKey = false;                             /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
         public bool                 noPwd          = false;
-        public int                  newKeyLen      = 11264;
 
         public string RegimeName = "main.pwd.2024.1";
+
+        public nint newKeyLenVkf = 512;
+        public nint newKeyLenCsc = 512;
+        public nint newKeyLenMin = 512;
+        public nint newKeyLenMax = 512;
 
         public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {
@@ -74,7 +79,6 @@ public unsafe partial class AutoCrypt
                         vkf-c:11
                         cascade-k:11264 2
                         vkf-k:11
-                        len:11264
                         simple:true
                         nopwd:true
                         start:
@@ -115,9 +119,6 @@ public unsafe partial class AutoCrypt
                     goto start;
                 case "cascade-c":
                         CascadeOptions.ParseCascadeOptions(isDebugMode, command.value.Trim(), Cascade_CipherOpts, forKey: true);
-                    goto start;
-                case "len":
-                        newKeyLen = int.Parse(command.value.Trim());
                     goto start;
                 case "random":
                 case "rnd":
@@ -232,6 +233,11 @@ public unsafe partial class AutoCrypt
                 Console.WriteLine(L("The primary initialization has started. This may take a long time."));
                 Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
             }
+
+            newKeyLenVkf = VinKekFish_CipherOpts.K * VinKekFishBase_etalonK1.BLOCK_SIZE * 2;
+            newKeyLenCsc = Cascade_CipherOpts.StrengthInBytes * 2;
+            newKeyLenMax = Math.Max(newKeyLenVkf, newKeyLenCsc);
+            newKeyLenMin = Math.Min(newKeyLenVkf, newKeyLenCsc);
 
             try
             {
@@ -497,7 +503,6 @@ public unsafe partial class AutoCrypt
         {
             // VinKekFish_Key
             // Cascade_Key
-            // newKeyLen
 
             var main = new GetDataByAdd();
             var vkf  = new GetDataFromVinKekFishSponge(VinKekFish_Key!);
@@ -510,7 +515,7 @@ public unsafe partial class AutoCrypt
 
             main.NameForRecord = "GenKeyCommand.GenerateSimpleKey";
 
-            var keyVKF = main.getBytes(newKeyLen, regime: 11);
+            var keyVKF = main.getBytes(newKeyLenMax, regime: 11);
 
             try
             {
