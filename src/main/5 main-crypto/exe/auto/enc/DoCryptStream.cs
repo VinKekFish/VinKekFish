@@ -14,10 +14,11 @@ using maincrypto.keccak;
 using cryptoprime;
 using System.Reflection.Metadata.Ecma335;
 using cryptoprime.VinKekFish;
+using vinkekfish;
 
 public unsafe partial class Main_PWD_2024_1
 {
-    public partial class DoCryptDataStream: IDisposable
+    public partial class EncryptDataStream: IDisposable
     {                                                                       /// <summary>Поток данных, выравненный по длине. Автоматически создаётся и удаляется.</summary>
         public Record       AlignedStream;                                  /// <summary>Исходный поток данных, переданный в конструктор. Автоматически удаляется.</summary>
         public Record       PrimaryStream;
@@ -32,14 +33,21 @@ public unsafe partial class Main_PWD_2024_1
         protected Record   Key4Vkf;
         protected Record   Key5Vkf;
 
+        public readonly VinKekFishOptions vkfOpt;
+        public readonly CascadeOptions    cscOpt;
+        public readonly nint              tall, wide;
+
         /// <summary>Создаёт логический поток шифрования. Выравнивает его, дополняет шумами, генерирует ключи шифрования.</summary>
         /// <param name="dataStream">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
         /// <param name="getDataByAdd">Генератор ключей, который уже должен быть проинициализирован заранее. Используется только в конструкторе, далее может быть использован в других потоках и должен быть удалён вызывающим методом. Первый режим работы: 255.</param>
         /// <param name="vkfOpt">Опции создания губки VinKekFish.</param>
         /// <param name="cscOpt">Опции создания каскадной губки.</param>
-        public DoCryptDataStream(Record dataStream, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
+        public EncryptDataStream(Record dataStream, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
         {
             GC.ReRegisterForFinalize(this);
+            this.vkfOpt = vkfOpt;
+            this.cscOpt = cscOpt;
+            CascadeSponge_1t_20230905.CalcCascadeParameters(cscOpt.StrengthInBytes, 0, out tall, ref wide);
 
             byte[]? length_array = null;
             BytesBuilder.VariableULongToBytes((ulong) dataStream.len, ref length_array);
@@ -71,7 +79,7 @@ public unsafe partial class Main_PWD_2024_1
             Key0NoiseCsc = getDataByAdd.getBytes(cscOpt.StrengthInBytes, 251);
         }
 
-        ~DoCryptDataStream()       => Dispose(true);
+        ~EncryptDataStream()       => Dispose(true);
         void IDisposable.Dispose() => Dispose();
 
         public bool isDisposed = false;
