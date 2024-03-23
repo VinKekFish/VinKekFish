@@ -24,6 +24,7 @@ public unsafe partial class Main_PWD_2024_1
 
         protected Record   Key0NoiseVkf;
         protected Record   Key0NoiseCsc;
+        protected Record   Key0ICsc;
         protected Record   Key1Vkf;
         protected Record   Key2PCsc;
         protected Record   Key3Csc;
@@ -57,14 +58,17 @@ public unsafe partial class Main_PWD_2024_1
             var cur  = fLen;
             var nLen = aLen - fLen;
 
-            Key0NoiseVkf = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*1, 255);
-            Key0NoiseCsc = getDataByAdd.getBytes(cscOpt.StrengthInBytes, 254);
-            Key1Vkf      = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*2, 255);
-            Key2PCsc     = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 254);
-            Key3Csc      = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 255);
-            Key4Csc      = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 254);
+            Key0ICsc     = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 251);                                // Генерация таблиц перестановок для VinKekFish (2.1.специальная для инициализации)
+            Key1Vkf      = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*2, 254);         // Первое гаммирование с обратной связью (2.1)
+            Key2PCsc     = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 252);                                // Перестановки (2.2)
+            Key3Csc      = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 251);                                // Гаммирование с обратной связью (2.3)
+            Key4Csc      = getDataByAdd.getBytes(cscOpt.StrengthInBytes*2, 252);                                // Простое гаммирование суммой губок (2.4)
             Key4Vkf      = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*2, 255);
-            Key5Vkf      = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*2, 254);
+            Key5Vkf      = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*2, 254);         // Гаммирование с обратной связью (2.5)
+
+            // Выносим генерацию шума как последние ключи, т.к. их можно и не генерировать вообще при расшифровке
+            Key0NoiseVkf = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*1, 255);         // Генерация шума (пункт 1)
+            Key0NoiseCsc = getDataByAdd.getBytes(cscOpt.StrengthInBytes, 251);
         }
 
         ~DoCryptDataStream()       => Dispose(true);
