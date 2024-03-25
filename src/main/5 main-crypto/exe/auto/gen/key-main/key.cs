@@ -29,9 +29,14 @@ public unsafe partial class AutoCrypt
 
         public isCorrectAvailable[] CryptoOptions;                                      /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
         public bool                 isSimpleOutKey = false;                             /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
-        public bool                 noPwd          = false;
+        public bool                 noPwd          = false;                             /// <summary>Если true, то есть скрытый пароль на скрытые данные.</summary>
+        public bool                 havePwd2       = false;
+                                                                                        /// <summary>Если true, то существует скрытый (второй) поток данных.</summary>
+        public bool                 haveStream2    => havePwd2 || outParts2.Count > 0;
 
-        public string RegimeName = "main.pwd.2024.1";
+                                                                                        /// <summary>Режим шифрования файла с ключами шифрования.</summary>
+        public string  RegimeName = "main.pwd.2024.1";                                  /// <summary>Режим шифрования, который будет применяться при шифровании ключами, которые будут зашифрованы в файле-результате. Пустая строка означает, что шифруются не ключи.</summary>
+        public string fRegimeName = "main.pwd.2024.1";
 
         public nint newKeyLenVkf = 512;
         public nint newKeyLenCsc = 512;
@@ -51,6 +56,7 @@ public unsafe partial class AutoCrypt
 
         protected readonly List<FileInfo> rnd        = new List<FileInfo>(0);
         protected readonly List<FileInfo> outParts   = new List<FileInfo>(0);
+        protected readonly List<FileInfo> outParts2  = new List<FileInfo>(0);
         protected               FileInfo? outKeyFile = null;
 
         public override ProgramErrorCode Exec()
@@ -140,10 +146,10 @@ public unsafe partial class AutoCrypt
                         ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
                     goto start;
                 case "regime":
-                        ParseRegimeOptions(command.value.Trim());
+                        RegimeName = ParseRegimeOptions(value);
                     goto start;
                 case "fregime":
-                        ParseRegimeOptions(command.value.Trim());
+                        fRegimeName = ParseRegimeOptions(value, true);
                     goto start;
                 case "issimple":
                 case "simple":
@@ -165,6 +171,19 @@ public unsafe partial class AutoCrypt
                         if (isDebugMode)
                             Console.WriteLine("nopwd:" + noPwd);
 
+                    goto start;
+                case "pwd2":
+                        if (value == "true" || value == "yes" || value == "1")
+                            havePwd2 = true;
+                        else
+                            havePwd2 = false;
+
+                        if (isDebugMode)
+                            Console.WriteLine("pwd2:" + noPwd);
+
+                    goto start;
+                case "out-part2":
+                        ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts2);
                     goto start;
                 case "start":
                     if (Terminated)
@@ -195,12 +214,31 @@ public unsafe partial class AutoCrypt
             return ProgramErrorCode.success;
         }
 
+        /// <summary>Разрешённые режимы, которые должна понимать программа. Прочие режимы будут отброшены.</summary>
+        public readonly string[] AllowedRegimes = {"main.pwd.2024.1", "simple.file.2024.1"};
 
         /// <summary>Распарсить опции команды regime</summary>
         /// <param name="value">Опции, разделённые пробелом.</param>
-        protected void ParseRegimeOptions(string value)
+        protected string ParseRegimeOptions(string value, bool isEmptyRegimeAllowed = false)
         {
-            RegimeName = value;
+            var val = value.Trim().ToLowerInvariant();
+            foreach (var regime in AllowedRegimes)
+                if (val == regime)
+                {
+                    return regime;
+                }
+
+            if (isEmptyRegimeAllowed && value.Length == 0)
+                return "";
+
+            var emsg = L("Regime is unknown") + $": {value}";
+            if (isDebugMode)
+            {
+                Console.Error.WriteLine(emsg);
+                return "";
+            }
+            else
+                throw new CommandException(emsg);
         }
 
         /// <summary>Распарсить опции команды regime</summary>

@@ -105,6 +105,16 @@ public unsafe partial class Main_PWD_2024_1
             TryToDispose(PrimaryStream);
             TryToDispose(AlignedStream);
 
+            TryToDispose(Key0ICsc);
+            TryToDispose(Key1Vkf);
+            TryToDispose(Key2PCsc);
+            TryToDispose(Key3Csc);
+            TryToDispose(Key4Csc);
+            TryToDispose(Key4Vkf);
+            TryToDispose(Key5Vkf);
+            TryToDispose(Key0NoiseVkf);
+            TryToDispose(Key0NoiseCsc);
+
             if (emsg is not null)
             {
                 Record.errorsInDispose = true;

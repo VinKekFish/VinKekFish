@@ -64,7 +64,6 @@ public unsafe partial class AutoCrypt
             VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator = null;
             CascadeSponge_mt_20230930?  Cascade_KeyGenerator    = null;
             Record? obfRegimeName = null;
-            var keys = new List<Record>(6);
             GetDataByAdd? gdKeyGenerator = null;
 
             try
@@ -85,27 +84,18 @@ public unsafe partial class AutoCrypt
                 // а губка должна быть проинициализирована до этого синхропосылками
                 gdKeyGenerator = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator, out Cascade_KeyGenerator, oiv_part_len);
 
-                // Генерируем ключи шифрования для шифрования ключевого файла
-                keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 1));  // Гаммирование
-                keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 2));  // Окончательное гаммирование с обратной связью
-                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 3));  // Первичное гаммирование с обратной связью
-                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 4));  // Гаммирование
-                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 3));  // Вторичное гаммирование с обратной связью
-                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 5));  // Перестановки
-                keys.Add(gdKeyGenerator.getBytes(Cascade_KeyOpts.StrengthInBytes,         regime: 6));  // Генерация шума
-                keys.Add(gdKeyGenerator.getBytes(VinKekFish_KeyGenerator!.BLOCK_SIZE_K*3, regime: 7));  // Генерация шума
-
                 file.AddFilePart("keyCSC", keyCSC, true);
                 file.AddFilePart("keyVKF", keyVKF, true);
+
+                // ЭТО НЕВЕРНО!!!
+                // ВСЁ НЕВЕРНО!!!
+                var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
             }
             finally
             {
                 vkf.sponge = null;
                 csc.sponge = null;
 
-                foreach (var key in keys)
-                    TryToDispose(key);
-                keys.Clear();
                 TryToDispose(gdKeyGenerator);
 
                 TryToDispose(main);
