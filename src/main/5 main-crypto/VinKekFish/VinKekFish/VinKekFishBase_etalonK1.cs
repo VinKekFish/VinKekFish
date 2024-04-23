@@ -22,7 +22,7 @@ namespace cryptoprime.VinKekFish
         public const int     KeccakBlockLen       = 200;
                                                                                         /// <summary>Размер tweak (16 байтов, 2*ulong)</summary>
         public const int  CryptoTweakLen          = 8*2;
-                                                                                        /// <summary>Размер блока ввода-вывода (512 байтов = 4096 битов), для K = 1</summary>
+                                                                                        /// <summary>Размер блока ввода-вывода (512 байтов = 4096 битов), для K = 1. Размер блока совпадает с номиналом стойкости шифра. Рекомендуемый размер ключа должен быть порядка 2-3 блоков или более.</summary>
         public const int  BLOCK_SIZE              = 512;                                /// <summary>Размер максимального блока для ввода начала ключа: 2048 байтов (16384 бита), для K = 1</summary>
         public const int  MAX_SINGLE_KEY          = 2048;                               /// <summary>Максимально допустимая длина ОВИ (открытого вектора инициализации): 1148 байтов = 9184 битов, для K = 1</summary>
         public const int  MAX_OIV                 = 1148;

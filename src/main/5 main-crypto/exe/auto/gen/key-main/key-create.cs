@@ -36,11 +36,20 @@ public unsafe partial class AutoCrypt
             // Что делать со вторым ключом? Как обеспечить отказуемое шифрование?
             // throw new NotImplementedException();
 
+            if (VinKekFish_Key!.input!.Count > 0)
+                throw new InvalidOperationException("GenKeyCommand.CreateKeyFiles: VinKekFish_Key.input.Count > 0");
+
+            // Инициализируем губки для генерации шифруемой информации и синхропосылок файла.
+            // Шифруемая информация - это ключи,
+            // которые в дальнейшем будут использованы для генерации сессионных ключей
+            // при других сессиях шифрования. То есть здесь эти ключи использованы не будут.
             var main     = new GetDataByAdd();
             var vkf      = new GetDataFromVinKekFishSponge(VinKekFish_Key!);
             var csc      = new GetDataFromCascadeSponge(Cascade_Key!);
-            vkf.blockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;
+            vkf.blockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;        // Ключевой режим генерации: малые блоки генерации
             csc.blockLen = Cascade_Key!.lastOutput.len >> 1;
+
+            csc.ArmoringSteps = Cascade_KeyOpts.ArmoringSteps;
 
             main.AddSponge(vkf);
             main.AddSponge(csc);
@@ -49,15 +58,17 @@ public unsafe partial class AutoCrypt
 
             var file = new FileParts { Name = "Entire file" };
 
-            // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем, то есть они будут сохранены в файле и зашифрованы.
-            var keyCSC = main.getBytes(newKeyLenCsc, regime: 13);
-            var keyVKF = main.getBytes(newKeyLenVkf, regime: 15);
+            // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем,
+            // то есть они будут сохранены в файле и зашифрованы, но сейчас они не будут использованы.
+            var data_keyCSC = main.getBytes(newKeyLenCsc, regime: 13);
+            var data_keyVKF = main.getBytes(newKeyLenVkf, regime: 15);
 
             // Отбиваем основные ключи от информации, которую будем генерировать далее
             // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
             Cascade_Key.InitThreeFishByCascade();
+            VinKekFish_Key.doStepAndIO(Overwrite: true, regime: 255, nullPadding: true);
 
-            var OIV = main.getBytes(newKeyLenMax, regime: 17);
+            var OIV = main.getBytes(newKeyLenMin, regime: 17);
 
             List<Record> OIV_parts = new List<Record>(this.outParts.Count);
 
@@ -79,14 +90,19 @@ public unsafe partial class AutoCrypt
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
+                // ----------------------------------------------------------------
+                // main больше не нужен - всё сгенерированно, что будет записано в файл
+                // Далее инициализируем уже губки для генерации сессионных ключей
+                // ----------------------------------------------------------------
+
                 // Пароль вводится здесь. Он вводится после генерации синхропосылки и её частей,
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
                 gdKeyGenerator = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator, out Cascade_KeyGenerator, oiv_part_len);
-
-                file.AddFilePart("keyCSC", keyCSC, true);
-                file.AddFilePart("keyVKF", keyVKF, true);
-
+/*
+                file.AddFilePart("keyCSC", data_keyCSC, true);
+                file.AddFilePart("keyVKF", data_keyVKF, true);
+*/
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
                 var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
@@ -104,8 +120,8 @@ public unsafe partial class AutoCrypt
                 TryToDispose(obfRegimeName);
                 TryToDispose(OIV);
 
-                TryToDispose(keyCSC);
-                TryToDispose(keyVKF);
+                TryToDispose(data_keyCSC);
+                TryToDispose(data_keyVKF);
 
                 foreach (var part in OIV_parts)
                     TryToDispose(part);

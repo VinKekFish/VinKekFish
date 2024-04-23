@@ -272,8 +272,10 @@ public unsafe partial class AutoCrypt
                 Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
             }
 
-            newKeyLenVkf = VinKekFish_CipherOpts.K * VinKekFishBase_etalonK1.BLOCK_SIZE * 2;
-            newKeyLenCsc = Cascade_CipherOpts.StrengthInBytes * 2;
+            // Примерная максимальная стойкость VinKekFish - это 2,5-3 раза по отношению к номиналу (к размеру блока)
+            // Примерная максимальная оценка стойкости каскадной губки - это сумма всех стойкостей внутренних губок keccak
+            newKeyLenVkf = VinKekFish_CipherOpts.K * VinKekFishBase_etalonK1.BLOCK_SIZE * 3;
+            newKeyLenCsc = Cascade_CipherOpts.StrengthInBytes * (Cascade_CipherOpts.StrengthInBytes / 64);
             newKeyLenMax = Math.Max(newKeyLenVkf, newKeyLenCsc);
             newKeyLenMin = Math.Min(newKeyLenVkf, newKeyLenCsc);
 
@@ -309,6 +311,7 @@ public unsafe partial class AutoCrypt
 
                 TryToDispose(br);
             }
+            // Конец функции
 
             void InitKeyGenerationSponges(ref int status, int countOfTasks, Record br, out Record br2, out Record br3)
             {
