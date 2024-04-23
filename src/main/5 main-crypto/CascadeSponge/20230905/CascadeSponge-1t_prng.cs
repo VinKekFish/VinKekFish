@@ -36,15 +36,16 @@ public partial class CascadeSponge_1t_20230905
             // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
             try
             {
-                index = getUnsignedInteger(len - i - 1, bb) + i;
+                index = (nint) getUnsignedInteger((nuint) (len - i - 1), bb) + i;
                 err = 0;
             }
             catch (NotEnoughtBytesException)
             {
-                if (err > 0)
+                if (err > 64)
                     throw;
 
-                err = 1;
+                err++;
+                i--;
                 continue;
             }
 
@@ -63,16 +64,26 @@ public partial class CascadeSponge_1t_20230905
     /// <param name="max">Максимальное число, которое ещё возможно получить</param>
     /// <param name="entropy">Байты, сгенерированные источником энтропии</param>
     /// <returns>Случайное число в диапазоне [0; max]</returns>
-    public unsafe static nint getUnsignedInteger(nint max, BytesBuilderStatic entropy)
+    public unsafe static nuint getUnsignedInteger(nuint max, BytesBuilderStatic entropy)
     {
         if (max < 1)
             throw new ArgumentOutOfRangeException("CascadeSponge_1t_20230905.getUnsignedInteger: max < 1");
 
-        nint r;
-        nint cnt = max < 256 ? 1 : 2;
-        var  e   = stackalloc byte[2] {0, 0};
+        nuint r   = 1;
+        nint  cnt = 0;
+        do
+        {
+            cnt++;
+            r <<= 8;    // Сдвиг ещё на 8-мь битов
+        }
+        while (max >= r || r == 0);
 
-        nint mask = 2;
+        if (cnt > sizeof(nuint))
+            throw new NotImplementedException($"getUnsignedInteger: cnt > {sizeof(nuint)} (max >= 1 << 64)");
+
+        nuint* e = stackalloc nuint[1] {0};
+
+        nuint mask = 2;
         while (mask <= max)
             mask <<= 1;
 
@@ -82,17 +93,15 @@ public partial class CascadeSponge_1t_20230905
             if (entropy.Count < cnt)
                 throw new NotEnoughtBytesException();
 
-            entropy.getBytesAndRemoveIt(e, cnt);
+            *e = 0;     // e неполностью заполняется, нужно обнулить те байты, которые не будут заполнены
+            entropy.getBytesAndRemoveIt((byte*) e, cnt);
 
-            r  = e[0];
-            r += e[1] << 8;
-
+            r  = *e;
             r &= mask;
         }
         while (r > max);
 
         e[0] = 0;
-        e[1] = 0;
 
         return r;
     }
@@ -102,7 +111,7 @@ public partial class CascadeSponge_1t_20230905
         byte a, err = 0;
         nint index;
 
-        using var bb = new BytesBuilderStatic(this.maxDataLen*2);
+        using var bb = new BytesBuilderStatic(this.maxDataLen*4);
 
         // Алгоритм тасования Дурштенфельда
         // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
@@ -111,8 +120,8 @@ public partial class CascadeSponge_1t_20230905
             // var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);ulong
             // index = getUnsignedInteger(0, cutoff) + i;
 
-            // Берём сразу 8 байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
-            if (bb.Count < 8)
+            // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
+            if (bb.Count < bb.size - this.maxDataLen)
             {
                 step(countOfSteps: countOfSteps, regime: regime);
                 bb.add(lastOutput);
@@ -122,15 +131,16 @@ public partial class CascadeSponge_1t_20230905
             // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
             try
             {
-                index = getUnsignedInteger(len - i - 1, bb) + i;
+                index = (nint) getUnsignedInteger((nuint)(len - i - 1), bb) + i;
                 err = 0;
             }
             catch (NotEnoughtBytesException)
             {
-                if (err > 0)
+                if (err > 64)
                     throw;
 
-                err = 1;
+                err++;
+                i--;
                 continue;
             }
 

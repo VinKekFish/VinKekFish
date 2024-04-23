@@ -75,7 +75,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
                 else
                 {
                     Record.errorsInDispose = true;
-                    Console.Error.WriteLine("CascadeSponge_mt_20230930.Dispose: ThreadsExecuted > 0");
+                    Console.Error.WriteLine($"CascadeSponge_mt_20230930.Dispose: ThreadsExecuted > 0 ({ThreadsExecuted})");
                 }
             }
         }

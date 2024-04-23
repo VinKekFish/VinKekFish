@@ -105,6 +105,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_mt_20230930_PerformanceTest
 {
@@ -122,6 +123,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 600, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_mt_20230930_PerformanceTest
 {
@@ -138,6 +140,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge_mt_20230930_PerformanceTest
 {
@@ -154,6 +157,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 400, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge_mt_20230930_PerformanceTest
 {
@@ -170,6 +174,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 600, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge_mt_20230930_PerformanceTest
 {
@@ -186,6 +191,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge
 #if inWork_With_CascadeSponge_mt
 [TestTagAttribute("inWork")]
 #endif
+[TestTagAttribute("performance")]
 [TestTagAttribute("CascadeSponge", duration: 2200, singleThread: true)]
 public unsafe class CascadeSponge_mt_20230930_PerformanceTest_176 : CascadeSponge_mt_20230930_PerformanceTest
 {

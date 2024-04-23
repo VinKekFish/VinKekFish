@@ -10,6 +10,7 @@ using static VinKekFish_Utils.Utils;
 
 
 /// [TestTagAttribute("inWork")]
+[TestTagAttribute("performance")]
 [TestTagAttribute("VinKekFish", duration: 15e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_performance11 : TestTask
 {
