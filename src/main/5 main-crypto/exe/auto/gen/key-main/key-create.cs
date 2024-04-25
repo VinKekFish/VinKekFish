@@ -101,10 +101,8 @@ public unsafe partial class AutoCrypt
                 // Пароль вводится здесь. Он вводится после генерации синхропосылки и её частей,
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
-                gdKeyGenerator  = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator , out Cascade_KeyGenerator , oiv_part_len);
-
-                if (havePwd2)
-                    gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len);
+                gdKeyGenerator  = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator , out Cascade_KeyGenerator , oiv_part_len, noPwd);
+                gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len, !havePwd2);
 
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
@@ -127,7 +125,7 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        public GetDataByAdd InitKeyGenerators(Record obfRegimeName, Record OIV, List<Record> OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, out CascadeSponge_mt_20230930? Cascade_KeyGenerator, nint oiv_part_len)
+        public GetDataByAdd InitKeyGenerators(Record obfRegimeName, Record OIV, List<Record> OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, out CascadeSponge_mt_20230930? Cascade_KeyGenerator, nint oiv_part_len, bool noPwd)
         {
             // Инициализируем генераторы ключей синхропосылками
             var regime_KG = 3;
