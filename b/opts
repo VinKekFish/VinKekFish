@@ -8,4 +8,5 @@ vkf-c:1
 cascade-k:512
 cascade-c:512
 nopwd:true
+pwd2:true
 start:

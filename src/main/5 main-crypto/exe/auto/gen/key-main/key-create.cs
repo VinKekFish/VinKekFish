@@ -41,10 +41,10 @@ public unsafe partial class AutoCrypt
                 throw new InvalidOperationException("GenKeyCommand.CreateKeyFiles: VinKekFish_Key.input.Count > 0");
 
 
-            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator;
-            CascadeSponge_mt_20230930?  Cascade_KeyGenerator;
+            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, VinKekFish_KeyGenerator2 = null;
+            CascadeSponge_mt_20230930?  Cascade_KeyGenerator, Cascade_KeyGenerator2 = null;
             Record? obfRegimeName = null, OIV = null;
-            GetDataByAdd?     gdKeyGenerator = null;
+            GetDataByAdd?     gdKeyGenerator = null, gdKeyGenerator2 = null;
             KeyDataGenerator? dataGenerator  = null;
             List<Record> OIV_parts = new List<Record>(this.outParts.Count);
             try
@@ -101,7 +101,10 @@ public unsafe partial class AutoCrypt
                 // Пароль вводится здесь. Он вводится после генерации синхропосылки и её частей,
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
-                gdKeyGenerator = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator, out Cascade_KeyGenerator, oiv_part_len);
+                gdKeyGenerator  = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator , out Cascade_KeyGenerator , oiv_part_len);
+
+                if (havePwd2)
+                    gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len);
 
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
@@ -110,6 +113,7 @@ public unsafe partial class AutoCrypt
             finally
             {
                 TryToDispose(gdKeyGenerator);
+                TryToDispose(gdKeyGenerator2);
 
                 //TryToDispose(Cascade_KeyGenerator); // Это и так сделает gdKeyGenerator
                 //TryToDispose(VinKekFish_KeyGenerator);
