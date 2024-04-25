@@ -4,7 +4,7 @@ out:/inRamA/2
 out-part:/inRamA/2
 vkf-k:1
 vkf-c:1
-cascade-k:1
-cascade-c:1
+cascade-k:512
+cascade-c:512
 nopwd:true
 start:

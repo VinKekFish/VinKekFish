@@ -14,8 +14,107 @@ using static VinKekFish_EXE.AutoCrypt.GetDataFromSponge;
 using static VinKekFish_Utils.Language;
 using static VinKekFish_Utils.Utils;
 
+// В этом файле объявлены KeyDataGenerator и GetDataByAdd (сумма губок)
 public unsafe partial class AutoCrypt
 {
+    /// <summary>Используется для генерации ключей шифрования</summary>
+    public class KeyDataGenerator: IDisposable
+    {
+        public GetDataByAdd                main;
+        public GetDataFromVinKekFishSponge vkf;
+        public GetDataFromCascadeSponge    csc;
+        /// <summary>Сгенерированные в конструкторе ключи шифрования. data_keyCSC - ключ для использования в каскадной губке, data_keyVKF - ключ для использования в губке VinKekFish. Эти ключи генерируются для пользователя, здесь они не используются.</summary>
+        public Record data_keyCSC, data_keyVKF;
+                                                                        /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в каскадной губке</summary>
+        public required nint keyLenCsc  {get; init;}                    /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в губке VinKekFish</summary>
+        public required nint keyLenVkf  {get; init;}
+
+        /// <summary>Создаёт объект и сразу же генерирует два ключа шифрования из переданных губок</summary>
+        /// <param name="vkf_keyGenerator">Проинициализированная губка VinKekFish, готовая к генерации ключа шифрования (режимы 13 и 15)</param>
+        /// <param name="csc_keyGenerator">Проинициализированная каскадная губка, готовая к генерации ключа шифрования (режимы 13 и 15)</param>
+        /// <param name="ArmoringSteps">Количество дополнительных холостых шагов, усиливающих шифрование</param>
+        /// <param name="NameForRecord">Отладочное имя для выделения памяти</param>
+        public KeyDataGenerator(VinKekFishBase_KN_20210525 vkf_keyGenerator, CascadeSponge_mt_20230930 csc_keyGenerator, int ArmoringSteps, string NameForRecord)
+        {
+            GC.ReRegisterForFinalize(this);
+
+            main     = new GetDataByAdd();
+            vkf      = new GetDataFromVinKekFishSponge(vkf_keyGenerator);
+            csc      = new GetDataFromCascadeSponge   (csc_keyGenerator);
+
+            vkf.blockLen = vkf_keyGenerator.BLOCK_SIZE_KEY_K;        // Ключевой режим генерации: малые блоки генерации
+            csc.blockLen = csc_keyGenerator.lastOutput.len >> 1;
+
+            csc.ArmoringSteps = ArmoringSteps;
+
+            main.AddSponge(vkf);
+            main.AddSponge(csc);
+
+            main.NameForRecord = NameForRecord;
+
+            // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем,
+            // то есть они будут сохранены в файле и зашифрованы, но сейчас они не будут использованы.
+            data_keyCSC = getBytes(keyLenCsc, regime: 13);
+            data_keyVKF = getBytes(keyLenVkf, regime: 15);
+        }
+
+        /// <summary>Получает псевдослучайные криптостойкие байты (например, ключи или синхропосылки). Полностью аналогично GetDataByAdd.getBytes.</summary>
+        /// <param name="len">Длина получаемых данных.</param>
+        /// <param name="regime">Числовой режим генерации (вводится в губки)</param>
+        /// <returns></returns>
+        public Record getBytes(nint len, byte regime)
+        {
+            return main.getBytes(len: len, regime: regime);
+        }
+
+        /// <summary>Делает необратимое преобразование в обеих губках ("отбивает" предыдущие состояния от будущих). (InitThreeFishByCascade и doStepAndIO с Overwrite: true).</summary>
+        public void doChopRegime()
+        {
+            csc.sponge!.InitThreeFishByCascade();
+            vkf.sponge!.doStepAndIO(Overwrite: true, regime: 255, nullPadding: true);
+        }
+                                                                                                    /// <summary>true, если объект прошёл через Dispose</summary>
+        public bool isDisposed {get; protected set;} = false;                                       /// <summary>Если true, до первичные губки, переданные в класс, будут уничтожены при уничтожении объекта. Если false, то эти губки должны быть уничтожены вручную программистом позже уничтожения этого объекта.</summary>
+        public required bool willDisposeSponges = true;
+        public void Dispose()
+        {
+            if (isDisposed)
+            {
+                Record.errorsInDispose = true;
+                Console.Error.WriteLine("AutoCrypt.GenKeyCommand.DataGenerator.Dispose: isDisposed (Dispose executed twiced)");
+                return;
+            }
+
+            try
+            {
+                if (!willDisposeSponges)
+                {
+                    vkf.sponge = null;
+                    csc.sponge = null;
+                }
+            }
+            catch (Exception e)
+            {
+                formatException(e);
+            }
+
+            TryToDispose(main);
+            isDisposed = true;
+        }
+
+        ~KeyDataGenerator()
+        {
+            if (!isDisposed)
+            {
+                Record.errorsInDispose = true;
+                Console.Error.WriteLine("AutoCrypt.GenKeyCommand.~DataGenerator: !isDisposed");
+
+                Dispose();
+            }
+        }
+    }
+
+
     /// <summary>Представляет сумму губок. Результат генерируется как арифметическая сумма результатов губок.</summary>
     public class GetDataByAdd: GetDataFromSpongeClass
     {

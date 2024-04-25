@@ -3,6 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.Net.Mime;
 using System.Reflection;
 using System.Text;
 using cryptoprime;
@@ -39,52 +40,40 @@ public unsafe partial class AutoCrypt
             if (VinKekFish_Key!.input!.Count > 0)
                 throw new InvalidOperationException("GenKeyCommand.CreateKeyFiles: VinKekFish_Key.input.Count > 0");
 
-            // Инициализируем губки для генерации шифруемой информации и синхропосылок файла.
-            // Шифруемая информация - это ключи,
-            // которые в дальнейшем будут использованы для генерации сессионных ключей
-            // при других сессиях шифрования. То есть здесь эти ключи использованы не будут.
-            var main     = new GetDataByAdd();
-            var vkf      = new GetDataFromVinKekFishSponge(VinKekFish_Key!);
-            var csc      = new GetDataFromCascadeSponge(Cascade_Key!);
-            vkf.blockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;        // Ключевой режим генерации: малые блоки генерации
-            csc.blockLen = Cascade_Key!.lastOutput.len >> 1;
 
-            csc.ArmoringSteps = Cascade_KeyOpts.ArmoringSteps;
-
-            main.AddSponge(vkf);
-            main.AddSponge(csc);
-
-            main.NameForRecord = "GenKeyCommand.CreateKeyFiles";
-
-            var file = new FileParts { Name = "Entire file" };
-
-            // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем,
-            // то есть они будут сохранены в файле и зашифрованы, но сейчас они не будут использованы.
-            var data_keyCSC = main.getBytes(newKeyLenCsc, regime: 13);
-            var data_keyVKF = main.getBytes(newKeyLenVkf, regime: 15);
-
-            // Отбиваем основные ключи от информации, которую будем генерировать далее
-            // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
-            Cascade_Key.InitThreeFishByCascade();
-            VinKekFish_Key.doStepAndIO(Overwrite: true, regime: 255, nullPadding: true);
-
-            var OIV = main.getBytes(newKeyLenMin, regime: 17);
-
+            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator;
+            CascadeSponge_mt_20230930?  Cascade_KeyGenerator;
+            Record? obfRegimeName = null, OIV = null;
+            GetDataByAdd?     gdKeyGenerator = null;
+            KeyDataGenerator? dataGenerator  = null;
             List<Record> OIV_parts = new List<Record>(this.outParts.Count);
-
-            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator = null;
-            CascadeSponge_mt_20230930?  Cascade_KeyGenerator    = null;
-            Record? obfRegimeName = null;
-            GetDataByAdd? gdKeyGenerator = null;
-
             try
             {
+                // Инициализируем губки для генерации шифруемой информации и синхропосылок файла.
+                // Шифруемая информация - это ключи,
+                // которые в дальнейшем будут использованы для генерации сессионных ключей
+                // при других сессиях шифрования. То есть здесь эти ключи использованы не будут.
+                dataGenerator = new KeyDataGenerator(VinKekFish_Key!, Cascade_Key!, Cascade_KeyOpts.ArmoringSteps, "GenKeyCommand.CreateKeyFiles.KeyDataGenerator")
+                {
+                    keyLenCsc = newKeyLenCsc,
+                    keyLenVkf = newKeyLenVkf,
+                    willDisposeSponges = false
+                };
+
+                var file = new FileParts { Name = "Entire file" };
+
+                // Отбиваем основные ключи от информации, которую будем генерировать далее
+                // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
+                dataGenerator.doChopRegime();
+
+                OIV = dataGenerator.getBytes(newKeyLenMin, regime: 17);
+
                 // Генерация отдельных частей синхропосылки
                 var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
-                GenerateAndWriteOivParts(main, OIV_parts, oiv_part_len);
+                GenerateAndWriteOivParts(dataGenerator, OIV_parts, oiv_part_len);
 
                 // Добавляем описания начала файла и генерируем синхропосылку
-                addStartPart(main, file, OIV, out obfRegimeName);
+                addStartPart(dataGenerator, file, OIV, out obfRegimeName);
 
                 status++;                   // 13
                 if (isDebugMode)
@@ -105,23 +94,18 @@ public unsafe partial class AutoCrypt
 */
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
-                var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
+                // var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
             }
             finally
             {
-                vkf.sponge = null;
-                csc.sponge = null;
-
                 TryToDispose(gdKeyGenerator);
 
-                TryToDispose(main);
-                //TryToDispose(Cascade_KeyGenerator);
+                //TryToDispose(Cascade_KeyGenerator); // Это и так сделает gdKeyGenerator
                 //TryToDispose(VinKekFish_KeyGenerator);
                 TryToDispose(obfRegimeName);
                 TryToDispose(OIV);
 
-                TryToDispose(data_keyCSC);
-                TryToDispose(data_keyVKF);
+                TryToDispose(dataGenerator);
 
                 foreach (var part in OIV_parts)
                     TryToDispose(part);
@@ -199,7 +183,7 @@ public unsafe partial class AutoCrypt
         /// <param name="main">Описатель суммарной губки, которая используется для генерации синхропосылки.</param>
         /// <param name="OIV_parts"></param>
         /// <param name="oiv_part_len"></param>
-        protected void GenerateAndWriteOivParts(GetDataByAdd main, List<Record> OIV_parts, nint oiv_part_len)
+        protected void GenerateAndWriteOivParts(KeyDataGenerator main, List<Record> OIV_parts, nint oiv_part_len)
         {
             for (int scNum = 0; scNum < outParts.Count; scNum++)
             {
@@ -215,7 +199,7 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        protected void addStartPart(GetDataByAdd main, FileParts file, Record OIV, out Record obfRegimeName)
+        protected void addStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
         {
                   var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
                       obfRegimeName   = main.getBytes(asciiRegimeName.Length, regime: 23);
