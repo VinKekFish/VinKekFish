@@ -33,7 +33,7 @@ public unsafe partial class AutoCrypt
             // Ввести пароль в губки
             // Сгенерировать ключ
             // Зашифровать ключ
-            // Выравнять файл на границу, кратную 16, но не менее 4096-ти
+            // Выравнять файл на границу, кратную 16384
             // Что делать со вторым ключом? Как обеспечить отказуемое шифрование?
             // throw new NotImplementedException();
 
@@ -60,6 +60,9 @@ public unsafe partial class AutoCrypt
                     willDisposeSponges = false
                 };
 
+                // Генерируем ключи, которые мы будем записывать в ключевой файл для последующего использования
+                dataGenerator.Generate();
+
                 var file = new FileParts { Name = "Entire file" };
 
                 // Отбиваем основные ключи от информации, которую будем генерировать далее
@@ -70,17 +73,28 @@ public unsafe partial class AutoCrypt
 
                 // Генерация отдельных частей синхропосылки
                 var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
-                GenerateAndWriteOivParts(dataGenerator, OIV_parts, oiv_part_len);
+                try
+                {
+                    GenerateAndWriteOivParts(dataGenerator, OIV_parts, oiv_part_len);
+                }
+                catch (IOException e)
+                {
+                    Console.Error.WriteLine(L("File output error: may be file exists?"));
+                    Console.Error.WriteLine(e.Message);
+
+                    return;
+                }
 
                 // Добавляем описания начала файла и генерируем синхропосылку
                 addStartPart(dataGenerator, file, OIV, out obfRegimeName);
+                TryToDispose(dataGenerator); dataGenerator = null;
 
                 status++;                   // 13
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 // ----------------------------------------------------------------
-                // main больше не нужен - всё сгенерированно, что будет записано в файл
+                // dataGenerator больше не нужен - всё сгенерированно, что будет записано в файл
                 // Далее инициализируем уже губки для генерации сессионных ключей
                 // ----------------------------------------------------------------
 
@@ -88,10 +102,7 @@ public unsafe partial class AutoCrypt
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
                 gdKeyGenerator = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator, out Cascade_KeyGenerator, oiv_part_len);
-/*
-                file.AddFilePart("keyCSC", data_keyCSC, true);
-                file.AddFilePart("keyVKF", data_keyVKF, true);
-*/
+
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
                 // var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
@@ -189,7 +200,7 @@ public unsafe partial class AutoCrypt
             {
                 var partRegime = unchecked((byte)(13 + scNum));
                 var OIV_part = main.getBytes(oiv_part_len, regime: partRegime);
-                using (var fs = new FileStream(outParts[scNum].FullName + "." + scNum.ToString(), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var fs = new FileStream(outParts[scNum].FullName/* + "." + scNum.ToString()*/, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(OIV_part);
                     fs.Flush();

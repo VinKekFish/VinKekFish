@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static VinKekFish_Utils.Language;
+using static VinKekFish_Utils.Utils;
 
 public partial class AutoCrypt
 {
@@ -44,7 +45,10 @@ public partial class AutoCrypt
             {}
         }
 
-        public abstract ProgramErrorCode Exec();
+        /// <summary>Запускает команду.</summary>
+        /// <param name="sr">Поток, с которого будет считываться набор команд</param>
+        /// <returns>Код ошибки</returns>
+        public abstract ProgramErrorCode Exec(StreamReader? sr);
 
         public interface isCorrectAvailable
         {
@@ -315,49 +319,72 @@ public partial class AutoCrypt
             /// <param name="isDebugMode">Если true, то будет вызываться helpAction без исключений, иначе будут выдаваться исключения после вызова helpAction</param>
             /// <returns>Возвращает объект, представляющий команду (имя команды и её значение)</returns>
             /// <exception cref="CommandInputStreamClosedException">Если поток ввода-вывода больше не даёт строк (закрыт), то генерируется исключение CommandInputStreamClosedException</exception>
-            public static ParseResult ReadAndParseLine(HelpToConsoleDelegate? helpAction = null, bool isDebugMode = false)
+            public static ParseResult ReadAndParseLine(StreamReader? sr, HelpToConsoleDelegate? helpAction = null, bool isDebugMode = false)
             {
-                do
+                var stream  = sr;
+                var console = new StreamReader(  Console.OpenStandardInput()  );
+                try
                 {
-                    var line = Console.ReadLine();
-                    if (line == null)
-                        throw new CommandInputStreamClosedException();
+                    stream ??= console;
 
-                    var commandOption = CommandOption.ParseLine(line);
-                    if (commandOption == null)
+                    do
                     {
-                        helpAction?.Invoke();
+                        var line = stream.ReadLine();
+                        // Если поток оказался законченным, а нужно ещё читать, то переключаемся на чтение с консоли (это может быть, если используется файл преднастроек, который затем нужно закончить из консоли)
+                        if (line == null)
+                        {
+                            if (stream == console)
+                                throw new CommandInputStreamClosedException();
 
-                        if (!isDebugMode)
-                            throw new CommandInputStreamClosedException();
-                        else
-                            Console.WriteLine(L("Incorrect line"));
+                            stream = console;
+                            continue;
+                        }
 
-                        continue;
-                    }
+                        // Комментарии пропускаем
+                        var trimmed = line.TrimStart();
+                        if (trimmed.StartsWith("#") || trimmed.StartsWith("//") || trimmed.StartsWith(";"))
+                            continue;
 
-                    if (commandOption.error != null)
-                    {
-                        if (commandOption.error.LineMustSkipped)
+                        var commandOption = CommandOption.ParseLine(line);
+                        if (commandOption == null)
                         {
                             helpAction?.Invoke();
+
+                            if (!isDebugMode)
+                                throw new CommandInputStreamClosedException();
+                            else
+                                Console.WriteLine(L("Incorrect line"));
+
                             continue;
                         }
 
-                        Console.WriteLine(L("Incorrect line") + $": {commandOption.error.ParseMessage}");
-                        helpAction?.Invoke();
-
-                        if (!isDebugMode)
+                        if (commandOption.error != null)
                         {
-                            throw new CommandException(commandOption.error.ParseMessage!);
-                        }
-                        else
-                            continue;
-                    }
+                            if (commandOption.error.LineMustSkipped)
+                            {                    if (sr is null)
+                                helpAction?.Invoke();
+                                continue;
+                            }
 
-                    return commandOption!;
+                            Console.WriteLine(L("Incorrect line") + $": {commandOption.error.ParseMessage}");
+                            helpAction?.Invoke();
+
+                            if (!isDebugMode)
+                            {
+                                throw new CommandException(commandOption.error.ParseMessage!);
+                            }
+                            else
+                                continue;
+                        }
+
+                        return commandOption!;
+                    }
+                    while (true);
                 }
-                while (true);
+                finally
+                {
+                    TryToDispose(console);
+                }
             }
         }
     }

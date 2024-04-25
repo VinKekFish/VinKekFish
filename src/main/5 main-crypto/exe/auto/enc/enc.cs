@@ -17,13 +17,13 @@ public partial class AutoCrypt
     {
         public EncCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
-        public override ProgramErrorCode Exec()
+        public override ProgramErrorCode Exec(StreamReader? sr)
         {
             ThreadPool.QueueUserWorkItem(   (x) => Connect()      );
 
             start:
 
-            var command = (CommandOption) CommandOption.ReadAndParseLine(() => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
+            var command = (CommandOption) CommandOption.ReadAndParseLine(sr, () => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
             switch (command.name)
             {
                 case "file":

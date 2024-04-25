@@ -24,6 +24,8 @@ public partial class AutoCrypt: IDisposable
     public string  RandomStreamName = "/dev/vkf/random";    // TODO: прочитать из конфига
     public string  RandomNameFromOS = "/dev/random";
 
+    protected StreamReader? fs = null;
+
     public AutoCrypt(string[] args)
     {
         cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
@@ -36,13 +38,12 @@ public partial class AutoCrypt: IDisposable
         if (args.Length > 1)
         {
             var FileName = args[1];
-            var fs = new StreamReader(new FileStream(FileName, FileMode.Open, FileAccess.Read));
-            Console.SetIn(fs);
+            fs = new StreamReader(new FileStream(FileName, FileMode.Open, FileAccess.Read));
         }
 
     start:
 
-        var command = (CommandOption)CommandOption.ReadAndParseLine(() => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
+        var command = (CommandOption)CommandOption.ReadAndParseLine(fs, () => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
 
         switch (command.name)
         {
@@ -95,9 +96,12 @@ public partial class AutoCrypt: IDisposable
         Console.WriteLine("The vkf random stream: " + RandomStreamName);
     }
 
+    /// <summary>Запускает команду.</summary>
+    /// <param name="sr">Поток, с которого будет считываться набор команд</param>
+    /// <returns>Код ошибки</returns>
     public ProgramErrorCode Exec()
     {
-        return CurrentCommand!.Exec();
+        return CurrentCommand!.Exec(fs);
     }
 
     private bool isDisposed = false;
@@ -107,6 +111,7 @@ public partial class AutoCrypt: IDisposable
         if (!isDisposed)
         {
             TryToDispose(CurrentCommand);
+            TryToDispose(fs);
             isDisposed = true;
         }
 

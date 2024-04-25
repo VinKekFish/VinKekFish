@@ -64,16 +64,25 @@ public partial class AutoCrypt
 
             if (r is not null)
             if (mustExists.HasFlag(FileMustExists.notExists))
+            {
                 if (r.Exists)
                     r = null;
+
+                if (fileList is not null)
+                foreach (var f in fileList)
+                {
+                    if (f.FullName == r?.FullName)
+                    {
+                        r = null;
+                        break;
+                    }
+                }
+            }
 
             if (r is not null)
             {
                 if (fileList is not null)
                     fileList.Add(r);
-
-                if (isDebugMode)
-                    Console.WriteLine("out-part:" + r.FullName);
             }
             else
             {

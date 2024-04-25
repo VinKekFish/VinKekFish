@@ -59,7 +59,10 @@ public unsafe partial class AutoCrypt
         protected readonly List<FileInfo> outParts2  = new List<FileInfo>(0);
         protected               FileInfo? outKeyFile = null;
 
-        public override ProgramErrorCode Exec()
+        /// <summary>Запускает команду на выполнение.</summary>
+        /// <param name="sr">Поток StreamReader, из которого берутся настройки для шифрования. Если null, то команды берутся с консоли.</param>
+        /// <returns>Возвращает код ошибки.</returns>
+        public override ProgramErrorCode Exec(StreamReader? sr)
         {
             VinKekFish_KeyOpts   .Rounds = -1;
             VinKekFish_CipherOpts.Rounds = -1;
@@ -71,6 +74,7 @@ public unsafe partial class AutoCrypt
 
             var command = (CommandOption) CommandOption.ReadAndParseLine
             (
+                sr,
                 () => Console.WriteLine
                     (
                         """
@@ -141,9 +145,39 @@ public unsafe partial class AutoCrypt
                     goto start;
                 case "out":
                         outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists);
+
+                        if (isDebugMode)
+                        {
+                            if (outKeyFile is not null)
+                                Console.WriteLine("out: " + outKeyFile.FullName);
+                            else
+                                Console.WriteLine(L("File output error: may be file exists?"));
+                        }
+                        else
+                        if (outKeyFile is null)
+                        {
+                            Console.Error.WriteLine("out: ERROR");
+                            return ProgramErrorCode.Abandoned;
+                        }
+
                     goto start;
                 case "out-part":
-                        ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
+                        var @out = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
+
+                        if (isDebugMode)
+                        {
+                            if (@out is not null)
+                                Console.WriteLine("out-part: " + @out.FullName);
+                            else
+                                Console.WriteLine(L("File output error: may be file exists?"));
+                        }
+                        else
+                        if (@out is null)
+                        {
+                            Console.Error.WriteLine("out-part: ERROR");
+                            return ProgramErrorCode.Abandoned;
+                        }
+
                     goto start;
                 case "regime":
                         RegimeName = ParseRegimeOptions(value);

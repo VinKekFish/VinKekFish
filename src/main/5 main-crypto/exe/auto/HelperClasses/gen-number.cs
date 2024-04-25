@@ -17,6 +17,27 @@ using static VinKekFish_Utils.Utils;
 // В этом файле объявлены KeyDataGenerator и GetDataByAdd (сумма губок)
 public unsafe partial class AutoCrypt
 {
+    public class CryptoKeyPair: IDisposable
+    {
+        public Record? csc {get; protected set;} = null;
+        public Record? vkf {get; protected set;} = null;
+
+        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte, byte) regime)
+        {
+            csc = generator.getBytes(keyLenCsc, regime: regime.Item1);
+            vkf = generator.getBytes(keyLenVkf, regime: regime.Item2);
+        }
+
+        public void Dispose()
+        {
+            TryToDispose(vkf);
+            TryToDispose(csc);
+
+            vkf = null;
+            csc = null;
+        }
+    }
+
     /// <summary>Используется для генерации ключей шифрования</summary>
     public class KeyDataGenerator: IDisposable
     {
@@ -24,7 +45,7 @@ public unsafe partial class AutoCrypt
         public GetDataFromVinKekFishSponge vkf;
         public GetDataFromCascadeSponge    csc;
         /// <summary>Сгенерированные в конструкторе ключи шифрования. data_keyCSC - ключ для использования в каскадной губке, data_keyVKF - ключ для использования в губке VinKekFish. Эти ключи генерируются для пользователя, здесь они не используются.</summary>
-        public Record data_keyCSC, data_keyVKF;
+        public List<CryptoKeyPair> keys = new List<CryptoKeyPair>();
                                                                         /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в каскадной губке</summary>
         public required nint keyLenCsc  {get; init;}                    /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в губке VinKekFish</summary>
         public required nint keyLenVkf  {get; init;}
@@ -51,11 +72,17 @@ public unsafe partial class AutoCrypt
             main.AddSponge(csc);
 
             main.NameForRecord = NameForRecord;
+        }
 
-            // Эти ключи - это информация для шифрования. Это ключи, которыми программа будет шифровать какие-либо файлы в будущем,
-            // то есть они будут сохранены в файле и зашифрованы, но сейчас они не будут использованы.
-            data_keyCSC = getBytes(keyLenCsc, regime: 13);
-            data_keyVKF = getBytes(keyLenVkf, regime: 15);
+        /// <summary>Сгенерировать пару ключей шифрования и записать и в data_key</summary>
+        /// <param name="count">Количество пар ключей, которое нужно сгенерировать.</param>
+        public void Generate(nint count = 1)
+        {
+            for (nint i = 0; i < count; i++)
+            {
+                var keyPair = new CryptoKeyPair(this, keyLenCsc, keyLenVkf, (13, 15));
+                keys.Add(keyPair);
+            }
         }
 
         /// <summary>Получает псевдослучайные криптостойкие байты (например, ключи или синхропосылки). Полностью аналогично GetDataByAdd.getBytes.</summary>
@@ -91,6 +118,11 @@ public unsafe partial class AutoCrypt
                 {
                     vkf.sponge = null;
                     csc.sponge = null;
+                }
+
+                foreach (var key in keys)
+                {
+                    TryToDispose(key);
                 }
             }
             catch (Exception e)
@@ -163,7 +195,7 @@ public unsafe partial class AutoCrypt
                 }
             );
         }
-
+/*
         protected void CreateKeyFiles(ref int status, int countOfTasks)
         {
             // Что мне надо сделать?
@@ -174,7 +206,7 @@ public unsafe partial class AutoCrypt
             // Рассчитать с помощью иерархических классов потребное место
             throw new NotImplementedException();
         }
-
+*/
         public void ClearList(bool doDispose = true)
         {
             if (doDispose)
