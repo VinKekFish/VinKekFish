@@ -38,7 +38,7 @@ namespace vinkekfish
                 allocator = VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
 
             //using var prng = new Keccak_PRNG_20201128();
-            // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая. Поэтому, создаём губку именно такой стойкости
+            // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая (либо 1344*K). Поэтому, создаём губку именно такой стойкости
             nint gpKeyLen   = this.K*1024;
             if (gpKeyLen > key_length)
                 gpKeyLen = key_length;

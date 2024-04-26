@@ -35,8 +35,8 @@ public unsafe partial class AutoCrypt
         public bool                 haveStream2    => havePwd2 || outParts2.Count > 0;
 
                                                                                         /// <summary>Режим шифрования файла с ключами шифрования.</summary>
-        public string  RegimeName = "main.pwd.2024.1";                                  /// <summary>Режим шифрования, который будет применяться при шифровании ключами, которые будут зашифрованы в файле-результате. Пустая строка означает, что шифруются не ключи.</summary>
-        public string fRegimeName = "main.pwd.2024.1";
+        public string  RegimeName = "main.1.pwd.2024.1";                                /// <summary>Режим шифрования, который будет применяться при шифровании ключами, которые будут зашифрованы в файле-результате. Пустая строка означает, что шифруются не ключи.</summary>
+        public string fRegimeName = "main.1.pwd.2024.1";
 
         public nint newKeyLenVkf = 512;
         public nint newKeyLenCsc = 512;
@@ -231,9 +231,18 @@ public unsafe partial class AutoCrypt
 
                         goto start;
                     }
+                    if (string.IsNullOrEmpty(RegimeName))
+                    {
+                        if (!isDebugMode)
+                            throw new CommandException("RegimeName is null");
+                        else
+                            Console.WriteLine(L("Regime name is undefined"));
+
+                        goto start;
+                    }
 
                     InitOptions();
-                    InitSponges(out int _, out int _);
+                    doFullEncrypt(out int _, out int _);
                     break;
                 case "end":
                     Terminated = true;
@@ -249,7 +258,7 @@ public unsafe partial class AutoCrypt
         }
 
         /// <summary>Разрешённые режимы, которые должна понимать программа. Прочие режимы будут отброшены.</summary>
-        public readonly string[] AllowedRegimes = {"main.pwd.2024.1", "simple.file.2024.1"};
+        public readonly string[] AllowedRegimes = {"main.1.pwd.2024.1", "simple.file.2024.1"};
 
         /// <summary>Распарсить опции команды regime</summary>
         /// <param name="value">Опции, разделённые пробелом.</param>
@@ -272,7 +281,7 @@ public unsafe partial class AutoCrypt
                 return "";
             }
             else
-                throw new CommandException(emsg);
+                throw new CommandException($"Regime is unknown: {value}");
         }
 
         /// <summary>Распарсить опции команды regime</summary>
@@ -290,7 +299,7 @@ public unsafe partial class AutoCrypt
         /// <summary>Инициализирует вспомогательные губки для инициализации ключей</summary>
         /// <param name="status">Количество выполненных задач.</param>
         /// <param name="countOfTasks">Общее количество задач.</param>
-        public void InitSponges(out int status, out int countOfTasks)
+        public void doFullEncrypt(out int status, out int countOfTasks)
         {
             PrintOptionsToConsole();
 

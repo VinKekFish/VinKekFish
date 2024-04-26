@@ -1,4 +1,5 @@
-// TODO: tests
+// НЕ РЕАЛИЗОВАНО
+/*
 using System.Runtime;
 
 namespace VinKekFish_EXE;
@@ -15,7 +16,7 @@ using maincrypto.keccak;
 using cryptoprime.VinKekFish;
 using vinkekfish;
 
-public partial class Main_PWD_2024_1
+public partial class Main_4_PWD_2024_1
 {
     public partial class EncryptDataStream: IDisposable
     {
@@ -83,3 +84,4 @@ public partial class Main_PWD_2024_1
         }
     }
 }
+*/

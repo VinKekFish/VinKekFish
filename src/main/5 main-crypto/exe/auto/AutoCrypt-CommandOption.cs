@@ -119,7 +119,7 @@ public partial class AutoCrypt
                     }
 
                     if ((K & 1) != 1)
-                        throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
+                        throw new Exception(L("K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
 
                     if (K >= 1 && K <= 19)
                     {
@@ -127,7 +127,7 @@ public partial class AutoCrypt
                         opts.SetK(K);
                     }
                     else
-                        throw new Exception(L("K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
+                        throw new Exception(L("K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19"));
                 }
 
                 if (values.Length >= 2)     // Rounds

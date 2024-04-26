@@ -108,8 +108,8 @@ Right
     Правильно
 Input 'name:value'
     Введите 'имя:значение'
-K may be only is 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
-    K может быть только 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    K может быть только 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
 Command is unknown
     Неизвестная команда
 Debug mode enabled
@@ -138,4 +138,6 @@ File output error: may be file exists?
     Ошибка вывода в файл: возможно, файл существует?
 File name added
     Добавлено имя файла
+Regime name is undefined
+    Имя режима шифрования не указано
 :

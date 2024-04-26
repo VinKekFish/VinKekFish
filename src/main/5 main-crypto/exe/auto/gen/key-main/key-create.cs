@@ -22,6 +22,7 @@ public unsafe partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public partial class GenKeyCommand: Command, IDisposable
     {
+        // TODO: функция шифрует одинаково вне зависимости от указанного режима
         protected void CreateKeyFiles(ref int status, int countOfTasks)
         {
             // Что мне надо сделать?
@@ -41,8 +42,8 @@ public unsafe partial class AutoCrypt
                 throw new InvalidOperationException("GenKeyCommand.CreateKeyFiles: VinKekFish_Key.input.Count > 0");
 
 
-            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, VinKekFish_KeyGenerator2 = null;
-            CascadeSponge_mt_20230930?  Cascade_KeyGenerator, Cascade_KeyGenerator2 = null;
+            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator; //, VinKekFish_KeyGenerator2 = null;
+            CascadeSponge_mt_20230930?  Cascade_KeyGenerator; //, Cascade_KeyGenerator2 = null;
             Record? obfRegimeName = null, OIV = null;
             GetDataByAdd?     gdKeyGenerator = null, gdKeyGenerator2 = null;
             KeyDataGenerator? dataGenerator  = null;
@@ -102,7 +103,7 @@ public unsafe partial class AutoCrypt
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
                 gdKeyGenerator  = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator , out Cascade_KeyGenerator , oiv_part_len, noPwd);
-                gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len, !havePwd2);
+                // gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len, !havePwd2);
 
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!

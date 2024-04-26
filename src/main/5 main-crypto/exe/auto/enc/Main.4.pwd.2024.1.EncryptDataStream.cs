@@ -1,4 +1,5 @@
-// TODO: tests
+// НЕ РЕАЛИЗОВАНО
+/*
 using System.Runtime;
 
 namespace VinKekFish_EXE;
@@ -16,7 +17,7 @@ using System.Reflection.Metadata.Ecma335;
 using cryptoprime.VinKekFish;
 using vinkekfish;
 
-public unsafe partial class Main_PWD_2024_1
+public unsafe partial class Main_4_PWD_2024_1
 {
     public partial class EncryptDataStream: IDisposable
     {                                                                       /// <summary>Поток данных, выравненный по длине. Автоматически создаётся и удаляется.</summary>
@@ -124,3 +125,4 @@ public unsafe partial class Main_PWD_2024_1
         }
     }
 }
+*/
