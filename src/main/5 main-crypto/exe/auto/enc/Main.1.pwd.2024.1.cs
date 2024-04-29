@@ -44,6 +44,7 @@ public unsafe partial class Main_1_PWD_2024_1
             var a = AlignUtils.Align(size, 65536, 65536);
             return a;
         }
+
         /// <summary>Создаёт логический поток шифрования. Выравнивает его, дополняет шумами, генерирует ключи шифрования.</summary>
         /// <param name="dataStream">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
         /// <param name="getDataByAdd">Генератор ключей, который уже должен быть проинициализирован заранее. Используется только в конструкторе, далее может быть использован в других потоках и должен быть удалён вызывающим методом. Первый режим работы: 255.</param>
@@ -80,6 +81,9 @@ public unsafe partial class Main_1_PWD_2024_1
             Key3PCsc = getDataByAdd.getBytes(tall*wide*KeccakPrime.BlockLen*2+16, 252);
             Key4Csc  = getDataByAdd.getBytes(tall*KeccakPrime.BlockLen*2+16, 255);
             Key5Vkf  = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
+
+            var file = new FileParts { Name = "Record" };
+
         }
 
         ~EncryptDataStream()       => Dispose(true);

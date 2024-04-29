@@ -107,7 +107,9 @@ public unsafe partial class AutoCrypt
 
                 // ЭТО НЕВЕРНО!!!
                 // ВСЁ НЕВЕРНО!!!
-                // var encrypt = new Main_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
+                var encrypt = new Main_1_PWD_2024_1.EncryptDataStream(new Record(), gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts);
+
+                file.writeToFile(outKeyFile!);
             }
             finally
             {

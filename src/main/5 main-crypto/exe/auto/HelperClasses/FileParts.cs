@@ -3,6 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.IO;
 using System.Reflection;
 using cryptoprime;
 using maincrypto.keccak;
@@ -77,7 +78,7 @@ public unsafe partial class FileParts
 
     public required string Name {get; init;}
                                                                                                     /// <summary>Части файла, отсортированные по порядку их вхождения в файл.</summary>
-    public readonly List<FileParts>               innerParts = new List<FileParts>();
+    public readonly List<FileParts> innerParts = new List<FileParts>();
 
                                                                                 /// <summary>Адрес, по которому начинается данный блок</summary>
     protected Approximation _startAddress        =  Approximation.Null;         /// <summary>Адрес первого байта, который уже не входит в блок. То есть этот адрес уже за границей данного блока. (StartAddress + fullLen)</summary>
@@ -205,5 +206,35 @@ public unsafe partial class FileParts
 
         var btLen = btContent is null ? 0 : btContent.Length;
         this.size = new Approximation(content.len + btLen);
+    }
+
+    public void writeToFile(FileStream fs)
+    {
+        if (btContent is not null)
+        if (btContent.LongLength > 0)
+            fs.Write(btContent);
+
+        if (content is not null)
+        if (content.len > 0)
+            fs.Write(content);
+
+        foreach (var f in innerParts)
+        {
+            f.writeToFile(fs);
+        }
+    }
+
+    public void writeToFile(FileInfo outKeyFile)
+    {
+        var fs = new FileStream(outKeyFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        try
+        {
+            writeToFile(fs);
+        }
+        finally
+        {
+            fs.Flush();
+            fs.Close();
+        }
     }
 }
