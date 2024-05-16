@@ -88,3 +88,21 @@ https://docs.microsoft.com/ru-ru/dotnet/api/system.runtime.interopservices.marsh
 
 https://docs.microsoft.com/ru-ru/dotnet/core/diagnostics/debug-memory-leak
 	Поиск утечек управляемой памяти
+
+
+
+
+Программа зависает при остановке операционной системы:
+мая 14 22:39:44 vinny vkf[924]: Энтропия (хешированная) сохранена в служебный файл (не используйте его напрямую): /opt/VinKekFish/data/random_at_start_folder>
+мая 14 22:39:44 vinny vkf[924]: Regime_Service.Start: exited at 14.05.2024 22:39:44
+мая 14 22:39:44 vinny vkf[924]: Ошибка при завершении работы программы: обнаружена утечка памяти в mmap: 38 952 (3)
+мая 14 22:39:44 vinny vkf[924]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+мая 14 22:39:44 vinny vkf[924]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+мая 14 22:39:44 vinny vkf[924]: ERROR: Memory successfully cleaned in DeallocateAtBreakage (696 bytes)
+мая 14 22:42:06 vinny systemd[1]: vkf.service: State 'stop-sigterm' timed out. Killing.
+мая 14 22:42:06 vinny systemd[1]: vkf.service: Killing process 924 (vkf) with signal SIGKILL.
+мая 14 22:42:06 vinny systemd[1]: vkf.service: Killing process 22869 (ps) with signal SIGKILL.
+мая 14 22:42:06 vinny systemd[1]: vkf.service: Killing process 141089 (.NET Signal Han) with signal SIGKILL.
+мая 14 22:42:06 vinny systemd[1]: vkf.service: Failed with result 'timeout'.
+мая 14 22:42:06 vinny systemd[1]: Stopped VinKekFish.
+
