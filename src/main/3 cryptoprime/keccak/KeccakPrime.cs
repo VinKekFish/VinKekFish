@@ -64,7 +64,7 @@ namespace cryptoprime
         /// <param name="a">Матрица S (a) - внутреннее состояние. Размер b_size (25*8=200 байтов) либо S_len2 в ulong (25 ulong)</param>
         /// <param name="c">Вспомогательная матрица размером c_size (5*8=40 байтов)</param>
         /// <param name="b">Вспомогательная матрица размером b_size (25*8=200 байтов)</param>
-        public static unsafe void roundB(ulong * a, ulong * c, ulong * b)
+        public static unsafe void RoundB(ulong * a, ulong * c, ulong * b)
         {
             //шаг θ
             *(c + 0) = *(a +  0) ^ *(a +  1) ^ *(a +  2) ^ *(a +  3) ^ *(a +  4);
@@ -183,38 +183,38 @@ namespace cryptoprime
         /// <param name="b">Матрица B (значения не важны): 25 * ulong (константа b_size=200)</param>
         public static unsafe void Keccackf(ulong * a, ulong * c, ulong * b)
         {
-            roundB(a, c, b);
+            RoundB(a, c, b);
             //шаг ι
             *a ^= 0x0000000000000001;
 
-            roundB(a, c, b); *a ^= 0x0000000000008082;
-            roundB(a, c, b); *a ^= 0x800000000000808A;
-            roundB(a, c, b); *a ^= 0x8000000080008000;
+            RoundB(a, c, b); *a ^= 0x0000000000008082;
+            RoundB(a, c, b); *a ^= 0x800000000000808A;
+            RoundB(a, c, b); *a ^= 0x8000000080008000;
 
-            roundB(a, c, b); *a ^= 0x000000000000808B;
-            roundB(a, c, b); *a ^= 0x0000000080000001;
-            roundB(a, c, b); *a ^= 0x8000000080008081;
-            roundB(a, c, b); *a ^= 0x8000000000008009;
+            RoundB(a, c, b); *a ^= 0x000000000000808B;
+            RoundB(a, c, b); *a ^= 0x0000000080000001;
+            RoundB(a, c, b); *a ^= 0x8000000080008081;
+            RoundB(a, c, b); *a ^= 0x8000000000008009;
 
-            roundB(a, c, b); *a ^= 0x000000000000008A;
-            roundB(a, c, b); *a ^= 0x0000000000000088;
-            roundB(a, c, b); *a ^= 0x0000000080008009;
-            roundB(a, c, b); *a ^= 0x000000008000000A;
+            RoundB(a, c, b); *a ^= 0x000000000000008A;
+            RoundB(a, c, b); *a ^= 0x0000000000000088;
+            RoundB(a, c, b); *a ^= 0x0000000080008009;
+            RoundB(a, c, b); *a ^= 0x000000008000000A;
 
-            roundB(a, c, b); *a ^= 0x000000008000808B;
-            roundB(a, c, b); *a ^= 0x800000000000008B;
-            roundB(a, c, b); *a ^= 0x8000000000008089;
-            roundB(a, c, b); *a ^= 0x8000000000008003;
+            RoundB(a, c, b); *a ^= 0x000000008000808B;
+            RoundB(a, c, b); *a ^= 0x800000000000008B;
+            RoundB(a, c, b); *a ^= 0x8000000000008089;
+            RoundB(a, c, b); *a ^= 0x8000000000008003;
 
-            roundB(a, c, b); *a ^= 0x8000000000008002;
-            roundB(a, c, b); *a ^= 0x8000000000000080;
-            roundB(a, c, b); *a ^= 0x000000000000800A;
-            roundB(a, c, b); *a ^= 0x800000008000000A;
+            RoundB(a, c, b); *a ^= 0x8000000000008002;
+            RoundB(a, c, b); *a ^= 0x8000000000000080;
+            RoundB(a, c, b); *a ^= 0x000000000000800A;
+            RoundB(a, c, b); *a ^= 0x800000008000000A;
 
-            roundB(a, c, b); *a ^= 0x8000000080008081;
-            roundB(a, c, b); *a ^= 0x8000000000008080;
-            roundB(a, c, b); *a ^= 0x0000000080000001;
-            roundB(a, c, b); *a ^= 0x8000000080008008;
+            RoundB(a, c, b); *a ^= 0x8000000080008081;
+            RoundB(a, c, b); *a ^= 0x8000000000008080;
+            RoundB(a, c, b); *a ^= 0x0000000080000001;
+            RoundB(a, c, b); *a ^= 0x8000000080008008;
         }
 
         /// <summary>Неполнораундовый keccack. Параметры аналогичны Keccackf</summary>
@@ -228,7 +228,7 @@ namespace cryptoprime
             var end = start + count;
             for (int i = start; i < end; i++)
             {
-                roundB(a, c, b); *a ^= RC[i];
+                RoundB(a, c, b); *a ^= RC[i];
             }
         }
 
@@ -531,7 +531,7 @@ namespace cryptoprime
         /// <param name="message">Сообщение для хеширования</param>
         /// <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
         /// <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
-        public static unsafe byte[] getSHA3_512(byte[] message, byte[]? forHash = null)
+        public static unsafe byte[] GetSHA3_512(byte[] message, byte[]? forHash = null)
         {
             forHash ??= new byte[64];
             if (forHash.Length < 64)

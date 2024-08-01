@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace cryptoprime
 {
     // Медленная реализация Threefish 1024 бита
-    public unsafe static class threefish_slowly
+    public unsafe static class Threefish_slowly
     {
         public static ulong[] BytesToUlong(byte[] bt, ulong[]? result = null)
         {
@@ -114,7 +114,7 @@ namespace cryptoprime
             {
                 if ((round & 3) == 0)
                 {
-                    calcSubkeys(subkey, key, keyNw, tweak, tweak2, round);
+                    CalcSubkeys(subkey, key, keyNw, tweak, tweak2, round);
                     for (int i = 0; i < Nw; i++)
                         e[i] = e[i] + subkey[i];
                 }
@@ -124,7 +124,7 @@ namespace cryptoprime
                     e[i] = er[i];
             }
 
-            calcSubkeys(subkey, key, keyNw, tweak, tweak2, 80);
+            CalcSubkeys(subkey, key, keyNw, tweak, tweak2, 80);
             for (int i = 0; i < Nw; i++)
                 e[i] = e[i] + subkey[i];
 
@@ -132,7 +132,7 @@ namespace cryptoprime
         }
 
         // key shedule, page 12 (numbers in page, not in editor)
-        public static void calcSubkeys(ulong[] subkey, ulong[] key, ulong keyNw, ulong[] tweak, ulong tweak2, byte round)
+        public static void CalcSubkeys(ulong[] subkey, ulong[] key, ulong keyNw, ulong[] tweak, ulong tweak2, byte round)
         {
             var s = round >> 2;
             int i, index;

@@ -24,11 +24,11 @@ public partial class Regime_Service
     /// <summary>Записывает файлы current.0 и current.1</summary>
     protected unsafe void MandatoryWriteCurrentFile()
     {
-        FileInfo RandomAtFolder_Current = getOldestCurrentFile();
+        FileInfo RandomAtFolder_Current = GetOldestCurrentFile();
 
         using (var ws = RandomAtFolder_Current!.OpenWrite())
         {
-            using (Record output = getEntropyForOut(OutputStrenght, ignoreTerminated: true))
+            using (Record output = GetEntropyForOut(OutputStrenght, ignoreTerminated: true))
             {
                 WriteRecordToFileStream(ws, output);
             }
@@ -38,7 +38,7 @@ public partial class Regime_Service
         Console.WriteLine(L("Entropy saved for the file") + ": " + RandomAtFolder_Current.FullName);
     }
 
-    private unsafe FileInfo getOldestCurrentFile()
+    private unsafe FileInfo GetOldestCurrentFile()
     {
         randomAtFolder_Current!.Refresh();
 
@@ -50,7 +50,7 @@ public partial class Regime_Service
         }
         catch (Exception ex)
         {
-            formatException(ex);
+            FormatException(ex);
         }
 
         return randomAtFolder_Current.GetOldestFile();
@@ -72,14 +72,14 @@ public partial class Regime_Service
     public const int MinBlockSize = 404;
 
     /// <summary>Возвращает минимальный размер блока. Именно этот размер возвращает программа, когда выдаёт энтропию стронним приложениям.</summary>
-    public unsafe nint getMinBlockSize()
+    public static unsafe nint GetMinBlockSize()
     {
         return MinBlockSize;
         // return Math.Min(VinKekFish.BLOCK_SIZE_KEY_K, CascadeSponge.maxDataLen >> 1);
     }
 
     /// <summary>Возвращает максимальный размер блока. Именно этот размер возвращает программа, когда выдаёт энтропию стронним приложениям.</summary>
-    public unsafe nint getMaxBlockSize()
+    public unsafe nint GetMaxBlockSize()
     {
         return Math.Max(VinKekFish.BLOCK_SIZE_K, CascadeSponge.maxDataLen);
     }
@@ -88,7 +88,7 @@ public partial class Regime_Service
     /// <param name="outputStrenght">Количество байтов случайного вывода, которое необходимо получить. Не менее чем sizeof(long) байтов</param>
     /// <param name="ignoreTerminated">Всегда false. true только для вызовов для записи файлов current при завершении</param>
     /// <returns>Запрошенный случайный вывод</returns>
-    public unsafe Record getEntropyForOut(nint outputStrenght, bool ignoreTerminated = false)
+    public unsafe Record GetEntropyForOut(nint outputStrenght, bool ignoreTerminated = false)
     {
         ConditionalInputEntropyToMainSponges(nint.MaxValue);
 
@@ -119,7 +119,7 @@ public partial class Regime_Service
                         {
                             BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, dt, sizeof(long));
 
-                            CascadeSponge.step
+                            CascadeSponge.Step
                             (
                                 ArmoringSteps: CascadeSponge.countStepsForKeyGeneration - 1,
                                 data:          dt,
@@ -148,9 +148,9 @@ public partial class Regime_Service
                         do
                         {
                             BytesBuilder.ULongToBytes((ulong)DateTime.Now.Ticks, dt, sizeof(long));
-                            VinKekFish.input!.add(dt, sizeof(long));
+                            VinKekFish.input!.Add(dt, sizeof(long));
 
-                            VinKekFish.doStepAndIO
+                            VinKekFish.DoStepAndIO
                             (
                                 countOfRounds: VinKekFish.EXTRA_ROUNDS_K,
                                 outputLen: 0,
@@ -161,7 +161,7 @@ public partial class Regime_Service
                             if (len > VinKekFish.BLOCK_SIZE_KEY_K)
                                 len = VinKekFish.BLOCK_SIZE_KEY_K;
 
-                            VinKekFish.doOutput(vkfData, len);
+                            VinKekFish.DoOutput(vkfData, len);
                             vkfData += len;
                             outLen  -= len;
                         }

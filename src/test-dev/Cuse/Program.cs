@@ -162,7 +162,7 @@ Console.WriteLine(exists);*/
 
     public static ulong fileHandleLast = 0;
 
-    static List<ulong> fhs = new List<ulong>(128);
+    static List<ulong> fhs = new(128);
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static unsafe void CuseOpenFunc(fuse_req* request, fuse_file_info * fileInfo)

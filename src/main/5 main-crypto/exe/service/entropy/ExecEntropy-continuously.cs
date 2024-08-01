@@ -27,7 +27,7 @@ public partial class Regime_Service
             try
             {
                 var rndList = options_service!.root!.input!.entropy!.standard!.randoms;
-                getRandomFromRndCommandList_Continuously(rndList);
+                GetRandomFromRndCommandList_Continuously(rndList);
             }
             catch (NullReferenceException)
             {}
@@ -35,7 +35,7 @@ public partial class Regime_Service
             try
             {
                 var rndList = options_service!.root!.input!.entropy!.os!.randoms;
-                getRandomFromRndCommandList_Continuously(rndList);
+                GetRandomFromRndCommandList_Continuously(rndList);
             }
             catch (NullReferenceException)
             {}
@@ -45,13 +45,13 @@ public partial class Regime_Service
     }
 
     // ::cp:all:dhpOU4GDHUNYcaXq:2023.10.30
-    public unsafe void getRandomFromRndCommandList_Continuously(List<Options_Service.Input.Entropy.InputElement> rndList)
+    public unsafe void GetRandomFromRndCommandList_Continuously(List<Options_Service.Input.Entropy.InputElement> rndList)
     {
         checked
         {
             foreach (var rnd in rndList)
             {
-                var intervals = rnd.intervals!.interval!.inner;
+                var intervals = rnd.intervals!.Interval!.inner;
                 foreach (var interval in intervals)
                 {
                     if (
@@ -62,7 +62,7 @@ public partial class Regime_Service
                         )
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
-                            throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
+                            throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.GetFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
 
                         switch (rnd)
                         {
@@ -71,7 +71,7 @@ public partial class Regime_Service
                             break;
 
                             case Options_Service.Input.Entropy.InputCmdElement cmdElement:
-                                getRandomFromCommand_continuously(rnd, interval, cmdElement);
+                                GetRandomFromCommand_continuously(rnd, interval, cmdElement);
                             break;
 /*
                             case Options_Service.Input.Entropy.InputDirElement dirElement:
@@ -82,7 +82,7 @@ public partial class Regime_Service
                             break;
 */
                             default:
-                                throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
+                                throw new Exception($"Regime_Service.ContinuouslyEntropy: for the element '{rnd.GetFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
                         }
                     }
                 }
@@ -91,7 +91,7 @@ public partial class Regime_Service
     }
 
     // При доступе синхронизация lock (continuouslyGetters)
-    public List<ContinuouslyGetterRecord> continuouslyGetters = new List<ContinuouslyGetterRecord>();
+    public List<ContinuouslyGetterRecord> continuouslyGetters = new();
 
     /// <summary>Инкапсулирует в себя промежуточную губку и предоставляет методы для записи в неё байтов из источника энтропии и получения из неё байтов энтропии</summary>
     public unsafe class ContinuouslyGetterRecord: IDisposable
@@ -102,11 +102,11 @@ public partial class Regime_Service
                                                                                             /// <summary>Это служебное поле для того, чтобы открытый поток можно было завершить вручную, если необходимо закончить поток, ожидающий ввода-вывода.</summary>
         public volatile FileStream? StreamForClose = null;
                                                                                             /// <summary>true, если объект уже удалён</summary>
-        public    bool     disposed                   {get; protected set;} = false;        /// <summary>Количество байтов, полученное из этого источника (это количество сырых байтов, действительно полученных из источника, без учёта настроек {min,max,avg,EME})</summary>
-        public    nint     countOfBytes               {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было выведено для пользователя функцией getBytes</summary>
-        public    nint     countOfBytesToUser         {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было получено из источника энтропии после последнего изъятия битов из губки (необходимо для того, чтобы рассчитать, можно ли сейчас из этой губки что-то брать)</summary>
-        public    nint     countOfBytesFromLastOutput {get; protected set;} = 0;            /// <summary>true, если объект не проинициализирован (сбрасывается после вызова getBytes). Это значение не должно быть нужно пользователю, используйте метод isDataReady. Устанавливается при вызове метода addBytes (addBytes вызывает поток, который собирает энтропию).</summary>
-        public    bool     isInited                   {get; protected set;} = false;
+        public    bool     Disposed                   {get; protected set;} = false;        /// <summary>Количество байтов, полученное из этого источника (это количество сырых байтов, действительно полученных из источника, без учёта настроек {min,max,avg,EME})</summary>
+        public    nint     CountOfBytes               {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было выведено для пользователя функцией getBytes</summary>
+        public    nint     CountOfBytesToUser         {get; protected set;} = 0;            /// <summary>Аналогично countOfBits. Количество байтов, которое было получено из источника энтропии после последнего изъятия битов из губки (необходимо для того, чтобы рассчитать, можно ли сейчас из этой губки что-то брать)</summary>
+        public    nint     CountOfBytesFromLastOutput {get; protected set;} = 0;            /// <summary>true, если объект не проинициализирован (сбрасывается после вызова getBytes). Это значение не должно быть нужно пользователю, используйте метод isDataReady. Устанавливается при вызове метода addBytes (addBytes вызывает поток, который собирает энтропию).</summary>
+        public    bool     IsInited                   {get; protected set;} = false;
                                                                                             /// <summary>Элемент из настроек, описывающий параметры данного источника энтропии</summary>
         public readonly Options_Service.Input.Entropy.InputElement inputElement;
 
@@ -116,7 +116,7 @@ public partial class Regime_Service
         /// <param name="directInput">Если true, то промежуточная губка не используется</param>
         public ContinuouslyGetterRecord(Thread t, Options_Service.Input.Entropy.InputElement inputElement, bool directInput = false)
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
             this.thread = t;
             if (directInput)
@@ -131,28 +131,28 @@ public partial class Regime_Service
         /// <param name="data">Массив данных, принимающий накопленные байты энтропии из промежуточной губки</param>
         /// <param name="len">Количество байтов энтропии для чтения. Не более чем KeccakPrime.BlockLen (64 байта)</param>
         /// <param name="allowSmallData">Если true, то допускает, что готовой энтропии меньше, чем len</param>
-        public nint getBytes(byte * data, nint len, bool allowSmallData = false)
+        public nint GetBytes(byte * data, nint len, bool allowSmallData = false)
         {
             checked
             {
                 lock (this)
                 {
-                    if (disposed)
+                    if (Disposed)
                         throw new ObjectDisposedException("ContinuouslyGetterRecord.getBytes: disposed (you must check the 'disposed' field and skip the object, if disposed)");
                     if (len > KeccakPrime.BlockLen)
                         throw new ArgumentOutOfRangeException("maxLen", $"ContinuouslyGetterRecord.getBytes: maxLen > KeccakPrime.BlockLen ({len} > {KeccakPrime.BlockLen})");
-                    if (!isInited)
+                    if (!IsInited)
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isInited. You must check the 'isDataReady()' function and skip the object, if the return value is false");
-                    if (!isDataReady(  allowSmallData ? 0 : len  ))
+                    if (!IsDataReady(  allowSmallData ? 0 : len  ))
                         throw new InvalidOperationException("ContinuouslyGetterRecord.getBytes: !isDataReady. You must check the 'isDataReady()' function and skip the object, if the return value is false");
 
                     if (keccak is not null)
                     {
                         KeccakPrime.Keccak_Output_512(data, (byte)len, keccak.S);
 
-                        isInited     = false;
+                        IsInited     = false;
                         MandatoryUse = false;
-                        countOfBytesFromLastOutput = 0;
+                        CountOfBytesFromLastOutput = 0;
                     }
                     else
                     {
@@ -160,18 +160,18 @@ public partial class Regime_Service
                             len = bb.Count;
 
                         using var buffer = Keccak_abstract.allocator.AllocMemory(len, "ContinuouslyGetterRecord.getBytes");
-                        bb!.getBytesAndRemoveIt(buffer);
+                        bb!.GetBytesAndRemoveIt(buffer);
                         BytesBuilder.CopyTo(len, len, buffer, data);
 
-                        countOfBytesFromLastOutput -= len;
+                        CountOfBytesFromLastOutput -= len;
                         if (bb.Count <= 0)
                         {
-                            isInited     = false;
+                            IsInited     = false;
                             MandatoryUse = false;       // Сообщаем потоку-читателю, что можно завершаться
                         }
                     }
 
-                    countOfBytesToUser += len;
+                    CountOfBytesToUser += len;
                     return len;
                 }
             }
@@ -180,18 +180,18 @@ public partial class Regime_Service
         /// <summary>Проверяет, готово ли количество данных len для вывода.</summary>
         /// <param name="askedBytes">Количество байтов энтропии, которое хочет получить пользователь.</param>
         /// <returns>false, если данные не готовы. true, если данные готовы. Если false, то из объекта ещё нельзя извлекать данные с помощью функции getBytes.</returns>
-        public bool isDataReady(nint askedBytes)
+        public bool IsDataReady(nint askedBytes)
         {
             checked
             {
-                if (!isInited)
+                if (!IsInited)
                     return false;
 
-                if (MandatoryUse && countOfBytesFromLastOutput > 0)
+                if (MandatoryUse && CountOfBytesFromLastOutput > 0)
                     return true;
 
                 if (askedBytes == 0)
-                    return countOfBytesFromLastOutput > 0;
+                    return CountOfBytesFromLastOutput > 0;
 
                 var ReadyBytes = GetCountOfReadyBytes();
                 return askedBytes <= ReadyBytes;
@@ -205,9 +205,9 @@ public partial class Regime_Service
             {
                 // Если min не установлен (равен нулю), то считаем, что на один байт выхода приходится 8-мь байтов входа
                 if (inputElement.intervals!.entropy.min <= 0)
-                    return countOfBytesFromLastOutput >> 3;
+                    return CountOfBytesFromLastOutput >> 3;
 
-                return countOfBytesFromLastOutput / inputElement.intervals!.entropy.min;
+                return CountOfBytesFromLastOutput / inputElement.intervals!.entropy.min;
             }
         }
 
@@ -217,11 +217,11 @@ public partial class Regime_Service
         /// <param name="bytes">Количество байтов из источника энтропии; для расчёта общего количества байтов</param>
         /// <param name="len">Количество добавляемых байтов из input. Может отличаться от bytes в связи с тем, что к input могло быть добавлено время или какие-то другие дополнительные параметры. len >= bytes. len > 0 и может быть больше блока шифрования.</param>
         /// <param name="input">Массив, содержащий добавляемые байты.</param>
-        public void addBytes(nint bytes, nint len, byte * input)
+        public void AddBytes(nint bytes, nint len, byte * input)
         {
             checked
             {
-                if (disposed)
+                if (Disposed)
                     throw new ObjectDisposedException("ContinuouslyGetterRecord.addBytes: disposed (you must check the 'disposed' field and skip the object, if disposed)");
 
                 lock (this)
@@ -248,12 +248,12 @@ public partial class Regime_Service
                     }
                     else
                     {
-                        bb!.addWithCopy(input, len, Keccak_abstract.allocator);
+                        bb!.AddWithCopy(input, len, Keccak_abstract.allocator);
                     }
 
-                    isInited                    = true;
-                    countOfBytes               += bytes;
-                    countOfBytesFromLastOutput += bytes;
+                    IsInited                    = true;
+                    CountOfBytes               += bytes;
+                    CountOfBytesFromLastOutput += bytes;
                 }
             }
         }
@@ -262,13 +262,13 @@ public partial class Regime_Service
         {
             lock (this)
             {
-                if (disposed)
+                if (Disposed)
                     throw new Exception("ContinuouslyGetterRecord.Dispose executed twice");
 
                 TryToDispose(keccak);
                 TryToDispose(bb);
 
-                disposed = true;
+                Disposed = true;
             }
         }
 
@@ -305,7 +305,7 @@ public partial class Regime_Service
         Options_Service.Input.Entropy.InputFileElement fileElement
     )
     {
-        fileElement.fileInfo!.Refresh();
+        fileElement.FileInfo!.Refresh();
 
         var t = new Thread
         (
@@ -313,14 +313,14 @@ public partial class Regime_Service
             {
                 checked
                 {
-                    WaitForFileExists(fileElement.fileInfo, L("File not found. Wait for creation:") + $" '{fileElement.fileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.fileInfo.FullName}'.");
+                    WaitForFileExists(fileElement.FileInfo, L("File not found. Wait for creation:") + $" '{fileElement.FileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.FileInfo.FullName}'.");
 
                     int len     = 1024;                    // Значение должно быть строго больше KeccakPrime.BlockLen + dateLen
                     int ilen    = len * 2;
                     int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);    // Длина массива, выделенная для данных
-                    if (fileElement.fileInfo!.Length > len)
+                    if (fileElement.FileInfo!.Length > len)
                     {
-                        len = (int) fileElement.fileInfo!.Length;
+                        len = (int) fileElement.FileInfo!.Length;
                         if (len*2 > ilen)
                             ilen = len * 2; // ilen не должен быть меньше 127-ми байтов
                     }
@@ -343,7 +343,7 @@ public partial class Regime_Service
                     nint totalBytes = 0;
                     var cgr = new ContinuouslyGetterRecord(Thread.CurrentThread, rnd, interval.IntervalType == IntervalTypeEnum.waitAndOnce);
 
-                    int sleepTime = interval.time > 0 ? (int) interval.time : 1049;
+                    int sleepTime = interval.Time > 0 ? (int) interval.Time : 1049;
 
                     try
                     {
@@ -354,7 +354,7 @@ public partial class Regime_Service
                         {
                             try
                             {
-                                WaitForFileExists(fileElement.fileInfo, L("File not found. Wait for creation:") + $" '{fileElement.fileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.fileInfo.FullName}'.");
+                                WaitForFileExists(fileElement.FileInfo, L("File not found. Wait for creation:") + $" '{fileElement.FileInfo.FullName}'.", L("File found successfully:") + $" '{fileElement.FileInfo.FullName}'.");
                                 if (this.Terminated)
                                     break;
 
@@ -362,7 +362,7 @@ public partial class Regime_Service
                                 // то мы будем делать это не так и задержка в цикле будет другой
                                 if (interval.IntervalType == IntervalTypeEnum.fast)
                                 {
-                                    getEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
+                                    GetEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
                                     if (!this.Terminated)
                                         Thread.Sleep(97);
                                 }
@@ -370,7 +370,7 @@ public partial class Regime_Service
                                 {
                                     // Здесь мы считываем файл постоянно.
                                     // Задержка нужна только на случай какой-либо ошибки файлового ввода-вывода
-                                    var isSleeped = getEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
+                                    var isSleeped = GetEntropyFromFile_h(cgr, interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, ref totalBytes, sleepTime);
 
                                     if (!isSleeped)
                                         Sleep(sleepTime);
@@ -382,11 +382,11 @@ public partial class Regime_Service
                                     {
                                         if (pos <= 0)
                                         {
-                                            Console.WriteLine(L("From the file got zero bytes") + $": {fileElement.fileInfo.FullName}");
+                                            Console.WriteLine(L("From the file got zero bytes") + $": {fileElement.FileInfo.FullName}");
                                         }
                                         lock (cgr)
                                         {
-                                            cgr.addBytes(totalBytes, pos, input);
+                                            cgr.AddBytes(totalBytes, pos, input);
                                             cgr.CorrectEntropyForMandatoryUse();
                                         }
                                         pos = 0;
@@ -412,7 +412,7 @@ public partial class Regime_Service
                             }
                             catch (Exception ex)
                             {
-                                formatException(ex);
+                                FormatException(ex);
                                 Sleep(3557);
                             }
                         }
@@ -461,26 +461,26 @@ public partial class Regime_Service
         }
     }
 
-    protected unsafe bool getEntropyFromFile_h(ContinuouslyGetterRecord cgr, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int ilen, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, ref nint totalBytes, int sleepTime)
+    protected unsafe bool GetEntropyFromFile_h(ContinuouslyGetterRecord cgr, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval, Options_Service.Input.Entropy.InputFileElement fileElement, int ilen, byte* input, ref int pos, int dateLen, ref long lastTimeInLog, ref nint lastBytesInLog, byte* buff, Span<byte> span, ref nint totalBytes, int sleepTime)
     {
         checked
         {
             try
             {
-                var rs = fileElement.fileInfo!.OpenRead();
+                var rs = fileElement.FileInfo!.OpenRead();
 
                 lock (cgr)
                 cgr.StreamForClose = rs;
 
                 try
                 {
-                    return getEntropyFromFile_h(interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes, sleepTime);
+                    return GetEntropyFromFile_h(interval, fileElement, ilen, input, ref pos, dateLen, ref lastTimeInLog, ref lastBytesInLog, buff, span, rs, cgr, ref totalBytes, sleepTime);
                 }
                 catch (ThreadInterruptedException)
                 {}
                 catch (Exception ex)
                 {
-                    formatException(ex);
+                    FormatException(ex);
                     Sleep(3557);
                 }
                 finally
@@ -495,7 +495,7 @@ public partial class Regime_Service
             }
             catch (Exception ex)
             {
-                formatException(ex);
+                FormatException(ex);
                 Sleep(3557);
             }
 
@@ -503,7 +503,7 @@ public partial class Regime_Service
         }
     }
 
-    protected unsafe bool getEntropyFromFile_h
+    protected unsafe bool GetEntropyFromFile_h
     (
         Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
         Options_Service.Input.Entropy.InputFileElement fileElement,
@@ -553,7 +553,7 @@ public partial class Regime_Service
                     }
 
                     if (!ignored)
-                        cgr.addBytes(totalBytes, pos, input);
+                        cgr.AddBytes(totalBytes, pos, input);
 
                     pos = 0;
                     totalBytes = 0;
@@ -565,12 +565,12 @@ public partial class Regime_Service
                             var ticks = DateTime.Now.Ticks;
 
                             if (ticks - lastTimeInLog >= ticksPerHour)
-                                if (lastBytesInLog != cgr.countOfBytesToUser)
+                                if (lastBytesInLog != cgr.CountOfBytesToUser)
                                 {
                                     SendGetterDebugMsgToConsole(fileElement, cgr);
 
                                     lastTimeInLog  = ticks;
-                                    lastBytesInLog = cgr.countOfBytesToUser;
+                                    lastBytesInLog = cgr.CountOfBytesToUser;
                                 }
                         }
                     }
@@ -608,7 +608,7 @@ public partial class Regime_Service
         }
     }
 
-    public unsafe void getRandomFromCommand_continuously
+    public unsafe void GetRandomFromCommand_continuously
     (
         Options_Service.Input.Entropy.InputElement rnd,
         Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
@@ -622,7 +622,7 @@ public partial class Regime_Service
                 long lastLogDate = default;
 
                 int Ex_cnt    = 0;
-                int sleepTime = interval.time > 0 ? (int) interval.time : 1049;
+                int sleepTime = interval.Time > 0 ? (int) interval.Time : 1049;
                 if (interval.IntervalType == IntervalTypeEnum.fast)
                     sleepTime = 347;
 
@@ -636,7 +636,7 @@ public partial class Regime_Service
                     {
                         try
                         {
-                            getRandomFromCommand_continuously_h(rnd, interval, cmdElement, cgr);
+                            GetRandomFromCommand_continuously_h(rnd, interval, cmdElement, cgr);
                             Sleep(sleepTime);
 
                             lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
@@ -659,7 +659,7 @@ public partial class Regime_Service
                         {
                             Ex_cnt++;
                             Console.Error.WriteLine(L("Error for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
-                            Console.Error.WriteLine(formatException(ex, false));
+                            Console.Error.WriteLine(FormatException(ex, false));
 
                             if (Ex_cnt > 5)
                             {
@@ -697,7 +697,7 @@ public partial class Regime_Service
                     lock (cgr)
                     {
                         lastLogDate = ticks;
-                        Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
+                        Console.WriteLine($"{cgr.CountOfBytes} {L("bytes got from")} '{cmdElement.PathString} {cmdElement.parameters}'; {cgr.CountOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
                     }
         }
         catch (ThreadInterruptedException)
@@ -707,7 +707,7 @@ public partial class Regime_Service
     }
 
     // ::cp:all:ZwUElzYfZkK4PfXzUrO7:20231104
-    public unsafe void getRandomFromCommand_continuously_h
+    public unsafe void GetRandomFromCommand_continuously_h
     (
         Options_Service.Input.Entropy.InputElement rnd,
         Options_Service.Input.Entropy.Interval.InnerIntervalElement interval,
@@ -767,7 +767,7 @@ public partial class Regime_Service
                 {
                     lock (cgr)
                     {
-                        cgr.addBytes(readedLen, readedLen, buffRec);
+                        cgr.AddBytes(readedLen, readedLen, buffRec);
                         if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
                             cgr.CorrectEntropyForMandatoryUse();
                     }
@@ -787,7 +787,7 @@ public partial class Regime_Service
             {
                 lock (cgr)
                 {
-                    Console.WriteLine($"{cgr.countOfBytes} {L("bytes got from")} '{fileElement.fileInfo!.FullName}'; {cgr.countOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
+                    Console.WriteLine($"{cgr.CountOfBytes} {L("bytes got from")} '{fileElement.FileInfo!.FullName}'; {cgr.CountOfBytesToUser} {L("sended to the main sponges (for the entire time of work)")}. [" + L("Awaiting processing in the queue") + $" {bufferRec_current} " + L("bytes from all sources") + "]");
                 }
             }
             catch (ThreadInterruptedException)

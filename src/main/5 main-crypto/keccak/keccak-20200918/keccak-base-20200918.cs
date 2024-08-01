@@ -60,7 +60,7 @@ public abstract class Keccak_base_20200918: Keccak_abstract
 
         var co = new object();
         int MaxGenerationReached = 0;
-        List<byte[]> bytes = new List<byte[]>(1024);
+        List<byte[]> bytes = new(1024);
         try
         {
             // Выделяем память небольшими блоками, большими перезатирается хуже
@@ -147,7 +147,7 @@ public abstract class Keccak_base_20200918: Keccak_abstract
         if (memSize < minSize)
             memSize = minSize;
 
-        List<byte[]> bytes = new List<byte[]>(1024);
+        List<byte[]> bytes = new(1024);
         try
         {
             while (memSize >= minSize)
@@ -186,7 +186,7 @@ public abstract class Keccak_base_20200918: Keccak_abstract
         if (blockSize < 1)
             blockSize = (Environment.SystemPageSize << 8) * 512;   // Блоки по 512 Мб
 
-        List<byte[]> bytes = new List<byte[]>(1024);
+        List<byte[]> bytes = new(1024);
         try
         {
             long  memSize = blockSize;
@@ -259,7 +259,7 @@ public abstract class Keccak_base_20200918: Keccak_abstract
     /// <param name="index">Если forResult != <see langword="null"/>, то запись будет произведена по индексу index</param>
     /// <param name="doubleHash">DoubleHash.one - обычный хеш 64-ре байта, DoubleHash.two - два раза по 64-ре байта, DoubleHash.full72 - один раз 72 байта</param>
     /// <returns>Массив с запрошенным хешем</returns>
-    public unsafe byte[] getHash512(byte * message, long messageFullLen, bool doClear = true, long startIndex = 0, long countToHash = -1, bool isInitialized = false, byte[]? forResult = null, ulong index = 0, DoubleHash doubleHash = DoubleHash.one)
+    public unsafe byte[] GetHash512(byte * message, long messageFullLen, bool doClear = true, long startIndex = 0, long countToHash = -1, bool isInitialized = false, byte[]? forResult = null, ulong index = 0, DoubleHash doubleHash = DoubleHash.one)
     {
         byte[]? result = forResult;
         if (result == null)
@@ -283,7 +283,7 @@ public abstract class Keccak_base_20200918: Keccak_abstract
             throw new ArgumentOutOfRangeException("startIndex + mLen > messageFullLen");
 
         if (!isInitialized)
-            init();
+            Init();
 
         var Msg = message;
 

@@ -19,24 +19,24 @@ namespace maincrypto.keccak;
 /// </summary>
 public unsafe abstract class Keccak_abstract: IDisposable
 {
-    public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+    public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new();
     /// <summary>Создаёт объект для использования с примитивом keccak</summary>
     /// <param name="noInit">Если true, то не будет делать инициализацию полей нулями</param>
     public Keccak_abstract(bool noInit = false)
     {
-        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
         StatePtr = allocator.AllocMemory(StateLen); //Marshal.AllocHGlobal(StateLen);
         State    = StatePtr.array;
-        getStatesArray();
+        GetStatesArray();
 
         if (!noInit)
-            init();
+            Init();
     }
 
     public byte  * S, B, C;                 // Размеры в элементах ulong: S_len2, S_len2, S_len
     public ulong * Slong, Blong, Clong;
-    protected void getStatesArray()
+    protected void GetStatesArray()
     {
         B     = State;
         C     = B + (S_len2 << 3);
@@ -77,20 +77,20 @@ public unsafe abstract class Keccak_abstract: IDisposable
     /// <summary>Очищает вспомогательные поля объекта, но оставляет объект проинициализированным. В том числе, очищает вспомогательные массивы B и C</summary>
     public virtual void ClearStateWithoutStateField()
     {
-        clearOnly_C_and_B();
+        ClearOnly_C_and_B();
     }
 
     protected bool isInitiated = false;
 
     /// <summary>Инициализирует состояние нулями</summary>
-    public virtual void init()
+    public virtual void Init()
     {
         BytesBuilder.ToNull(StateLen, State);
         isInitiated = true;
     }
 
     /// <summary>Эту функцию можно вызывать после keccak, если нужно состояние S, но хочется очистить B и C</summary>
-    public void clearOnly_C_and_B()
+    public void ClearOnly_C_and_B()
     {
         Clear5x5(Blong);
         Clear5  (Clong);

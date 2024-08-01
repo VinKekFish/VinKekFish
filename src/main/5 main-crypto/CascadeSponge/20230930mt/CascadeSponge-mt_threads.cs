@@ -22,12 +22,12 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
     public const nint   EndTask       = -7;
     public const nint   EmptyTaskSlot = -1;
-    public       object ThreadsStop  = new object();
+    public       object ThreadsStop  = new();
 
     public readonly nint ThreadsCount = 0;
 
     /// <summary>Посылает сигнал на останов всех потоков. Каскадная губка не должна быть в это время в функции step или step_once</summary>
-    protected virtual void doThreadsDispose()
+    protected virtual void DoThreadsDispose()
     {
         // Блокируем возможность для других потоков начать шаг (хотя если шаг начат, то он может продолжаться)
         ThreadsError = true;
@@ -35,7 +35,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         // Ждём завершения задач потоков; если потоки не хотят завершаться, продолжаем дальше
         if (ThreadsExecuted > 0)
         {
-            Record.errorsInDispose = true;
+            Record.ErrorsInDispose = true;
             Console.Error.WriteLine("CascadeSponge_mt_20230930.doThreadsDispose: ThreadsExecuted > 0");
 
             lock (ThreadsStop)
@@ -90,7 +90,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         // lock (this)
     }
 
-    protected ManualResetEvent Event = new ManualResetEvent(false);
+    protected ManualResetEvent Event = new(false);
 
 
     protected bool ThreadSleep = true;
@@ -165,7 +165,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                     sb2 = st + ReserveConnectionLen;
                 }
 
-                getKeccakS(ThreadsLayer, index, S: out S, B: out B, C: out C);
+                GetKeccakS(ThreadsLayer, index, S: out S, B: out B, C: out C);
                 if (ThreadsLayer > 0)
                 {
                     var si = index*MaxInputForKeccak;
@@ -216,7 +216,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             debug_t[i] = 0;
     }
 
-    protected virtual string toString_Debug_t()
+    protected virtual string ToString_Debug_t()
     {
         var sb = new StringBuilder();
 

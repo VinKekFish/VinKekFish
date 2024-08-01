@@ -17,7 +17,7 @@ public unsafe class VinKekFish_test_base_performance11 : TestTask
     public VinKekFish_test_base_performance11(TestConstructor constructor) :
                                             base(nameof(VinKekFish_test_base_performance11), constructor)
     {
-        taskFunc = this.Test;
+        TaskFunc = this.Test;
     }
 
     public void Test()
@@ -50,15 +50,15 @@ public unsafe class VinKekFish_test_base_performance11 : TestTask
         k1t4.Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
 
         var st1 = new DriverForTestsLib.SimpleTimeMeter();
-        k1t1.doStepAndIO(roundsCnt);
+        k1t1.DoStepAndIO(roundsCnt);
         st1.Dispose();
 
         var stm = new DriverForTestsLib.SimpleTimeMeter();
-        k1t4.doStepAndIO(roundsCnt);
+        k1t4.DoStepAndIO(roundsCnt);
         stm.Dispose();
 
-        using var out1t1 = k1t1.output.getBytes();
-        using var out1t4 = k1t4.output.getBytes();
+        using var out1t1 = k1t1.output.GetBytes();
+        using var out1t4 = k1t4.output.GetBytes();
 
         if (!out1t4.UnsecureCompare(out1t1))
         {

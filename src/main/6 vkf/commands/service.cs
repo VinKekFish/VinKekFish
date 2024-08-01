@@ -44,11 +44,11 @@ public partial class Program
 
         try
         {
-            service?.doTerminate(willBlock: true);
+            service?.DoTerminate(willBlock: true);
         }
         catch (Exception ex)
         {
-            formatException(ex);
+            FormatException(ex);
         }
     }
 
@@ -62,13 +62,13 @@ public partial class Program
             (
                 (param) =>
                 {
-                    service?.doTerminate(willBlock: false);
+                    service?.DoTerminate(willBlock: false);
                 }
             );
         }
         catch (Exception ex)
         {
-            formatException(ex);
+            FormatException(ex);
         }
     }
 }

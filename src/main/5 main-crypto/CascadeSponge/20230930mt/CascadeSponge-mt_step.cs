@@ -29,14 +29,14 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public override nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    public override nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
         // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
         try
         {
             Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
-            result = base.step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
         }
         finally
         {
@@ -56,14 +56,14 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
     /// <param name="noResetEvent">Если true, то состояние синхронизации не будет сбрасываться. Это нужно, если после одного шага сразу следует другой. В таком случае, потоки будут находится в цикле ожидания, тратя процессорные ресурсы вхолостую, но готовые вновь быстро взять задачи.</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, bool noResetEvent = false)
+    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, bool noResetEvent = false)
     {
         // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
         try
         {
             Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
-            result = base.step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
         }
         finally
         {
@@ -80,7 +80,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: xor или overwrite (перезапись)</param>
     /// <param name="calcOut">Если false, то выход не рассчитывается</param>
-    protected override void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    protected override void Step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         if (ThreadsError)
             throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted (in the function start)");
@@ -137,10 +137,10 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         }
 
         // Последний уровень губки, включая преобразование обратной связи
-        outputAllData();
+        OutputAllData();
 
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
         _countOfProcessedSteps++;
-        lastRegime = regime;
+        LastRegime = regime;
     }
 }

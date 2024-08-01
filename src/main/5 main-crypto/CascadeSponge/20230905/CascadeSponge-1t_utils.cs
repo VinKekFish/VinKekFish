@@ -35,7 +35,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         sb.AppendLine($"countOfThreeFish_RC        = {this.countOfThreeFish_RC}");
         sb.AppendLine($"countStepsForKeyGeneration = {this.countStepsForKeyGeneration}");
         sb.AppendLine($"strenghtInBytes            = {this.strenghtInBytes} ({this.strenghtInBytes*8} bits)");
-        sb.AppendLine($"countOfProcessedSteps      = {this.countOfProcessedSteps}");
+        sb.AppendLine($"countOfProcessedSteps      = {this.CountOfProcessedSteps}");
 
         return sb.ToString();
     }

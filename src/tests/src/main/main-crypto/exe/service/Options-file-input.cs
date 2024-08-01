@@ -28,7 +28,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             var fileString = new List<string>();
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'entropy'",
                 () =>
@@ -48,7 +48,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.*",
                 () =>
@@ -72,7 +72,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path",
                 () =>
@@ -95,7 +95,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect .input.Entropy.OS.file.path",
                 () =>
@@ -108,7 +108,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "empty .input.Entropy.OS.file.path",
                 () =>
@@ -121,7 +121,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.*",
                 () =>
@@ -135,7 +135,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.{min,max,EME}",
                 () =>
@@ -149,7 +149,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.interval.min",
                 () =>
@@ -167,7 +167,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.interval.max",
                 () =>
@@ -185,7 +185,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.interval.EME",
                 () =>
@@ -203,7 +203,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no .input.Entropy.OS.file.path.interval.innerInterval",
                 () =>
@@ -222,7 +222,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -235,7 +235,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -248,7 +248,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -261,7 +261,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -274,7 +274,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -284,14 +284,14 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     throw new Exception($"{t1}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -301,14 +301,14 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     throw new Exception($"{t1}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -318,7 +318,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   ms");
@@ -326,13 +326,13 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -342,7 +342,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   s");
@@ -350,13 +350,13 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -366,7 +366,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   m");
@@ -374,13 +374,13 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "correct time in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -390,7 +390,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_LD(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
 
                     add_Input_Entropy_OS_file_interval(fileString);
                     fileString.Add("\t\t\t\t\t\t100   h");
@@ -398,13 +398,13 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     opt = new Options(fileString);
                     options_service = new Options_Service(opt);
 
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].time;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Time;
                     throw new Exception($"{t1} {t2}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "length, date and difference in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -412,16 +412,16 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_32YesNo(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].flags!.date;
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Difference!.differenceValue;
-                    var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Length!.Length;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].flags!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Length!.Length;
 
                     throw new Exception($"{t1} {t2} {t3}");
                 }
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "length, date and difference in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -429,9 +429,9 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
                     add_Input_Entropy_OS_file_interval_full_64NoYes(fileString);
                     var opt = new Options(fileString);
                     var options_service = new Options_Service(opt);
-                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].flags!.date;
-                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Difference!.differenceValue;
-                    var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.interval!.inner[0].Length!.Length;
+                    var t1 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].flags!.date;
+                    var t2 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Difference!.differenceValue;
+                    var t3 = options_service.root!.input!.entropy!.os!.randoms![0].intervals!.Interval!.inner[0].Length!.Length;
 
                     throw new Exception($"{t1} {t2} {t3}");
                 }
@@ -439,7 +439,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
 
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no a length element in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -456,7 +456,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no a length value in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -473,7 +473,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no a difference value in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -492,7 +492,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no a date value in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -511,7 +511,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "incorrect a length value in .input.Entropy.OS.file.path.interval.*",
                 () =>
@@ -597,7 +597,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             }
         }
 
-        void add(List<string> lst, string msg, Func func)
+        void Add(List<string> lst, string msg, Func func)
         {
             try
             {

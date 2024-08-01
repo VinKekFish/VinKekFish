@@ -19,14 +19,14 @@ namespace CodeGenerator
             Add("// Vinogradov S.V. Generated at 2020-" + DateTime.Now.Year.ToString("D4") + " years");
             Add("// ::test:O0s1QcshQ7zCGVMMKZtf:");
             Add("namespace CodeGenerated.Cryptoprimes");
-            addBlock();
+            AddBlock();
 
-            this.addClassHeader("public static unsafe", "Threefish_Static_Generated");
+            this.AddClassHeader("public static unsafe", "Threefish_Static_Generated");
 
             AddBytesToULongConvertFunctions();
             AddFuncThreefish1024_step();
 
-            this.endBlock();
+            this.EndBlock();
             this.EndGeneration();
             this.Save();
         }
@@ -38,9 +38,9 @@ namespace CodeGenerator
             Add("/// <param name=\"tweak\">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>");
             Add("/// <param name=\"text\">Open text for cipher</param>");
 
-            addFuncHeader("public static", "void", "Threefish1024_step", "ulong * key, ulong * tweak, ulong * text");
+            AddFuncHeader("public static", "void", "Threefish1024_step", "ulong * key, ulong * tweak, ulong * text");
 
-            var correspondenceTable = new byte[threefish_slowly.Nw];
+            var correspondenceTable = new byte[Threefish_slowly.Nw];
             for (byte i = 0; i < correspondenceTable.Length; i++)
             {
                 correspondenceTable[i] = i;
@@ -49,7 +49,7 @@ namespace CodeGenerator
             // Компилятор вычисляет адреса переменных в массивах ulong аж через умножение
             // Почему - не знаю. Но это очень долго. Приходится назначать алиасы
             Add("// Aliases");
-            for (int i = 0; i <= threefish_slowly.Nw; i++)
+            for (int i = 0; i <= Threefish_slowly.Nw; i++)
             {
                 Add($"ref ulong key{i:D2}   = ref key  [{i:D2}];");
                 Add($"ref ulong text{i:D2}  = ref text [{i:D2}];");
@@ -75,45 +75,45 @@ namespace CodeGenerator
                         var index = s + 2*j;
 
                         // Осуществляем операцию mod (Nw + 1)
-                        while (index > threefish_slowly.Nw)
-                            index -= threefish_slowly.Nw + 1;
+                        while (index > Threefish_slowly.Nw)
+                            index -= Threefish_slowly.Nw + 1;
 
                         var sk1 = index;
 
                         index = s + 2*j + 1;
 
                         // Осуществляем операцию mod (Nw + 1)
-                        while (index > threefish_slowly.Nw)
-                            index -= threefish_slowly.Nw + 1;
+                        while (index > Threefish_slowly.Nw)
+                            index -= Threefish_slowly.Nw + 1;
 
                         var sk2 = index;
 
-                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, j].ToString("D2"), $"key{sk1:D2}", $"key{sk2:D2}");
+                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", Threefish_slowly.RC[round & 0x07, j].ToString("D2"), $"key{sk1:D2}", $"key{sk2:D2}");
                     }
                     else
                     {
-                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, j].ToString("D2"));
+                        AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", Threefish_slowly.RC[round & 0x07, j].ToString("D2"));
                     }
                 }
 
                 if (max == 6)
                 {
                     // Каждые 4 раунда мы суммируем v[d,i] с key[d/4,i], где d/4 - это номер раунда, а i - номер слова (стр. 10; пункт 3.3)
-                    var i = (threefish_slowly.Nw - 4);
+                    var i = (Threefish_slowly.Nw - 4);
                     var index = s + i;
 
                     // Осуществляем операцию mod (Nw + 1)
-                    while (index > threefish_slowly.Nw)
-                        index -= threefish_slowly.Nw + 1;
+                    while (index > Threefish_slowly.Nw)
+                        index -= Threefish_slowly.Nw + 1;
 
                     var subkeyL = $"key{index:D2}";
 
-                    i = (threefish_slowly.Nw - 3);
+                    i = (Threefish_slowly.Nw - 3);
                     index = s + i;
 
                     // Осуществляем операцию mod (Nw + 1)
-                    while (index > threefish_slowly.Nw)
-                        index -= threefish_slowly.Nw + 1;
+                    while (index > Threefish_slowly.Nw)
+                        index -= Threefish_slowly.Nw + 1;
 
                     var subkey = $"key{index:D2}";
                     int s3 = s % 3;
@@ -121,22 +121,22 @@ namespace CodeGenerator
 
                     var i1 = correspondenceTable[i - 1];
                     var i2 = correspondenceTable[i + 0];
-                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, $"{subkey:D2} + {sb2:D2}");
+                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", Threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), subkeyL, $"{subkey:D2} + {sb2:D2}");
 
-                    i = (threefish_slowly.Nw - 2);
+                    i = (Threefish_slowly.Nw - 2);
                     index = s + i;
                     // Осуществляем операцию mod (Nw + 1)
-                    while (index > threefish_slowly.Nw)
-                        index -= threefish_slowly.Nw + 1;
+                    while (index > Threefish_slowly.Nw)
+                        index -= Threefish_slowly.Nw + 1;
 
                     subkeyL = $"key{index:D2}";
 
-                    i = (threefish_slowly.Nw - 1);
+                    i = (Threefish_slowly.Nw - 1);
                     index = s + i;
 
                     // Осуществляем операцию mod (Nw + 1)
-                    while (index > threefish_slowly.Nw)
-                        index -= threefish_slowly.Nw + 1;
+                    while (index > Threefish_slowly.Nw)
+                        index -= Threefish_slowly.Nw + 1;
 
                     subkey = $"key{index:D2}";
                     s3 = (s + 1) % 3;
@@ -144,12 +144,12 @@ namespace CodeGenerator
 
                     i1 = correspondenceTable[i - 1];
                     i2 = correspondenceTable[i + 0];
-                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), $"{subkeyL:D2} + {sb2:D2}", $"{subkey:D2} + {s:D2}");
+                    AddMixTemplate($"text{i1:D2}", $"text{i2:D2}", Threefish_slowly.RC[round & 0x07, i >> 1].ToString("D2"), $"{subkeyL:D2} + {sb2:D2}", $"{subkey:D2} + {s:D2}");
                 }
 
                 for (byte i = 0; i < correspondenceTable.Length; i++)
                 {
-                    correspondenceTable[i] = threefish_slowly.Pi[correspondenceTable[i]];
+                    correspondenceTable[i] = Threefish_slowly.Pi[correspondenceTable[i]];
                 }
             }
 
@@ -165,7 +165,7 @@ namespace CodeGenerator
             Add($"text15 += key01 + 20;");
 
 
-            endBlock();
+            EndBlock();
         }
 
         // Пункт 3.3.1, сочетаемый с дополнительным суммированием по ключевому расписанию
@@ -197,17 +197,17 @@ namespace CodeGenerator
 
         private void AddBytesToULongConvertFunctions()
         {
-            addFuncHeader("public static", "void", "BytesToUlong_128b", "byte * b, ulong * result");
+            AddFuncHeader("public static", "void", "BytesToUlong_128b", "byte * b, ulong * result");
             Add("ulong * br = (ulong *) b;");
-            for (int i = 0; i < cryptoprime.threefish_slowly.Nw; i++)
+            for (int i = 0; i < cryptoprime.Threefish_slowly.Nw; i++)
                 Add($"result[{i}] = br[{i}];");
-            endBlock();
+            EndBlock();
 
-            addFuncHeader("public static", "void", "UlongToBytes_128b", "ulong * u, byte * result");
+            AddFuncHeader("public static", "void", "UlongToBytes_128b", "ulong * u, byte * result");
             Add("ulong * r = (ulong *) result;");
-            for (int i = 0; i < cryptoprime.threefish_slowly.Nw; i++)
+            for (int i = 0; i < cryptoprime.Threefish_slowly.Nw; i++)
                 Add($"r[{i}] = u[{i}];");
-            endBlock();
+            EndBlock();
         }
     }
 }

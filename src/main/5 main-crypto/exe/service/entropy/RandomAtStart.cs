@@ -6,7 +6,7 @@ public partial class Regime_Service
     /// <summary>Представляет файлы для сбора энтропии</summary>
     public class RandomAtFolder_Current
     {
-        public List<FileInfo> current = new List<FileInfo>(countOfFiles);
+        public List<FileInfo> current = new(countOfFiles);
         public const int countOfFiles = 4;
 
         public readonly Regime_Service service;

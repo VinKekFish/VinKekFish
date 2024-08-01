@@ -20,7 +20,7 @@ namespace vinkekfish
     public unsafe partial class VinKekFishBase_KN_20210525
     {
         /// <summary>Запускает многопоточную поблочную обработку алгоритмом keccak</summary>
-        protected void doKeccak()
+        protected void DoKeccak()
         {
             CurrentKeccakBlockNumber[0] = 0;
             CurrentKeccakBlockNumber[1] = 1;
@@ -30,7 +30,7 @@ namespace vinkekfish
             else
                 ThreadFunction_Keccak();
 
-            isState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
+            IsState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
         }
 
                                                                                             /// <summary>Массив счётчика блоков для определения текущего блока для обработки keccak. [0] - чётные элементы, [1] - нечётные элементы</summary>
@@ -75,7 +75,7 @@ namespace vinkekfish
             BytesBuilder.ToNull(MatrixLen, mat);
         }
 
-        protected void doThreeFish()
+        protected void DoThreeFish()
         {
             CurrentThreeFishBlockNumber = 0;
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
@@ -87,7 +87,7 @@ namespace vinkekfish
             else
                 ThreadFunction_ThreeFish();
 
-            isState1Main ^= true;
+            IsState1Main ^= true;
         }
 
         protected volatile int CurrentThreeFishBlockNumber = 0;
@@ -122,7 +122,7 @@ namespace vinkekfish
             BytesBuilder.ToNull(3*sizeof(ulong), (byte*) tweak);
         }
 
-        protected void doPermutation(ushort * CurrentPermutationTable)
+        protected void DoPermutation(ushort * CurrentPermutationTable)
         {
             CurrentPermutationBlockNumber = 0;
             this.CurrentPermutationTable  = CurrentPermutationTable;
@@ -132,7 +132,7 @@ namespace vinkekfish
             #endif
 
             ThreadFunction_Permutation();
-            isState1Main ^= true;
+            IsState1Main ^= true;
 
             #if DEBUG_OUTPUT
             // VinKekFish_Utils.Utils.ArrayToFile((byte *) CurrentPermutationTable, this.Len*2, "KN");

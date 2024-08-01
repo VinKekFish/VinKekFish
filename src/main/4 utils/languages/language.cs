@@ -8,13 +8,13 @@ using VinKekFish_Utils.ProgramOptions;
 
 public class Language
 {
-    public static CultureInfo culture  = getParentCulture(Thread.CurrentThread.CurrentCulture);
-    public static Language    language = new Language();
+    public static CultureInfo culture  = GetParentCulture(Thread.CurrentThread.CurrentCulture);
+    public static Language    language = new();
     public        Options     stringsInOptions;
 
-    public Dictionary<String, String> strings = new Dictionary<string, string>(1024);
+    public Dictionary<String, String> strings = new(1024);
 
-    public static CultureInfo getParentCulture(CultureInfo culture)
+    public static CultureInfo GetParentCulture(CultureInfo culture)
     {
         while (culture.Parent is not null && culture.Parent != culture && culture.Parent.Name.Length > 0)
         {

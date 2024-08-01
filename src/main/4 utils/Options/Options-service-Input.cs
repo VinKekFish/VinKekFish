@@ -21,14 +21,14 @@ public partial class Options_Service
             switch(canonicalName)
             {
                 case "entropy": entropy = new Entropy(this, block.blocks, block); break;
-                default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'entropy'");
+                default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'entropy'");
             }
         }
 
         public override void Check()
         {
             if (entropy == null)
-                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'entropy' element. Have no 'entropy' element");
+                throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'entropy' element. Have no 'entropy' element");
 
             base.Check();
         }
@@ -47,19 +47,19 @@ public partial class Options_Service
                 {
                     case "os"      : os       = new OS      (this, block.blocks, block); break;
                     case "standard": standard = new Standard(this, block.blocks, block); break;
-                    default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'OS' and 'standard'");
+                    default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'OS' and 'standard'");
                 }
             }
 
             public override void Check()
             {
                 if (os == null)
-                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was not found 'OS' element");
+                    this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was not found 'OS' element");
                 if (standard == null)
-                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was not found 'standard' element");
+                    this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was not found 'standard' element");
 
                 if (elements.Count <= 0)
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have an one or more element. Have no one element. Acceptable: 'OS' and 'standard'");
+                    throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have an one or more element. Have no one element. Acceptable: 'OS' and 'standard'");
 
                 base.Check();
             }
@@ -69,19 +69,19 @@ public partial class Options_Service
                 public OS(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public readonly List<InputElement> randoms = new List<InputElement>();
+                public readonly List<InputElement> randoms = new();
 
                 public FileInfo? File;
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    randoms.AddRange(  InputElement.getInputElemement(this, block, canonicalName)  );
+                    randoms.AddRange(  InputElement.GetInputElemement(this, block, canonicalName)  );
                 }
 
                 public override void Check()
                 {
                     if (randoms.Count <= 0)
-                        this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was found no one element");
+                        this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service options was found no one element");
 
                     base.Check();
                 }
@@ -122,7 +122,7 @@ public partial class Options_Service
                     if (block.blocks.Count > 0)
                     {
                         if (intervals != null)
-                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option found the excess element '{block.Name}' at line {1+block.startLine}. Perhaps the new command ('file', 'cmd' or another) is forgotten?");
+                            throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option found the excess element '{block.Name}' at line {1+block.startLine}. Perhaps the new command ('file', 'cmd' or another) is forgotten?");
 
                         intervals = new Intervals(parent, block.blocks, block);
                     }
@@ -133,10 +133,10 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (intervals == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one interval element. Have no interval element");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one interval element. Have no interval element");
 
                     if (PathString == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have a path string. Have no the path string");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have a path string. Have no the path string");
 
                     base.Check();
                 }
@@ -147,7 +147,7 @@ public partial class Options_Service
                 /// <param name="canonicalName">Канонизированное имя блока (нижний регистр, триммированная строка)</param>
                 /// <returns>Список созданных блоков</returns>
                 /// <exception cref="Options_Service_Exception">Если есть ошибки в настройках, выдаёт исключение</exception>
-                public static List<InputElement> getInputElemement(Element parent, Options.Block block, string canonicalName)
+                public static List<InputElement> GetInputElemement(Element parent, Options.Block block, string canonicalName)
                 {
                     var result = new List<InputElement>(1);
                     switch (canonicalName)
@@ -157,21 +157,21 @@ public partial class Options_Service
 
                             if (!childBlockName.Contains("*") && !childBlockName.Contains("?"))
                             {
-                                var r = getNewInputFileElement(parent, block);
+                                var r = GetNewInputFileElement(parent, block);
                                 result.Add(r);
                             }
                             else
                             {
-                                var files = VinKekFish_Utils.Glob.getGlobFileNames(childBlockName);
+                                var files = VinKekFish_Utils.Glob.GetGlobFileNames(childBlockName);
                                 if (files.Count == 0)
-                                    parent.getRoot()!.warns.addWarning($"Warning: In the '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service options was not found at least one suitable file for the template '{childBlockName}'");
+                                    parent.GetRoot()!.warns.AddWarning($"Warning: In the '{parent.GetFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service options was not found at least one suitable file for the template '{childBlockName}'");
 
                                 foreach (var file in files)
                                 {
-                                    var r = getNewInputFileElement(parent, block, file);
+                                    var r = GetNewInputFileElement(parent, block, file);
                                     result.Add(r);
 
-                                    Console.WriteLine($"Info: The file '{r.fileInfo!.FullName}' has been added to elements for crawling");
+                                    Console.WriteLine($"Info: The file '{r.FileInfo!.FullName}' has been added to elements for crawling");
                                 }
                             }
                             break;
@@ -180,7 +180,7 @@ public partial class Options_Service
                             var cmd = new InputCmdElement(parent, block.blocks, block);
 
                             if (string.IsNullOrEmpty(cmd.PathString))
-                                throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
+                                throw new Options_Service_Exception($"The '{parent.GetFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
 
                             result.Add(cmd);
                             break;
@@ -200,7 +200,7 @@ public partial class Options_Service
                             break;
 
                         default:
-                            throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option have unknown value '{canonicalName}'. Acceptable is 'dir' ('directory'), 'cmd', 'file'");
+                            throw new Options_Service_Exception($"The '{parent.GetFullElementName()}' element (at line {1+parent.thisBlock.startLine}) of the service option have unknown value '{canonicalName}'. Acceptable is 'dir' ('directory'), 'cmd', 'file'");
                     }
 
                     return result;
@@ -210,12 +210,12 @@ public partial class Options_Service
                 /// <param name="parent">Блок-родитель создаваемого элемента настроек</param>
                 /// <param name="block">Блок опций, описывающий данный элемент</param>
                 /// <param name="path">Необязательный параметр. Строка с именем файла, который описывается данным элементом. Если null, то строка берётся из block.Name</param>
-                protected static InputFileElement getNewInputFileElement(Element parent, Options.Block block, string? path = null)
+                protected static InputFileElement GetNewInputFileElement(Element parent, Options.Block block, string? path = null)
                 {
                     var result = new InputFileElement(parent, block.blocks, block, path);
 
                     if (string.IsNullOrEmpty(result.PathString))
-                        throw new Options_Service_Exception($"The '{parent.getFullElementName()}' element (at line {1 + parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
+                        throw new Options_Service_Exception($"The '{parent.GetFullElementName()}' element (at line {1 + parent.thisBlock.startLine}) of the service option must represent the existing file path. Have no path value (example: '/dev/random')");
 
                     return result;
                 }
@@ -224,7 +224,7 @@ public partial class Options_Service
             /// <summary>Представляет источник энтропии, являющийся файлом (или совместимым с ним устройством)</summary>
             public class InputFileElement: InputElement
             {
-                public FileInfo? fileInfo { get; protected set; }
+                public FileInfo? FileInfo { get; protected set; }
 
                 public InputFileElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, string? PathString) : base(parent, blocks, thisBlock, PathString)
                 {
@@ -236,7 +236,7 @@ public partial class Options_Service
 
                     if (PathString is not null)
                     {
-                        fileInfo = new FileInfo(PathString); fileInfo.Refresh();
+                        FileInfo = new FileInfo(PathString); FileInfo.Refresh();
                     }
                 }
 
@@ -245,22 +245,22 @@ public partial class Options_Service
                     base.SelectBlock(block, canonicalName);
 
                     if (string.IsNullOrEmpty(this.PathString))
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the null path for the file command. Must have a not empty value");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the null path for the file command. Must have a not empty value");
                 }
 
                 public override void Check()
                 {
                     if (string.IsNullOrEmpty(PathString))
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'PathString' element. Have no 'PathString' element");
-                    if (fileInfo!.FullName.Contains("*") || fileInfo!.FullName.Contains("?"))
-                        throw new Options_Service_Exception($"FATAL ERROR: In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option contains element with wildcards '{fileInfo!.FullName}'. This is the error made at the development stage, have no error in the option file.");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'PathString' element. Have no 'PathString' element");
+                    if (FileInfo!.FullName.Contains("*") || FileInfo!.FullName.Contains("?"))
+                        throw new Options_Service_Exception($"FATAL ERROR: In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option contains element with wildcards '{FileInfo!.FullName}'. This is the error made at the development stage, have no error in the option file.");
 
                     base.Check();
                 }
 
                 public override void AdditionalBlock(Options.Block block, string canonicalName)
                 {
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option found the excess element '{block.Name}' at line {1+block.startLine}. Perhaps the new command ('file', 'cmd' or another) is forgotten?");
+                    throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option found the excess element '{block.Name}' at line {1+block.startLine}. Perhaps the new command ('file', 'cmd' or another) is forgotten?");
                 }
             }
 
@@ -302,7 +302,7 @@ public partial class Options_Service
             /// <summary>Представляет источник энтропии, являющийся директорией с использованием FileSystemWatcher для наблюдения за вновь появляющимися файлами</summary>
             public class InputDirElement: InputElement
             {
-                public DirectoryInfo? dirInfo { get; protected set; }
+                public DirectoryInfo? DirInfo { get; protected set; }
                 public InputDirElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
@@ -311,11 +311,11 @@ public partial class Options_Service
                     base.SelectBlock(block, canonicalName);
 
                     if (string.IsNullOrEmpty(this.PathString))
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the null path for the directory command. Must have a not empty value");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the null path for the directory command. Must have a not empty value");
 
-                    dirInfo = new DirectoryInfo(this.PathString); dirInfo.Refresh();
-                    if (!dirInfo.Exists)
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the not exists directory '{dirInfo.FullName}'. The directory must exists");
+                    DirInfo = new DirectoryInfo(this.PathString); DirInfo.Refresh();
+                    if (!DirInfo.Exists)
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the not exists directory '{DirInfo.FullName}'. The directory must exists");
                 }
 
                 public override void Check()
@@ -337,7 +337,7 @@ public partial class Options_Service
                 /// </summary>
                 public long min = -1, max = -1, EME = -1, avg = -1;
 
-                public bool isCorrect()
+                public bool IsCorrect()
                 {
                     if (min < 0)
                         return false;
@@ -376,9 +376,9 @@ public partial class Options_Service
 
             public class Intervals: Element
             {
-                public Interval? interval { get; protected set; }
+                public Interval? Interval { get; protected set; }
 
-                public readonly EntropyValues entropy = new EntropyValues();
+                public readonly EntropyValues entropy = new();
 
                 public Intervals(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
@@ -395,28 +395,28 @@ public partial class Options_Service
                             break;
 
                         case "min":
-                            setMin(block); break;
+                            SetMin(block); break;
                         case "max":
-                            setMax(block); break;
+                            SetMax(block); break;
                         case "eme":
-                            setEME(block); break;
+                            SetEME(block); break;
                         case "avg":
-                            setAvg(block); break;
+                            SetAvg(block); break;
                         case "interval":
 
-                            if (interval == null)
-                                interval = new Interval(this, block.blocks, block);
+                            if (Interval == null)
+                                Interval = new Interval(this, block.blocks, block);
                             else
-                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found twiced element interval. Can only one an 'interval' element");
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found twiced element interval. Can only one an 'interval' element");
 
                             break;
 
                         default:
-                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is values 'min', 'max', 'EME', 'interval'");
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the value '{block.Name}'. Acceptable is values 'min', 'max', 'EME', 'interval'");
                     }
                 }
 
-                protected void setMin(Options.Block block)
+                protected void SetMin(Options.Block block)
                 {
                     try
                     {
@@ -428,11 +428,11 @@ public partial class Options_Service
                     }
                     catch
                     {
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'min' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element 'min' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
                     }
                 }
 
-                protected void setMax(Options.Block block)
+                protected void SetMax(Options.Block block)
                 {
                     try
                     {
@@ -444,11 +444,11 @@ public partial class Options_Service
                     }
                     catch
                     {
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'max' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element 'max' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
                     }
                 }
 
-                protected void setEME(Options.Block block)
+                protected void SetEME(Options.Block block)
                 {
                     try
                     {
@@ -460,11 +460,11 @@ public partial class Options_Service
                     }
                     catch
                     {
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'EME' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element 'EME' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
                     }
                 }
 
-                protected void setAvg(Options.Block block)
+                protected void SetAvg(Options.Block block)
                 {
                     try
                     {
@@ -476,23 +476,23 @@ public partial class Options_Service
                     }
                     catch
                     {
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element 'EME' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element 'EME' found. Acceptable value is nonnegative integer (example: 0, 1, 2, 3)");
                     }
                 }
 
                 public override void Check()
                 {
-                    if (interval == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one 'interval' element. Have no one 'interval' element");
+                    if (Interval == null)
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one 'interval' element. Have no one 'interval' element");
 
                     bool entropyMustCorrect = true;
-                    if (interval.inner.Count == 1)
-                    if (interval.inner[0].IntervalType == Interval.IntervalTypeEnum.once)
+                    if (Interval.inner.Count == 1)
+                    if (Interval.inner[0].IntervalType == Interval.IntervalTypeEnum.once)
                         entropyMustCorrect = false;
 
                     if (entropyMustCorrect)
-                    if (!entropy.isCorrect())
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values)");
+                    if (!entropy.IsCorrect())
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'min', 'avg', 'max' and 'EME' elements. Must 'min' >= 0, 'avg' >= 0, 'max' >= 0, 'EME' >= 0 and min <= avg <= max <= EME (exclude 0 values)");
 
                     base.Check();
                 }
@@ -507,7 +507,7 @@ public partial class Options_Service
                 public Interval(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
-                public readonly List<InnerIntervalElement> inner = new List<InnerIntervalElement>();
+                public readonly List<InnerIntervalElement> inner = new();
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
@@ -537,9 +537,9 @@ public partial class Options_Service
                         else
                             IntervalType = IntervalTypeEnum.time;
 
-                        var timev = getTime(canonicalName);
+                        var timev = GetTime(canonicalName);
                         if (timev <= -1 && IntervalType != IntervalTypeEnum.waitAndOnce)
-                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary 'once', '--' (once), '0' (continuesly), '1ms', '1s', '1' (seconds), '1m', '1h'");
 
                         time = timev;
                     }
@@ -547,23 +547,23 @@ public partial class Options_Service
                     inner.Add(new InnerIntervalElement(this, block.blocks, block, time, IntervalType));
                 }
 
-                protected SortedList<string, long> TimeFactors = new SortedList<string, long>(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
+                protected SortedList<string, long> TimeFactors = new(4) { {"ms", 1}, {"s", 1000}, {"m", 60*1000}, {"h", 60*60*1000} };
                 /// <summary>Распарсить строку вида "1s"</summary>
                 /// <param name="timeString">Строка для парсинга</param>
                 /// <returns>-1 - если строку не удалось распарсить. Иначе - время в миллисекундах.</returns>
-                public long getTime(string timeString)
+                public long GetTime(string timeString)
                 {
                     long result;
                     foreach (var factor in TimeFactors)
                     {
                         if (timeString.EndsWith(factor.Key))
                         {
-                            if (getTime(timeString, factor, out result))
+                            if (GetTime(timeString, factor, out result))
                                 return result;
                         }
                     }
 
-                    if (getTime(timeString, new KeyValuePair<string, long>("", 1000), out result))
+                    if (GetTime(timeString, new KeyValuePair<string, long>("", 1000), out result))
                         return result;
 
                     return -1;
@@ -574,7 +574,7 @@ public partial class Options_Service
                 /// <param name="factor">Модификатор единицы времени из списка TimeFactors</param>
                 /// <param name="time">Возвращаемый результат: время в миллисекундах</param>
                 /// <returns>true - если время получено успешно. false - если время не было распознано</returns>
-                public static bool getTime(string timeString, KeyValuePair<string, long> factor, out long time)
+                public static bool GetTime(string timeString, KeyValuePair<string, long> factor, out long time)
                 {
                     time = -1;
                     try
@@ -593,7 +593,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (inner.Count <= 0)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one 'interval' element. Have no one element");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have one 'interval' element. Have no one element");
 
                     base.Check();
                 }
@@ -602,11 +602,11 @@ public partial class Options_Service
                 {
                     public InnerIntervalElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock, long time, IntervalTypeEnum IntervalType) : base(parent, blocks, thisBlock)
                     {
-                        this.time = time;
+                        this.Time = time;
                         this.IntervalType = IntervalType;
                     }
 
-                    public long             time       { get; protected set; } = -2;
+                    public long             Time       { get; protected set; } = -2;
                     public LengthElement?   Length;
                     public Flags?           flags;
                     public Difference?      Difference;
@@ -627,35 +627,35 @@ public partial class Options_Service
                                 Difference = new Difference(this, block.blocks, block); break;
 
                             default:
-                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'flags', 'difference'");
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the element '{block.Name}'. Acceptable is 'length', 'flags', 'difference'");
                         }
                     }
 
                     public override void Check()
                     {
-                        if (time == -2)
-                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have element this represents time (for example: '1s')");
+                        if (Time == -2)
+                            throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have element this represents time (for example: '1s')");
 
                         if (Length == null || Length.Length == -2)
-                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have element this represents length of data to input (for example: '32', '--', 'full')");
+                            throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have element this represents length of data to input (for example: '32', '--', 'full')");
 
                         if (flags == null)
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'flags' element");
+                            this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'flags' element");
 
                         if (IntervalType != IntervalTypeEnum.continuously)
                         if (IntervalType != IntervalTypeEnum.once)
                         if (IntervalType != IntervalTypeEnum.fast)
                         if (Difference == null || Difference.differenceValue == Difference.DifferenceValue.undefined)
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'difference' element or value of the element");
+                            this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'difference' element or value of the element");
 
                         if (IntervalType == IntervalTypeEnum.none)
-                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option occured unknown interval type. Acceptable is 'once', 'fast' ('often'), 'continuously'");
+                            throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option occured unknown interval type. Acceptable is 'once', 'fast' ('often'), 'continuously'");
 
                         if (flags != null)
                         if (IntervalType == IntervalTypeEnum.fast)
                         {
                             if (flags.date == Flags.FlagValue.dateOnly)
-                                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option occured 'date only' flag. This flag is not acceptable.");
+                                throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option occured 'date only' flag. This flag is not acceptable.");
                         }
 
                         base.Check();
@@ -703,16 +703,16 @@ public partial class Options_Service
                                 watchInLog = FlagValue.yes; break;
 
                             default:
-                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is 'date', 'date only', 'ignored', 'log', 'ignored:log', 'watch counter in log'");
+                                throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the value '{block.Name}'. Acceptable is 'date', 'date only', 'ignored', 'log', 'ignored:log', 'watch counter in log'");
                         }
                     }
 
                     public override void Check()
                     {
                         if (log == FlagValue.yes)
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found 'log' flag");
+                            this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found 'log' flag");
                         if (ignored == FlagValue.yes)
-                            this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found 'ignored' flag");
+                            this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options found 'ignored' flag");
 
                         base.Check();
                     }
@@ -728,7 +728,7 @@ public partial class Options_Service
                     public override void SelectBlock(Options.Block block, string canonicalName)
                     {
                         if (i > 0)
-                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the second value of the length block: '{block.Name}'. Must be one and only one value");
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the second value of the length block: '{block.Name}'. Must be one and only one value");
 
                         i++;
 
@@ -744,7 +744,7 @@ public partial class Options_Service
                         }
                         catch
                         {
-                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary '1', '32', etc. (in bytes)");
+                            throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the value '{block.Name}'. Acceptable is value similary '1', '32', etc. (in bytes)");
                         }
                     }
                 }

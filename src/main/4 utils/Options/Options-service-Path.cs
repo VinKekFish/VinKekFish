@@ -25,7 +25,7 @@ public partial class Options_Service
         public override void Check()
         {
             if (randomAtStartFolder == null)
-                throw new Options_Service_Exception($"In the '{getFullElementName()}' of service options must have 'random at start folder' element. Have no 'random at start folder' element");
+                throw new Options_Service_Exception($"In the '{GetFullElementName()}' of service options must have 'random at start folder' element. Have no 'random at start folder' element");
 
             base.Check();
         }
@@ -48,7 +48,7 @@ public partial class Options_Service
             public override void Check()
             {
                 if (dir == null)
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' of service options require a value. The value not found");
+                    throw new Options_Service_Exception($"In the '{GetFullElementName()}' of service options require a value. The value not found");
 
                 base.Check();
             }

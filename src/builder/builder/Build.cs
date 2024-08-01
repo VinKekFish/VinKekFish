@@ -30,7 +30,7 @@ partial class Program
             dllPatterns.Add(dllName);
         }
 
-        var isActual  = isActualCheck ? isActualVersion(output_di, di, dllPatterns, null, lastModified) : false;
+        var isActual  = isActualCheck ? IsActualVersion(output_di, di, dllPatterns, null, lastModified) : false;
 
         if (isActual)
         {
@@ -39,14 +39,14 @@ partial class Program
         }
         else
         {
-            updated_project_found_event?.Invoke(di);
+            Updated_project_found_event?.Invoke(di);
         }
 
         var no_restore_string = "";
         if (Program.no_restore)
             no_restore_string = "--no-restore";
 
-        var buildVersion = getDateVersionString(Program.now);
+        var buildVersion = GetDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
         var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained {SelfContained} --use-current-runtime false {inSingleFileString}";
 
@@ -74,7 +74,7 @@ partial class Program
     /// <param name="sourcePattern">Шаблон для поиска исходников. Если null, то шаблон будет "*.cs"</param>
     /// <param name="patternForProjectFile">Шаблон для поиска dll-файлов, дата создания которых проверяется</param>
     /// <returns>true - если версия актуальна и перестроение не требуется; false - если требуется перестроение</returns>
-    public static bool isActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patternForProjectFile, string[]? sourcePattern = null, DateTime lastModified = default)
+    public static bool IsActualVersion(DirectoryInfo output_di, DirectoryInfo sources_di, List<string> patternForProjectFile, string[]? sourcePattern = null, DateTime lastModified = default)
     {
         if (patternForProjectFile.Count <= 0)
             throw new ArgumentException($"patterForProjectFile must be contain at least one string ({sources_di.FullName})");

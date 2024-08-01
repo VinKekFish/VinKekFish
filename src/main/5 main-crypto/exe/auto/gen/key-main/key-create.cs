@@ -47,8 +47,8 @@ public unsafe partial class AutoCrypt
             Record? obfRegimeName = null, OIV = null, keysToEncrypt = null;
             GetDataByAdd?     gdKeyGenerator = null, gdKeyGenerator2 = null;
             KeyDataGenerator? dataGenerator  = null;
-            List<Record> OIV_parts = new List<Record>(this.outParts.Count);
-            FileParts file = new FileParts("Entire file");
+            List<Record> OIV_parts = new(this.outParts.Count);
+            FileParts file = new("Entire file");
             try
             {
                 // Инициализируем губки для генерации шифруемой информации и синхропосылок файла.
@@ -57,8 +57,8 @@ public unsafe partial class AutoCrypt
                 // при других сессиях шифрования. То есть здесь эти ключи использованы не будут.
                 dataGenerator = new KeyDataGenerator(VinKekFish_Key!, Cascade_Key!, Cascade_KeyOpts.ArmoringSteps, "GenKeyCommand.CreateKeyFiles.KeyDataGenerator")
                 {
-                    keyLenCsc = newKeyLenCsc,
-                    keyLenVkf = newKeyLenVkf,
+                    KeyLenCsc = newKeyLenCsc,
+                    KeyLenVkf = newKeyLenVkf,
                     willDisposeSponges = false
                 };
 
@@ -67,9 +67,9 @@ public unsafe partial class AutoCrypt
 
                 // Отбиваем основные ключи от информации, которую будем генерировать далее
                 // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
-                dataGenerator.doChopRegime();
+                dataGenerator.DoChopRegime();
 
-                OIV = dataGenerator.getBytes(newKeyLenMin, regime: 17);
+                OIV = dataGenerator.GetBytes(newKeyLenMin, regime: 17);
 
                 // Генерация отдельных частей синхропосылки
                 var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
@@ -86,7 +86,7 @@ public unsafe partial class AutoCrypt
                 }
 
                 // Добавляем описания начала файла и генерируем синхропосылку
-                addStartPart(dataGenerator, file, OIV, out obfRegimeName);
+                AddStartPart(dataGenerator, file, OIV, out obfRegimeName);
 
 
                 // dataGenerator до этого (в Generate) сгенерировал одну пару ключей. Сейчас мы их возьмём себе.
@@ -95,7 +95,7 @@ public unsafe partial class AutoCrypt
                     throw new Exception("CreateKeyFiles: dataGenerator.keys.Count != 1");
 
                 var keys      = dataGenerator.keys[0];
-                keysToEncrypt = keys.getRecordForPair();
+                keysToEncrypt = keys.GetRecordForPair();
 
                 TryToDispose(dataGenerator); dataGenerator = null;
 
@@ -118,7 +118,7 @@ public unsafe partial class AutoCrypt
                 file.AddFilePart("Encrypted", 0, nint.MaxValue);
 
                 // TODO: здесь нужно будет посмотреть, какие опции действительно имеют значение при создании чего-либо
-                using (var encrypt = new Main_1_PWD_2024_1.EncryptData(keysToEncrypt, file, gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts))
+                using (var encrypt = new Main_1_PWD_2024_1.EncryptDataClass(keysToEncrypt, file, gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts))
                 {
                     keysToEncrypt = null;   // Чтобы избежать двойной очистки
                 }
@@ -157,11 +157,11 @@ public unsafe partial class AutoCrypt
             // Инициализируем генераторы ключей синхропосылками
             var regime_KG = 3;
             Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
-            Cascade_KeyGenerator.step(data: obfRegimeName, dataLen: obfRegimeName.len, regime: 1);
-            Cascade_KeyGenerator.step(data: OIV,           dataLen: OIV.len,           regime: 2);
+            Cascade_KeyGenerator.Step(data: obfRegimeName, dataLen: obfRegimeName.len, regime: 1);
+            Cascade_KeyGenerator.Step(data: OIV,           dataLen: OIV.len,           regime: 2);
 
             foreach (var part in OIV_parts)
-                Cascade_KeyGenerator.step(data: part, dataLen: part.len, regime: (byte)regime_KG++);
+                Cascade_KeyGenerator.Step(data: part, dataLen: part.len, regime: (byte)regime_KG++);
 
             Cascade_KeyGenerator.InitThreeFishByCascade(stepToKeyConst: 1, doCheckSafty: false, countOfSteps: 1, dataLenFromStep: Cascade_KeyGenerator.lastOutput.len);
             // Cascade_KeyGenerator проинициализирован всеми сихропосылками
@@ -186,9 +186,9 @@ public unsafe partial class AutoCrypt
             foreach (var part in OIV_parts)
             {
                 regime_KG++;
-                VinKekFish_KeyGenerator.input.add(part);
+                VinKekFish_KeyGenerator.input.Add(part);
                 while (VinKekFish_KeyGenerator.input.Count > 0)
-                    VinKekFish_KeyGenerator.doStepAndIO(regime: (byte)regime_KG);
+                    VinKekFish_KeyGenerator.DoStepAndIO(regime: (byte)regime_KG);
             }
             // VinKekFish_KeyGenerator полностью проинициализирован
 
@@ -198,15 +198,15 @@ public unsafe partial class AutoCrypt
 
             // Перекрёстная инициализация губок
             var gdVinKekFish_KeyGenerator = new GetDataFromVinKekFishSponge(VinKekFish_KeyGenerator);
-            using (var cross = gdVinKekFish_KeyGenerator.getBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
-                Cascade_KeyGenerator.step(data: cross, dataLen: cross.len, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps, regime: 96);
+            using (var cross = gdVinKekFish_KeyGenerator.GetBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
+                Cascade_KeyGenerator.Step(data: cross, dataLen: cross.len, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps, regime: 96);
 
             var gdCascade_KeyGenerator = new GetDataFromCascadeSponge(Cascade_KeyGenerator);
-            using (var cross = gdCascade_KeyGenerator.getBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
+            using (var cross = gdCascade_KeyGenerator.GetBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
             {
-                VinKekFish_KeyGenerator.input.add(cross);
+                VinKekFish_KeyGenerator.input.Add(cross);
                 while (VinKekFish_KeyGenerator.input.Count > 0)
-                    VinKekFish_KeyGenerator.doStepAndIO(regime: 96);
+                    VinKekFish_KeyGenerator.DoStepAndIO(regime: 96);
             }
             // Перекрёстная инициализация губок закончилась
 
@@ -231,7 +231,7 @@ public unsafe partial class AutoCrypt
             for (int scNum = 0; scNum < outParts.Count; scNum++)
             {
                 var partRegime = unchecked((byte)(13 + scNum));
-                var OIV_part = main.getBytes(oiv_part_len, regime: partRegime);
+                var OIV_part = main.GetBytes(oiv_part_len, regime: partRegime);
                 using (var fs = new FileStream(outParts[scNum].FullName/* + "." + scNum.ToString()*/, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(OIV_part);
@@ -247,11 +247,11 @@ public unsafe partial class AutoCrypt
         /// <param name="file">FileParts в который добавляется начальная часть файла.</param>
         /// <param name="OIV">Открытый вектор инициализации (синхропосылка). Должен быть создан заранее вне функции. Нет ограничений использование main для этого.</param>
         /// <param name="obfRegimeName">Имя режима берётся из поля RegimeName. Здесь имя режима возвращается скопированным в obfRegimeName. Это нужно удалить вручную.</param>
-        protected void addStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
+        protected void AddStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
         {
             var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
-                obfRegimeName   = main.getBytes(asciiRegimeName.Length, regime: 23);
-            var recRegimeName   = Record.getRecordFromBytesArray(asciiRegimeName);
+                obfRegimeName   = main.GetBytes(asciiRegimeName.Length, regime: 23);
+            var recRegimeName   = Record.GetRecordFromBytesArray(asciiRegimeName);
             BytesBuilder.ArithmeticAddBytes(obfRegimeName.len, recRegimeName, obfRegimeName);
 
             file.AddFilePart("Regime name",     recRegimeName);

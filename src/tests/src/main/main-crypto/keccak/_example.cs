@@ -33,6 +33,6 @@ public class Keccak_test_empty : TestTask
     public Keccak_test_empty(TestConstructor constructor) :
                                             base(nameof(Keccak_test_empty), constructor)
     {
-        taskFunc = () => {};
+        TaskFunc = () => {};
     }
 }

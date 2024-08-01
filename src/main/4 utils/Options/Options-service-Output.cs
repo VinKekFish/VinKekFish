@@ -20,14 +20,14 @@ public partial class Options_Service
             switch(canonicalName)
             {
                 case "random": random = new Random(this, block.blocks, block); break;
-                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'random'");
+                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'random'");
             }
         }
 
         public override void Check()
         {
             if (random == null)
-                throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'random' element. Have no 'random' element");
+                throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service option must have 'random' element. Have no 'random' element");
 
             base.Check();
         }
@@ -51,16 +51,16 @@ public partial class Options_Service
                 {
                     "unix stream"              => unixStream = new UnixStream     (this, block.blocks, block),
                     "character device in /dev" => charDevice = new CharacterDevice(this, block.blocks, block),
-                    _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
+                    _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
                 };
             }
 
             public override void Check()
             {
                 if (unixStream == null)
-                    throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. Have no 'unix stream' element");
+                    throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'unix stream' element. Have no 'unix stream' element");
                 if (charDevice == null)
-                    this.getRoot()!.warns.addWarning($"Warning: In the '{getFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'character device in /dev' element");
+                    this.GetRoot()!.warns.AddWarning($"Warning: In the '{GetFullElementName()}' element (at line {1+thisBlock.startLine}) of the service options was not found a 'character device in /dev' element");
 
                 base.Check();
             }
@@ -79,14 +79,14 @@ public partial class Options_Service
                     Element e = canonicalName switch
                     {
                         "path"  => path = new Path(this, block.blocks, block),
-                        _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'path'")
+                        _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'path'")
                     };
                 }
 
                 public override void Check()
                 {
                     if (path == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
 
                     base.Check();
                 }
@@ -113,7 +113,7 @@ public partial class Options_Service
                     public override void Check()
                     {
                         if (file == null)
-                            throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have a string with the path value. No found path value");
+                            throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have a string with the path value. No found path value");
 
                         base.Check();
                     }
@@ -131,7 +131,7 @@ public partial class Options_Service
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
                     if (path != null)
-                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{getFullElementName()}' element found two or more elements. Only one element required (/dev/value).");
+                        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found two or more elements. Only one element required (/dev/value).");
 
                     path = block.Name;
                     if (path.StartsWith("/dev/"))
@@ -143,7 +143,7 @@ public partial class Options_Service
                 public override void Check()
                 {
                     if (path == null)
-                        throw new Options_Service_Exception($"In the '{getFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of service options must have 'path' element. Have no 'path' element");
 
                     base.Check();
                 }

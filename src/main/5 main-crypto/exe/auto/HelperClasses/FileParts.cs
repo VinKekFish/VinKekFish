@@ -25,6 +25,8 @@ public unsafe partial class FileParts
 
     public FileParts(string Name, bool doNotDispose = false, FileParts? parent = null)
     {
+        GC.ReRegisterForFinalize(this);
+
         this.Name         = Name;
         this.doNotDispose = doNotDispose;
         this.parent       = parent;
@@ -63,25 +65,25 @@ public unsafe partial class FileParts
             );
         }
 
-        public static readonly Approximation Null = new Approximation(0);
+        public static readonly Approximation Null = new(0);
 
         /// <summary>Если min == max, то value возвращает это знаение. Иначе выкидывает исключение InvalidOperationException</summary>
-        public nint value
+        public nint Value
         {
             get
             {
-                if (!isFine)
+                if (!IsFine)
                     throw new InvalidOperationException("FileParts.Approximation.value: min != max (!isFine)");
 
                 return min;
             }
         }
                                                     /// <summary>Если оценка min и max совпадает, то у объекта имеется одно строго определённое значение типа nint (свойство value)</summary>
-        public bool isFine => min == max;
+        public bool IsFine => min == max;
 
         public static explicit operator nint(Approximation a)
         {
-            return a.value;
+            return a.Value;
         }
     }
 
@@ -89,22 +91,22 @@ public unsafe partial class FileParts
     public Record? content   = null;                                            /// <summary>Вспомогательное содержимое части. Если есть и content, и btContent, сначала идёт btContent. btContent, по умолчанию, содержит длину content.</summary>
     public byte[]? btContent = null;
                                                                                                     /// <summary>Части файла, отсортированные по порядку их вхождения в файл.</summary>
-    public readonly List<FileParts> innerParts = new List<FileParts>();
+    public readonly List<FileParts> innerParts = new();
 
                                                                                 /// <summary>Адрес, по которому начинается данный блок</summary>
     protected Approximation _startAddress        =  Approximation.Null;         /// <summary>Адрес первого байта, который уже не входит в блок. То есть этот адрес уже за границей данного блока. (StartAddress + fullLen)</summary>
-    public    Approximation FirstAfterEndAddress => _startAddress + fullLen;
+    public    Approximation FirstAfterEndAddress => _startAddress + FullLen;
 
-    public virtual Approximation fullLen
+    public virtual Approximation FullLen
     {
         get
         {
             Approximation result = Approximation.Null;
 
-            result += size;
+            result += Size;
             foreach (var part in innerParts)
             {
-                result += part.fullLen;
+                result += part.FullLen;
             }
 
             return result;
@@ -112,7 +114,7 @@ public unsafe partial class FileParts
     }
                                                                 /// <summary>Поле, используемое свойством size. Не рекомендуется использовать, т.к. size автоматически производит перерасчёт адресов при изменении размера.</summary>
     public Approximation _size = Approximation.Null;            /// <summary>Оценка размера. Если это не лист, то может иметь нулевой размер. Ненулевой размер у узла сдвигает подчинённые узлы на этот размер (то есть этот блок идёт перед подчинёнными узлами). Если записывается содержимое с помощью setArrayToRecord, то размер переопределяется.</summary>
-    public virtual Approximation size
+    public virtual Approximation Size
     {
         get => _size;
         set
@@ -152,7 +154,7 @@ public unsafe partial class FileParts
         var result = new FileParts(Name, doNotDispose, parent: this);
         innerParts.Add(result);
 
-        result.size = new Approximation(min, max);
+        result.Size = new Approximation(min, max);
 
         return (innerParts.Count - 1, result);
     }
@@ -164,7 +166,7 @@ public unsafe partial class FileParts
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
     public (int Index, FileParts newFilePart) AddFilePart(string Name, byte[] content, bool createLengthArray = true)
     {
-        return AddFilePart(Name, Record.getRecordFromBytesArray(content), createLengthArray);
+        return AddFilePart(Name, Record.GetRecordFromBytesArray(content), createLengthArray);
     }
 
     /// <summary>Добавляет в конец файла новую часть и пересчитывает size.</summary>
@@ -177,7 +179,7 @@ public unsafe partial class FileParts
         var result = new FileParts(Name, doNotDispose, parent: this);
         innerParts.Add(result);
 
-        result.setArrayToRecord(content, createLengthArray);
+        result.SetArrayToRecord(content, createLengthArray);
 
         return (innerParts.Count - 1, result);
     }
@@ -200,7 +202,7 @@ public unsafe partial class FileParts
     /// <summary>Задать значение поля content и свойства size.</summary>
     /// <param name="content">Содержимое части файла.</param>
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
-    public void setArrayToRecord(Record content, bool createLengthArray = false)
+    public void SetArrayToRecord(Record content, bool createLengthArray = false)
     {
         if (createLengthArray)
         {
@@ -213,7 +215,7 @@ public unsafe partial class FileParts
         this.content = content;
 
         var btLen = btContent is null ? 0 : btContent.Length;
-        this.size = new Approximation(content.len + btLen);
+        this.Size = new Approximation(content.len + btLen);
     }
 
     /// <summary>Записывает данные в поток ввода-вывода.</summary>
@@ -270,7 +272,7 @@ public unsafe partial class FileParts
     /// <exception cref="ArgumentOutOfRangeException">Если rec слишком мал.</exception>
     public Record WriteToRecord(ref nint current, Record? rec = null)
     {
-        var fSize = this.fullLen;
+        var fSize = this.FullLen;
         if (fSize.min != fSize.max)
             throw new InvalidDataException("FileParts.WriteToRecord: fullLen.min != fullLen.max. Data has not been initialized.");
 

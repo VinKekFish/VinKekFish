@@ -42,7 +42,7 @@ namespace vinkekfish
         public bool IsInited1 => isInited1; /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/IsInited2/*' />
         public bool IsInited2 => isInited2;
                                             /// <include file='Documentation/VinKekFish_k1_base_20210419.xml' path='docs/members[@name="VinKekFish_k1_base_20210419"]/AllocHGlobal_allocator/*' />
-        public static readonly AllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+        public static readonly IAllocatorForUnsafeMemoryInterface AllocHGlobal_allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
 
 
         protected volatile bool isHaveOutputData = false;
@@ -212,7 +212,7 @@ namespace vinkekfish
         /// <param name="Rounds">Количество раундов, для которых идёт генерация. Для каждого раунда по 4-ре таблицы</param>
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
-        public static Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
+        public static Record GenStandardPermutationTables(int Rounds, IAllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 8)
         {
             GenTables();
 
@@ -267,8 +267,8 @@ namespace vinkekfish
 // TODO: Сколько можно ввести дополнительной рандомизирующей информации, чтобы она вводилась при перестановках от раунда к раунду
                 for (; Rounds > 0; Rounds--)
                 {
-                    prng.doRandomPermutationForUShorts(table1);
-                    prng.doRandomPermutationForUShorts(table2);
+                    prng.DoRandomPermutationForUShorts(table1);
+                    prng.DoRandomPermutationForUShorts(table2);
 
                     BytesBuilder.CopyTo(len2, len2, (byte*)Table1,              r); r += len2;
                     BytesBuilder.CopyTo(len2, len2, (byte*)Table2,              r); r += len2;
@@ -323,15 +323,15 @@ namespace vinkekfish
                     var val = table[i];
                     if (val >= Length)
                         throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} is incorrect (too big). {message}");
-                    if (BitToBytes.getBit(check, val))
+                    if (BitToBytes.GetBit(check, val))
                         throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.k1 incorrect: value {val} found twice. {message}");
 
-                    BitToBytes.setBit(check, val);
+                    BitToBytes.SetBit(check, val);
                 }
 
                 for (int i = 0; i < Length; i++)
                 {
-                    if (!BitToBytes.getBit(check, i))
+                    if (!BitToBytes.GetBit(check, i))
                         throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.k1 incorrect: value {i} not found. {message}");
                 }
             }
@@ -357,7 +357,7 @@ namespace vinkekfish
             if (CountOfRounds > _InitedPTRounds)
                 throw new Exception("VinKekFish_k1_base_20210419.DoStep: CountOfRounds > _InitedPTRounds");
 
-            step
+            Step
             (
                 countOfRounds: CountOfRounds, tablesForPermutations: pTablesHandle!,
                 tweak: t0!, tweakTmp: t1!, state: _state!, state2: _state2!, b: _b!, c: _c!
@@ -376,7 +376,7 @@ namespace vinkekfish
         /// <param name="start">Индекс в массиве output, с которого надо начинать запись</param>
         /// <param name="outputLen">Длина массива output</param>
         /// <param name="countToOutput">Количество байтов, которое нужно изъять из массива</param>
-        public virtual void outputData(byte * output, nint start, nint outputLen, nint countToOutput)
+        public virtual void OutputData(byte * output, nint start, nint outputLen, nint countToOutput)
         {
             if (!isHaveOutputData)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.outputData: !isHaveOutputData");

@@ -10,7 +10,7 @@ using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_EXE.AutoCrypt.Command;
-using static VinKekFish_EXE.AutoCrypt.GetDataFromSponge;
+using static VinKekFish_EXE.AutoCrypt.IGetDataFromSponge;
 using static VinKekFish_Utils.Language;
 using static VinKekFish_Utils.Utils;
 
@@ -20,8 +20,8 @@ public unsafe partial class AutoCrypt
     public class CryptoKeyPair: IDisposable
     {
                                                                 /// <summary>Ключ для каскадной губки.</summary>
-        public Record? csc {get; protected set;} = null;        /// <summary>Ключ для губки VinKekFisg.</summary>
-        public Record? vkf {get; protected set;} = null;
+        public Record? CSC {get; protected set;} = null;        /// <summary>Ключ для губки VinKekFisg.</summary>
+        public Record? VKF {get; protected set;} = null;
 
         /// <summary>Создаёт описатель пары ключей для дальнейшего их использования в генераторах.</summary>
         /// <param name="generator">Уже проинициализированный пользователем генератор, который будет использован для генерации пары ключей.</param>
@@ -30,35 +30,37 @@ public unsafe partial class AutoCrypt
         /// <param name="regime">Режимы, которые будут использованы для генерации.</param>
         public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime)
         {
-            csc = generator.getBytes(keyLenCsc, regime: regime.csc);
-            vkf = generator.getBytes(keyLenVkf, regime: regime.vkf);
+            CSC = generator.GetBytes(keyLenCsc, regime: regime.csc);
+            VKF = generator.GetBytes(keyLenVkf, regime: regime.vkf);
         }
 
         /// <summary>Получает оба ключа, представленные в описателе файла. Сначала идёт секция "csc" (каскадный ключ), затем "vkf" (ключ VinKekFish).</summary>
-        public FileParts getFilePartsForPair()
+        public FileParts GetFilePartsForPair()
         {
             var file = new FileParts(Name: "CryptoKeyPair.getRecordForPair", doNotDispose: true);
-            file.AddFilePart("csc", csc!);
-            file.AddFilePart("vkf", vkf!);
+            file.AddFilePart("csc", CSC!);
+            file.AddFilePart("vkf", VKF!);
 
             return file;
         }
 
         /// <summary>Получает оба ключа один за другим. Каждый ключ предваряется его длиной. Сначала идёт каскадный ключ, затем ключ VinKekFish.</summary>
-        public Record getRecordForPair()
+        public Record GetRecordForPair()
         {
-            using var file = getFilePartsForPair();
+            using var file = GetFilePartsForPair();
 
             return file.WriteToRecord();
         }
 
         public void Dispose()
         {
-            TryToDispose(vkf);
-            TryToDispose(csc);
+            TryToDispose(VKF);
+            TryToDispose(CSC);
 
-            vkf = null;
-            csc = null;
+            VKF = null;
+            CSC = null;
+
+            GC.SuppressFinalize(this);
         }
     }
 
@@ -69,10 +71,10 @@ public unsafe partial class AutoCrypt
         public GetDataFromVinKekFishSponge vkf;
         public GetDataFromCascadeSponge    csc;
         /// <summary>Сгенерированные в конструкторе ключи шифрования. data_keyCSC - ключ для использования в каскадной губке, data_keyVKF - ключ для использования в губке VinKekFish. Эти ключи генерируются для пользователя, здесь они не используются.</summary>
-        public List<CryptoKeyPair> keys = new List<CryptoKeyPair>();
+        public List<CryptoKeyPair> keys = new();
                                                                         /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в каскадной губке</summary>
-        public required nint keyLenCsc  {get; init;}                    /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в губке VinKekFish</summary>
-        public required nint keyLenVkf  {get; init;}
+        public required nint KeyLenCsc  {get; init;}                    /// <summary>Длина генерируемого ключа шифрования для дальнейшего использованя в губке VinKekFish</summary>
+        public required nint KeyLenVkf  {get; init;}
 
         /// <summary>Создаёт объект и сразу же генерирует два ключа шифрования из переданных губок</summary>
         /// <param name="vkf_keyGenerator">Проинициализированная губка VinKekFish, готовая к генерации ключа шифрования (режимы 13 и 15)</param>
@@ -87,8 +89,8 @@ public unsafe partial class AutoCrypt
             vkf      = new GetDataFromVinKekFishSponge(vkf_keyGenerator);
             csc      = new GetDataFromCascadeSponge   (csc_keyGenerator);
 
-            vkf.blockLen = vkf_keyGenerator.BLOCK_SIZE_KEY_K;        // Ключевой режим генерации: малые блоки генерации
-            csc.blockLen = csc_keyGenerator.lastOutput.len >> 1;
+            vkf.BlockLen = vkf_keyGenerator.BLOCK_SIZE_KEY_K;        // Ключевой режим генерации: малые блоки генерации
+            csc.BlockLen = csc_keyGenerator.lastOutput.len >> 1;
 
             csc.ArmoringSteps = ArmoringSteps;
 
@@ -104,7 +106,7 @@ public unsafe partial class AutoCrypt
         {
             for (nint i = 0; i < count; i++)
             {
-                var keyPair = new CryptoKeyPair(this, keyLenCsc, keyLenVkf, (13, 15));
+                var keyPair = new CryptoKeyPair(this, KeyLenCsc, KeyLenVkf, (13, 15));
                 keys.Add(keyPair);
             }
         }
@@ -113,25 +115,25 @@ public unsafe partial class AutoCrypt
         /// <param name="len">Длина получаемых данных.</param>
         /// <param name="regime">Числовой режим генерации (вводится в губки)</param>
         /// <returns></returns>
-        public Record getBytes(nint len, byte regime)
+        public Record GetBytes(nint len, byte regime)
         {
-            return main.getBytes(len: len, regime: regime);
+            return main.GetBytes(len: len, regime: regime);
         }
 
         /// <summary>Делает необратимое преобразование в обеих губках ("отбивает" предыдущие состояния от будущих). (InitThreeFishByCascade и doStepAndIO с Overwrite: true).</summary>
-        public void doChopRegime()
+        public void DoChopRegime()
         {
             csc.sponge!.InitThreeFishByCascade();
-            vkf.sponge!.doStepAndIO(Overwrite: true, regime: 255, nullPadding: true);
+            vkf.sponge!.DoStepAndIO(Overwrite: true, regime: 255, nullPadding: true);
         }
                                                                                                     /// <summary>true, если объект прошёл через Dispose</summary>
-        public bool isDisposed {get; protected set;} = false;                                       /// <summary>Если true, до первичные губки, переданные в класс, будут уничтожены при уничтожении объекта. Если false, то эти губки должны быть уничтожены вручную программистом позже уничтожения этого объекта.</summary>
+        public bool IsDisposed {get; protected set;} = false;                                       /// <summary>Если true, до первичные губки, переданные в класс, будут уничтожены при уничтожении объекта. Если false, то эти губки должны быть уничтожены вручную программистом позже уничтожения этого объекта.</summary>
         public required bool willDisposeSponges = true;
         public void Dispose()
         {
-            if (isDisposed)
+            if (IsDisposed)
             {
-                Record.errorsInDispose = true;
+                Record.ErrorsInDispose = true;
                 Console.Error.WriteLine("AutoCrypt.GenKeyCommand.DataGenerator.Dispose: isDisposed (Dispose executed twiced)");
                 return;
             }
@@ -151,18 +153,20 @@ public unsafe partial class AutoCrypt
             }
             catch (Exception e)
             {
-                formatException(e);
+                FormatException(e);
             }
 Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             TryToDispose(main);
-            isDisposed = true;
+            IsDisposed = true;
+
+            GC.SuppressFinalize(this);
         }
 
         ~KeyDataGenerator()
         {
-            if (!isDisposed)
+            if (!IsDisposed)
             {
-                Record.errorsInDispose = true;
+                Record.ErrorsInDispose = true;
                 Console.Error.WriteLine("AutoCrypt.GenKeyCommand.~DataGenerator: !isDisposed");
 
                 Dispose();
@@ -174,26 +178,26 @@ Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     /// <summary>Представляет сумму губок. Результат генерируется как арифметическая сумма результатов губок.</summary>
     public class GetDataByAdd: GetDataFromSpongeClass
     {
-        protected readonly List<GetDataFromSponge> list = new List<GetDataFromSponge>(2);
+        protected readonly List<IGetDataFromSponge> list = new(2);
         public GetDataByAdd()
         {
             NameForRecord = "GetDataByAdd.getBytes";
         }
 
-        public void AddSponge(GetDataFromSponge sponge)
+        public void AddSponge(IGetDataFromSponge sponge)
         {
             lock (list)
                 list.Add(sponge);
         }
 
-        public override void getBytes(byte* forData, nint len, byte regime)
+        public override void GetBytes(byte* forData, nint len, byte regime)
         {
             if (list.Count <= 0)
                 throw new GetDataFromSpongeException("GetDataByAdd.getBytes: list.Count <= 0");
 
             if (list.Count == 1)
             {
-                list[0].getBytes(forData, len, regime);
+                list[0].GetBytes(forData, len, regime);
                 return;
             }
 
@@ -207,7 +211,7 @@ Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     var sub = Keccak_abstract.allocator.AllocMemory(len, "GetDataByAdd.getBytes." + NameForRecord + "." + i);
                     try
                     {
-                        list[i].getBytes(sub, regime);
+                        list[i].GetBytes(sub, regime);
 
                         lock (this)
                         BytesBuilder.ArithmeticAddBytes(len, forData, sub);
@@ -238,8 +242,8 @@ Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             list.Clear();
         }
 
-        public override nint blockLen { get => throw new InvalidOperationException(NameForRecord); set => throw new InvalidOperationException(NameForRecord); }
-        protected override void doCorrectBlockLen()
+        public override nint BlockLen { get => throw new InvalidOperationException(NameForRecord); set => throw new InvalidOperationException(NameForRecord); }
+        protected override void DoCorrectBlockLen()
         {
             throw new InvalidOperationException(NameForRecord);
         }

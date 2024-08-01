@@ -32,7 +32,7 @@ namespace vinkekfish
 
         /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
         /// <param name="askedCountOfRounds">Количество раундов.</param>
-        public void step(int askedCountOfRounds = -1)
+        public void Step(int askedCountOfRounds = -1)
         {
             if (!isDataInputed)
                 throw new ArgumentException("VinKekFishBase_KN_20210525.step: !isDataInputed. Before step you must call InputData_Overwrite or InputData_Xor", "isDataInputed");
@@ -49,7 +49,7 @@ namespace vinkekfish
                 askedCountOfRounds = this.CountOfRounds;
 
             var TB = (ushort *) tablesForPermutations!.array;
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main (at start)");
             // State1Main = true;
 
@@ -62,11 +62,11 @@ namespace vinkekfish
             #endif
 
             // Предварительное преобразование
-            doPermutation(transpose128);
-            doThreeFish();
-            doPermutation(transpose128);
+            DoPermutation(transpose128);
+            DoThreeFish();
+            DoPermutation(transpose128);
 
-            BytesBuilder.CopyTo(Len, Len, State2, State1); isState1Main = true;
+            BytesBuilder.CopyTo(Len, Len, State2, State1); IsState1Main = true;
 
             // Основной шаг алгоритма: раунды
             // Каждая итерация цикла - это полураунд
@@ -77,11 +77,11 @@ namespace vinkekfish
                 VinKekFish_Utils.Utils.MsgToFile($"semiround {round}", "KN");
                 #endif
 
-                doKeccak();
-                doPermutation(TB); TB += Len;
+                DoKeccak();
+                DoPermutation(TB); TB += Len;
 
-                doThreeFish();
-                doPermutation(TB); TB += Len;
+                DoThreeFish();
+                DoPermutation(TB); TB += Len;
 
                 // Довычисление tweakVal для второго преобразования VinKekFish
                 // Вычисляем tweak для данного раунда (работаем со старшим 4-хбайтным словом младшего 8-мибайтного слова tweak)
@@ -96,13 +96,13 @@ namespace vinkekfish
             // После последнего раунда производится заключительное преобразование (заключительная рандомизация) поблочной функцией keccak-f
             for (int i = 0; i < CountOfFinal; i++)
             {
-                doKeccak();
-                doPermutation(transpose200);
-                doKeccak();
-                doPermutation(transpose200_8);
+                DoKeccak();
+                DoPermutation(transpose200);
+                DoKeccak();
+                DoPermutation(transpose200_8);
             }
 
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.step: Fatal algorithmic error: !State1Main");
 
             isHaveOutputData = CountOfRounds >= MIN_ROUNDS_K;
@@ -116,7 +116,7 @@ namespace vinkekfish
         /// <param name="prngToInit">Уже проинициализированная каскадная губка для инициализации таблиц перестановки. Если она не null, то key и OpenInitVector должны быть null</param>
         public virtual void Init1(int PreRoundsForTranspose = 0, Record? keyForPermutations = null, Record? OpenInitVectorForPermutations = null, int ThreeFishInitSteps = 2, CascadeSponge_mt_20230930? prngToInit = null)
         {
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init1: Fatal algorithmic error: !State1Main");
             if (keyForPermutations != null && prngToInit != null)
                 throw new ArgumentException("VinKekFishBase_KN_20210525.Init1: Wrong call: keyForPermutations != null && prngToInit != null");
@@ -165,7 +165,7 @@ namespace vinkekfish
                     RoundsForTailsBlock = CountOfRounds;
             }
 
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.Init2: Fatal algorithmic error: !State1Main");
 
 
@@ -238,7 +238,7 @@ namespace vinkekfish
         /// <param name="FinalOverwrite">Если true, то заключительный шаг впитывания ключа происходит с перезаписыванием нулями входного блока (есть дополнительная необратимость)</param>
         protected virtual void InputKey(Record? key = null, Record? OpenInitializationVector = null, Record? TweakInit = null, int RoundsForFinal = NORMAL_ROUNDS, int RoundsForFirstKeyBlock = NORMAL_ROUNDS, int RoundsForTailBlocks = MIN_ROUNDS, bool FinalOverwrite = true)
         {
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputKey: Fatal algorithmic error: !State1Main");
 
             if (TweakInit != null && TweakInit.len < CryptoTweakLen)
@@ -292,7 +292,7 @@ namespace vinkekfish
             }
 
             isDataInputed = true;
-            step(RoundsForFirstKeyBlock);
+            Step(RoundsForFirstKeyBlock);
 
             byte * TailOfKey = null;         // key + dt - это будет неверно! , см. перегрузку оператора "+" в Record
             if (key != null)
@@ -309,7 +309,7 @@ namespace vinkekfish
                 keyLen    -= dt;
                 TailOfKey += dt;
 
-                step(RoundsForTailBlocks);
+                Step(RoundsForTailBlocks);
             }
 
             // После инициализации обнуляем часть данных для обеспечения необратимости
@@ -320,7 +320,7 @@ namespace vinkekfish
             else
                 InputData_Xor(null, 0, regime: 255);
 
-            step(RoundsForFinal);
+            Step(RoundsForFinal);
         }
 
         /// <summary>Производит наложение на массив t массива s с помощью операции xor</summary>
@@ -358,7 +358,7 @@ namespace vinkekfish
         {
             if (dataLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Overwrite: dataLen > BLOCK_SIZE_K");
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
 
             if (nullPadding)
@@ -398,7 +398,7 @@ namespace vinkekfish
         {
             if (dataLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Xor: dataLen > BLOCK_SIZE_K");
-            if (!isState1Main)
+            if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Xor: Fatal algorithmic error: !State1Main");
 
             if (dataLen > 0)

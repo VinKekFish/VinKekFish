@@ -28,7 +28,7 @@ public unsafe class BitToBytes_test1: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var btb = new byte[1024];
             for (int i = 0; i < 8; i++)
@@ -47,7 +47,7 @@ public unsafe class BitToBytes_test1: BytesBuilder_test_parent
             foreach (var step in steps)
             {
                 for (int i = step << 1; i < btb.Length << 3; i += step)
-                    BitToBytes.setBit(btb, i);
+                    BitToBytes.SetBit(btb, i);
             }
 
             lst.Add(btb);
@@ -59,15 +59,15 @@ public unsafe class BitToBytes_test1: BytesBuilder_test_parent
             var i7 = i & 0x07;
             var j7 = j & 0x07;
             var a  = (1 << i7) | (1 << j7);
-            BitToBytes.setBit(btb, i);
-            BitToBytes.setBit(btb, j);
+            BitToBytes.SetBit(btb, i);
+            BitToBytes.SetBit(btb, j);
             if (btb[i >> 3] != a)
                 throw new Exception($"btb[i >> 3] != a: {btb[i >> 3]} != {a}; {i}; {j}");
 
 
             for (int k = 0; k > btb.Length << 3; k++)
             {
-                var bk = BitToBytes.getBit(btb, k);
+                var bk = BitToBytes.GetBit(btb, k);
                 if (k == i || k == j)
                 {
                     if (!bk)
@@ -80,8 +80,8 @@ public unsafe class BitToBytes_test1: BytesBuilder_test_parent
                 }
             }
 
-            BitToBytes.resetBit(btb, i);
-            BitToBytes.resetBit(btb, j);
+            BitToBytes.ResetBit(btb, i);
+            BitToBytes.ResetBit(btb, j);
             if (btb[0] != 0)
                 throw new Exception("btb[0] != 0");
         }

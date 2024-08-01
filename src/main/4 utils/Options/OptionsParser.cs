@@ -54,7 +54,7 @@ public class Options
         public const    int          minIndent = 4;
         public const    int          tabIndent = 4;
 
-        public readonly List<Block>  blocks = new List<Block>();
+        public readonly List<Block>  blocks = new();
         public readonly string       Name;
         public readonly int          startLine;
         public readonly int          endLine;
@@ -114,7 +114,7 @@ public class Options
                 var depth = CalcIndentationDepth(line);
                 if (Name is null && depth == blockHeaderIndent)
                 {
-                    Name = doIndentationTrim(line, blockHeaderIndent);
+                    Name = DoIndentationTrim(line, blockHeaderIndent);
                     continue;
                 }
 
@@ -183,7 +183,7 @@ public class Options
             }
         }
 
-        public static string doIndentationTrim(string str, int blockHeaderIndent)
+        public static string DoIndentationTrim(string str, int blockHeaderIndent)
         {
             int j = 0, BHI = 0, i = 0;
             for (; i < str.Length; i++)
@@ -239,7 +239,7 @@ public class Options
                 if (depth < blockHeaderIndent)
                     break;
 
-                var newStr = doIndentationTrim(line, blockHeaderIndent);
+                var newStr = DoIndentationTrim(line, blockHeaderIndent);
                 sb.AppendLine(newStr);
             }
 

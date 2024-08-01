@@ -19,12 +19,12 @@ namespace cryptoprime
     public unsafe partial class BytesBuilderStatic: IDisposable
     {                                                                           /// <summary>Размер циклического буфера. Это максимальный размер хранимых данных. Изменяется функцией Resize</summary>
         public nint size;                                                       /// <summary>Аллокатор для выделения памяти</summary>
-        public readonly AllocatorForUnsafeMemoryInterface? allocator = null;
+        public readonly IAllocatorForUnsafeMemoryInterface? allocator = null;
                                                                                 /// <summary>Минимально возможный размер циклического буфера</summary>
         public const int MIN_SIZE = 2;
-        public BytesBuilderStatic(nint Size, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public BytesBuilderStatic(nint Size, IAllocatorForUnsafeMemoryInterface? allocator = null)
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
             if (Size < MIN_SIZE)
                 throw new ArgumentOutOfRangeException("BytesBuilderStatic.BytesBuilderStatic: Size < MIN_SIZE");
@@ -84,8 +84,8 @@ namespace cryptoprime
                 throw new ArgumentOutOfRangeException("ReadBytesTo: count > Count");
 
             var s1 = bytes + Start;
-            var l1 = len1;
-            var l2 = len2;
+            var l1 = Len1;
+            var l2 = Len2;
 
             if (count <= 0)
                 throw new ArgumentOutOfRangeException("ReadBytesTo: count <= 0");
@@ -211,7 +211,7 @@ namespace cryptoprime
         }
 
         /// <summary>Длина данных, приходящихся на правый (первый) сегмент данных</summary>
-        public nint len1
+        public nint Len1
         {
             get
             {
@@ -235,7 +235,7 @@ namespace cryptoprime
         }
 
         /// <summary>Длина данных, приходящихся на левый сегмент данных</summary>
-        public nint len2
+        public nint Len2
         {
             get
             {
@@ -247,7 +247,7 @@ namespace cryptoprime
         }
 
         /// <summary>Добавляет блок в буфер</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
-        public void add(byte * bytesToAdded, nint len)
+        public void Add(byte * bytesToAdded, nint len)
         {
             if (count + len > size)
                 throw new IndexOutOfRangeException("BytesBuilderStatic.add: count + len > size: many bytes to add");
@@ -257,9 +257,9 @@ namespace cryptoprime
 
         /// <summary>Добавляет массив в сохранённые значения</summary>
         /// <param name="rec">Добавляемый массив (копируется)</param>
-        public void add(Record rec)
+        public void Add(Record rec)
         {
-            add(rec.array, rec.len);
+            Add(rec.array, rec.len);
         }
 
         /// <summary>Очищает циклический буфер</summary>
@@ -279,7 +279,7 @@ namespace cryptoprime
 
         /// <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
         /// <returns>true, если все значения внутреннего буфера равны нулю</returns>
-        public bool isEntireNull()
+        public bool IsEntireNull()
         {
             if (region == null)
                 throw new ObjectDisposedException("BytesBuilderStatic.RemoveBytes");
@@ -298,7 +298,7 @@ namespace cryptoprime
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <param name="allocator">Аллокатор, который позволяет функции выделять память, если resultA == null. Если null, используется this.allocator</param>
         /// <returns></returns>
-        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null)
+        public Record GetBytes(nint resultCount = -1, Record? resultA = null, IAllocatorForUnsafeMemoryInterface? allocator = null)
         {
             if (resultCount <= -1)
                 resultCount = count;
@@ -357,7 +357,7 @@ namespace cryptoprime
         /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
         /// <param name="count">Длина запрашиваемых данных</param>
         /// <returns>Массив result</returns>
-        public Record getBytesAndRemoveIt(Record result, nint count = -1)
+        public Record GetBytesAndRemoveIt(Record result, nint count = -1)
         {
             if (count < 0)
                 count = Math.Min(this.count, result.len);
@@ -378,7 +378,7 @@ namespace cryptoprime
         /// <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
         /// <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
         /// <param name="count">Длина запрашиваемых данных</param>
-        public void getBytesAndRemoveIt(byte * result, nint count)
+        public void GetBytesAndRemoveIt(byte * result, nint count)
         {
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(result), "BytesBuilderStatic.getBytesAndRemoveIt: count < 0");
@@ -412,6 +412,7 @@ namespace cryptoprime
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
                                                                  /// <summary>Деструктор</summary>
         ~BytesBuilderStatic()

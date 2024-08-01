@@ -19,20 +19,20 @@ namespace cryptoprime
     {
         public BytesBuilder()
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
         }
 
         /// <summary>Добавленные блоки байтов</summary>
-        public readonly List<byte[]> bytes = new List<byte[]>();
+        public readonly List<byte[]> bytes = new();
 
         /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count  => count;
 
         /// <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
-        public nint countOfBlocks => bytes.Count;
+        public nint CountOfBlocks => bytes.Count;
 
         /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
-        public byte[] getBlock(int number)
+        public byte[] GetBlock(int number)
         {
             return bytes[number];
         }
@@ -44,7 +44,7 @@ namespace cryptoprime
         /// <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         /// <param name="MakeCopy">MakeCopy = true говорит о том, что данные блока будут скопированы (создан новый блок и он будет добавлен). По-умолчанию false - блок будет добавлен без копирования. Это значит, что при изменении исходного блока, изменится и выход, даваемый объектом. Если исходный блок будет обнулён, то будет обнулены и выходные байты из этого объекта, соответствующие этому блоку</param>
         // При добавлении блока важно проверить, верно выставлен параметр MakeCopy и если MakeCopy = false, то блок не должен изменяться
-        public void add(byte[] bytesToAdded, int index = -1, bool MakeCopy = false)
+        public void Add(byte[] bytesToAdded, int index = -1, bool MakeCopy = false)
         {
             if (bytesToAdded.Length <= 0)
                 throw new ArgumentOutOfRangeException("bytesToAdded.Length <= 0");
@@ -65,30 +65,30 @@ namespace cryptoprime
         }
 
         /// <summary>Копирует данные блока и добавляет его в объект</summary><param name="bytesToAdded">Добавляемый блок</param><param name="index">Индекс для добавления.  index = -1 - добавление в конец</param>
-        public void addCopy(byte[] bytesToAdded, int index = -1)
+        public void AddCopy(byte[] bytesToAdded, int index = -1)
         {
-            add(bytesToAdded, index, true);
+            Add(bytesToAdded, index, true);
         }
 
         /// <summary>Добавляет в объект один байт</summary><param name="number">Добавляемое значение</param><param name="index">Индекс добавляемого блока. -1 - в конец</param>
-        public void addByte(byte number, int index = -1)
+        public void AddByte(byte number, int index = -1)
         {
             var n = new byte[1];
             n[0] = number;
-            add(n, index);
+            Add(n, index);
         }
 
         /// <summary>Добавляет в объект двухбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
-        public void addUshort(ushort number, int index = -1)
+        public void AddUshort(ushort number, int index = -1)
         {
             var n = new byte[2];
             n[1] = (byte) (number >> 8);
             n[0] = (byte) (number     );
-            add(n, index);
+            Add(n, index);
         }
 
         /// <summary>Добавляет в объект 4-хбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
-        public void addInt(int number, int index = -1)
+        public void AddInt(int number, int index = -1)
         {
             var n = new byte[4];
             n[3] = (byte) (number >> 24);
@@ -96,11 +96,11 @@ namespace cryptoprime
             n[1] = (byte) (number >> 8);
             n[0] = (byte) (number     );
 
-            add(n, index);
+            Add(n, index);
         }
 
         /// <summary>Добавляет в объект 8-хбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
-        public void addULong(ulong number, int index = -1)
+        public void AddULong(ulong number, int index = -1)
         {
             var n = new byte[8];
             n[7] = (byte) (number >> 56);
@@ -112,23 +112,23 @@ namespace cryptoprime
             n[1] = (byte) (number >> 8);
             n[0] = (byte) (number     );
 
-            add(n, index);
+            Add(n, index);
         }
 
         /// <summary>Добавляет в объект специальную кодировку 8-байтового числа, см. функцию VariableULongToBytes</summary>
-        public void addVariableULong(ulong number, int index = -1)
+        public void AddVariableULong(ulong number, int index = -1)
         {
             byte[]? target = null;
             BytesBuilder.VariableULongToBytes(number, ref target);
 
             var t = target ?? throw new ArgumentNullException();
-            add(t, index);
+            Add(t, index);
         }
 
         /// <summary>Добавляет в объект строку UTF-8</summary>
-        public void add(string utf8String, int index = -1)
+        public void Add(string utf8String, int index = -1)
         {
-            add(UTF8Encoding.UTF8.GetBytes(utf8String), index);
+            Add(UTF8Encoding.UTF8.GetBytes(utf8String), index);
         }
 
         /// <summary>Обнуляет объект</summary>
@@ -229,7 +229,7 @@ namespace cryptoprime
         /// <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
         /// <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
         /// <returns></returns>
-        public byte[] getBytes(nint resultCount = -1, byte[]? resultA = null)
+        public byte[] GetBytes(nint resultCount = -1, byte[]? resultA = null)
         {
             checked
             {
@@ -273,7 +273,7 @@ namespace cryptoprime
         /// <param name="forResult">Массив для хранения результата</param>
         /// <param name="startIndex">Индекс, с которого заполняется массив forResult (индекс приёмника)</param>
         /// <returns>Массив результата длиной resultCount</returns>
-        public byte[] getBytes(nint resultCount, nint dIndex, byte[]? forResult = null, int startIndex = 0)
+        public byte[] GetBytes(nint resultCount, nint dIndex, byte[]? forResult = null, int startIndex = 0)
         {
             if (resultCount - startIndex > count - dIndex)
                 throw new ArgumentOutOfRangeException($"BytesBuilder.getBytes: resultCount - startIndex > count - index. resultCount: {resultCount}; index: {dIndex}; startIndex: {startIndex}");
@@ -360,7 +360,7 @@ namespace cryptoprime
         /// <param name="resultCount">Размер массива-результата</param>
         /// <returns>Запрошенный результат (первые resultCount байтов)</returns>
         // Эта функция может неожиданно обнулить часть массива или массив, сохранённый без копирования (если он где-то используется в другом месте)
-        public byte[] getBytesAndRemoveIt(byte[]? resultA = null, nint resultCount = -1)
+        public byte[] GetBytesAndRemoveIt(byte[]? resultA = null, nint resultCount = -1)
         {
             if (resultCount == -1)
             {
@@ -843,7 +843,7 @@ namespace cryptoprime
             if (start < 0)
                 throw new IndexOutOfRangeException();
 
-            BytesBuilder bb = new BytesBuilder();
+            BytesBuilder bb = new();
             for (nint i = start; ; i++)
             {
                 byte b = (byte) (data & 0x7F);
@@ -853,7 +853,7 @@ namespace cryptoprime
                     b |= 0x80;
 
                 if (target == null)
-                    bb.addByte(b);
+                    bb.AddByte(b);
                 else
                     target[i] = b;
 
@@ -865,7 +865,7 @@ namespace cryptoprime
             if (target == null)
             {
                 target = new byte[bb.Count];
-                BytesBuilder.CopyTo(bb.getBytes(), target, start);
+                BytesBuilder.CopyTo(bb.GetBytes(), target, start);
                 bb.Clear();
             }
 
@@ -1120,6 +1120,7 @@ namespace cryptoprime
         void IDisposable.Dispose()
         {
             Clear();
+            GC.SuppressFinalize(this);
         }
     }
 }

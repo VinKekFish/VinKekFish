@@ -19,20 +19,20 @@ public unsafe partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public partial class GenKeyCommand: Command, IDisposable
     {                                                                                   /// <summary>Опции шифрования ключа</summary>
-        public VinKekFishOptions VinKekFish_KeyOpts    = new VinKekFishOptions();       /// <summary>Опции шифрования открытого текста</summary>
-        public VinKekFishOptions VinKekFish_CipherOpts = new VinKekFishOptions();       /// <summary>Опции шифрования ключа</summary>
-        public CascadeOptions    Cascade_KeyOpts       = new CascadeOptions();          /// <summary>Опции шифрования открытого текста</summary>
-        public CascadeOptions    Cascade_CipherOpts    = new CascadeOptions();
+        public VinKekFishOptions VinKekFish_KeyOpts    = new();       /// <summary>Опции шифрования открытого текста</summary>
+        public VinKekFishOptions VinKekFish_CipherOpts = new();       /// <summary>Опции шифрования ключа</summary>
+        public CascadeOptions    Cascade_KeyOpts       = new();          /// <summary>Опции шифрования открытого текста</summary>
+        public CascadeOptions    Cascade_CipherOpts    = new();
 
         public VinKekFishBase_KN_20210525? VinKekFish_Key;
         public CascadeSponge_mt_20230930?  Cascade_Key;
 
-        public isCorrectAvailable[] CryptoOptions;                                      /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
+        public IIsCorrectAvailable[] CryptoOptions;                                      /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
         public bool                 isSimpleOutKey = false;                             /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
         public bool                 noPwd          = false;                             /// <summary>Если true, то есть скрытый пароль на скрытые данные.</summary>
         public bool                 havePwd2       = false;
                                                                                         /// <summary>Если true, то существует скрытый (второй) поток данных.</summary>
-        public bool                 haveStream2    => havePwd2 || outParts2.Count > 0;
+        public bool                 HaveStream2    => havePwd2 || outParts2.Count > 0;
 
                                                                                         /// <summary>Режим шифрования файла с ключами шифрования.</summary>
         public string  RegimeName = "main.1.pwd.2024.1";                                /// <summary>Режим шифрования, который будет применяться при шифровании ключами, которые будут зашифрованы в файле-результате. Пустая строка означает, что шифруются не ключи.</summary>
@@ -45,7 +45,7 @@ public unsafe partial class AutoCrypt
 
         public GenKeyCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {
-            CryptoOptions = new isCorrectAvailable[]
+            CryptoOptions = new IIsCorrectAvailable[]
                             {
                                 VinKekFish_KeyOpts,
                                 VinKekFish_CipherOpts,
@@ -54,9 +54,9 @@ public unsafe partial class AutoCrypt
                             };
         }
 
-        protected readonly List<FileInfo> rnd        = new List<FileInfo>(0);
-        protected readonly List<FileInfo> outParts   = new List<FileInfo>(0);
-        protected readonly List<FileInfo> outParts2  = new List<FileInfo>(0);
+        protected readonly List<FileInfo> rnd        = new(0);
+        protected readonly List<FileInfo> outParts   = new(0);
+        protected readonly List<FileInfo> outParts2  = new(0);
         protected               FileInfo? outKeyFile = null;
 
         /// <summary>Запускает команду на выполнение.</summary>
@@ -242,7 +242,7 @@ public unsafe partial class AutoCrypt
                     }
 
                     InitOptions();
-                    doFullEncrypt(out int _, out int _);
+                    DoFullEncrypt(out int _, out int _);
                     break;
                 case "end":
                     Terminated = true;
@@ -299,11 +299,11 @@ public unsafe partial class AutoCrypt
         /// <summary>Инициализирует вспомогательные губки для инициализации ключей</summary>
         /// <param name="status">Количество выполненных задач.</param>
         /// <param name="countOfTasks">Общее количество задач.</param>
-        public void doFullEncrypt(out int status, out int countOfTasks)
+        public void DoFullEncrypt(out int status, out int countOfTasks)
         {
             PrintOptionsToConsole();
 
-            Record? br = new Record("GenKeyCommand.InitSponges.br") { len = 32 };
+            Record? br = new("GenKeyCommand.InitSponges.br") { len = 32 };
             byte* b = stackalloc byte[(int)br.len];
             br.array = b;
 
@@ -344,7 +344,7 @@ public unsafe partial class AutoCrypt
             }
             catch (Exception ex)
             {
-                formatException(ex);
+                FormatException(ex);
                 Terminated = true;
             }
             finally
@@ -373,7 +373,7 @@ public unsafe partial class AutoCrypt
                     Connect,    // Соединяемся с VinKekFish (сервис vkf) и записываем их в bbp
                     () =>
                     {           // Впитываем данные из /dev/random
-                        Cascade_Key.step(data: br, dataLen: br.len);
+                        Cascade_Key.Step(data: br, dataLen: br.len);
                         Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 1, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
                     }
                 );
@@ -381,11 +381,11 @@ public unsafe partial class AutoCrypt
                 status++;                   // 2
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-                br2 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br2");
+                br2 = bbp.GetBytes(RecordDebugName: "GenKeyCommand.InitSponges.br2");
                 bbp.Clear();
 
                 // Впитываем данные из сервиса vkf и переинициализируем ключи и таблицы подстановок. Инициализация губки, при этом, не теряется.
-                Cascade_Key.step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
+                Cascade_Key.Step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 2, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
 
 
@@ -399,7 +399,7 @@ public unsafe partial class AutoCrypt
                     Connect();
 
                 // Читаем данные из дополнительных файлов с рандомизирующей информацией.
-                var rndFilesLen = getRndFileLen(rnd);
+                var rndFilesLen = GetRndFileLen(rnd);
                 if (rndFilesLen > 0)
                 {
                     var rndBuffp = stackalloc byte[rndFilesLen];
@@ -423,7 +423,7 @@ public unsafe partial class AutoCrypt
                                     // ff.Write(new ReadOnlySpan<byte>(rndBuff, readed));
                                 }
 
-                                bbp.addWithCopy(rndBuff, (nint) readed, Keccak_abstract.allocator);
+                                bbp.AddWithCopy(rndBuff, (nint) readed, Keccak_abstract.allocator);
                                 fileLen  -= readed;
                                 inputted += readed;
                             }
@@ -445,14 +445,14 @@ public unsafe partial class AutoCrypt
 
                 // Вводим полученную из vkf первичную информацию в каскадную губку.
                 // Снова переинициализируем ключи и таблицу подстановок быстрым способом.
-                Cascade_Key.step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
+                Cascade_Key.Step(data: br2, dataLen: br2.len, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 Cascade_Key.InitThreeFishByCascade(stepToKeyConst: 1, countOfSteps: 2, dataLenFromStep: Cascade_Key.lastOutput.len, doCheckSafty: false);
 
                 status++;                   // 5
                 if (isDebugMode)
                     Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
-                br3 = bbp.getBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
+                br3 = bbp.GetBytes(RecordDebugName: "GenKeyCommand.InitSponges.br3");
 
 
                 // Проводим инициализацию губки VinKekFish с использованием каскадной губки (перекрёстная инициализация)
@@ -494,14 +494,14 @@ public unsafe partial class AutoCrypt
                 VinKekFish_Key.output = new BytesBuilderStatic(outLen);     // Делаем запас, чтобы выводить сразу по три блока
 
                 // Вводим данные из vkf в губку VinKekFish.
-                VinKekFish_Key.input.add(br2, br2.len);
+                VinKekFish_Key.input.Add(br2, br2.len);
                 while (VinKekFish_Key.input.Count > 0)
-                    VinKekFish_Key.doStepAndIO(regime: 1, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);      // Режим может быть любой, главное, чтобы он не совпадал с последующим и предыдущим режимами
+                    VinKekFish_Key.DoStepAndIO(regime: 1, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);      // Режим может быть любой, главное, чтобы он не совпадал с последующим и предыдущим режимами
 
                 // Это дополнительные данные, обрабатываются аналогично
-                VinKekFish_Key.input.add(br3, br3.len);
+                VinKekFish_Key.input.Add(br3, br3.len);
                 while (VinKekFish_Key.input.Count > 0)
-                    VinKekFish_Key.doStepAndIO(regime: 3, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);      // Режим может быть любой, главное, чтобы он не совпадал с последующим и предыдущим режимами
+                    VinKekFish_Key.DoStepAndIO(regime: 3, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);      // Режим может быть любой, главное, чтобы он не совпадал с последующим и предыдущим режимами
 
 
                 status++;                   // 8
@@ -515,8 +515,8 @@ public unsafe partial class AutoCrypt
                 initLen = VinKekFish_Key.BLOCK_SIZE_K;
                 while (VinKekFish_Key.input.Count < initLen)
                 {
-                    Cascade_Key.step(Cascade_Key.countStepsForKeyGeneration, regime: 1);
-                    VinKekFish_Key.input.add(Cascade_Key.lastOutput, Cascade_Key.lastOutput.len >> 1);  // Получаем данные в режиме генерации ключа каскадной губкой: пол блока и увеличенное количество раундов
+                    Cascade_Key.Step(Cascade_Key.countStepsForKeyGeneration, regime: 1);
+                    VinKekFish_Key.input.Add(Cascade_Key.lastOutput, Cascade_Key.lastOutput.len >> 1);  // Получаем данные в режиме генерации ключа каскадной губкой: пол блока и увеличенное количество раундов
                 }
 
                 status++;                   // 9
@@ -527,7 +527,7 @@ public unsafe partial class AutoCrypt
                 // Данные вводим в режиме Overwrite, чтобы выполнить необратимое перезатирание части данных.
                 // Теперь предыдущие данные (полученные из vkf и введённые сразу в обе губки) будет тяжело воссоздать даже в случае уязвимости губки VinKekFish.
                 while (VinKekFish_Key.input.Count > 0)
-                    VinKekFish_Key.doStepAndIO(regime: 2, Overwrite: true, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);
+                    VinKekFish_Key.DoStepAndIO(regime: 2, Overwrite: true, countOfRounds: VinKekFish_Key.REDUCED_ROUNDS_K);
 
                 // Считаем губку VinKekFish_Key проинициализированной, но дальше ещё будем с ней работать при перекрёстной инициализации каскадной губки
 
@@ -542,7 +542,7 @@ public unsafe partial class AutoCrypt
                 // рандомизировать её данными из VinKekFish.
                 // Обратное уже сделано: губка VinKekFish рандомизирована данными из каскадной губки.
                 while (VinKekFish_Key.output.Count < VinKekFish_Key.BLOCK_SIZE_K * 2)
-                    VinKekFish_Key.doStepAndIO(outputLen: VinKekFish_Key.BLOCK_SIZE_KEY_K, regime: 1); // Получаем данные в режиме генерации ключа
+                    VinKekFish_Key.DoStepAndIO(outputLen: VinKekFish_Key.BLOCK_SIZE_KEY_K, regime: 1); // Получаем данные в режиме генерации ключа
 
                 status++;                   // 11
                 if (isDebugMode)
@@ -551,14 +551,14 @@ public unsafe partial class AutoCrypt
                 var s = stackalloc byte[(int)VinKekFish_Key.output.Count];
                 using (var sr = new Record() { len = VinKekFish_Key.output.Count, array = s, Name = "GenKeyCommand.InitSponges.s" })
                 {
-                    VinKekFish_Key.output.getBytesAndRemoveIt(sr);
+                    VinKekFish_Key.output.GetBytesAndRemoveIt(sr);
 
-                    VinKekFish_Key.doStepAndIO(Overwrite: true);    // Обеспечиваем необратимость, перезатирая часть данных губки
+                    VinKekFish_Key.DoStepAndIO(Overwrite: true);    // Обеспечиваем необратимость, перезатирая часть данных губки
 
                     // Также делаем ввод в режиме необратимой перезаписи для того,
                     // чтобы затруднить восстановление данных, которые были введены для инициализации,
                     // даже если каскадная губка будет уязвима
-                    Cascade_Key.step
+                    Cascade_Key.Step
                     (
                         ArmoringSteps: Cascade_Key.countStepsForKeyGeneration - 1,
                         regime: 2, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite,
@@ -591,15 +591,15 @@ public unsafe partial class AutoCrypt
             var main = new GetDataByAdd();
             var vkf  = new GetDataFromVinKekFishSponge(VinKekFish_Key!);
             var csc  = new GetDataFromCascadeSponge(Cascade_Key!);
-            vkf.blockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;
-            csc.blockLen = Cascade_Key!.lastOutput.len >> 1;
+            vkf.BlockLen = VinKekFish_Key!.BLOCK_SIZE_KEY_K;
+            csc.BlockLen = Cascade_Key!.lastOutput.len >> 1;
 
             main.AddSponge(vkf);
             main.AddSponge(csc);
 
             main.NameForRecord = "GenKeyCommand.GenerateSimpleKey";
 
-            var keyVKF = main.getBytes(newKeyLenMax, regime: 11);
+            var keyVKF = main.GetBytes(newKeyLenMax, regime: 11);
 
             try
             {
@@ -630,7 +630,7 @@ public unsafe partial class AutoCrypt
         /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>
         /// <param name="rnd">Список файлов. К каждому элементу списка применяется Refresh() перед получением длины файла.</param>
         /// <param name="maxLen">Если файл более, чем maxLen, то его размер не будет учтён.</param>
-        protected int getRndFileLen(List<FileInfo> rnd, int maxLen = 65536)
+        protected int GetRndFileLen(List<FileInfo> rnd, int maxLen = 65536)
         {
             var result = 0;
             foreach (var rndFile in rnd)
@@ -677,14 +677,14 @@ public unsafe partial class AutoCrypt
 
                 foreach (var opt in CryptoOptions)
                 {
-                    var t = opt.isCorrect();
+                    var t = opt.IsCorrect();
                     if (t.error is not null)
                         throw new CommandException("InitOptions.CommandException: " + t.error.ParseMessage ?? "");
                 }
             }
             catch (Exception ex)
             {
-                formatException(ex);
+                FormatException(ex);
                 Terminated = true;
             }
         }

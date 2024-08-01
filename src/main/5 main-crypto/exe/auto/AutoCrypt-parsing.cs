@@ -13,8 +13,8 @@ public partial class AutoCrypt
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
     public abstract partial class Command
     {
-        protected static Regex SpaceRegex = new Regex("[ \t]+", RegexOptions.Compiled | RegexOptions.Singleline);
-        protected static Regex CommaRegex = new Regex("[,;]",   RegexOptions.Compiled | RegexOptions.Singleline);
+        protected static Regex SpaceRegex = new("[ \t]+", RegexOptions.Compiled | RegexOptions.Singleline);
+        protected static Regex CommaRegex = new("[,;]",   RegexOptions.Compiled | RegexOptions.Singleline);
         public static string[] ToSpaceSeparated(string value)
         {
             lock (CommaRegex)

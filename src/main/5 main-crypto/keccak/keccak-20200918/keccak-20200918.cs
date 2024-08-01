@@ -21,7 +21,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     public void CloneState(Keccak_20200918 result)
     {
         // Очищаем C и B, чтобы не копировать какие-то значения, которые не стоит копировать, да и хранить тоже
-        clearOnly_C_and_B();
+        ClearOnly_C_and_B();
 
         // Копировать всё состояние не обязательно. Но здесь, для надёжности, копируется всё
         BytesBuilder.CopyTo(StateLen, StateLen, State, result.State);

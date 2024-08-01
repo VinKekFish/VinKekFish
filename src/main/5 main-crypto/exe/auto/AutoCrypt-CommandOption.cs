@@ -23,7 +23,7 @@ public partial class AutoCrypt
         protected Socket?   RandomSocket;
         public Command(AutoCrypt autoCrypt)
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
             this.autoCrypt = autoCrypt;
         }
 
@@ -50,12 +50,12 @@ public partial class AutoCrypt
         /// <returns>Код ошибки</returns>
         public abstract ProgramErrorCode Exec(StreamReader? sr);
 
-        public interface isCorrectAvailable
+        public interface IIsCorrectAvailable
         {
-            public CommandOption.ParseResult isCorrect();
+            public CommandOption.ParseResult IsCorrect();
         }
 
-        public class VinKekFishOptions: isCorrectAvailable
+        public class VinKekFishOptions: IIsCorrectAvailable
         {                                             /// <summary>Коэффициент стойкости VinKekFish (K=1,3,5,7,...)</summary>
             public int   K         = 0;               /// <summary>Количество раундов. Число -1 говорит о том, что количество раундов и KOut должно быть рассчитано исходя из режима генерации ключа.</summary>
             public int   Rounds    = 0;               /// <summary>Количество раундов со стандартными таблицами перестановки</summary>
@@ -82,7 +82,7 @@ public partial class AutoCrypt
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
             /// <returns>Возвращает пустой CommandOption.ParseResult в случае успеха (error == null). Если неуспешно, то возвращает ParseResult с установленным значением error</returns>
-            public CommandOption.ParseResult isCorrect()
+            public CommandOption.ParseResult IsCorrect()
             {
                 if ((K & 1) != 1)
                     return new CommandOption.ParseError($"(K & 1) != 1 ({K})");
@@ -155,7 +155,7 @@ public partial class AutoCrypt
             }
         }
 
-        public class CascadeOptions: isCorrectAvailable
+        public class CascadeOptions: IIsCorrectAvailable
         {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
             public int   StrengthInBytes = 0;
             public int   ArmoringSteps   = 0;
@@ -167,7 +167,7 @@ public partial class AutoCrypt
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
             /// <returns>Возвращает пустой CommandOption.ParseResult в случае успеха (error == null). Если неуспешно, то возвращает ParseResult с установленным значением error</returns>
-            public CommandOption.ParseResult isCorrect()
+            public CommandOption.ParseResult IsCorrect()
             {
                 return new CommandOption.ParseResult();
             }
@@ -301,7 +301,7 @@ public partial class AutoCrypt
                 public Exception? ex;
 
                 public static readonly ParseError MustSkipped =
-                                       new ParseError() {LineMustSkipped = true};
+                                       new() {LineMustSkipped = true};
 
                 /// <summary>Создаёт описатель ошибки</summary>
                 /// <param name="message">Сообщение для пользователя, описывающее ошибку</param>

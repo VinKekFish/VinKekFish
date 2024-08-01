@@ -21,7 +21,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     public CascadeSponge_mt_20230930_PerformanceTest(TestConstructor constructor) :
                                             base("", constructor)
     {
-        taskFunc  = Test;
+        TaskFunc  = Test;
         this.Name = this.GetType().Name;
         while (this.Name.Length < "CascadeSponge_mt_20230930_PerformanceTest_176".Length)
             this.Name += " ";
@@ -31,7 +31,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     {
         // В первый раз, почему-то, очень медленно работает шаг - делаем это вне измерений производительности
         var cascade1t = new CascadeSponge_1t_20230905(_tall: 4, _wide: 4);
-        cascade1t.step(countOfSteps: 1);
+        cascade1t.Step(countOfSteps: 1);
         cascade1t.Dispose();
     }
 
@@ -55,11 +55,11 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
                 a[i] = (byte) (i*7);
 
             var st1 = new DriverForTestsLib.SimpleTimeMeter();
-            cascade1t.step(data: data, dataLen: dlen, countOfSteps: cnt);
+            cascade1t.Step(data: data, dataLen: dlen, countOfSteps: cnt);
             st1.Dispose();
 
             var stm = new DriverForTestsLib.SimpleTimeMeter();
-            cascademt.step(data: data, dataLen: dlen, countOfSteps: cnt);
+            cascademt.Step(data: data, dataLen: dlen, countOfSteps: cnt);
             stm.Dispose();
 
             if (!BytesBuilder.UnsecureCompare(cascade1t.maxDataLen, cascademt.maxDataLen, cascade1t.lastOutput, cascademt.lastOutput))

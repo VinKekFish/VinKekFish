@@ -22,12 +22,12 @@ public unsafe static partial class Utils
 
     /// <summary>Получает имя лог-файла в файловой системе для ArrayToFile</summary>
     /// <param name="logName">Логическое имя лог-файла</param>
-    public static string getLogFileName(string logName = "")
+    public static string GetLogFileName(string logName = "")
     {
         return $"log-{logName}.log";
     }
 
-    public readonly static object syncArrayToFile = new Object();
+    public readonly static object syncArrayToFile = new();
 
     /// <summary>Записывает массив в файл</summary>
     /// <param name="buffer">Массив для логирования</param>
@@ -37,7 +37,7 @@ public unsafe static partial class Utils
     {
         lock (syncArrayToFile)
         {
-            File.AppendAllText(getLogFileName(logName), ArrayToHex(buffer, len) + "\n\n");
+            File.AppendAllText(GetLogFileName(logName), ArrayToHex(buffer, len) + "\n\n");
         }
     }
 
@@ -69,14 +69,14 @@ public unsafe static partial class Utils
     {
         lock (syncArrayToFile)
         {
-            File.AppendAllText(getLogFileName(logName), msg + "\n\n");
+            File.AppendAllText(GetLogFileName(logName), msg + "\n\n");
         }
     }
 
     /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
     /// <param name="ex">Исключение</param>
     /// <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
-    public static string formatException(Exception ex, bool toConsole = true)
+    public static string FormatException(Exception ex, bool toConsole = true)
     {
         var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
 
@@ -86,7 +86,7 @@ public unsafe static partial class Utils
         if (ex.InnerException is not null)
         {
             sb.AppendLine("Inner exception");
-            sb.AppendLine(formatException(ex.InnerException));
+            sb.AppendLine(FormatException(ex.InnerException));
         }
 
         sb.AppendLine("----------------------------------------------------------------");
@@ -107,7 +107,7 @@ public unsafe static partial class Utils
         }
         catch (Exception ex)
         {
-            formatException(ex);
+            FormatException(ex);
         }
     }
 }

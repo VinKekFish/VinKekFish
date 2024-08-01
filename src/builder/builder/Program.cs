@@ -38,7 +38,7 @@ public partial class Program
 
         using (var _ = new NotImportantConsoleOptions())
         {            
-            Console.WriteLine($"Builder started at {getTimeString(DateTime.Now)}");
+            Console.WriteLine($"Builder started at {GetTimeString(DateTime.Now)}");
         }
 
         // ---------------- Устанавливаем обработчики ошибок ----------------
@@ -51,7 +51,7 @@ public partial class Program
         if (ec.resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
-                Console.Error.Write($"{getTimeString(DateTime.Now)}. Error during build");
+                Console.Error.Write($"{GetTimeString(DateTime.Now)}. Error during build");
 
             return (int) ec.resultCode;
         }
@@ -61,7 +61,7 @@ public partial class Program
 
 
         using (var _ = new NotImportantConsoleOptions())
-            Console.Write($"Tests started at {getTimeString(DateTime.Now)}");
+            Console.Write($"Tests started at {GetTimeString(DateTime.Now)}");
 
         // ---------------- Тесты ----------------
         ec.resultCode = MainTests(testTags);
@@ -69,7 +69,7 @@ public partial class Program
         {
             using (var _ = new ErrorConsoleOptions())
             {
-                Console.Error.WriteLine($"{getTimeString(DateTime.Now)}. Error during tests");
+                Console.Error.WriteLine($"{GetTimeString(DateTime.Now)}. Error during tests");
                 Console.Error.WriteLine($"Working dir {Directory.GetCurrentDirectory()}");
             }
 
@@ -77,7 +77,7 @@ public partial class Program
         }
 
         using (var _ = new NotErrorConsoleOptions())
-            Console.Write($"Builder successfully ended at {getTimeString(DateTime.Now)}");
+            Console.Write($"Builder successfully ended at {GetTimeString(DateTime.Now)}");
 
         return (int) ErrorCode.Success;
     }
@@ -114,10 +114,10 @@ public partial class Program
 
     public static void SetErrorHandlers()
     {
-        builder_lock_event       += Builder_Lock_ErrorHandler;
-        updated_file_found_event += Updated_File_Found_Handler;
+        Builder_lock_event       += Builder_Lock_ErrorHandler;
+        Updated_file_found_event += Updated_File_Found_Handler;
 
-        end_build_for_project_event += end_build_for_project_Handler;
+        End_build_for_project_event += End_build_for_project_Handler;
     }
 
     public static void Builder_Lock_ErrorHandler(FileInfo builder_lock_file)
@@ -139,7 +139,7 @@ public partial class Program
         }
     }
 
-    public static void end_build_for_project_Handler(ErrorCode code, DirectoryInfo updatedFile)
+    public static void End_build_for_project_Handler(ErrorCode code, DirectoryInfo updatedFile)
     {
         var ProjectName = updatedFile.FullName;
 
@@ -165,7 +165,7 @@ public partial class Program
 
 public static class ErrorCode_helper
 {
-    public static bool isErrorCode(this Program.ErrorCode code)
+    public static bool IsErrorCode(this Program.ErrorCode code)
     {
         if (code == Program.ErrorCode.Success)
             return false;
@@ -176,8 +176,8 @@ public static class ErrorCode_helper
         return true;
     }
 
-    public static bool isSuccessCode(this Program.ErrorCode code)
+    public static bool IsSuccessCode(this Program.ErrorCode code)
     {
-        return !isErrorCode(code);
+        return !IsErrorCode(code);
     }
 }

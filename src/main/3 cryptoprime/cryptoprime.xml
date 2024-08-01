@@ -31,7 +31,7 @@
         <member name="F:cryptoprime.KeccakPrime.RC">
             <summary>Раундовые коэффициенты для шага ι</summary>
         </member>
-        <member name="M:cryptoprime.KeccakPrime.roundB(System.UInt64*,System.UInt64*,System.UInt64*)">
+        <member name="M:cryptoprime.KeccakPrime.RoundB(System.UInt64*,System.UInt64*,System.UInt64*)">
             <summary>Реализация раундового преобразования</summary>
             <param name="a">Матрица S (a) - внутреннее состояние. Размер b_size (25*8=200 байтов) либо S_len2 в ulong (25 ulong)</param>
             <param name="c">Вспомогательная матрица размером c_size (5*8=40 байтов)</param>
@@ -93,7 +93,7 @@
             <param name="S">Внутреннее состояние S :[200]</param>
             <remarks>При вызове надо проверить, что output всегда нужной длины</remarks>
         </member>
-        <member name="M:cryptoprime.KeccakPrime.getSHA3_512(System.Byte[],System.Byte[])">
+        <member name="M:cryptoprime.KeccakPrime.GetSHA3_512(System.Byte[],System.Byte[])">
             <summary>Вычисляет хеш SHA-3 с длиной 512 битов</summary>
             <param name="message">Сообщение для хеширования</param>
             <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
@@ -104,7 +104,7 @@
             <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
             <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
         </member>
-        <member name="M:cryptoprime.Threefish1024.genExpandedKey(System.UInt64*)">
+        <member name="M:cryptoprime.Threefish1024.GenExpandedKey(System.UInt64*)">
             <summary>Сгенерировать расширение ключа</summary>
             <param name="tk">Ключ с дополнительным 8-мибайтовым словом для расширения (слово расширения в конце)</param>
         </member>

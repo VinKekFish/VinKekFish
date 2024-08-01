@@ -32,11 +32,11 @@ public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             // Проверяем на то, что аллокатор умеет удалять память (работает IDisposable)
             var allocator  = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
-            nint maxMemory = getMaxMemory() << 2;
+            nint maxMemory = GetMaxMemory() << 2;
 
             nint maxMemoryToAllocateBySingleAllocate = maxMemory >> 12;     // Иначе процесс будет длиться слишком долго, т.к. большие блоки долго выделяются
             nint memoryToAllocate = 1;
@@ -85,13 +85,13 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var b = new byte[256];
             for (int i = 0; i < 256; i++)
                 b[i] = (byte)i;
 
-            using (var R = getRecordFromBytesArray(b))
+            using (var R = GetRecordFromBytesArray(b))
             {
                 if (!BytesBuilder.UnsecureCompare(b, R.CloneToSafeBytes()))
                     throw new Exception("Error 1.1a");
@@ -128,7 +128,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test2: BytesBuilder_test_par
                         up[i] = i;
                 }
 
-                using var R = getRecordFromBytesArray(b);
+                using var R = GetRecordFromBytesArray(b);
                 // Чтобы сборщик мусора работал эффективнее, проверки вынесены в отдельные функции
                 // Без явного вызова сборщика мусора - он не собирает нормально память
                 Check1(b, R); GC.Collect();
@@ -187,7 +187,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var b = new byte[256];
             for (int i = 0; i < 256; i++)
@@ -200,14 +200,14 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
                 (state) => Calc(b)
             );
 
-            lst.Add(getRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.getRecordFromBytesArray").CloneToSafeBytes(destroyRecord: true));
+            lst.Add(GetRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.getRecordFromBytesArray").CloneToSafeBytes(destroyRecord: true));
 
             return lst;
         }
 
         private static void Calc(byte[] b)
         {
-            using var R1 = getRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.Calc.R1");
+            using var R1 = GetRecordFromBytesArray(b, null, "BytesBuilder_ForPointers_Record_test3.Calc.R1");
             using var R2 = (Record) R1.Clone("BytesBuilder_ForPointers_Record_test3.Calc.R2");
             using var R3 = R1.Clone(0, -1, RecordName: "BytesBuilder_ForPointers_Record_test3.Calc.R3");
             using var R4 = R1.NoCopyClone();
@@ -292,7 +292,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test3: BytesBuilder_test_par
 
             for (int i = 0; i < b.Length - 1; i++)
             {
-                using var R10 = getRecordFromBytesArray(b);
+                using var R10 = GetRecordFromBytesArray(b);
                 using var R11 = R10.NoCopyClone(0,  i);
                 using var R13 = R10.NoCopyClone(-i, 0);
 
@@ -333,7 +333,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var b = new byte[256];
             for (int i = 0; i < 256; i++)
@@ -369,7 +369,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
         public static int Calc(byte[] b)
         {
-            AllocatorForUnsafeMemoryInterface? allocator = new AllocHGlobal_AllocatorForUnsafeMemory_debug();
+            IAllocatorForUnsafeMemoryInterface? allocator = new AllocHGlobal_AllocatorForUnsafeMemory_debug();
             var a = (allocator as AllocHGlobal_AllocatorForUnsafeMemory_debug)!.allocatedRecords_Debug;
 
             var ErrorOccured = false;
@@ -379,7 +379,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
                 if ((i & 0xFFF) == 0xFFF)
                 {
                     // GC.Collect();
-                    var ama = (allocator as AllocHGlobal_AllocatorForUnsafeMemory_debug)!.memAllocated;
+                    var ama = (allocator as AllocHGlobal_AllocatorForUnsafeMemory_debug)!.MemAllocated;
                     if (ama > 0)
                     {
                         ErrorOccured = true;
@@ -401,9 +401,9 @@ public unsafe class BytesBuilder_ForPointers_Record_test4: BytesBuilder_test_par
 
             return ErrorOccured ? 0 : 1;
 
-            static AllocatorForUnsafeMemoryInterface? SubCalc(byte[] b, AllocatorForUnsafeMemoryInterface? allocator)
+            static IAllocatorForUnsafeMemoryInterface? SubCalc(byte[] b, IAllocatorForUnsafeMemoryInterface? allocator)
             {
-                using var R1  = getRecordFromBytesArray(b, allocator);
+                using var R1  = GetRecordFromBytesArray(b, allocator);
                       var r1a = R1.array;
                       var r1l = R1.len;
                 allocator   ??= R1.allocator;
@@ -485,23 +485,23 @@ public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_par
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<string> lst = new List<string>();
+            List<string> lst = new();
 
             var b = new byte[256];
             for (int i = 0; i < 256; i++)
                 b[i] = (byte) i;
 
-            using var R = Record.getRecordFromBytesArray(b);
+            using var R = Record.GetRecordFromBytesArray(b);
 
             for (int i = 0; i < b.Length; i++)
             for (int j = i; j < b.Length; j++)
-                R.checkRange(i, j);
+                R.CheckRange(i, j);
 
             for (int i = 0; i < b.Length; i++)
             for (int j = 0; j < i; j++)
                 try
                 {
-                    R.checkRange(i, j);
+                    R.CheckRange(i, j);
                     var err = new TestError() { Message = $"checkRange({i}, {j}) not got exception" };
                     task.error.Add(err);
                 }
@@ -510,12 +510,12 @@ public unsafe class BytesBuilder_ForPointers_Record_test5: BytesBuilder_test_par
 
             try
             {
-                R.checkRange(-1,    0);
-                R.checkRange(0,     R.len);
-                R.checkRange(R.len, R.len-1);
+                R.CheckRange(-1,    0);
+                R.CheckRange(0,     R.len);
+                R.CheckRange(R.len, R.len-1);
 
-                R.checkRange(0,             nint.MaxValue);
-                R.checkRange(nint.MinValue, 0);
+                R.CheckRange(0,             nint.MaxValue);
+                R.CheckRange(nint.MinValue, 0);
 
                 var err = new TestError() { Message = $"checkRange(...) not got exception" };
                 task.error.Add(err);
@@ -611,7 +611,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             // Для удобства использования using
             var allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
@@ -622,7 +622,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 try
                 {
                     // Тестируем пустой массив
-                    lst.Add(  bb.getBytes().CloneToSafeBytes(destroyRecord: true)  );
+                    lst.Add(  bb.GetBytes().CloneToSafeBytes(destroyRecord: true)  );
                 }
                 catch (BytesBuilder.NotFoundAllocator)
                 {
@@ -631,7 +631,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
                 try
                 {
-                    lst.Add(  bb.getBytes(allocator: allocator).CloneToSafeBytes(destroyRecord: true)  );
+                    lst.Add(  bb.GetBytes(allocator: allocator).CloneToSafeBytes(destroyRecord: true)  );
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -641,55 +641,55 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 // Пытаемся взять больше, чем есть
                 try
                 {
-                    lst.Add(bb.getBytes(1).CloneToSafeBytes(destroyRecord: true));
+                    lst.Add(bb.GetBytes(1).CloneToSafeBytes(destroyRecord: true));
                 }
                 catch (BytesBuilder.ResultCountIsTooLarge)
                 {
                     lst.Add(new byte[0]);
                 }
 
-                var str1a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr1);
-                var str2a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr2);
-                var str3a = BytesBuilderForPointers.Record.getRecordFromBytesArray(bStr3);
+                var str1a = BytesBuilderForPointers.Record.GetRecordFromBytesArray(bStr1);
+                var str2a = BytesBuilderForPointers.Record.GetRecordFromBytesArray(bStr2);
+                var str3a = BytesBuilderForPointers.Record.GetRecordFromBytesArray(bStr3);
 
 
                 // Тестируем конкатенацию массивов
-                bb.add(str1a);
-                bb.add(str2a);
-                bb.add(str3a);
+                bb.Add(str1a);
+                bb.Add(str2a);
+                bb.Add(str3a);
 
-                if (bb.countOfBlocks != 3)
+                if (bb.CountOfBlocks != 3)
                     throw new Exception("bb.countOfBlocks != 3");
-                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(0).CloneToSafeBytes(destroyRecord: false), bStr1)  )
+                if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(0).CloneToSafeBytes(destroyRecord: false), bStr1)  )
                     throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))");
-                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(1).CloneToSafeBytes(destroyRecord: false), bStr2)  )
+                if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(1).CloneToSafeBytes(destroyRecord: false), bStr2)  )
                     throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))");
-                if (  !BytesBuilder.UnsecureCompare(bb.getBlock(2).CloneToSafeBytes(destroyRecord: false), bStr3)  )
+                if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(2).CloneToSafeBytes(destroyRecord: false), bStr3)  )
                     throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))");
 
 
                 using var bb2 = new BytesBuilderForPointers();
-                var strBytes = getRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
-                bb2.add(strBytes);
+                var strBytes = GetRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
+                bb2.Add(strBytes);
 
-                lst.Add(  bb.getBytes().CloneToSafeBytes(destroyRecord: true)  );
+                lst.Add(  bb.GetBytes().CloneToSafeBytes(destroyRecord: true)  );
 
                 // Проверяем, что эти две строки равны
                 for (int i = 0; i < 2; i++)
-                if (  !BytesBuilder.UnsecureCompare( bb.getBytes().CloneToSafeBytes(destroyRecord: true), bb2.getBytes().CloneToSafeBytes(destroyRecord: true) )  )
+                if (  !BytesBuilder.UnsecureCompare( bb.GetBytes().CloneToSafeBytes(destroyRecord: true), bb2.GetBytes().CloneToSafeBytes(destroyRecord: true) )  )
                     throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): ke5POaxC8Iz");
 
                 // Проверяем, что getBytes правильно возвращает частичные вхождения
                 for (nint i = 1; i < strBytes.len; i++)
-                if (  !BytesBuilder.UnsecureCompare( bb.getBytes(i).CloneToSafeBytes(destroyRecord: true), bb2.getBytes(i).CloneToSafeBytes(destroyRecord: true) )  )
+                if (  !BytesBuilder.UnsecureCompare( bb.GetBytes(i).CloneToSafeBytes(destroyRecord: true), bb2.GetBytes(i).CloneToSafeBytes(destroyRecord: true) )  )
                     throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): qo53ZIsRLpQ");
 
 
                 // Проверяем, что при маленьком ra будет выдано исключение
-                using var ra = getRecordFromBytesArray(   new byte[1]   );
+                using var ra = GetRecordFromBytesArray(   new byte[1]   );
                 try
                 {
-                    bb.getBytes(2, ra);
+                    bb.GetBytes(2, ra);
                 }
                 catch (BytesBuilder.ResultAIsTooSmall)
                 {
@@ -698,7 +698,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
 
 
                 using var bbt  = new BytesBuilderForPointers();
-                strBytes = getRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
+                strBytes = GetRecordFromBytesArray(   Encoding.UTF8.GetBytes(Str1 + Str2 + Str3)   );
                 var strBytesT = strBytes.Clone(0);
                 try
                 {
@@ -722,13 +722,13 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                             /*if (bb.Count < counter_a)
                                 throw new BytesBuilder.ResultCountIsTooLarge(counter_a, bb.Count);
 */
-                            var a = bb .getBytesAndRemoveIt(tmpR1, counter_a);
-                            var b = bb2.getBytesAndRemoveIt(tmpR2);
+                            var a = bb .GetBytesAndRemoveIt(tmpR1, counter_a);
+                            var b = bb2.GetBytesAndRemoveIt(tmpR2);
 
                             if (a != tmpR1 || b != tmpR2)
                                 throw new Exception("a != tmpR1 || b != tmpR2");
 
-                            bbt.add(a);
+                            bbt.Add(a);
                         }
                         catch
                         {
@@ -766,14 +766,14 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                     strBytesT?.Dispose();
                 }
 
-                using var bbt_bytes = bbt.getBytes();
+                using var bbt_bytes = bbt.GetBytes();
                 if (  !strBytes.UnsecureCompare(bbt_bytes)  )
                     throw new Exception("!BytesBuilder_ForPointers_test: strBytes.UnsecureCompare(bbt_bytes): KMLk542ywd");
 
                 strBytes.Dispose();
             }
 
-            if (allocator.memAllocated != 0)
+            if (allocator.MemAllocated != 0)
             {
                 #if RECORD_DEBUG
                 foreach (var rec in allocator.allocatedRecords)
@@ -783,7 +783,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                     task.error.Add(e);
                 }
                 #endif
-                throw new Exception($"BytesBuilder_ForPointers_test: allocator.memAllocated != 0 {allocator.memAllocated}");
+                throw new Exception($"BytesBuilder_ForPointers_test: allocator.memAllocated != 0 {allocator.MemAllocated}");
             }
 
             return lst;

@@ -17,16 +17,16 @@ public class VinKekFish_test_baseK: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {}
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/VinKekFish/");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/VinKekFish/");
     }
 
     protected unsafe class Saver: SaverParent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             return lst;
         }
@@ -41,7 +41,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
     public VinKekFish_test_base_compareToEtalon(TestConstructor constructor) :
                                             base(nameof(VinKekFish_test_base_compareToEtalon), constructor)
     {
-        taskFunc = this.Test;
+        TaskFunc = this.Test;
     }
 
     public void Test()
@@ -54,7 +54,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         keyLen = VinKekFishBase_etalonK1.CryptoStateLen + VinKekFishBase_etalonK1.BLOCK_SIZE * 2 + 2;  // Длина ключа должна быть чётной, т.к. мы дальше инициализируем ключ так, как будто его длина чётная
         ConstantRoundsTests(keyLen);
 
-        testByIncorrect();
+        TestByIncorrect();
     }
 
     private void ConstantRoundsTests(int keyLen)
@@ -106,20 +106,20 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         k1e  .InputData_Xor(null, 0, 0);
         k1e  .DoStep(roundsCnt);
-        k1t1 .doStepAndIO(roundsCnt);
-        k1t4 .doStepAndIO(roundsCnt);
-        k1t16.doStepAndIO(roundsCnt);
+        k1t1 .DoStepAndIO(roundsCnt);
+        k1t4 .DoStepAndIO(roundsCnt);
+        k1t16.DoStepAndIO(roundsCnt);
 
-        k1e .outputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
+        k1e .OutputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);
 
-        using var out1t1 = k1t1 .output.getBytes();
+        using var out1t1 = k1t1 .output.GetBytes();
         sp = new ReadOnlySpan<byte>(out1t1, (int) out1t1.len);
 
-        using var out1t4 = k1t4 .output.getBytes();
+        using var out1t4 = k1t4 .output.GetBytes();
         sp = new ReadOnlySpan<byte>(out1t4, (int) out1t4.len);
 
-        using var out1t16 = k1t16.output.getBytes();
+        using var out1t16 = k1t16.output.GetBytes();
         sp = new ReadOnlySpan<byte>(out1t16, (int) out1t16.len);
 
         if (!out1t1.UnsecureCompare(out1e))
@@ -136,7 +136,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         }
     }
 
-    public void testByIncorrect()
+    public void TestByIncorrect()
     {
         int incorrect = 0;
         try

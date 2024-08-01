@@ -27,7 +27,7 @@ public class ThreeFish_test_performance: TestTask
     {
         // Console.WriteLine("Keccak_sha_3_512_test test task created");
 
-        taskFunc = () =>
+        TaskFunc = () =>
         {
             const int iterCount   = 1024 * 1024;
 

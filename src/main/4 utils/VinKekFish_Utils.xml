@@ -38,7 +38,7 @@
         <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement">
             <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
         </member>
-        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.getInputElemement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.GetInputElemement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
             <summary>Абстрактная фабрика, которая создаёт элементы 'file', 'cmd' и другие</summary>
             <param name="parent">Родительский элемент настроек</param>
             <param name="block">Блок, описыающий данный элемент настроек</param>
@@ -46,7 +46,7 @@
             <returns>Список созданных блоков</returns>
             <exception cref="T:VinKekFish_Utils.ProgramOptions.Options_Service.Options_Service_Exception">Если есть ошибки в настройках, выдаёт исключение</exception>
         </member>
-        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.getNewInputFileElement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement.GetNewInputFileElement(VinKekFish_Utils.ProgramOptions.Options_Service.Element,VinKekFish_Utils.ProgramOptions.Options.Block,System.String)">
             <summary>Создаёт элемент типа InputFileElement и добавляет его в result</summary>
             <param name="parent">Блок-родитель создаваемого элемента настроек</param>
             <param name="block">Блок опций, описывающий данный элемент</param>
@@ -93,12 +93,12 @@
             <para>avg - оценка максимального количества битов в благоприятных условиях, которое нужно получить из этого источника для того, чтобы получить хотя бы один бит энтропии.</para>
             </summary>
         </member>
-        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.getTime(System.String)">
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.GetTime(System.String)">
             <summary>Распарсить строку вида "1s"</summary>
             <param name="timeString">Строка для парсинга</param>
             <returns>-1 - если строку не удалось распарсить. Иначе - время в миллисекундах.</returns>
         </member>
-        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.getTime(System.String,System.Collections.Generic.KeyValuePair{System.String,System.Int64},System.Int64@)">
+        <member name="M:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.Interval.GetTime(System.String,System.Collections.Generic.KeyValuePair{System.String,System.Int64},System.Int64@)">
             <summary>Распарсить строку типа "1s", получив из неё время</summary>
             <param name="timeString">Строка для парсинга</param>
             <param name="factor">Модификатор единицы времени из списка TimeFactors</param>

@@ -28,7 +28,7 @@ namespace vinkekfish
         protected volatile Record?  tablesForPermutations = null;
 
         /// <summary>Аллокатор для выделения памяти внутри объекта</summary>
-        public readonly BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
+        public readonly BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface allocator = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();
 
         /// <summary>Эти значения содержат записи для State1, State2, Tweaks</summary>
         protected Record  rState1, rState2, rTweaks;
@@ -71,7 +71,7 @@ namespace vinkekfish
         /// <summary>Вспомогательные переменные, показывающие, какие состояния сейчас являются целевыми. Изменяются в алгоритме (st2 - вспомогательное/дополнительное; st1 - основное состояние, содержащее актуальную криптографическую информацию)</summary>
         protected volatile byte * st1 = null, st2 = null, st3 = null;
         /// <summary>Устанавливает st1 и st2 на нужные состояния. Если true, то st1 = State1, иначе st1 = State2. State1Main ^= true - переключение состояний между основным и вспомогательным</summary>
-        public bool isState1Main
+        public bool IsState1Main
         {
             get => st1 == State1;
             set
@@ -101,7 +101,7 @@ namespace vinkekfish
         /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
             BLOCK_SIZE_K     = CalcBlockSize      (K);
             BLOCK_SIZE_KEY_K = CalcBlockSizeForKey(K);
@@ -137,7 +137,7 @@ namespace vinkekfish
             this.CountOfRounds = CountOfRounds;
             this.K         = K;
             FullLen        = K * CryptoStateLen + CryptoStateLenExtension;
-            FullLen        = (int)calcAlignment(FullLen);
+            FullLen        = (int)CalcAlignment(FullLen);
             Len            = K * CryptoStateLen;            // Этот размер всегда выравнен на значение, кратное 128-ми, и никогда - на значение, кратное 256-ти
             LenInThreeFish = Len / ThreeFishBlockLen;
             LenInKeccak    = Len / KeccakBlockLen;
@@ -149,7 +149,7 @@ namespace vinkekfish
 
             // Нам нужно 5 элементов, но мы делаем так, чтобы было кратно линии кеша
             TweaksArrayLen = CryptoTweakLen * 2; //CountOfTweaks * CryptoTweakLen * LenInThreeFish;
-            TweaksArrayLen = (int)calcAlignment(TweaksArrayLen);
+            TweaksArrayLen = (int)CalcAlignment(TweaksArrayLen);
             /*MatrixArrayLen = MatrixLen * LenInKeccak;
             MatrixArrayLen = calcAlignment(MatrixArrayLen);*/
             CountOfFinal = MIN_ABSORPTION_ROUNDS_D_K * 2;
@@ -189,7 +189,7 @@ namespace vinkekfish
                             Timer = new Timer(WaitFunction!, period: TimerIntervalMs, dueTime: TimerIntervalMs, state: this);
                         }
             */
-            isState1Main = true;
+            IsState1Main = true;
         }
 
         public static int CalcBlockSize(int K)
@@ -357,7 +357,7 @@ namespace vinkekfish
                 var msg = "VinKekFishBase_KN_20210525: Dispose executed twiced";
                 if (fromDispose)
                 {
-                    Record.errorsInDispose = true;
+                    Record.ErrorsInDispose = true;
 
                     if (Record.doExceptionOnDisposeTwiced)
                     {
@@ -378,7 +378,7 @@ namespace vinkekfish
 
                 if (input is not null && input.Count > 0)
                 {
-                    Record.errorsInDispose = true;
+                    Record.ErrorsInDispose = true;
                     var iemsg = "VinKekFishBase_KN_20210525.Dispose: input.Count > 0 in Dispose (data to input has not been processed)";
 
                     if (Record.doExceptionOnDisposeInDestructor)
@@ -404,7 +404,7 @@ namespace vinkekfish
             if (!id)
             if (!fromDispose)
             {
-                Record.errorsInDispose = true;
+                Record.ErrorsInDispose = true;
 
                 var emsg = "VinKekFishBase_KN_20210525.Dispose: you must call Dispose() after use";
                 if (Record.doExceptionOnDisposeInDestructor)
@@ -422,7 +422,7 @@ namespace vinkekfish
         /// <summary>Функция для отладки. Выполняет сравнение криптографического состояния с заданным с помощью VinKekFish_Utils.Utils.SecureCompareFast</summary>
         /// <param name="state">Массив для сравнения</param>
         /// <returns>true, если состояния равны</returns>
-        public bool debug_compareState(Record state)
+        public bool Debug_compareState(Record state)
         {
             return VinKekFish_Utils.Utils.SecureCompareFast(Len, state.len, st1, state);
         }

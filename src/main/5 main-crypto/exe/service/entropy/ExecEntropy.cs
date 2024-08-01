@@ -13,8 +13,8 @@ using static VinKekFish_Utils.Utils;
 
 public partial class Regime_Service
 {                                                                                           /// <summary>Этот объект используется для синхронизации доступа к объектам, накапливающим энтропию</summary>
-    public readonly object entropy_sync = new object();
-    public readonly AllocHGlobal_AllocatorForUnsafeMemory allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+    public readonly object entropy_sync = new();
+    public readonly AllocHGlobal_AllocatorForUnsafeMemory allocator = new();
 
     protected virtual void StopEntropy()
     {
@@ -23,10 +23,10 @@ public partial class Regime_Service
             InputEntropyFromSourcesWhile(int.MaxValue, 0);
             ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
 
-            if (isInitiated)
+            if (IsInitiated)
                 MandatoryWriteCurrentFile();
 
-            isInitiated = false;
+            IsInitiated = false;
             TryToDispose(VinKekFish);
             TryToDispose(CascadeSponge);
             TryToDispose(bufferRec);

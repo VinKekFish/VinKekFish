@@ -16,11 +16,11 @@ using static VinKekFish_Utils.Utils;
 public unsafe partial class AutoCrypt
 {
     /// <summary>Представляет некоторую абстрактную губку, из которой можно получать данные. Не препятствует тому, чтобы работать также и напрямую с губкой.</summary>
-    public interface GetDataFromSponge: IDisposable
+    public interface IGetDataFromSponge: IDisposable
     {
-        public void   getBytes(byte * forData, nint len, byte regime);
-        public void   getBytes(Record r, byte regime);
-        public Record getBytes(nint len, byte regime);
+        public void   GetBytes(byte * forData, nint len, byte regime);
+        public void   GetBytes(Record r, byte regime);
+        public Record GetBytes(nint len, byte regime);
 
         /// <summary>Общее исключение для данного интерфейса</summary>
         public class GetDataFromSpongeException: Exception
@@ -32,7 +32,7 @@ public unsafe partial class AutoCrypt
     }
 
     /// <summary>Представляет некоторую абстрактную губку, из которой можно получать данные. Не препятствует тому, чтобы работать также и напрямую с губкой.</summary>
-    public abstract class GetDataFromSpongeClass: GetDataFromSponge
+    public abstract class GetDataFromSpongeClass: IGetDataFromSponge
     {
         public virtual string NameForRecord {get; set;} = "GetDataFromSpongeClass.getBytes";
 
@@ -42,48 +42,49 @@ public unsafe partial class AutoCrypt
         }
 
         protected nint _blockLen = -1;
-        protected abstract void doCorrectBlockLen();
+        protected abstract void DoCorrectBlockLen();
         /// <summary>Число показывает, сколько байтов берётся за один шаг из губки</summary>
-        public virtual nint blockLen
+        public virtual nint BlockLen
         {
             get
             {
-                doCorrectBlockLen();
+                DoCorrectBlockLen();
                 return _blockLen;
             }
             set
             {
                 _blockLen = value;
-                doCorrectBlockLen();
+                DoCorrectBlockLen();
             }
         }
 
         /// <summary>Получить байты из губки в предварительно сформированную запись</summary>
         /// <param name="r">Запись, в которую будет записан результат. Результат получается длиной на всю запись.</param>
-        public virtual void getBytes(Record r, byte regime)
+        public virtual void GetBytes(Record r, byte regime)
         {
-            getBytes(r, r.len, regime);
+            GetBytes(r, r.len, regime);
         }
 
         /// <summary>Получить байты из губки.</summary>
         /// <param name="len">Количество байтов для получения.</param>
         /// <returns>Запись, которая содержит результат (необходимо удалить через Dispose после использования).</returns>
-        public virtual Record getBytes(nint len, byte regime)
+        public virtual Record GetBytes(nint len, byte regime)
         {
             var r = Keccak_abstract.allocator.AllocMemory(len, RecordName: NameForRecord + ".getBytes");
 
-            getBytes(r, regime);
+            GetBytes(r, regime);
             return r;
         }
 
         /// <summary>Получить байты из губки.</summary>
         /// <param name="forData">Адрес массива для вывода результата.</param>
         /// <param name="len">Длина запрашиваемого результата.</param>
-        public abstract void getBytes(byte* forData, nint len, byte regime);
+        public abstract void GetBytes(byte* forData, nint len, byte regime);
 
         void IDisposable.Dispose()
         {
             Dispose();
+            GC.SuppressFinalize(this);
         }
 
         protected bool isDisposed = false;
@@ -124,26 +125,26 @@ public unsafe partial class AutoCrypt
         public GetDataFromCascadeSponge(CascadeSponge_mt_20230930 sponge)
         {
             this.sponge = sponge;
-            blockLen    = sponge.lastOutput.len >> 1;
+            BlockLen    = sponge.lastOutput.len >> 1;
         }
 
         public int ArmoringSteps = 0;
-        public override void getBytes(byte* forData, nint len, byte regime)
+        public override void GetBytes(byte* forData, nint len, byte regime)
         {
             var reqLen  = len;
             var current = forData;
             do
             {
-                sponge!.step(ArmoringSteps: ArmoringSteps, regime: regime);
-                BytesBuilder.CopyTo(blockLen, reqLen, sponge.lastOutput, current);
+                sponge!.Step(ArmoringSteps: ArmoringSteps, regime: regime);
+                BytesBuilder.CopyTo(BlockLen, reqLen, sponge.lastOutput, current);
 
-                reqLen  -= blockLen;
-                current += blockLen;
+                reqLen  -= BlockLen;
+                current += BlockLen;
             }
             while (reqLen > 0);
         }
 
-        protected override void doCorrectBlockLen()
+        protected override void DoCorrectBlockLen()
         {
             if (sponge is null)
                 return;
@@ -169,17 +170,17 @@ public unsafe partial class AutoCrypt
         public GetDataFromVinKekFishSponge(VinKekFishBase_KN_20210525 sponge)
         {
             this.sponge = sponge;
-            blockLen    = sponge.BLOCK_SIZE_KEY_K;
+            BlockLen    = sponge.BLOCK_SIZE_KEY_K;
         }
 
-        public override void getBytes(byte* forData, nint len, byte regime)
+        public override void GetBytes(byte* forData, nint len, byte regime)
         {
             if (sponge!.output is null)
             {
-                if (blockLen <= 0)
+                if (BlockLen <= 0)
                     throw new ArgumentOutOfRangeException("GetDataFromVinKekFishSponge.getBytes: blockLen <= 0");
 
-                sponge.output = new BytesBuilderStatic(blockLen);
+                sponge.output = new BytesBuilderStatic(BlockLen);
             }
 
             sponge.output!.Clear();
@@ -188,10 +189,10 @@ public unsafe partial class AutoCrypt
 
             do
             {
-                sponge.doStepAndIO(outputLen: (int) blockLen, regime: 1);
+                sponge.DoStepAndIO(outputLen: (int) BlockLen, regime: 1);
 
-                var reqLenCurrent = Math.Min(reqLen, blockLen);
-                sponge.output.getBytesAndRemoveIt(current, reqLenCurrent);
+                var reqLenCurrent = Math.Min(reqLen, BlockLen);
+                sponge.output.GetBytesAndRemoveIt(current, reqLenCurrent);
 
                 reqLen  -= reqLenCurrent;
                 current += reqLenCurrent;
@@ -199,7 +200,7 @@ public unsafe partial class AutoCrypt
             while (reqLen > 0);
         }
 
-        protected override void doCorrectBlockLen()
+        protected override void DoCorrectBlockLen()
         {
             if (sponge is null)
                 return;

@@ -91,11 +91,11 @@ public unsafe static class Memory
         return false;
     }
 
-    public static bool isCorrect(this MemoryLockType type)
+    public static bool IsCorrect(this MemoryLockType type)
         => type.HasFlag(MemoryLockType.correct);
 
 
-    public static readonly object sync = new Object();
+    public static readonly object sync = new();
     public static void Init()
     {
         if (memoryLockType != MemoryLockType.unknown)
@@ -157,8 +157,8 @@ public unsafe static class Memory
     private static allocDelegate? _alloc =  null;
     private static freeDelegate?  _free  =  null;
                                                                                                                                                             /// <summary>Выделяет память. Это текущий абстрагированный аллокатор. Если выделение памяти не прошло успешно, вызывает OutOfMemoryException</summary>
-    public  static allocDelegate   alloc => _alloc ?? throw new Exception("Utils.Memory: alloc == null; see Memory.Init()");                                /// <summary>Освобождает память, выделенную до этого alloc</summary>
-    public  static freeDelegate    free  => _free  ?? throw new Exception("Utils.Memory:  free == null; see Memory.Init()");
+    public  static allocDelegate   Alloc => _alloc ?? throw new Exception("Utils.Memory: alloc == null; see Memory.Init()");                                /// <summary>Освобождает память, выделенную до этого alloc</summary>
+    public  static freeDelegate    Free  => _free  ?? throw new Exception("Utils.Memory:  free == null; see Memory.Init()");
 
     public static nint AllocHGlobal(nint len)
     {
@@ -186,7 +186,7 @@ public unsafe static class Memory
         }
     }
 
-    public static nint getPadSizeForMMap(nint len)
+    public static nint GetPadSizeForMMap(nint len)
     {
         if (len % PAGE_SIZE == 0)
             return PAGE_SIZE*2;
@@ -195,10 +195,10 @@ public unsafe static class Memory
     }
 
     private static volatile nint _allocatedMemory = 0;
-    public  static          nint  allocatedMemory => _allocatedMemory;
+    public  static          nint  AllocatedMemory => _allocatedMemory;
 
     /// <summary>Представляет выделенные mmap фрагменты памяти: &lt;Пользовательский указатель, Пользовательская длина&gt;</summary>
-    private static SortedList<nint, nint> allocatedRegions = new SortedList<nint, nint>(256);
+    private static SortedList<nint, nint> allocatedRegions = new(256);
 
     public static int AllocatedRegionsCount { get => allocatedRegions.Count; }
 
@@ -209,7 +209,7 @@ public unsafe static class Memory
     /// <returns>Указатель на выделенное пространство. Если неуспех, то OutOfMemoryException. Если mprotect не сработал, то Exception</returns>
     public static nint AllocMMap(nint len)
     {
-        var pad = getPadSizeForMMap(len);
+        var pad = GetPadSizeForMMap(len);
         // Выделяем больше памяти, чтобы последнюю страницу заблокировать
         var result = mmap
         (
@@ -247,7 +247,7 @@ public unsafe static class Memory
 
     public static void FreeMMap(nint addr, nint len)
     {
-        var size   = len + getPadSizeForMMap(len);
+        var size   = len + GetPadSizeForMMap(len);
         BytesBuilder.ToNull(size - PAGE_SIZE*2, (byte *) addr);
 
         start:
@@ -283,12 +283,12 @@ public unsafe static class Memory
         {
             var memKey = VinKekFish_Utils.Memory.allocatedRegions.Keys[0];
             var len    = VinKekFish_Utils.Memory.allocatedRegions[memKey];
-            free(memKey, len);
+            Free(memKey, len);
             Console.Error.WriteLine($"ERROR: Memory successfully cleaned in DeallocateAtBreakage ({len} bytes)");
         }
         catch (Exception ex)
         {
-            formatException(ex);
+            FormatException(ex);
         }
     }
 

@@ -20,13 +20,13 @@ public partial class Regime_Service
         protected double _min = 0d, _max = 0d, _avg = 0d, _EME = 0d;    /// <summary>Значение "удалённых" байтов - количества байтов, которые были получены из губки.</summary>
         protected nint removedBytes = 0;
 
-        public nint min => (nint) Math.Max(_min - removedBytes, 0);
-        public nint max => (nint) Math.Max(_max - removedBytes, 0);
-        public nint avg => (nint) Math.Max(_avg - removedBytes, 0);
+        public nint Min => (nint) Math.Max(_min - removedBytes, 0);
+        public nint Max => (nint) Math.Max(_max - removedBytes, 0);
+        public nint Avg => (nint) Math.Max(_avg - removedBytes, 0);
         public nint EME => (nint) Math.Max(_EME - removedBytes, 0);
 
 
-        public void addNumberToBytes(nint bytes, ContinuouslyGetterRecord getter)
+        public void AddNumberToBytes(nint bytes, ContinuouslyGetterRecord getter)
         {
             if (getter.inputElement.intervals!.entropy.min > 0)
             _min += (double) bytes / (double) getter.inputElement.intervals!.entropy.min;
@@ -43,7 +43,7 @@ public partial class Regime_Service
 
         /// <summary>Логически "удаляет" часть байтов из значения накопленной энтропии</summary>
         /// <param name="bytes">Количество удаляемых байтов энтропии (положительное значение, равное количеству изъятых из губки байтов)</param>
-        public void removeBytes(nint bytes)
+        public void RemoveBytes(nint bytes)
         {
             if (bytes < 0)
                 throw new ArgumentOutOfRangeException($"Regime_Service.CountOfBytesCounter.removeBytes: bytes < 0 ({bytes})");
@@ -81,11 +81,11 @@ public partial class Regime_Service
             return
             $"""
                 max (bytes)
-                    {min}
+                    {Min}
                 avg (bytes)
-                    {avg}
+                    {Avg}
                 min (bytes)
-                    {max}
+                    {Max}
                 EME (bytes)
                     {EME}
                 removed (bytes)
@@ -95,11 +95,11 @@ public partial class Regime_Service
         }
     }
                                                                                                                 /// <summary>Количество собранных байтов энтропии - всего; эта переменная учитывает собранные, но ещё не введённые в главную губку байты.</summary>
-    protected readonly CountOfBytesCounter countOfBytesCounterTotal_h = new CountOfBytesCounter();              /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии; эта переменная учитывает собранные, но ещё не введённые в главную губку байты.</summary>
-    protected readonly CountOfBytesCounter countOfBytesCounterCorr_h  = new CountOfBytesCounter();
+    protected readonly CountOfBytesCounter countOfBytesCounterTotal_h = new();              /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии; эта переменная учитывает собранные, но ещё не введённые в главную губку байты.</summary>
+    protected readonly CountOfBytesCounter countOfBytesCounterCorr_h  = new();
                                                                                                                 /// <summary>Количество собранных байтов энтропии - всего.</summary>
-    public CountOfBytesCounter countOfBytesCounterTotal { get; protected set; } = new CountOfBytesCounter();    /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии.</summary>
-    public CountOfBytesCounter countOfBytesCounterCorr  { get; protected set; } = new CountOfBytesCounter();
+    public CountOfBytesCounter CountOfBytesCounterTotal { get; protected set; } = new CountOfBytesCounter();    /// <summary>Количество собранных байтов энтропии - с учётом выведенной энтропии.</summary>
+    public CountOfBytesCounter CountOfBytesCounterCorr  { get; protected set; } = new CountOfBytesCounter();
 
     /// <summary>Функция принимает данные из промежуточных губок и, если надо, вызывает методы для получения дополнительной энтропии. Функция принимает данные в цикле, так что вводит неограниченное количество данных.</summary>
     /// <param name="BlockLen">Минмальное количество данных, которое будет введено из промежуточной губки. Если ноль, то это говорит о том, что любое количество данных должно быть введено из промежуточной губки, даже если они не дотягивают до одного байта энтропии.</param>
@@ -146,7 +146,7 @@ public partial class Regime_Service
             {
                 lock (getter)
                 {
-                    if (!getter.isDataReady(BlockLen))
+                    if (!getter.IsDataReady(BlockLen))
                         continue;
 
                     int curLen = (int) getter.GetCountOfReadyBytes();
@@ -155,8 +155,8 @@ public partial class Regime_Service
 
                     if (curLen <= 0)
                     {
-                        if (getter.countOfBytesFromLastOutput <= 0)
-                            Console.WriteLine($"ERROR in InputEntropyFromSources: curLen = {curLen} ({getter.countOfBytesFromLastOutput}); BlockLen = {BlockLen}; MandatoryUseGet = {getter.MandatoryUseGet}");
+                        if (getter.CountOfBytesFromLastOutput <= 0)
+                            Console.WriteLine($"ERROR in InputEntropyFromSources: curLen = {curLen} ({getter.CountOfBytesFromLastOutput}); BlockLen = {BlockLen}; MandatoryUseGet = {getter.MandatoryUseGet}");
 
                         curLen = 1; // Чисто на всякий случай берём один байт (там дата чтения из файла появляется и, возможно, какие-то небольшие байты из файла, количество которых округлилось до нуля при переводе его в количество энтропии)
                     }
@@ -169,12 +169,12 @@ public partial class Regime_Service
                         Monitor.PulseAll(getter);
                     }
 
-                    var readed = getter.getBytes(buff + bufferRec_current, curLen, BlockLen == 0);
+                    var readed = getter.GetBytes(buff + bufferRec_current, curLen, BlockLen == 0);
                     bufferRec_current += readed;
                     result            += readed;
 
-                    countOfBytesCounterTotal_h.addNumberToBytes(readed, getter);
-                    countOfBytesCounterCorr_h .addNumberToBytes(readed, getter);
+                    countOfBytesCounterTotal_h.AddNumberToBytes(readed, getter);
+                    countOfBytesCounterCorr_h .AddNumberToBytes(readed, getter);
                 }
             }
 
@@ -192,7 +192,7 @@ public partial class Regime_Service
         {
             if (bufferRec_current > 32 || (isMandatory && bufferRec_current > 0)) // 32 - это 256-битов энтропии; если меньше, то можно пробовать перебирать байты, если ты уже знаешь предыдущие; так что мы не будем вводить слишком малую порцию данных; реально ввод всегда не менее 64-х байтов, т.к. запрос идёт сразу одного блока через isDataReady
             {
-                var EmptySpace = getMaxBlockSize() - bufferRec_current;
+                var EmptySpace = GetMaxBlockSize() - bufferRec_current;
                 if (EmptySpace < EmptySpaceAcceptableRemainder || isMandatory)    // Высчитываем пустое место в буффере и сравниваем его с допустимым
                 {
                     var enteredBytesCount = bufferRec_current;
@@ -221,7 +221,7 @@ public partial class Regime_Service
             (
                 () =>
                 {
-                    CascadeSponge.step
+                    CascadeSponge.Step
                     (
                         ArmoringSteps: CascadeSponge.countStepsForKeyGeneration - 1,
 
@@ -232,8 +232,8 @@ public partial class Regime_Service
                 },
                 () =>
                 {
-                    VinKekFish.input!.add(record, len);
-                    VinKekFish.doStepAndIO
+                    VinKekFish.input!.Add(record, len);
+                    VinKekFish.DoStepAndIO
                     (
                         countOfRounds: VinKekFish.EXTRA_ROUNDS_K,
                         outputLen    : 0,

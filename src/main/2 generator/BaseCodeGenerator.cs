@@ -9,7 +9,7 @@ namespace CodeGenerator
 {
     public class BaseCSharpCodeGenerator
     {
-        public readonly StringBuilder sb          = new StringBuilder(1024);
+        public readonly StringBuilder sb   = new(1024);
 
         public          string currentTabs = "";
         public readonly string FileName;
@@ -28,7 +28,7 @@ namespace CodeGenerator
         public void EndGeneration()
         {
             while (currentTabs.Length > 0)
-                endBlock();
+                EndBlock();
         }
 
         public void Save()
@@ -36,34 +36,34 @@ namespace CodeGenerator
             File.WriteAllText(FileName, sb.ToString());
         }
 
-        public void addForHeader(string init, string condition, string post)
+        public void AddForHeader(string init, string condition, string post)
         {
             Add("for (" + init + "; " + condition + "; " + post + ")");
-            addBlock();
+            AddBlock();
         }
 
-        public void addFuncHeader(string modificator, string type, string Name, string @params = "")
+        public void AddFuncHeader(string modificator, string type, string Name, string @params = "")
         {
             Add(modificator + " " + type + " " + Name + "(" + @params + ")");
-            addBlock();
+            AddBlock();
         }
 
-        public void addClassHeader(string modificator, string Name, string Parents = "")
+        public void AddClassHeader(string modificator, string Name, string Parents = "")
         {
             if (!string.IsNullOrEmpty(Parents))
                 Parents = ": " + Parents;
 
             Add(modificator + " class " + Name + " " + Parents);
-            addBlock();
+            AddBlock();
         }
 
-        public void addBlock()
+        public void AddBlock()
         {
             Add("{");
             currentTabs += "\t";
         }
 
-        public void endBlock()
+        public void EndBlock()
         {
             currentTabs = currentTabs.Remove(currentTabs.Length - 1);
             Add("}");

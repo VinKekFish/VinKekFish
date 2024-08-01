@@ -18,21 +18,21 @@ namespace cryptoprime
     {
         public BytesBuilderForPointers()
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
         }
 
         /// <summary>Добавленные блоки байтов</summary>
-        public readonly List<Record> bytes  = new List<Record>();                                                                            /// <summary>Имя записи для отладки потерь памяти: вводится в создаваемые Record как их отладочные имена . Не обязательно.</summary>
+        public readonly List<Record> bytes  = new();                                                                            /// <summary>Имя записи для отладки потерь памяти: вводится в создаваемые Record как их отладочные имена . Не обязательно.</summary>
         public string?  debugNameForRecords = null;
 
         /// <summary>Количество всех сохранённых байтов в этом объекте</summary>
         public nint Count => count;
 
         /// <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
-        public nint countOfBlocks => bytes.Count;
+        public nint CountOfBlocks => bytes.Count;
 
         /// <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник!). Изменение блока повлияет на содержимое данного объекта</returns>
-        public Record getBlock(int number)
+        public Record GetBlock(int number)
         {
             return bytes[number];
         }
@@ -44,17 +44,17 @@ namespace cryptoprime
         /// <param name="len">Длина добавляемого массива</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
         /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
-        public void addWithCopy(byte * bytesToAdded, nint len, AllocatorForUnsafeMemoryInterface allocator, int index = -1)
+        public void AddWithCopy(byte * bytesToAdded, nint len, IAllocatorForUnsafeMemoryInterface allocator, int index = -1)
         {
             var rec = CloneBytes(bytesToAdded, 0, len, allocator, debugNameForRecords);
 
-            add(rec, index);
+            Add(rec, index);
         }
 
         /// <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
         /// <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
-        public void addWithCopy(Record bytesToAdded, AllocatorForUnsafeMemoryInterface? allocator = null, int index = -1)
+        public void AddWithCopy(Record bytesToAdded, IAllocatorForUnsafeMemoryInterface? allocator = null, int index = -1)
         {
             var rec = CloneBytes
             (
@@ -64,18 +64,18 @@ namespace cryptoprime
                 debugNameForRecords
             );
 
-            add(rec, index);
+            Add(rec, index);
         }
 
         /// <summary>Добавляет блок данных без копирования в объект</summary><param name="bytesToAdded">Добавляемый блок данных, указатель перезаписывается нулём с целью избежания ошибочного использования. <para>Обратите внимание, что при изменении из-вне блока данных могут измениться данные и внутри объекта</para><para>При удалении блока данных в этом буфере исходные данные будут перезатёрты нулями!</para></param>
         /// <param name="len">Длина добавляемого массива</param>
         /// <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         /// <remarks>Обратите внимание, массив bytesToAdded лучше после этого нигде не использовать. Так как после удаления его из буфера, он будет автоматически перезаписан нулями. Необходима доп. проверка на то, что вызывающая функция нигде не использует данный объект</remarks>
-        public void addWithoutCopy(ref byte * bytesToAdded, nint len, int index = -1)
+        public void AddWithoutCopy(ref byte * bytesToAdded, nint len, int index = -1)
         {
             var rec = new Record() { len = len, array = bytesToAdded, Name = debugNameForRecords };
 
-            add(rec, index);
+            Add(rec, index);
 
             // Перезаписываем указатель, чтобы
             bytesToAdded = null;
@@ -84,7 +84,7 @@ namespace cryptoprime
         /// <summary>Добавляет массив в сохранённые значения без копирования. Массив будет автоматически очищен и освобождён после окончания</summary>
         /// <param name="rec">Добавляемый массив (не копируется, будет уничтожен автоматически при очистке BytesBuilder). Массив нельзя использовать где-то ещё, так как он может быть неожиданно очищен</param>
         /// <param name="index">Индекс позиции, на которую добавляется массив</param>
-        public void add(Record rec, int index = -1)
+        public void Add(Record rec, int index = -1)
         {
             if (index == -1)
                 bytes.Add(rec);
@@ -114,7 +114,7 @@ namespace cryptoprime
         /// <param name="allocator">Аллокатор для выделения памяти для копирования</param>
         /// <param name="RecordDebugName">Имя создаваемой записи (для отладки). Используется, только если resultA != null.</param>
         /// <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
-        public Record getBytes(nint resultCount = -1, Record? resultA = null, AllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
+        public Record GetBytes(nint resultCount = -1, Record? resultA = null, IAllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
         {
             if (resultCount == -1)
                 resultCount = count;
@@ -158,7 +158,7 @@ namespace cryptoprime
         /// <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
         /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte * b, nint start, nint PostEnd, AllocatorForUnsafeMemoryInterface allocator, string? RecordName = null)
+        public static unsafe Record CloneBytes(byte * b, nint start, nint PostEnd, IAllocatorForUnsafeMemoryInterface allocator, string? RecordName = null)
         {
             var result = allocator.AllocMemory(PostEnd - start, RecordName);
             BytesBuilder.CopyTo(PostEnd, PostEnd - start, b, result.array, 0, -1, start);
@@ -173,7 +173,7 @@ namespace cryptoprime
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива rec[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(Record rec, AllocatorForUnsafeMemoryInterface? allocator = null, nint start = 0, nint PostEnd = -1, string? RecordName = null)
+        public static unsafe Record CloneBytes(Record rec, IAllocatorForUnsafeMemoryInterface? allocator = null, nint start = 0, nint PostEnd = -1, string? RecordName = null)
         {
             if (PostEnd < 0)
                 PostEnd = rec.len;
@@ -192,7 +192,7 @@ namespace cryptoprime
         /// <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
         /// <param name="RecordName">Имя новой записи, для отладки</param>
         /// <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
-        public static unsafe Record CloneBytes(byte[] b, AllocatorForUnsafeMemoryInterface allocator, nint start = 0, nint PostEnd = -1, string? RecordName = null)
+        public static unsafe Record CloneBytes(byte[] b, IAllocatorForUnsafeMemoryInterface allocator, nint start = 0, nint PostEnd = -1, string? RecordName = null)
         {
             if (PostEnd < 0)
                 PostEnd = checked((nint) b.LongLength );
@@ -233,7 +233,7 @@ namespace cryptoprime
         /// <param name="resultLen">Длина результата. Если -1, то длина берётся из result.len</param>
         /// <returns>Запрошенный результат (первые result.len байтов). Этот возвращаемый результат равен параметру result</returns>
         /// <remarks>Эта функция может неожиданно обнулить часть внешнего массива, сохранённого без копирования (если он где-то используется в другом месте). Проверьте, что в функции add было копирование или все массивы, переданные в данную коллекцию более не используются</remarks>
-        public Record getBytesAndRemoveIt(Record result, nint resultLen = -1)
+        public Record GetBytesAndRemoveIt(Record result, nint resultLen = -1)
         {
             if (resultLen == -1)
             {
@@ -316,6 +316,7 @@ namespace cryptoprime
         void IDisposable.Dispose()
         {
             Clear();
+            GC.SuppressFinalize(this);
         }
 
         ~BytesBuilderForPointers()

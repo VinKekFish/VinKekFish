@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 public partial class CascadeSponge_1t_20230905
 {
     // Ниже аналогичный код!
-    public unsafe void doRandomPermutationForUShorts(nint len, ushort* T, nint countOfSteps = 0, byte regime = 1)
+    public unsafe void DoRandomPermutationForUShorts(nint len, ushort* T, nint countOfSteps = 0, byte regime = 1)
     {
         ushort a, err = 0;
         nint   index;
@@ -28,15 +28,15 @@ public partial class CascadeSponge_1t_20230905
             // Берём сразу 8 байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
             if (bb.Count < 8)
             {
-                step(countOfSteps: countOfSteps, regime: regime);
-                bb.add(lastOutput);
+                Step(countOfSteps: countOfSteps, regime: regime);
+                bb.Add(lastOutput);
                 this.haveOutput = false;
             }
 
             // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
             try
             {
-                index = (nint) getUnsignedInteger((nuint) (len - i - 1), bb) + i;
+                index = (nint) GetUnsignedInteger((nuint) (len - i - 1), bb) + i;
                 err = 0;
             }
             catch (NotEnoughtBytesException)
@@ -64,7 +64,7 @@ public partial class CascadeSponge_1t_20230905
     /// <param name="max">Максимальное число, которое ещё возможно получить</param>
     /// <param name="entropy">Байты, сгенерированные источником энтропии</param>
     /// <returns>Случайное число в диапазоне [0; max]</returns>
-    public unsafe static nuint getUnsignedInteger(nuint max, BytesBuilderStatic entropy)
+    public unsafe static nuint GetUnsignedInteger(nuint max, BytesBuilderStatic entropy)
     {
         if (max < 1)
             throw new ArgumentOutOfRangeException("CascadeSponge_1t_20230905.getUnsignedInteger: max < 1");
@@ -94,7 +94,7 @@ public partial class CascadeSponge_1t_20230905
                 throw new NotEnoughtBytesException();
 
             *e = 0;     // e неполностью заполняется, нужно обнулить те байты, которые не будут заполнены
-            entropy.getBytesAndRemoveIt((byte*) e, cnt);
+            entropy.GetBytesAndRemoveIt((byte*) e, cnt);
 
             r  = *e;
             r &= mask;
@@ -106,7 +106,7 @@ public partial class CascadeSponge_1t_20230905
         return r;
     }
 
-    public unsafe void doRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1)
+    public unsafe void DoRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1)
     {
         byte a, err = 0;
         nint index;
@@ -123,15 +123,15 @@ public partial class CascadeSponge_1t_20230905
             // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
             if (bb.Count < bb.size - this.maxDataLen)
             {
-                step(countOfSteps: countOfSteps, regime: regime);
-                bb.add(lastOutput);
+                Step(countOfSteps: countOfSteps, regime: regime);
+                bb.Add(lastOutput);
                 this.haveOutput = false;
             }
 
             // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
             try
             {
-                index = (nint) getUnsignedInteger((nuint)(len - i - 1), bb) + i;
+                index = (nint) GetUnsignedInteger((nuint)(len - i - 1), bb) + i;
                 err = 0;
             }
             catch (NotEnoughtBytesException)

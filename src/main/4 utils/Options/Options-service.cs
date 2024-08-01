@@ -47,7 +47,7 @@ public partial class Options_Service
         public readonly Element? parent;
         public virtual  Element? Parent => parent;
 
-        public readonly List<Element> elements = new List<Element>(4);
+        public readonly List<Element> elements = new(4);
         public readonly Options.Block thisBlock;
 
         public Element(Element? parent, List<Options.Block> blocks, Options.Block thisBlock)
@@ -64,7 +64,7 @@ public partial class Options_Service
         public virtual void Select()
         {
             foreach (var b in blocks)
-                SelectBlock(b, getCanonicalName(b));
+                SelectBlock(b, GetCanonicalName(b));
         }
 
         public virtual void Check()
@@ -73,7 +73,7 @@ public partial class Options_Service
                 e.Check();
         }
 
-        public static string getCanonicalName(Options.Block b)
+        public static string GetCanonicalName(Options.Block b)
         {
             return b.Name.ToLowerInvariant().Trim();
         }
@@ -83,26 +83,26 @@ public partial class Options_Service
         /// <param name="canonicalName">Каноническое имя подчинённого блока block</param>
         public abstract void SelectBlock (Options.Block block, string canonicalName);
 
-        public virtual string getFullElementName()
+        public virtual string GetFullElementName()
         {
             if (this.Parent == null)
                 return "";
 
             var sb = new StringBuilder();
             if (this.Parent != null)
-                sb.Append(this.Parent.getFullElementName());
+                sb.Append(this.Parent.GetFullElementName());
 
             sb.Append("." + this.thisBlock.Name);
 
             return sb.ToString();
         }
 
-        public virtual Root? getRoot()
+        public virtual Root? GetRoot()
         {
             if (this.Parent == null)
                 return this as Root;
 
-            return this.Parent.getRoot();
+            return this.Parent.GetRoot();
         }
     }
 
@@ -145,19 +145,19 @@ public partial class Options_Service
 
         public class Warning
         {
-            public required string message { get; init; }
+            public required string Message { get; init; }
 
-            public override string ToString() => message;
+            public override string ToString() => Message;
         }
 
         public class Warnings
         {
-            protected List<Warning> warnings = new List<Warning>();
+            protected List<Warning> warnings = new();
 
-            public void addWarning(string message)
+            public void AddWarning(string message)
             {
                 lock (warnings)
-                    warnings.Add(new Warning() {message = message});
+                    warnings.Add(new Warning() {Message = message});
             }
 
             public override string ToString()
@@ -178,6 +178,6 @@ public partial class Options_Service
             }
         }
 
-        public readonly Warnings warns = new Warnings();
+        public readonly Warnings warns = new();
     }
 }

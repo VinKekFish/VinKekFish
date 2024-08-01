@@ -28,10 +28,10 @@ public partial class Regime_Service
     public const int RandomAtFolder_Current_countOfFiles = 4;
 
     public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
-    public VinKekFishBase_KN_20210525 VinKekFish    = new VinKekFishBase_KN_20210525(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11, ThreadCount = 1
-    public CascadeSponge_mt_20230930  CascadeSponge = new CascadeSponge_mt_20230930(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
+    public VinKekFishBase_KN_20210525 VinKekFish    = new(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11, ThreadCount = 1
+    public CascadeSponge_mt_20230930  CascadeSponge = new(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1);
 
-    public bool isInitiated { get; protected set; } = false;
+    public bool IsInitiated { get; protected set; } = false;
                                                                     /// <summary>Буферная запись, которая создаётся в StartEntropy и используется в InputEntropyFromSources. Осторожно, она хранит данные между запусками функций: её нельзя нигде использовать. Её размер MAX_RANDOM_AT_START_FILE_LENGTH</summary>
     protected Record? bufferRec = null;                             /// <summary>Текущее значение объёма данных, которые  хранятся в bufferRec</summary>
     protected nint    bufferRec_current = 0;
@@ -85,30 +85,30 @@ public partial class Regime_Service
 
                 CascadeSponge.InitEmptyThreeFish((ulong)ExecEntorpy_now);
                 CascadeSponge.InitEmptySubstitutionTable((ushort) ExecEntorpy_now);
-                CascadeSponge.step(regime: 3, data: simpleData, dataLen: sizeof(long) + bb.Length);
+                CascadeSponge.Step(regime: 3, data: simpleData, dataLen: sizeof(long) + bb.Length);
                 CascadeSponge.InitThreeFishByCascade(1, false, countOfSteps: 1);    // Упрощённая предварительная инициализация с пониженным количеством шагов
 
                 nint realRandomLength = 0;
                 nint rndCount         = 0;
                 using (var rndbytes = new BytesBuilderForPointers())
                 {
-                    realRandomLength = getRandomFromOSEntropy_Startup(bufferRec, rndbytes, realRandomLength);
+                    realRandomLength = GetRandomFromOSEntropy_Startup(bufferRec, rndbytes, realRandomLength);
 
                     if (realRandomLength < 16)
                         throw new Exception("Regime_Service.StartEntropy: realRandomLength < 16.\n" + L("Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required"));
 
                     GetStartupEntropy(bufferRec, rndbytes);
 
-                    realRandomLength = getRandomFromStandardEntropy_Startup(bufferRec, rndbytes, realRandomLength);
+                    realRandomLength = GetRandomFromStandardEntropy_Startup(bufferRec, rndbytes, realRandomLength);
 
-                    rnd = rndbytes.getBytes();
+                    rnd = rndbytes.GetBytes();
                     rndCount = rnd.len;
                 }
 
                 Console.WriteLine(L("Startup entropy absorption has begun: initialization continues"));
 
-                CascadeSponge.step(regime: 1, data: rnd, dataLen: rnd.len);
-                CascadeSponge.step(CascadeSponge.countStepsForKeyGeneration, regime: 255, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite);
+                CascadeSponge.Step(regime: 1, data: rnd, dataLen: rnd.len);
+                CascadeSponge.Step(CascadeSponge.countStepsForKeyGeneration, regime: 255, inputRegime: CascadeSponge_1t_20230905.InputRegime.overwrite);
                 CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
 
 
@@ -118,7 +118,7 @@ public partial class Regime_Service
                 if (sz > OutputStrenght)
                     sz = OutputStrenght;
                     */
-                var sz = threefish_slowly.twLen - sizeof(long);
+                var sz = Threefish_slowly.twLen - sizeof(long);
 
                 var arr = stackalloc byte[sizeof(long) + sz];
                 using var rec = new Record() { array = arr, len = sizeof(long) + sz };
@@ -131,7 +131,7 @@ public partial class Regime_Service
                     if (curLen > CascadeSponge.maxDataLen)
                         curLen = CascadeSponge.maxDataLen;
 
-                    CascadeSponge.step(CascadeSponge.countStepsForKeyGeneration, regime: 7);
+                    CascadeSponge.Step(CascadeSponge.countStepsForKeyGeneration, regime: 7);
                     BytesBuilder.CopyTo(curLen, rec.len, s: CascadeSponge.lastOutput, t: arr, targetIndex: sizeof(long) + pointer);
                 }
 
@@ -176,17 +176,17 @@ public partial class Regime_Service
                 Console.WriteLine(L("Deep initialization: VinKekFish.Init2 ended"));
 
                 // Вводим здесь только время и снова переопределяем ключи шифрования ThreeFish
-                CascadeSponge.step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);
+                CascadeSponge.Step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);
                 CascadeSponge.InitThreeFishByCascade(1, false, CascadeSponge.maxDataLen >> 1);
 
                 Console.WriteLine(L("Deep initialization: CascadeSponge.InitThreeFishByCascade ended"));
 
                 SetCountOfBytesCounters_and_ClearBufferRec();
-                isInitiated = true;
+                IsInitiated = true;
             }
             catch
             {
-                doTerminate();
+                DoTerminate();
                 throw;
             }
             finally
@@ -202,24 +202,24 @@ public partial class Regime_Service
         bufferRec!.Clear();
         bufferRec_current = 0;
 
-        countOfBytesCounterTotal = countOfBytesCounterTotal_h.Clone();
-        countOfBytesCounterCorr  = countOfBytesCounterCorr_h .Clone();
+        CountOfBytesCounterTotal = countOfBytesCounterTotal_h.Clone();
+        CountOfBytesCounterCorr  = countOfBytesCounterCorr_h .Clone();
     }
 
     protected unsafe void RemoveFromCountOfBytesCounters(nint outputStrenght)
     {
-        countOfBytesCounterCorr_h.removeBytes(outputStrenght);
-        countOfBytesCounterCorr  .removeBytes(outputStrenght);
+        countOfBytesCounterCorr_h.RemoveBytes(outputStrenght);
+        CountOfBytesCounterCorr  .RemoveBytes(outputStrenght);
     }
 
-    public unsafe nint getRandomFromOSEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
+    public unsafe nint GetRandomFromOSEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
     {
         checked
         {
             try
             {
                 var rndList      = options_service!.root!.input!.entropy!.os!.randoms;
-                realRandomLength = getRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
+                realRandomLength = GetRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
             }
             catch (NullReferenceException)
             { }
@@ -228,14 +228,14 @@ public partial class Regime_Service
         return realRandomLength;
     }
 
-    public unsafe nint getRandomFromStandardEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
+    public unsafe nint GetRandomFromStandardEntropy_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength)
     {
         checked
         {
             try
             {
                 var rndList      = options_service!.root!.input!.entropy!.standard!.randoms;
-                realRandomLength = getRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
+                realRandomLength = GetRandomFromRndCommandList_Startup(bufferRec, rndbytes, realRandomLength, rndList);
             }
             catch (NullReferenceException)
             { }
@@ -245,29 +245,29 @@ public partial class Regime_Service
     }
 
     // ::cp:all:dhpOU4GDHUNYcaXq:2023.10.30
-    public unsafe nint getRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputElement> rndList)
+    public unsafe nint GetRandomFromRndCommandList_Startup(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, List<Options_Service.Input.Entropy.InputElement> rndList)
     {
         checked
         {
             var sb = new StringBuilder();
             foreach (var rnd in rndList)
             {
-                var intervals = rnd.intervals!.interval!.inner;
+                var intervals = rnd.intervals!.Interval!.inner;
                 foreach (var interval in intervals)
                 {
                     if (interval.IntervalType == IntervalTypeEnum.once)
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
-                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
+                            throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
 
                         switch (rnd)
                         {
                             case Options_Service.Input.Entropy.InputFileElement fileElement:
-                                realRandomLength = getRandomFromFile(bufferRec, rndbytes, realRandomLength, sb, rnd, fileElement.fileInfo!, interval);
+                                realRandomLength = GetRandomFromFile(bufferRec, rndbytes, realRandomLength, sb, rnd, fileElement.FileInfo!, interval);
                             break;
 
                             case Options_Service.Input.Entropy.InputCmdElement cmdElement:
-                                realRandomLength = getRandomFromCommand(bufferRec, rndbytes, realRandomLength, sb, cmdElement, interval);
+                                realRandomLength = GetRandomFromCommand(bufferRec, rndbytes, realRandomLength, sb, cmdElement, interval);
                             break;
 /*
                             case Options_Service.Input.Entropy.InputDirElement dirElement:
@@ -278,7 +278,7 @@ public partial class Regime_Service
                             break;
 */
                             default:
-                                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
+                                throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()} at line {rnd.thisBlock.startLine}': unknown command type '{rnd.GetType().Name}'. Fatal error; this is error in the program code, not in the option file");
                         }
                     }
                 }
@@ -295,7 +295,7 @@ public partial class Regime_Service
     }
 
     // ::cp:all:ZwUElzYfZkK4PfXzUrO7:20231104
-    public unsafe nint getRandomFromCommand(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputCmdElement cmdElement, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
+    public unsafe nint GetRandomFromCommand(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputCmdElement cmdElement, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
     {
         checked
         {
@@ -332,7 +332,7 @@ public partial class Regime_Service
                     ignored = true;
                 }
                 else
-                    rndbytes.addWithCopy(bufferRec.array, readedLen, allocator: allocator);
+                    rndbytes.AddWithCopy(bufferRec.array, readedLen, allocator: allocator);
             }
 
             if (!ignored)
@@ -348,7 +348,7 @@ public partial class Regime_Service
         }
     }
 
-    public unsafe nint getRandomFromFile(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputElement rnd, FileInfo rndFileInfo, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
+    public unsafe nint GetRandomFromFile(Record bufferRec, BytesBuilderForPointers rndbytes, nint realRandomLength, StringBuilder sb, Options_Service.Input.Entropy.InputElement rnd, FileInfo rndFileInfo, Options_Service.Input.Entropy.Interval.InnerIntervalElement interval)
     {
         checked
         {
@@ -359,13 +359,13 @@ public partial class Regime_Service
                 len = (nint)interval.Length!.Length;
 
             if (len > bufferRec.len)
-                throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
+                throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length too match. The length ({len}) of the random file must be lowest ${MAX_RANDOM_AT_START_FILE_LENGTH}.");
             if (len <= 0)
             {
                 // throw new Options_Service_Exception($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");*/
                 // Некоторые файлы не имеют размера, например, /dev/random или /proc/cpuinfo
                 // Иногда бывает, что и файл может попасться пустой - программу надо устойчиво запустить всё равно                
-                Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+                Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
                 sb.AppendLine($"EMPTY name = {rndFileInfo.FullName}");
                 return realRandomLength;
             }
@@ -381,7 +381,7 @@ public partial class Regime_Service
                 if (readedLen <= 0)
                 {
                     // throw new Exception($"Regime_Service.StartEntropy ('{rndFileInfo.FullName}'): for the element '{rnd.getFullElementName()} at line {rnd.thisBlock.startLine}': factually readed the {readedLen} bytes. It is error. File must be greater than zero");
-                    Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.getFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
+                    Console.Error.WriteLine($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()}' at line {rnd.thisBlock.startLine} ('{rndFileInfo.FullName}'): the file length is zero. The length ({len}) of the random file must greater than zero. Please, ensure the file length is not zero and length for the read operation greater than zero. /proc/cpuinfo and etc. can readed by comman cat /proc/cpuinfo (see ls -l file_name where length == 0)");
                     sb.AppendLine($"EMPTY (from read) name = {rndFileInfo.FullName}");
                     return realRandomLength;
                 }
@@ -394,7 +394,7 @@ public partial class Regime_Service
                     WriteToLog(bufferRec, readedLen);
             }
             else
-                rndbytes.addWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
+                rndbytes.AddWithCopy(bufferRec << bufferRec.len - readedLen, allocator: allocator);
 
             if (!ignored)
             {
@@ -410,7 +410,7 @@ public partial class Regime_Service
         }
     }
 
-    public static readonly object WriteToLog_sync = new object();
+    public static readonly object WriteToLog_sync = new();
     public static unsafe void WriteToLog(Record bufferRec, int readedLen)
     {
         checked
@@ -482,7 +482,7 @@ public partial class Regime_Service
             var span = new Span<byte>(bufferRec, flen);
             readStream.Read(span);
 
-            rndbytes.addWithCopy(bufferRec, flen, allocator);
+            rndbytes.AddWithCopy(bufferRec, flen, allocator);
         }
 
         unsafe void InputFromFileAttr(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
@@ -498,7 +498,7 @@ public partial class Regime_Service
             BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks         , bytes, size, esize*2);
             BytesBuilder.ULongToBytes((ulong) file.Length                , bytes, size, esize*3);
 
-            rndbytes.addWithCopy(bytes, size, allocator);
+            rndbytes.AddWithCopy(bytes, size, allocator);
         }
 
         unsafe void InputFromFileName(Record bufferRec, FileInfo file, BytesBuilderForPointers rndbytes)
@@ -508,7 +508,7 @@ public partial class Regime_Service
             fixed (char * str = file.Name)
                 BytesBuilder.CopyTo(size, bufferRec.len, (byte *) str, bufferRec);
 
-            rndbytes.addWithCopy(bufferRec, size, allocator);
+            rndbytes.AddWithCopy(bufferRec, size, allocator);
         }
     }
 }

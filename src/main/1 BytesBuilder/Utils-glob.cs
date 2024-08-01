@@ -11,11 +11,11 @@ using System.Runtime.InteropServices.Marshalling;
 /// </summary>
 public unsafe static class Glob
 {
-    public static List<string> getGlobFileNames(string pattern)
+    public static List<string> GetGlobFileNames(string pattern)
     {
         var result = new List<string>(16);
 
-        var pGlob = stackalloc glob_t[1];
+        var pGlob = stackalloc Glob_t[1];
         var str8  = Utf8StringMarshaller.ConvertToUnmanaged(pattern);
 
         glob(str8, 0, null, pGlob);
@@ -43,9 +43,9 @@ public unsafe static class Glob
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct glob_t
+    public unsafe struct Glob_t
     {
-        public glob_t()
+        public Glob_t()
         {}
 
         public nint   pathCount = 0;
@@ -59,9 +59,9 @@ public unsafe static class Glob
     /// <param name="func">Функция обратного вызова. В данной реализации всегда null.</param>
     /// <param name="pGlob">Ссылка на структуру, которая будет заполнена функцией glob.</param>
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void glob(byte * pattern, nint flags, void * func, glob_t * pGlob);
+    public static extern void glob(byte * pattern, nint flags, void * func, Glob_t * pGlob);
 
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void globfree(glob_t * pGlob);
+    public static extern void globfree(Glob_t * pGlob);
 }
 

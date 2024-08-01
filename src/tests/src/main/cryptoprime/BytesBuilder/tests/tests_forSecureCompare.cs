@@ -39,8 +39,8 @@ public unsafe class SecureCompare_test: BytesBuilder_test_parent
             for (int i = 0; i < b.Length; i++)
                 b[i] = (byte) i;
 
-            using var re = Record.getRecordFromBytesArray(b);
-            using var rb = Record.getRecordFromBytesArray(b);
+            using var re = Record.GetRecordFromBytesArray(b);
+            using var rb = Record.GetRecordFromBytesArray(b);
 
             if (!SecureCompare(re, rb))
                 throw new Exception("1.0");

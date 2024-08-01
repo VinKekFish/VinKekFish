@@ -21,8 +21,8 @@ namespace main_tests
         public ThreeFishTestByBits(TestConstructor constructor):
                                         base(nameof(ThreeFishTestByBits), constructor: constructor)
         {
-            sources   = SourceTask.getIterator();
-            taskFunc = () =>
+            sources   = SourceTask.GetIterator();
+            TaskFunc = () =>
             {
                 StartTests();
             };
@@ -33,7 +33,7 @@ namespace main_tests
             public string?   Key;
             public byte[][]? Value;
 
-            public static IEnumerable<SourceTask> getIterator()
+            public static IEnumerable<SourceTask> GetIterator()
             {
                 // 128 - это размер одного блока
                 long size = 128;
@@ -41,21 +41,21 @@ namespace main_tests
                 {
                     var bk1 = new byte[size];
                     BytesBuilder.ToNull(bk1, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(bk1, valk);
+                    BitToBytes.ResetBit(bk1, valk);
 
                     var bk2 = new byte[size];
                     BytesBuilder.ToNull(bk2);
-                    BitToBytes.setBit(bk2, valk);
+                    BitToBytes.SetBit(bk2, valk);
 
                     for (nint valt = 0; valt < (nint) (size << 3); valt++)
                     {
                         var b1 = new byte[size];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);
-                        BitToBytes.resetBit(b1, valt);
+                        BitToBytes.ResetBit(b1, valt);
 
                         var b2 = new byte[size];
                         BytesBuilder.ToNull(b2);
-                        BitToBytes.setBit(b2, valt);
+                        BitToBytes.SetBit(b2, valt);
 
                         yield return new SourceTask() {Key = "Threfish with valk = " + valk, Value = new byte[][] {bk1, b1}};
                         yield return new SourceTask() {Key = "Threfish with valk = " + valk, Value = new byte[][] {bk2, b2}};
@@ -106,9 +106,9 @@ namespace main_tests
             tft.TransformBlock(h1, 0, 128, h1, 0);
 
             tw = new ulong[2];
-            var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);      // Ключ
-            var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);      // Текст
-            h2 = threefish_slowly.UlongToBytes(threefish_slowly.Encrypt(b0, tw, b1), null);
+            var b0 = Threefish_slowly.BytesToUlong(ts.Value[0]);      // Ключ
+            var b1 = Threefish_slowly.BytesToUlong(ts.Value[1]);      // Текст
+            h2 = Threefish_slowly.UlongToBytes(Threefish_slowly.Encrypt(b0, tw, b1), null);
 
             // h2 = new SHA3(1024).getHash512(s);
 
@@ -138,7 +138,7 @@ namespace main_tests
             var tft = new ThreefishTransform(ts.Value[0], ThreefishTransformMode.Encrypt);
             var tw = new ulong[2];
 
-            var b = threefish_slowly.BytesToUlong(ts.Value[1]);
+            var b = Threefish_slowly.BytesToUlong(ts.Value[1]);
             tw[0] = b[0];
             tw[1] = b[2];
             tft.SetTweak(tw);
@@ -147,11 +147,11 @@ namespace main_tests
 
             var input = new ulong[16];
             tw = new ulong[2];
-            var b0 = threefish_slowly.BytesToUlong(ts.Value[0]);
-            var b1 = threefish_slowly.BytesToUlong(ts.Value[1]);
+            var b0 = Threefish_slowly.BytesToUlong(ts.Value[0]);
+            var b1 = Threefish_slowly.BytesToUlong(ts.Value[1]);
             tw[0] = b[0];
             tw[1] = b[2];
-            h2 = threefish_slowly.UlongToBytes(threefish_slowly.Encrypt(b0, tw, input), null);
+            h2 = Threefish_slowly.UlongToBytes(Threefish_slowly.Encrypt(b0, tw, input), null);
 
             // h2 = new SHA3(1024).getHash512(s);
 

@@ -62,10 +62,10 @@ public unsafe partial class PasswordEnter: IDisposable
         {
             do
             {
-                sponge.doRandomPermutationForBytes(len, passwordArray, countOfStepsForPermitations, regime);
-                doShowPasswordTable();
+                sponge.DoRandomPermutationForBytes(len, passwordArray, countOfStepsForPermitations, regime);
+                DoShowPasswordTable();
 
-                var c1 = readKey();
+                var c1 = ReadKey();
                 if (c1 == -1)
                     break;
 
@@ -82,7 +82,7 @@ public unsafe partial class PasswordEnter: IDisposable
                 }
 
                 Clear();
-                var c2 = readKey();
+                var c2 = ReadKey();
                 if (c2 == -1)
                     break;
 
@@ -106,11 +106,11 @@ public unsafe partial class PasswordEnter: IDisposable
                 pwdLen++;
                 if (cur >= sponge.maxDataLen)
                 {
-                    sponge.step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
+                    sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
 
-                    vkf.input!.add(passwd, cur);
+                    vkf.input!.Add(passwd, cur);
                     while (vkf.input.Count > 0)
-                        vkf.doStepAndIO(regime: regime);
+                        vkf.DoStepAndIO(regime: regime);
 
                     cur = 0;
                 }
@@ -119,11 +119,11 @@ public unsafe partial class PasswordEnter: IDisposable
 
             if (cur > 0)
             {
-                sponge.step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
+                sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
 
-                vkf.input!.add(passwd, cur);
+                vkf.input!.Add(passwd, cur);
                 while (vkf.input.Count > 0)
-                    vkf.doStepAndIO(regime: regime);
+                    vkf.DoStepAndIO(regime: regime);
             }
 
             // Console.WriteLine("\x1b[0m\x1b[0m");
@@ -184,7 +184,7 @@ public unsafe partial class PasswordEnter: IDisposable
         }
     }
 
-    public int readKey()
+    public int ReadKey()
     {
         var key = Console.ReadKey(true);
         if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
@@ -209,7 +209,7 @@ public unsafe partial class PasswordEnter: IDisposable
     protected int[]    stepsH  = {4, 6, 8, 11, 13, 15, 18, 20, 22, 25, 27, 29, 32, 34, 36, 38};
     protected int[]    stepsV  = {1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20};
     protected string[] numbers = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
-    public void doShowPasswordTable()
+    public void DoShowPasswordTable()
     {
         // \x1b[1m\x1b[48;2;255;0;0m\x1b[38;2;0;0;255mTRUECOLOR\x1b[0m\x1b[0m
         Console.WriteLine("\x1b[1m\x1b[48;2;0;0;255m\x1b[38;2;255;0;0m");
@@ -237,6 +237,7 @@ public unsafe partial class PasswordEnter: IDisposable
     void IDisposable.Dispose()
     {
         Dispose();
+        GC.SuppressFinalize(this);
     }
 
     ~PasswordEnter()
@@ -254,6 +255,6 @@ public unsafe partial class PasswordEnter: IDisposable
         isDisposed = true;
 
         if (fromDestructor)
-            BytesBuilderForPointers.Record.errorsInDispose = true;
+            BytesBuilderForPointers.Record.ErrorsInDispose = true;
     }
 }

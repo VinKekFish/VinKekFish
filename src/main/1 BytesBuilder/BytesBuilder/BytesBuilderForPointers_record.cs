@@ -25,7 +25,7 @@ namespace cryptoprime
             public GCHandle handle = default;                           /// <summary>Данные для удаления, если этот массив выделен с помощью AllocHGlobal_AllocatorForUnsafeMemory</summary>
             public IntPtr   ptr    = default;
                                                                         /// <summary>Аллокатор, используемый для освобождения памяти в Dispose</summary>
-            public AllocatorForUnsafeMemoryInterface? allocator = null; /// <summary>Имя записи. Используется в отладочных целях.</summary>
+            public IAllocatorForUnsafeMemoryInterface? allocator = null; /// <summary>Имя записи. Используется в отладочных целях.</summary>
             public string?  Name   = null;
 
             // Отладочный код
@@ -42,7 +42,7 @@ namespace cryptoprime
             public Record(string? Name = null)
             {
                 this.Name = Name;
-                doRegisterDestructor(this);
+                DoRegisterDestructor(this);
 
                 #if RECORD_DEBUG
                 DebugNum = CurrentDebugNum++;
@@ -54,7 +54,7 @@ namespace cryptoprime
             // cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor
             /// <summary>Регистрирует деструктор для вызова с помощью GC.ReRegisterForFinalize. Иначе деструктор может быть не вызван.</summary>
             /// <param name="obj">Объект, деструктор которого должен быть зарегистрирован для вызова.</param>
-            public static void doRegisterDestructor(object obj)
+            public static void DoRegisterDestructor(object obj)
             {
                 try
                 {
@@ -62,7 +62,7 @@ namespace cryptoprime
                 }
                 catch (Exception ex)
                 {
-                    formatException(ex);
+                    FormatException(ex);
                 }
             }
 
@@ -70,7 +70,7 @@ namespace cryptoprime
             /// <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             /// <param name="sourceArray"></param>
             /// <param name="RecordDebugName">Идентификатор записи, для отладки удаления памяти</param>
-            public static Record getRecordFromBytesArray(byte[] sourceArray, AllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
+            public static Record GetRecordFromBytesArray(byte[] sourceArray, IAllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
             {
                 if (allocator == null)
                     allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
@@ -187,7 +187,7 @@ namespace cryptoprime
             /// <param name="destroyRecord">Удалить запись this после того, как она будет склонирована</param>
             /// <param name="RecordName">Имя записи, для отладки</param>
             /// <returns>Возвращает новую запись, являющуюся независимой копией старой записи</returns>
-            public Record Clone(nint start = 0, nint PostEnd = -1, AllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false, string? RecordName = null)
+            public Record Clone(nint start = 0, nint PostEnd = -1, IAllocatorForUnsafeMemoryInterface? allocator = null, bool destroyRecord = false, string? RecordName = null)
             {
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.Clone");
@@ -278,12 +278,13 @@ namespace cryptoprime
 
             /// <summary>Количество входящих ссылок, полученные NoCopyClone и т.п.
             /// <para>Синхронизация осуществляется при помощи lock (inLinks) либо при помощи класса AllocHGlobal_NoCopy</para></summary>
-            public readonly List<Record> inLinks = new List<Record>(0);
+            public readonly List<Record> inLinks = new(0);
 
             /// <summary>Очищает и освобождает выделенную область памяти</summary>
             public void Dispose()
             {
                 Dispose(true);
+                GC.SuppressFinalize(this);
             }
 
             /// <summary>Вызывает Dispose(true)</summary>
@@ -292,10 +293,10 @@ namespace cryptoprime
                 Dispose(true);
             }
 
-            public readonly static List<string> errorsInDispose_List = new List<string>();
+            public readonly static List<string> errorsInDispose_List = new();
 
             protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
-            public    static          bool  errorsInDispose
+            public    static          bool  ErrorsInDispose
             {
                 get => _errorsInDispose;
                 set
@@ -319,7 +320,7 @@ namespace cryptoprime
                     if (disposing == false)
                         return;
 
-                    errorsInDispose = true;
+                    ErrorsInDispose = true;
                     var msg = $"BytesBuilderForPointers.Record Dispose() executed twice. For Record with Name: {Name}";
                     if (doExceptionOnDisposeTwiced)
                         throw new Exception(msg);
@@ -367,7 +368,7 @@ namespace cryptoprime
                 // Если аллокатора нет, то и вызывать Dispose не обязательно
                 if (!disposing && allocatorExists)
                 {
-                    errorsInDispose = true;
+                    ErrorsInDispose = true;
 
                     var msg = $"BytesBuilderForPointers.Record ~Record() executed with a not disposed Record. For Record with Name: {Name}";
                     if (doExceptionOnDisposeInDestructor)
@@ -547,7 +548,7 @@ namespace cryptoprime
             /// <summary>Проверяет, что индексы start и end лежат внутри массива. start &lt;= end. Если условия не выполнены, то генерируется исключение.</summary>
             /// <param name="start">Индекс для проверки в границах массива</param>
             /// <param name="end">Индекс для проверки в границах массива</param>
-            public void checkRange(nint start, nint end)
+            public void CheckRange(nint start, nint end)
             {
                 if (end < start)
                     throw new ArgumentOutOfRangeException("end < start");
@@ -590,7 +591,7 @@ namespace cryptoprime
 
 
         /// <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>
-        public interface AllocatorForUnsafeMemoryInterface
+        public interface IAllocatorForUnsafeMemoryInterface
         {
             /// <summary>Выделяет память. Память может быть непроинициализированной</summary>
             /// <param name="len">Размер выделяемого блока памяти</param>
@@ -614,7 +615,7 @@ namespace cryptoprime
             public Record FixMemory(object array, nint length);
         }
 
-        public class AllocHGlobal_NoCopy : AllocatorForUnsafeMemoryInterface
+        public class AllocHGlobal_NoCopy : IAllocatorForUnsafeMemoryInterface
         {
             public readonly Record sourceRecord;
             public AllocHGlobal_NoCopy(Record sourceRecord, Record newRecord)
@@ -647,10 +648,10 @@ namespace cryptoprime
         }
 
         /// <summary>Выделяет память с помощью Marshal.AllocHGlobal</summary>
-        public class AllocHGlobal_AllocatorForUnsafeMemory : AllocatorForUnsafeMemoryInterface
+        public class AllocHGlobal_AllocatorForUnsafeMemory : IAllocatorForUnsafeMemoryInterface
         {
             protected volatile nint _memAllocated = 0;
-            public nint memAllocated { get => _memAllocated; }
+            public nint MemAllocated { get => _memAllocated; }
 
             #if RECORD_DEBUG
                 public List<Record> allocatedRecords = new List<Record>(1024);
@@ -714,7 +715,7 @@ namespace cryptoprime
             /// <summary>Размер отступов контрольных значений. И левый, и правый отступы имеют одни и те же значения</summary>
             public const nint ControlPaddingSize = 128;
 
-            public nint getFullSizeToAllocate(nint len)
+            public nint GetFullSizeToAllocate(nint len)
             {
                 return checked(  len + alignmentSize * 2 + ControlPaddingSize * 2  );
             }
@@ -732,7 +733,7 @@ namespace cryptoprime
                 // alignmentSize домножаем на два, чтобы при невыравненной памяти захватить как память в начале (для выравнивания),
                 // так и память в конце - чтобы исключить попадание туда каких-либо других массивов и их конкуренцию за линию кеша
                 // ControlPaddingSize - дополнительные отступы для контрольных значений
-                var ptr = alloc(getFullSizeToAllocate(len));
+                var ptr = Alloc(GetFullSizeToAllocate(len));
                 var rec = new Record() { len = len, array = (byte*)ptr.ToPointer(), ptr = ptr, allocator = this, Name = RecordName };
 
                 var bmod = ((nint) rec.array) & alignmentAnd;
@@ -822,7 +823,7 @@ namespace cryptoprime
                 var checkResult = CheckControlValues(recordToFree);
 
                 // Marshal.FreeHGlobal(recordToFree.ptr);
-                free(recordToFree.ptr, getFullSizeToAllocate(recordToFree.len));
+                Free(recordToFree.ptr, GetFullSizeToAllocate(recordToFree.len));
                 InterlockedDecrement_memAllocated();
 
                 if (checkResult != CheckControlValuesResult.success)
@@ -850,7 +851,7 @@ namespace cryptoprime
             {
                 if (_memAllocated > 0)
                 {
-                    Record.errorsInDispose = true;
+                    Record.ErrorsInDispose = true;
                     var msg = "~AllocHGlobal_AllocatorForUnsafeMemory: Allocator have memory this not been freed";
 
                     if (Record.doExceptionOnDisposeInDestructor)
@@ -863,7 +864,7 @@ namespace cryptoprime
 
         public class AllocHGlobal_AllocatorForUnsafeMemory_debug : AllocHGlobal_AllocatorForUnsafeMemory
         {
-            public ConcurrentDictionary<Record, string> allocatedRecords_Debug = new ConcurrentDictionary<Record, string>(Environment.ProcessorCount, 1024);
+            public ConcurrentDictionary<Record, string> allocatedRecords_Debug = new(Environment.ProcessorCount, 1024);
 
             public override Record AllocMemory(nint len, string? RecordName = null)
             {
@@ -884,7 +885,7 @@ namespace cryptoprime
         }
 
         /// <summary>Выделяет память для массива с помощью его фиксации: то есть используется обычный сборщик мусора и GCHandle.Alloc</summary>
-        public class Fixed_AllocatorForUnsafeMemory : AllocatorForUnsafeMemoryInterface
+        public class Fixed_AllocatorForUnsafeMemory : IAllocatorForUnsafeMemoryInterface
         {
             /// <summary>Выделяет память с помощью сборщика мусора, а потом фиксирует её. Это работает медленнее раза в 3, чем AllocHGlobal_AllocatorForUnsafeMemory</summary>
             public Record AllocMemory(nint len, string? RecordName = null)

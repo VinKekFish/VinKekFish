@@ -29,9 +29,9 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
         #endif
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
     }
 
     protected unsafe class Saver: SaverParent
@@ -39,7 +39,7 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
         public CascadeSponge_1t_20230905? cascade;
         public override List<string> ExecuteTest(AutoSaveTestTask task)
         {
-            List<string> lst = new List<string>(16);
+            List<string> lst = new(16);
 
             const int maxKeyLen = 8192;
             var  key = stackalloc byte[maxKeyLen];
@@ -60,24 +60,24 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
             // Инициализация губки минимальной стойкости
             // Сразу же инициализируем ключи ThreeFish от основного ключа
             using var cascade1 = new CascadeSponge_1t_20230905();
-            cascade1.initKeyAndOIV(rkey, null, 0);
+            cascade1.InitKeyAndOIV(rkey, null, 0);
 
             // Вводим некоторые данные для шифрования или хеширования
-            cascade1.step(data: data, dataLen: DataLen);
+            cascade1.Step(data: data, dataLen: DataLen);
 
             // Получаем от губки информацию с одного шага из cascade1.lastOutput
             addToList(lst, cascade1);
 
             rkey.Dispose();
             this.cascade = null;
-            task.doneFunc!();
+            task.DoneFunc!();
 
             return lst;
 
             static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
             {
                 // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
-                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.CountOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
             }
         }
     }
@@ -97,9 +97,9 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
         #endif
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
     }
 
     protected unsafe class Saver: SaverParent
@@ -107,7 +107,7 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
         public CascadeSponge_1t_20230905? cascade;
         public override List<string> ExecuteTest(AutoSaveTestTask task)
         {
-            List<string> lst = new List<string>(16);
+            List<string> lst = new(16);
 
             const int maxKeyLen = 65536;
             var  key = stackalloc byte[maxKeyLen];
@@ -128,24 +128,24 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
             // Инициализация губки минимальной стойкости
             // Сразу же инициализируем ключи ThreeFish от основного ключа
             using var cascade1 = new CascadeSponge_1t_20230905();
-            cascade1.initKeyAndOIV(rkey, null, 3);
+            cascade1.InitKeyAndOIV(rkey, null, 3);
 
             // Вводим некоторые данные для шифрования или хеширования
-            cascade1.step(data: data, dataLen: DataLen);
+            cascade1.Step(data: data, dataLen: DataLen);
 
             // Получаем от губки информацию с одного шага из cascade1.lastOutput
             addToList(lst, cascade1);
 
             rkey.Dispose();
             this.cascade = null;
-            task.doneFunc!();
+            task.DoneFunc!();
 
             return lst;
 
             static void addToList(List<string> lst, CascadeSponge_1t_20230905 cascade1)
             {
                 // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
-                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.CountOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
             }
         }
     }
@@ -164,19 +164,19 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
         #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
         #endif
 
-        this.doneFunc = () =>
+        this.DoneFunc = () =>
         {
             var s = (this.parentSaver as Saver);
             if (s?.cascade is null)
                 this.Name = s?.primaryTaskName ?? "";
             else
-                this.Name = s?.primaryTaskName + "\n" + s?.cascade + "\nallocated memory = " + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0");
+                this.Name = s?.primaryTaskName + "\n" + s?.cascade + "\nallocated memory = " + VinKekFish_Utils.Memory.AllocatedMemory.ToString("#,0");
         };
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/CascadeSponge/");
     }
 
     protected unsafe class Saver: SaverParent
@@ -186,7 +186,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
         public override List<string> ExecuteTest(AutoSaveTestTask task)
         {
             primaryTaskName = task.Name;
-            List<string> lst = new List<string>(16);
+            List<string> lst = new(16);
 
             using var bb = new BytesBuilderForPointers();
 
@@ -212,11 +212,11 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
             // Инициализация губки стойкостью 1536 битов (192 байта)
             // Сразу же инициализируем ключи ThreeFish от основного ключа
             var cascade1 = new CascadeSponge_mt_20230930(192);
-            cascade1.initKeyAndOIV(rkey, null, 2);
+            cascade1.InitKeyAndOIV(rkey, null, 2);
 
             // Вводим некоторые данные для шифрования или хеширования
-            cascade1.step(data: data, dataLen: DataLen, regime: 2, ArmoringSteps: 2);
-            bb.addWithCopy(cascade1.lastOutput);        // Берём данные с выхода
+            cascade1.Step(data: data, dataLen: DataLen, regime: 2, ArmoringSteps: 2);
+            bb.AddWithCopy(cascade1.lastOutput);        // Берём данные с выхода
 
             // Получаем от губки информацию с одного шага из cascade1.lastOutput
             addToList(lst, cascade1);
@@ -225,15 +225,15 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
 
             // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три (более сложно для криптоанализа)
             var cascade2 = new CascadeSponge_mt_20230930(192);
-            cascade2.initKeyAndOIV(rkey, null, 3);
-            cascade2.step(data: data, dataLen: DataLen);
+            cascade2.InitKeyAndOIV(rkey, null, 3);
+            cascade2.Step(data: data, dataLen: DataLen);
             addToList(lst, cascade2);
             cascade2.Dispose();
 
             // Без инициализации ThreeFish
             var cascade3 = new CascadeSponge_mt_20230930(192);
-            cascade3.initKeyAndOIV(rkey, null, 0);
-            cascade3.step(data: data, dataLen: DataLen);
+            cascade3.InitKeyAndOIV(rkey, null, 0);
+            cascade3.Step(data: data, dataLen: DataLen);
             addToList(lst, cascade3);
             cascade3.Dispose();
 
@@ -251,9 +251,9 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
                 try
                 {
                     cascade1 = new CascadeSponge_mt_20230930(len); this.cascade = cascade1;
-                    cascade1.initKeyAndOIV(rkey, null, 2);
-                    cascade1.step(data: data, dataLen: DataLen);
-                    bb.addWithCopy(cascade1.lastOutput);        // Берём данные с выхода
+                    cascade1.InitKeyAndOIV(rkey, null, 2);
+                    cascade1.Step(data: data, dataLen: DataLen);
+                    bb.AddWithCopy(cascade1.lastOutput);        // Берём данные с выхода
                     addToList(lst, cascade1);
                     this.cascade = null;
                 }
@@ -271,13 +271,13 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
             cascade1 = new CascadeSponge_mt_20230930(1024*256/8); this.cascade = cascade1;
             var cuttedKey = rkey << cascade1.maxDataLen*2;          // Делаем ключ поменьше, чтобы можно было меньше ждать
             cascade1.InitEmptyThreeFish(1, 2);
-            cascade1.step(regime: 1);
+            cascade1.Step(regime: 1);
             while (bb.Count < cascade1.fullLengthOfThreeFishKeys + 8)        // 8 - чисто, чтобы не напрягаться
             {
-                cascade1.step(regime: 2);
-                bb.addWithCopy(cascade1.lastOutput);
+                cascade1.Step(regime: 2);
+                bb.AddWithCopy(cascade1.lastOutput);
             }
-            using var tkeys = bb.getBytes();
+            using var tkeys = bb.GetBytes();
             BytesBuilder.ULongToBytes        // Устанавливаем магическое число
             (
                 CascadeSponge_1t_20230905.MagicNumber_ReverseConnectionLink_forInput,
@@ -285,20 +285,20 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
                 tkeys.len, cascade1.fullLengthOfThreeFishKeys
             );
 
-            cascade1.initKeyAndOIV(cuttedKey, null, 0);
-            cascade1.setThreeFishKeysAndTweak(tkeys, null, cascade1.countOfThreeFish);
-            cascade1.step(data: data, dataLen: DataLen, regime: 255);
+            cascade1.InitKeyAndOIV(cuttedKey, null, 0);
+            cascade1.SetThreeFishKeysAndTweak(tkeys, null, cascade1.countOfThreeFish);
+            cascade1.Step(data: data, dataLen: DataLen, regime: 255);
             addToList(lst, cascade1);
             cascade1.Dispose();
 
 
 
             cascade1 = new CascadeSponge_mt_20230930(_wide: 4, _tall: 4); this.cascade = cascade1;
-            cascade1.initKeyAndOIV(rkey, null, 3);
-            cascade1.step(data: data, dataLen: DataLen);
-            cascade1.step(1024);
-            cascade1.step(data: data, dataLen: DataLen);
-            cascade1.step(data: data, dataLen: DataLen);
+            cascade1.InitKeyAndOIV(rkey, null, 3);
+            cascade1.Step(data: data, dataLen: DataLen);
+            cascade1.Step(1024);
+            cascade1.Step(data: data, dataLen: DataLen);
+            cascade1.Step(data: data, dataLen: DataLen);
             addToList(lst, cascade1);
             cascade1.Dispose();
 
@@ -306,14 +306,14 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
             cuttedKey.Dispose();
             rkey.Dispose();
             this.cascade = null;
-            task.doneFunc!();
+            task.DoneFunc!();
 
             return lst;
 
             static void addToList(List<string> lst, CascadeSponge_mt_20230930 cascade1)
             {
                 // lst.Add(cascade1.ToString() + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
-                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.countOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
+                lst.Add(cascade1.tall + "/" + cascade1.wide + ", " + cascade1.CountOfProcessedSteps.ToString("#,0") + "\n" + ArrayToHex(cascade1.lastOutput, cascade1.maxDataLen) + "\n\n");
             }
         }
     }
@@ -326,7 +326,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
     public CascadeSponge_20230905_BaseTest(TestConstructor constructor) :
                                             base(nameof(CascadeSponge_20230905_BaseTest), constructor)
     {
-        taskFunc = Test;
+        TaskFunc = Test;
     }
 
     public void Test()
@@ -418,7 +418,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[13] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[14] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[15] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[16] = threefish_slowly.C240 ^ TFl[0] ^ TFl[1] ^ TFl[2] ^ TFl[3] ^ TFl[4] ^ TFl[5] ^ TFl[6] ^ TFl[7] ^ TFl[8] ^ TFl[9] ^ TFl[10] ^ TFl[11] ^ TFl[12] ^ TFl[13] ^ TFl[14] ^ TFl[15];
+            TFl[16] = Threefish_slowly.C240 ^ TFl[0] ^ TFl[1] ^ TFl[2] ^ TFl[3] ^ TFl[4] ^ TFl[5] ^ TFl[6] ^ TFl[7] ^ TFl[8] ^ TFl[9] ^ TFl[10] ^ TFl[11] ^ TFl[12] ^ TFl[13] ^ TFl[14] ^ TFl[15];
 
             TFl[32 + 0] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 1] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
@@ -436,7 +436,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[32 + 13] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 14] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
             TFl[32 + 15] = key; key += CascadeSponge_1t_20230905.KeyInitIncrement;
-            TFl[32 + 16] = threefish_slowly.C240 ^ TFl[32 + 0] ^ TFl[32 + 1] ^ TFl[32 + 2] ^ TFl[32 + 3] ^ TFl[32 + 4] ^ TFl[32 + 5] ^ TFl[32 + 6] ^ TFl[32 + 7] ^ TFl[32 + 8] ^ TFl[32 + 9] ^ TFl[32 + 10] ^ TFl[32 + 11] ^ TFl[32 + 12] ^ TFl[32 + 13] ^ TFl[32 + 14] ^ TFl[32 + 15];
+            TFl[32 + 16] = Threefish_slowly.C240 ^ TFl[32 + 0] ^ TFl[32 + 1] ^ TFl[32 + 2] ^ TFl[32 + 3] ^ TFl[32 + 4] ^ TFl[32 + 5] ^ TFl[32 + 6] ^ TFl[32 + 7] ^ TFl[32 + 8] ^ TFl[32 + 9] ^ TFl[32 + 10] ^ TFl[32 + 11] ^ TFl[32 + 12] ^ TFl[32 + 13] ^ TFl[32 + 14] ^ TFl[32 + 15];
 
             // Заполняем через циклы два оставшихся ключа для заключительного преобразования
             for (int i = 0; i < 16; i++)
@@ -450,11 +450,11 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
                 key += CascadeSponge_1t_20230905.KeyInitIncrement;
             }
 
-            TFl[64 + 16] = threefish_slowly.C240;
+            TFl[64 + 16] = Threefish_slowly.C240;
             for (int i = 0; i < 16; i++)
                 TFl[64 + 16] ^= TFl[64 + i];
 
-            TFl[96 + 16] = threefish_slowly.C240;
+            TFl[96 + 16] = Threefish_slowly.C240;
             for (int i = 0; i < 16; i++)
                 TFl[96 + 16] ^= TFl[96 + i];
 
@@ -469,10 +469,10 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
 
             // Вводим данные и делаем шаг (тут сразу двойной шаг). Имитируем, что вводим синхропосылку и ключ
-            cascade.step(data: data, dataLen: dlen, regime: 255);
+            cascade.Step(data: data, dataLen: dlen, regime: 255);
 
             // Делаем первый шаг: это первая фаза двойного шага
-            doExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
 
             // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
 
@@ -496,7 +496,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
 
             // Делаем из первого шага двойной (удваиваем первый шаг)
-            doExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
 
             // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
 
@@ -534,8 +534,8 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
                 throw new Exception("CascadeSponge_20230905_BaseTest: results not equals (step 1d)");
 
-            cascade.step(data: null, dataLen: 0, regime: 34);
-            doExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
+            cascade.Step(data: null, dataLen: 0, regime: 34);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
 
             // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
 
@@ -599,7 +599,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             revcon[i] = output[j];
     }
 
-    private static void doExpandedSmallStep(Keccak_20200918 top0, Keccak_20200918 top1, Keccak_20200918 top2, Keccak_20200918 top3, Keccak_20200918 mid0, Keccak_20200918 mid1, Keccak_20200918 mid2, Keccak_20200918 mid3, Keccak_20200918 bot0, Keccak_20200918 bot1, Keccak_20200918 bot2, Keccak_20200918 bot3, Keccak_20200918 out0, Keccak_20200918 out1, Keccak_20200918 out2, Keccak_20200918 out3, byte* output, byte* revcon, byte regime)
+    private static void DoExpandedSmallStep(Keccak_20200918 top0, Keccak_20200918 top1, Keccak_20200918 top2, Keccak_20200918 top3, Keccak_20200918 mid0, Keccak_20200918 mid1, Keccak_20200918 mid2, Keccak_20200918 mid3, Keccak_20200918 bot0, Keccak_20200918 bot1, Keccak_20200918 bot2, Keccak_20200918 bot3, Keccak_20200918 out0, Keccak_20200918 out1, Keccak_20200918 out2, Keccak_20200918 out3, byte* output, byte* revcon, byte regime)
     {
         Keccak_Input64_512(revcon +   0, 64, top0.S, regime);
         Keccak_Input64_512(revcon +  64, 64, top1.S, regime);

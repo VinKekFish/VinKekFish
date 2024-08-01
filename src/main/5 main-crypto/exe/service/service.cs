@@ -38,10 +38,10 @@ public partial class Regime_Service
     ~Regime_Service()
     {
         if (!Terminated)
-            doTerminate(true);
+            DoTerminate(true);
     }
 
-    public void doTerminate(bool willBlock = false)
+    public void DoTerminate(bool willBlock = false)
     {
         if (!Terminated)
         {
@@ -77,7 +77,7 @@ public partial class Regime_Service
         // Затем cntT уже больше нуля и позволяет нам завершиться,
         // не ожидая завершения потоков, которые, скорее всего, уже и не завершатся,
         // т.к. ждут файлового ввода-вывода
-        while (willBlock && continueWaitForExit())
+        while (willBlock && ContinueWaitForExit())
         {
             Thread.Sleep(1000);
             lock (continuouslyGetters)
@@ -87,8 +87,8 @@ public partial class Regime_Service
                 InputEntropyFromSourcesWhile(int.MaxValue, 0);
                 foreach (var getter in continuouslyGetters)
                 {
-                    if (time > 0 || getter.countOfBytesFromLastOutput > 0)
-                        Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput})");
+                    if (time > 0 || getter.CountOfBytesFromLastOutput > 0)
+                        Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.IsDataReady(1)}; countOfBytesFromLastOutput = {getter.CountOfBytesFromLastOutput})");
                 }
 
                 time++;
@@ -113,7 +113,7 @@ public partial class Regime_Service
         if (willBlock)
         {
             for (int i = 0; i < 4; i++)
-                if (getCountOfNonStoppedGetterThreads() > 0)
+                if (GetCountOfNonStoppedGetterThreads() > 0)
                     Thread.Sleep(500);
                 else
                     break;
@@ -122,14 +122,14 @@ public partial class Regime_Service
             foreach (var getter in continuouslyGetters)
             {
                 if (!getter.thread.ThreadState.HasFlag(ThreadState.Stopped))
-                    Console.WriteLine(L("Getter has not be ended") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.isDataReady(1)}; countOfBytesFromLastOutput = {getter.countOfBytesFromLastOutput}; ThreadState = {getter.thread.ThreadState}); StreamForClose = {getter.StreamForClose} ");
+                    Console.WriteLine(L("Getter has not be ended") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.IsDataReady(1)}; countOfBytesFromLastOutput = {getter.CountOfBytesFromLastOutput}; ThreadState = {getter.thread.ThreadState}); StreamForClose = {getter.StreamForClose} ");
             }
 
             Console.WriteLine("Regime_Service.doTerminate: ended");
         }
     }
 
-    public int getCountOfNonStoppedGetterThreads()
+    public int GetCountOfNonStoppedGetterThreads()
     {
         int result = 0;
         lock (continuouslyGetters)
@@ -142,7 +142,7 @@ public partial class Regime_Service
         return result;
     }
 
-    public bool continueWaitForExit()
+    public bool ContinueWaitForExit()
     {
         if (vkfListener != null)
         if (vkfListener.ConnectionsCount > 0)
@@ -172,7 +172,7 @@ public partial class Regime_Service
                     }
                     catch (Exception ex)
                     {
-                        formatException(ex);
+                        FormatException(ex);
                     }
                 }
             }
@@ -230,7 +230,7 @@ public partial class Regime_Service
             }
             finally
             {
-                doTerminate(true);
+                DoTerminate(true);
             }
         }
         finally

@@ -23,7 +23,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
     public VinKekFish_test_simplebase(TestConstructor constructor) :
                                             base(nameof(VinKekFish_test_simplebase), constructor)
     {
-        taskFunc = this.Test;
+        TaskFunc = this.Test;
     }
 
     public void Test()
@@ -86,7 +86,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         // Выполняем вычислительный шаг, например, для генерации гаммы
         k.output = new BytesBuilderStatic(512*3);
-        k.doStepAndIO(k.MIN_ROUNDS_K, regime: 4);
+        k.DoStepAndIO(k.MIN_ROUNDS_K, regime: 4);
 
         state[0] ^= 0;
         state[1] ^= 0;
@@ -100,7 +100,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         var r = stackalloc byte[512*3];
 
-        k.output.getBytesAndRemoveIt(r, 512*3);
+        k.output.GetBytesAndRemoveIt(r, 512*3);
 
         if (!BytesBuilder.UnsecureCompare(512*3, 512*3, state, r))
             throw new Exception("!BytesBuilder.UnsecureCompare(512*3, 512*3, state, r)");

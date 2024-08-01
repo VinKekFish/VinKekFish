@@ -26,9 +26,9 @@ public class FilePartsAutoTests: Keccak_test_parent
         #endif
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/exe/auto/HelperClasses");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/exe/auto/HelperClasses");
     }
 }
 
@@ -56,7 +56,7 @@ public class FilePartsTests : FilePartsAutoTests
             root.AddFilePart("part 2", uft8.GetBytes(".part 2."));
 
             var part1 = root.FindFirstPart("part 1");
-            var part11_content = Record.getRecordFromBytesArray(uft8.GetBytes(".part 1.1."));
+            var part11_content = Record.GetRecordFromBytesArray(uft8.GetBytes(".part 1.1."));
             part1.FoundFilePart?.AddFilePart("part 1.1", part11_content);
 
             // root.WriteToFile(new FileInfo("/inRamA/1"), FileMode.OpenOrCreate);

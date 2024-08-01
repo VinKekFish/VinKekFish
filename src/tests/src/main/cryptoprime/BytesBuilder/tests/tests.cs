@@ -33,9 +33,9 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
         this.parentSaver = parentSaver;
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/cryptoprime/BytesBuilder/tests/");
+        return GetDirectoryPath("src/tests/src/main/cryptoprime/BytesBuilder/tests/");
     }
 
     protected SaverParent parentSaver;
@@ -50,7 +50,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
         /// <param name="f2">Доп. константа</param>
         /// <param name="c2">Доп. константа</param>
         /// <returns></returns>
-        public byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
+        public byte[] CreateByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
         {
             var r = new byte[len];
             for (int i = 0; i < r.Length; i++)
@@ -95,14 +95,14 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
 
     /// <summary>Работает только под Linux (требуется "/proc/meminfo")</summary>
     /// <returns></returns>
-    public static nint getMaxMemory()
+    public static nint GetMaxMemory()
     {
         // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
         try
         {
             var mi = File.ReadAllLines("/proc/meminfo");
-            var a1 = getMaxMemory_getValueOfRecord(mi, "MemTotal:");
-            var a2 = getMaxMemory_getValueOfRecord(mi, "SwapTotal:");
+            var a1 = GetMaxMemory_getValueOfRecord(mi, "MemTotal:");
+            var a2 = GetMaxMemory_getValueOfRecord(mi, "SwapTotal:");
 
             return a1 + a2;
         }
@@ -122,7 +122,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
         throw new Exception();
     }
 
-    public static nint getMaxMemory_getValueOfRecord(string[] records, string recordName)
+    public static nint GetMaxMemory_getValueOfRecord(string[] records, string recordName)
     {
         foreach (var m in records)
         {
@@ -170,17 +170,17 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
 
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var bb = new BytesBuilder();
 
             // Тестируем пустой массив
-            lst.Add(bb.getBytes());
+            lst.Add(bb.GetBytes());
 
             // Пытаемся взять больше, чем есть
             try
             {
-                lst.Add(bb.getBytes(1));
+                lst.Add(bb.GetBytes(1));
             }
             catch (BytesBuilder.ResultCountIsTooLarge)
             {
@@ -188,34 +188,34 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             }
 
             // Тестируем конкатенацию массивов
-            bb.add(Encoding.UTF8.GetBytes(Str1));
-            bb.add(Encoding.UTF8.GetBytes(Str2));
-            bb.add(Encoding.UTF8.GetBytes(Str3));
+            bb.Add(Encoding.UTF8.GetBytes(Str1));
+            bb.Add(Encoding.UTF8.GetBytes(Str2));
+            bb.Add(Encoding.UTF8.GetBytes(Str3));
 
-            if (bb.countOfBlocks != 3)
+            if (bb.CountOfBlocks != 3)
                 throw new Exception("bb.countOfBlocks != 3");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))  )
+            if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(0), Encoding.UTF8.GetBytes(Str1))  )
                 throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(0), Encoding.UTF8.GetBytes(Str1))");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))  )
+            if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(1), Encoding.UTF8.GetBytes(Str2))  )
                 throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(1), Encoding.UTF8.GetBytes(Str2))");
-            if (  !BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))  )
+            if (  !BytesBuilder.UnsecureCompare(bb.GetBlock(2), Encoding.UTF8.GetBytes(Str3))  )
                 throw new Exception("!BytesBuilder.UnsecureCompare(bb.getBlock(2), Encoding.UTF8.GetBytes(Str3))");
 
 
             var bb2 = new BytesBuilder();
             var strBytes = Encoding.UTF8.GetBytes(Str1 + Str2 + Str3);
-            bb2.add(strBytes);
+            bb2.Add(strBytes);
 
-            lst.Add(bb.getBytes());
+            lst.Add(bb.GetBytes());
 
             // Проверяем, что эти две строки равны
             for (int i = 0; i < 2; i++)
-            if (  !BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() )  )
+            if (  !BytesBuilder.UnsecureCompare( bb.GetBytes(), bb2.GetBytes() )  )
                 throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): kePOaxC8Iz");
 
             // Проверяем, что getBytes правильно возвращает частичные вхождения
             for (int i = 0; i < strBytes.Length; i++)
-            if (  !BytesBuilder.UnsecureCompare( bb.getBytes(i), bb2.getBytes(i) )  )
+            if (  !BytesBuilder.UnsecureCompare( bb.GetBytes(i), bb2.GetBytes(i) )  )
                 throw new Exception("!BytesBuilder.UnsecureCompare( bb.getBytes(), bb2.getBytes() ): qo3ZIsRLpQ");
 
 
@@ -223,7 +223,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             var ra = new byte[1];
             try
             {
-                bb.getBytes(2, ra);
+                bb.GetBytes(2, ra);
             }
             catch (BytesBuilder.ResultAIsTooSmall)
             {
@@ -246,10 +246,10 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
 
                     var cnt = bb.Count;
 
-                    var a = bb .getBytesAndRemoveIt(new byte[counter_a]);
-                    var b = bb2.getBytesAndRemoveIt(new byte[counter_a]);
+                    var a = bb .GetBytesAndRemoveIt(new byte[counter_a]);
+                    var b = bb2.GetBytesAndRemoveIt(new byte[counter_a]);
 
-                    bbt.add(a);
+                    bbt.Add(a);
 
                     if (cnt - bb.Count != counter_a)
                         throw new Exception("cnt - bb.Count != counter_a");
@@ -269,7 +269,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             catch (BytesBuilder.ResultCountIsTooLarge)
             {}
 
-            var bbt_bytes = BytesBuilder.CloneBytes(  bbt.getBytes()  );
+            var bbt_bytes = BytesBuilder.CloneBytes(  bbt.GetBytes()  );
             if (  !BytesBuilder.UnsecureCompare(strBytes, bbt_bytes)  )
                 throw new Exception("!BytesBuilder.UnsecureCompare(strBytes, bbt_bytes): KMLk442ywd");
 
@@ -290,29 +290,29 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var bb1 = new BytesBuilder();
             var bb2 = new BytesBuilder();
             var bb3 = new BytesBuilder();
 
             // Тестируем addCopy и CloneBytes
-            var a1 = createByteArray(64, 0);
+            var a1 = CreateByteArray(64, 0);
             var a2 = BytesBuilder.CloneBytes(a1);
             // Меняем исходный массив - это ни на что уже не должно повлиять
             BytesBuilder.ToNull(a1);
             a1[0] = unchecked( (byte) -2 );
 
-            bb1.addCopy(a2);
-            bb1.add(a2);
-            bb2.addCopy(a2);
-            bb2.addCopy(a2);
+            bb1.AddCopy(a2);
+            bb1.Add(a2);
+            bb2.AddCopy(a2);
+            bb2.AddCopy(a2);
 
             a2[0] = unchecked( (byte) -1 );
 
             // В массиве r1 теперь 64-ый байт должен быть равен -1, т.к. a2 в начале bb1 - это оригинальный массив и все изменения в нём отражаются на изменениях в bb1
-            var r1 = bb1.getBytes();
-            var r2 = bb2.getBytes();
+            var r1 = bb1.GetBytes();
+            var r2 = bb2.GetBytes();
             r2[64] = unchecked( (byte) -1 );
 
             if (r2[0] != 0)
@@ -323,7 +323,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
 
             a2[1] = 0xFE;
-            r1 = bb1.getBytes();
+            r1 = bb1.GetBytes();
             r2[65] = 0xFE;
 
             if (!BytesBuilder.UnsecureCompare(r1, r2))
@@ -332,7 +332,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
             lst.Add(r1);
 
             bb2.Clear();
-            lst.Add(bb2.getBytes());
+            lst.Add(bb2.GetBytes());
             if (a2[0] != 0xFF)
                 throw new Exception("BytesBuilder_test2: 002a");
 
@@ -344,11 +344,11 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
 
             // Тестируем CloneBytes
-            a1 = createByteArray(64, 1, 1);
+            a1 = CreateByteArray(64, 1, 1);
             try
             {
                 // При верной работе должен выдать ArgumentOutOfRangeException
-                bb1.add(new byte[0]);
+                bb1.Add(new byte[0]);
                 throw new Exception("BytesBuilder_test2: ex01");
             }
             catch (ArgumentOutOfRangeException)
@@ -357,81 +357,81 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
             try
             {
                 // При верной работе должен выдать ArgumentOutOfRangeException
-                bb1.add(BytesBuilder.CloneBytes(a1, 0, 0));
+                bb1.Add(BytesBuilder.CloneBytes(a1, 0, 0));
                 throw new Exception("BytesBuilder_test2: ex02");
             }
             catch (ArgumentOutOfRangeException)
             {}
 
-            bb1.add(BytesBuilder.CloneBytes(a1, 0, 32));
-            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes(), 32))
+            bb1.Add(BytesBuilder.CloneBytes(a1, 0, 32));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.GetBytes(), 32))
                 throw new Exception("BytesBuilder_test2: 003");
 
-            bb1.add(BytesBuilder.CloneBytes(a1, 32, 63));
-            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes(), 63))
+            bb1.Add(BytesBuilder.CloneBytes(a1, 32, 63));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.GetBytes(), 63))
                 throw new Exception("BytesBuilder_test2: 004");
 
-            bb1.add(BytesBuilder.CloneBytes(a1, 63, 64));
-            if (!BytesBuilder.UnsecureCompare(a1, bb1.getBytes()))
+            bb1.Add(BytesBuilder.CloneBytes(a1, 63, 64));
+            if (!BytesBuilder.UnsecureCompare(a1, bb1.GetBytes()))
                 throw new Exception("BytesBuilder_test2: 005");
 
-            lst.Add(bb1.getBytes());
+            lst.Add(bb1.GetBytes());
 
 
             // Тест getBytes с диапазонами и addByte
-            a1 = createByteArray(1 << 17, 1, 1, 3, 5);
+            a1 = CreateByteArray(1 << 17, 1, 1, 3, 5);
             bb1.Clear();
             bb2.Clear();
-            bb1.add(a1);
+            bb1.Add(a1);
             foreach (var a in a1)
-                bb2.addByte(a);
+                bb2.AddByte(a);
 
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(), bb2.getBytes()))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(), bb2.GetBytes()))
                 throw new Exception("BytesBuilder_test2: 006-0");
-            if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes()))
+            if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes()))
                 throw new Exception("BytesBuilder_test2: 006-1");
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(16), bb2.getBytes(16)))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(16), bb2.GetBytes(16)))
                 throw new Exception("BytesBuilder_test2: 006-2");
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(2, 0), bb2.getBytes(2, 0)))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(2, 0), bb2.GetBytes(2, 0)))
                 throw new Exception("BytesBuilder_test2: 006-3a");
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(2, 16), bb2.getBytes(2, 16)))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(2, 16), bb2.GetBytes(2, 16)))
                 throw new Exception("BytesBuilder_test2: 006-3");
-            if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes(2, 16), 2, 16))
+            if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes(2, 16), 2, 16))
                 throw new Exception("BytesBuilder_test2: 006-4");
-            if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes(1029, 65537), 1029, 65537))
+            if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes(1029, 65537), 1029, 65537))
                 throw new Exception("BytesBuilder_test2: 006-5");
             
-            lst.Add(bb2.getBytes());
+            lst.Add(bb2.GetBytes());
 
 
             // Продолжаем тестировать getBytes и тестируем addUshort
-            a1 = createByteArray(1 << 11, 1, 1, 3, 5);
+            a1 = CreateByteArray(1 << 11, 1, 1, 3, 5);
             bb1.Clear();
             bb2.Clear();
 
-            bb1.add(a1);
+            bb1.Add(a1);
             for (int i = 0; i < a1.Length; i += 2)
             {
                 int a = a1[i] + (a1[i+1] << 8);
-                bb2.addUshort((ushort) a);
+                bb2.AddUshort((ushort) a);
             }
 
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(), bb2.getBytes()))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(), bb2.GetBytes()))
                 throw new Exception("BytesBuilder_test2: 007-0");
 
             for (int i = 0; i < a1.Length; i += 5)
             for (int j = a1.Length - i; j > 0; j -= 3)
             {
-                if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes(j, i), j, i))
+                if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes(j, i), j, i))
                     throw new Exception($"BytesBuilder_test2: 007-1 ({i}, {j})");
-                if (!BytesBuilder.UnsecureCompare(bb1.getBytes(j, i), bb2.getBytes(j, i)))
+                if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(j, i), bb2.GetBytes(j, i)))
                     throw new Exception($"BytesBuilder_test2: 007-2 ({i}, {j})");
             }
 
-            lst.Add(bb2.getBytes());
+            lst.Add(bb2.GetBytes());
 
 
-            a1 = createByteArray(1 << 11, 0, 1, 0, 0);
+            a1 = CreateByteArray(1 << 11, 0, 1, 0, 0);
             a2 = new byte[a1.LongLength];
             BytesBuilder.CopyTo(a1, a2);
             if (!BytesBuilder.UnsecureCompare(a1, a2))
@@ -518,7 +518,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
 
             // UnsecureCompare - тестируем другую версию
-            a1 = createByteArray(1 << 15, 1, 1, 3, 5);
+            a1 = CreateByteArray(1 << 15, 1, 1, 3, 5);
             if (!BytesBuilder.UnsecureCompare(a1, a1, out nint index10))
                 throw new Exception("BytesBuilder_test2: 011-0");
             
@@ -564,36 +564,36 @@ public class BytesBuilder_test3: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var bb1 = new BytesBuilder();
             var bb2 = new BytesBuilder();
 
             // Продолжаем тестировать getBytes и тестируем addInt
-            var a1 = createByteArray(1 << 12, 2, 1, 3, 5);
+            var a1 = CreateByteArray(1 << 12, 2, 1, 3, 5);
             bb1.Clear();
             bb2.Clear();
 
-            bb1.add(a1);
+            bb1.Add(a1);
             for (int i = 0; i < a1.Length; i += 4)
             {
                 int a = a1[i] + (a1[i+1] << 8) + (a1[i+2] << 16) + (a1[i+3] << 24);
-                bb2.addInt(a);
+                bb2.AddInt(a);
             }
 
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(), bb2.getBytes()))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(), bb2.GetBytes()))
                 throw new Exception("BytesBuilder_test3: 008-0");
 
             for (int i = 0; i < a1.Length; i += 3)
             for (int j = a1.Length - i; j > 0; j -= 7)
             {
-                if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes(j, i), j, i))
+                if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes(j, i), j, i))
                     throw new Exception($"BytesBuilder_test3: 008-1 ({i}, {j})");
-                if (!BytesBuilder.UnsecureCompare(bb1.getBytes(j, i), bb2.getBytes(j, i)))
+                if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(j, i), bb2.GetBytes(j, i)))
                     throw new Exception($"BytesBuilder_test3: 008-2 ({i}, {j})");
             }
 
-            lst.Add(bb2.getBytes());
+            lst.Add(bb2.GetBytes());
 
             return lst;
         }
@@ -613,39 +613,39 @@ public class BytesBuilder_test4: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var bb1 = new BytesBuilder();
             var bb2 = new BytesBuilder();
 
             // Продолжаем тестировать getBytes и тестируем addULong
-            var a1 = createByteArray(1 << 13, 3, 1, 3, 5);
+            var a1 = CreateByteArray(1 << 13, 3, 1, 3, 5);
             bb1.Clear();
             bb2.Clear();
 
-            bb1.add(a1);
+            bb1.Add(a1);
             for (int i = 0; i < a1.Length; i += 8)
             {
                 ulong a = 0;
                 for (int j = 7; j >= 0; j--)
                     a = a1[i + j] + (a << 8);
 
-                bb2.addULong(a);
+                bb2.AddULong(a);
             }
 
-            if (!BytesBuilder.UnsecureCompare(bb1.getBytes(), bb2.getBytes()))
+            if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(), bb2.GetBytes()))
                 throw new Exception("BytesBuilder_test4: 009-0");
 
             for (int i = 0; i < a1.Length; i += 5)
             for (int j = a1.Length - i; j > 0; j -= 11)
             {
-                if (!BytesBuilder.UnsecureCompare(a1, bb2.getBytes(j, i), j, i))
+                if (!BytesBuilder.UnsecureCompare(a1, bb2.GetBytes(j, i), j, i))
                     throw new Exception($"BytesBuilder_test4: 009-1 ({i}, {j})");
-                if (!BytesBuilder.UnsecureCompare(bb1.getBytes(j, i), bb2.getBytes(j, i)))
+                if (!BytesBuilder.UnsecureCompare(bb1.GetBytes(j, i), bb2.GetBytes(j, i)))
                     throw new Exception($"BytesBuilder_test4: 009-2 ({i}, {j})");
             }
 
-            lst.Add(bb2.getBytes());
+            lst.Add(bb2.GetBytes());
 
             return lst;
         }
@@ -664,24 +664,24 @@ public unsafe class BytesBuilder_test5_add: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             const int len = 17;
 
-            var bb1 = createByteArray(len, 127, 1, 0, 0);
-            var bb2 = createByteArray(len, 127, 3, 0, 0);
+            var bb1 = CreateByteArray(len, 127, 1, 0, 0);
+            var bb2 = CreateByteArray(len, 127, 3, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 127, 1, 0, 0);
-            bb2 = createByteArray(len, 127, 1, 0, 0);
+            bb1 = CreateByteArray(len, 127, 1, 0, 0);
+            bb2 = CreateByteArray(len, 127, 1, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 127, 1,   0, 0);
-            bb2 = createByteArray(len, 204, 255, 0, 0);
+            bb1 = CreateByteArray(len, 127, 1,   0, 0);
+            bb2 = CreateByteArray(len, 204, 255, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 129, 0, 0, 0);
-            bb2 = createByteArray(len, 127, 0, 0, 0);
+            bb1 = CreateByteArray(len, 129, 0, 0, 0);
+            bb2 = CreateByteArray(len, 127, 0, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
             return lst;
@@ -774,36 +774,36 @@ public unsafe class BytesBuilder_test5_add4: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             const int len = 17*11;
 
-            var bb1 = createByteArray(len, 127, 1, 0, 0);
-            var bb2 = createByteArray(len, 127, 3, 0, 0);
+            var bb1 = CreateByteArray(len, 127, 1, 0, 0);
+            var bb2 = CreateByteArray(len, 127, 3, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 127, 1, 0, 0);
-            bb2 = createByteArray(len, 127, 1, 0, 0);
+            bb1 = CreateByteArray(len, 127, 1, 0, 0);
+            bb2 = CreateByteArray(len, 127, 1, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 127, 1,   0, 0);
-            bb2 = createByteArray(len, 204, 255, 0, 0);
+            bb1 = CreateByteArray(len, 127, 1,   0, 0);
+            bb2 = CreateByteArray(len, 204, 255, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
-            bb1 = createByteArray(len, 129, 0, 0, 0);
-            bb2 = createByteArray(len, 127, 0, 0, 0);
+            bb1 = CreateByteArray(len, 129, 0, 0, 0);
+            bb2 = CreateByteArray(len, 127, 0, 0, 0);
             TestMethod(lst, len, ref bb1, ref bb2);
 
             for (int i = 1; i <= byte.MaxValue; i++)
             {
-                bb1 = createByteArray(len, i, 1, 0, 0);
-                bb2 = createByteArray(len, i, 3, 0, 0);
+                bb1 = CreateByteArray(len, i, 1, 0, 0);
+                bb2 = CreateByteArray(len, i, 3, 0, 0);
                 TestMethod(lst, len, ref bb1, ref bb2);
 
                 for (int j = 1; j <= byte.MaxValue; j++)
                 {
-                    bb1 = createByteArray(len, i, 0, 0, 0);
-                    bb2 = createByteArray(len, j, 0, 0, 0);
+                    bb1 = CreateByteArray(len, i, 0, 0, 0);
+                    bb2 = CreateByteArray(len, j, 0, 0, 0);
                     TestMethod(lst, len, ref bb1, ref bb2, false);
                 }
             }
@@ -850,7 +850,7 @@ public unsafe class BytesBuilder_test5_add_performance: TestTask
     public BytesBuilder_test5_add_performance(TestConstructor constructor):
                                         base(nameof(BytesBuilder_test5_add_performance), constructor: constructor)
     {
-        taskFunc = () =>
+        TaskFunc = () =>
         {
 
             byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
@@ -917,7 +917,7 @@ public unsafe class BytesBuilder_test5_reverse: TestTask
     public BytesBuilder_test5_reverse(TestConstructor constructor):
                                         base(nameof(BytesBuilder_test5_reverse), constructor: constructor)
     {
-        taskFunc = () =>
+        TaskFunc = () =>
         {
             byte[] createByteArray(int len, int f, int c)
             {
@@ -964,7 +964,7 @@ public unsafe class BytesBuilder_test5_xor: TestTask
     public BytesBuilder_test5_xor(TestConstructor constructor):
                                         base(nameof(BytesBuilder_test5_xor), constructor: constructor)
     {
-        taskFunc = () =>
+        TaskFunc = () =>
         {
             byte[] createByteArray(int len, int f, int c)
             {

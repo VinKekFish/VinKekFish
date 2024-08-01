@@ -25,9 +25,9 @@ public class Keccak_test_parent: ParentAutoSaveTask
         this.parentSaver = parentSaver;
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/keccak/");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/keccak/");
     }
 
     protected SaverParent parentSaver;
@@ -113,7 +113,7 @@ public class Keccak_test_parent: ParentAutoSaveTask
     {
         var cnt = 0;
         for (int i = 0; i < len; i++)
-            cnt += BitToBytes.getBit(S, i) ? 1 : 0;
+            cnt += BitToBytes.GetBit(S, i) ? 1 : 0;
 
         return cnt;
     }

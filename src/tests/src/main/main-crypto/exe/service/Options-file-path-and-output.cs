@@ -23,9 +23,9 @@ public class ServiceAutoTests: Keccak_test_parent
         #endif
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/main-crypto/exe/service");
+        return GetDirectoryPath("src/tests/src/main/main-crypto/exe/service");
     }
 }
 
@@ -47,7 +47,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
 
             var fileString = new List<string>();
 
-            add
+            Add
             (
                 lst, "empty",
                 () =>
@@ -58,7 +58,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'input'",
                 () =>
@@ -71,7 +71,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'output'",
                 () =>
@@ -84,7 +84,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'path'",
                 () =>
@@ -97,7 +97,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'path.random at start folder'",
                 () =>
@@ -111,7 +111,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'path.random at start folder.value'",
                 () =>
@@ -126,7 +126,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'output.random'",
                 () =>
@@ -142,7 +142,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'output.random.unix stream'",
                 () =>
@@ -159,7 +159,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'output.random.unix stream.path'",
                 () =>
@@ -177,7 +177,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "have no 'output.random.unix stream.path.value'",
                 () =>
@@ -196,7 +196,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             );
 
             fileString.Clear();
-            add
+            Add
             (
                 lst, "error at 'output.random'",
                 () =>
@@ -217,7 +217,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             return lst;
         }
 
-        void add(List<string> lst, string msg, Func func)
+        void Add(List<string> lst, string msg, Func func)
         {
             try
             {

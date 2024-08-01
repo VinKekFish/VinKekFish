@@ -16,7 +16,7 @@ public class Keccak_test_erfc_S : TestTask
     public Keccak_test_erfc_S(TestConstructor constructor) :
                                             base(nameof(Keccak_test_erfc_S), constructor)
     {
-        taskFunc = () => 
+        TaskFunc = () => 
         {
             // Console.WriteLine(Keccak_test_parent.sqrt(0.25m));
             // Console.WriteLine(Keccak_test_parent.sqrt(25m));
@@ -84,7 +84,7 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             lst.Add(debugRecord.ToString());
             lst.Add("Deviation: " + deviation.ToString("D2"));
 
-            k2.clearOnly_C_and_B();
+            k2.ClearOnly_C_and_B();
             isNullBC(k2, "k2.b || k2.c != null");
             k2.ClearStateWithoutStateField();
             k2.CalcStep();

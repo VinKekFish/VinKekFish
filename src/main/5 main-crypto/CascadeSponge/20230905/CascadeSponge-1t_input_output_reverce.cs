@@ -86,7 +86,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
             // Console.WriteLine(ArrayToHex(buffer, (int) MaxInputForKeccak));
 
-            input(buffer, (byte) (dataLenToInput + rcd_len), getInputLayerS(w), regime);
+            input(buffer, (byte) (dataLenToInput + rcd_len), GetInputLayerS(w), regime);
             cur += dataLenToInput;
         }
 
@@ -94,7 +94,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Получает в массив data выход с нижнего слоя каскадной губки. Заполняет массив this.lastOutput пользовательским выводом</summary>
-    protected void outputAllData()
+    protected void OutputAllData()
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.outputAllData");
 
@@ -104,13 +104,13 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var data = fullOutput.array;
         for (nint w = 0; w < wide; w++)
         {
-            var S = getOutputLayerS(w);
+            var S = GetOutputLayerS(w);
             KeccakPrime.Keccak_Output_512(data, MaxInputForKeccak, S: S);
             data += MaxInputForKeccak;
         }
 
         // Транспонируем состояние в data, чтобы перемешать блоки
-        transposeOutput(fullOutput);
+        TransposeOutput(fullOutput);
         // Копируем fullOutput в rcOutput, чтобы использовать fullOutput для дальнейшего заключительного преобразования
         BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, fullOutput, rcOutput);
 
@@ -118,12 +118,12 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Console.WriteLine("outputAllData: before ThreeFish"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
 
         // Выполняем преобразование обратной связи
-        doThreeFish(rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
-        doSubstitution(rcOutput);
+        DoThreeFish(rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
+        DoSubstitution(rcOutput);
 
         // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
 
-        transposeOutput(rcOutput, 128);
+        TransposeOutput(rcOutput, 128);
 
         // Console.WriteLine("outputAllData:  rc after ThreeFish +t"); Console.WriteLine(ArrayToHex(  rcOutput, ReserveConnectionLen));
         // Console.WriteLine("outputAllData: out after ThreeFish +t"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
@@ -131,7 +131,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>
-    public void transposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
+    public void TransposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
     {
         var buffer = stackalloc byte[(int)ReserveConnectionLen];
         BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, data, buffer);
@@ -152,7 +152,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
     }
 
-    protected void doSubstitution(Record data)
+    protected void DoSubstitution(Record data)
     {
         CheckMagicNumber(data, "CascadeSponge_1t_20230905.doSubstitution: magic != MagicNumber_ReverseConnectionLink_forInput");
 
@@ -175,7 +175,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <summary>Сделать поблочное преобразование ThreeFish1024 для массива обратной связи (указан в параметре data)</summary>
     /// <param name="data">Массив для шифрования, длиной ReserveConnectionLen. Заканчивается магическим числом</param>
     /// <param name="threefishCrypto">Массив ключей и твиков. Первыми в this.threefishCrypto идут ключи для обратной связи.</param>
-    protected void doThreeFish(byte * data, byte * threefishCrypto)
+    protected void DoThreeFish(byte * data, byte * threefishCrypto)
     {
         CheckMagicNumber(data, "CascadeSponge_1t_20230905.doThreeFish: magic != MagicNumber_ReverseConnectionLink_forInput");
 
@@ -195,9 +195,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             tweaks[0]  = tw;
             tweaks[2]  = tweaks[0] ^ tweaks[1];
 
-            keys   += threefish_slowly.Nw*2;        // Шаг следования ключей - 256 байтов
-            tweaks += threefish_slowly.Nw*2;
-            dt     += threefish_slowly.Nw;          // Шаг следования блоков данных - 128 байтов
+            keys   += Threefish_slowly.Nw*2;        // Шаг следования ключей - 256 байтов
+            tweaks += Threefish_slowly.Nw*2;
+            dt     += Threefish_slowly.Nw;          // Шаг следования блоков данных - 128 байтов
         }
     }
 

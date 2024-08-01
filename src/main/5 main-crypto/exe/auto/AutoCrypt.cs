@@ -28,12 +28,12 @@ public partial class AutoCrypt: IDisposable
 
     public AutoCrypt(string[] args)
     {
-        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
         // RandomSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         RandomSocketPoint = new UnixDomainSocketEndPoint(RandomStreamName);
         // RandomSocket.Connect(un);
-        doCorrectRandomStreamName();
+        DoCorrectRandomStreamName();
 
         if (args.Length > 1)
         {
@@ -78,7 +78,7 @@ public partial class AutoCrypt: IDisposable
     }
 
     /// <summary>Взять из конфигурации имя файла, через который сервис vkf даёт энтропию</summary>
-    public void doCorrectRandomStreamName()
+    public void DoCorrectRandomStreamName()
     {
         try
         {

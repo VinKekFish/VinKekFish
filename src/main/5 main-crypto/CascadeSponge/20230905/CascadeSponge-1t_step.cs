@@ -35,7 +35,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
 
@@ -78,7 +78,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             if (curDataLen > maxDataLen)
                 curDataLen = maxDataLen;
 
-            step_once(data, curDataLen, regime, inputRegime);
+            Step_once(data, curDataLen, regime, inputRegime);
             data        += curDataLen;
             dataLen     -= curDataLen;
             dataUsedLen += curDataLen;
@@ -86,18 +86,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Дополнительный шаг для восполнения упущенной обратной связи
             // Этот дополнительный шаг реализует требования к двойному шагу после ввода данных
             if (curDataLen > 0)
-                step_once(null, 0, regime, inputRegime);
+                Step_once(null, 0, regime, inputRegime);
 
             for (int M = 0; M < ArmoringSteps; M++)
-                step_once(null, 0, regime, inputRegime);
+                Step_once(null, 0, regime, inputRegime);
 
             if (progress is not null)
                 progress.endedSteps++;
         }
 
         // Выполняем заключительное преобразование для отбивки обратной связи от выхода
-        doThreeFish    (fullOutput, this.threefishCrypto!.array + countOfThreeFish_RC*256);     // Заключительное преобразование для выхода
-        transposeOutput(fullOutput, 128);
+        DoThreeFish    (fullOutput, this.threefishCrypto!.array + countOfThreeFish_RC*256);     // Заключительное преобразование для выхода
+        TransposeOutput(fullOutput, 128);
 
         // Копируем начало вывода нижних губок в массив пользовательского вывода
         BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, fullOutput, lastOutput);
@@ -113,7 +113,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="regime">Логический режим ввода (определяемой схемой шифрования)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: xor или overwrite (перезапись)</param>
     /// <param name="calcOut">Если false, то выход не рассчитывается</param>
-    protected virtual void step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
+    protected virtual void Step_once(byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor)
     {
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, rcOutput, inputRegime);
@@ -130,7 +130,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Рассчитываем для данного уровня все данные
             for (nint i = 0; i < wide; i++)
             {
-                getKeccakS(layer, i, S: out S, B: out B, C: out C);
+                GetKeccakS(layer, i, S: out S, B: out B, C: out C);
                 KeccakPrime.Keccackf(a: (ulong *) S, c: (ulong *) C, b: (ulong *) B);
             }
 
@@ -142,18 +142,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             // Выводим во временный буфер выход со всех губок этого уровня
             for (nint i = 0; i < wide; i++)
             {
-                getKeccakS(layer, i, S: out S, B: out B, C: out C);
+                GetKeccakS(layer, i, S: out S, B: out B, C: out C);
                 KeccakPrime.Keccak_Output_512(buff, MaxInputForKeccak, S: S);
                 buff += MaxInputForKeccak;
             }
 
-            transposeOutput(buffer);
+            TransposeOutput(buffer);
 
             // Вводим данные на уровень ниже
             buff = buffer;
             for (nint i = 0; i < wide; i++)
             {
-                getKeccakS(layer+1, i, S: out S, B: out B, C: out C);
+                GetKeccakS(layer+1, i, S: out S, B: out B, C: out C);
 
                 input(buff, MaxInputForKeccak, S, regime);
                 buff += MaxInputForKeccak;
@@ -161,15 +161,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         }
 
         // Последний уровень губки, включая преобразование обратной связи
-        outputAllData();
+        OutputAllData();
 
         BytesBuilder.ToNull(ReserveConnectionLen, buffer);
         _countOfProcessedSteps++;
-        lastRegime = regime;
+        LastRegime = regime;
     }
 
     /// <summary>Режим последнего шага (следующий шаг схемы не должен совпадать с последним режимом, если это не предусмотрено схемой)</summary>
-    public byte lastRegime { get; protected set;}
+    public byte LastRegime { get; protected set;}
 
     // code::docs:Wt74dfPfEIcGzPN5Jrxe:
     /// <summary>Инициализирует ThreeFish и таблицы подстановок с помощью этого же каскада. Каскад должен быть до этого проинициализирован ключами, вводимыми внутрь каскада (см. функцию setupKeyAndOIV).<remarks>Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме), начальный шаг - режим 1.</remarks></summary>
@@ -182,7 +182,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0, nint countOfStepsForSubstitutionTable = 0)
     {
         // Защита от вызова на непроинициализированной губке
-        if (doCheckSafty && countOfProcessedSteps < countStepsForKeyGeneration)
+        if (doCheckSafty && CountOfProcessedSteps < countStepsForKeyGeneration)
             throw new CascadeSpongeException("InitThreeFishByCascade: countOfProcessedSteps < countStepsForKeyGeneration || !haveOutput");
         if (doCheckSafty && stepToKeyConst < 2)
             throw new CascadeSpongeException("InitThreeFishByCascade: stepToKeyConst < 2");
@@ -193,10 +193,10 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             countOfSteps = countStepsForKeyGeneration;
 
         haveOutput  = false;     // Сбрасываем, чтобы если случилась ошибка, флаг был бы сброшен и не дал бы дальше работать
-        var needLen = countOfThreeFish*threefish_slowly.keyLen + countOfThreeFish*threefish_slowly.twLen;
+        var needLen = countOfThreeFish*Threefish_slowly.keyLen + countOfThreeFish*Threefish_slowly.twLen;
         var buffer  = new BytesBuilderStatic(needLen + maxDataLen);                     // Берём длину с запасом на один шаг, чтобы не считать лишние данные
 
-        if (lastRegime == 1)
+        if (LastRegime == 1)
             throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 1");
         if (dataLenFromStep > maxDataLen)
             throw new CascadeSpongeException("InitThreeFishByCascade: dataLenFromStep > maxDataLen");
@@ -212,8 +212,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 // Берём данные из губки для инициализации ключей
                 do
                 {
-                    step(countOfSteps, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
-                    buffer.add(lastOutput, dataLenFromStep);
+                    Step(countOfSteps, regime: 1); haveOutput = false;        // Хотя губка уже проинициализированна, на всякий случай делаем лишние шаги. Для !doCheckSafty губка может быть и непроинициализированна
+                    buffer.Add(lastOutput, dataLenFromStep);
                 }
                 while (buffer.Count < needLen);
 
@@ -224,23 +224,23 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 var rc = threefishCrypto!.array + 0;    // Сразу выполняем переход на ключи
                 for (int i = 0; i < countOfThreeFish; i++, rc += 256)
                 {
-                    buffer.getBytesAndRemoveIt(rc, threefish_slowly.keyLen);
+                    buffer.GetBytesAndRemoveIt(rc, Threefish_slowly.keyLen);
                 }
 
                 // Копируем значения твиков
                 rc = threefishCrypto!.array + 192;    // Сразу выполняем переход на твики
                 for (int i = 0; i < countOfThreeFish; i++, rc += 256)
                 {
-                    buffer.getBytesAndRemoveIt(rc, threefish_slowly.twLen);
+                    buffer.GetBytesAndRemoveIt(rc, Threefish_slowly.twLen);
                 }
 
                 buffer.Clear();
 
                 // Расширяем ключи и твики как надо
                 ExpandThreeFish();
-                step(countOfSteps, regime: 2);
-                step(1           , regime: 3, inputRegime: overwrite);
-                step(countOfSteps, regime: 5);
+                Step(countOfSteps, regime: 2);
+                Step(1           , regime: 3, inputRegime: overwrite);
+                Step(countOfSteps, regime: 5);
             }
 
             haveOutput = true;
@@ -258,7 +258,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         var tmp = stackalloc byte[SubstitutionTableLen_inBytes];
 
         BytesBuilder.CopyTo(SubstitutionTableLen_inBytes, SubstitutionTableLen_inBytes, SubstitutionTable, tmp);
-        this.doRandomPermutationForUShorts(SubstitutionTableLen_inUShort, (ushort *) tmp, countOfSteps, 7);
+        this.DoRandomPermutationForUShorts(SubstitutionTableLen_inUShort, (ushort *) tmp, countOfSteps, 7);
         BytesBuilder.CopyTo(SubstitutionTableLen_inBytes, SubstitutionTableLen_inBytes, tmp, SubstitutionTable);
 
         if (!SubstitutionTable_IsCorrect())
@@ -271,9 +271,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void initKeyAndOIV(Record key, Record? OIV = null, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
+    public void InitKeyAndOIV(Record key, Record? OIV = null, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
-        initKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
+        InitKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
 
     /// <summary>Проводит инициализацию губки ключом и синхропосылкой. Можно вызывать не один раз. Заключительный шаг проводится в режиме 5 (следующий шаг схемы не должен быть в этом режиме). Начальный шаг - режим 254, если есть синхропосылка, 255 - если нет сихропосылки.</summary>
@@ -281,28 +281,28 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void initKeyAndOIV(byte * key, nint key_length, byte * OIV = null, nint OIV_length = 0, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
+    public void InitKeyAndOIV(byte * key, nint key_length, byte * OIV = null, nint OIV_length = 0, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
         if (OIV is not null)
         {
             if (key == OIV)
                 throw new CascadeSpongeException("InitThreeFishByCascade: key.array == OIV.array");
 
-            if (lastRegime == 254)
+            if (LastRegime == 254)
                 throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 254 (OIV is not null)");
 
-            step(0, 0, OIV, OIV_length,  regime: 254);
-            step(countStepsForHardening, regime: 0);
+            Step(0, 0, OIV, OIV_length,  regime: 254);
+            Step(countStepsForHardening, regime: 0);
         }
         else
         {
-            if (lastRegime == 255)
+            if (LastRegime == 255)
                 throw new CascadeSpongeException("InitThreeFishByCascade: lastRegime == 255 (OIV==null)");
         }
 
-        step(0, countStepsForKeyGeneration, key, key_length, regime: 255);
-        step(1, inputRegime: overwrite);
-        step(countStepsForKeyGeneration, regime: 5);
+        Step(0, countStepsForKeyGeneration, key, key_length, regime: 255);
+        Step(1, inputRegime: overwrite);
+        Step(countStepsForKeyGeneration, regime: 5);
 
         if (InitThreeFishByCascade_stepToKeyConst != 0)
             InitThreeFishByCascade(InitThreeFishByCascade_stepToKeyConst, doCheckSafty);

@@ -10,7 +10,7 @@ unsafe class Program
     {
         var e = new byte[256];  // Эталонный массив
 
-        var er = Record.getRecordFromBytesArray(e);
+        var er = Record.GetRecordFromBytesArray(e);
 
         for (int i = 0; i < e.Length; i++)
             e[i] = (byte) i;
@@ -21,7 +21,7 @@ unsafe class Program
                 continue;*/
 
             var b  = new byte[L];
-            var br = Record.getRecordFromBytesArray(b);
+            var br = Record.GetRecordFromBytesArray(b);
             for (int i = 0; i < L && i < e.Length; i++)
             {
                 b[i] = e[i];

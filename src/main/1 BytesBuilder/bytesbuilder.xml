@@ -7,27 +7,27 @@
         <member name="T:cryptoprime.BitToBytes">
             <summary>Реализует функциональность битового массива (BitArray)</summary>
         </member>
-        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte[],System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.GetBit(System.Byte[],System.IntPtr)">
             <summary>Получить бит из битово массива</summary>
             <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.getBit(System.Byte*,System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.GetBit(System.Byte*,System.IntPtr)">
             <summary>Получить бит из битово массива</summary>
             <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte[],System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.SetBit(System.Byte[],System.IntPtr)">
             <summary>Установить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.setBit(System.Byte*,System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.SetBit(System.Byte*,System.IntPtr)">
             <summary>Установить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte[],System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.ResetBit(System.Byte[],System.IntPtr)">
             <summary>Сбросить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
-        <member name="M:cryptoprime.BitToBytes.resetBit(System.Byte*,System.IntPtr)">
+        <member name="M:cryptoprime.BitToBytes.ResetBit(System.Byte*,System.IntPtr)">
             <summary>Сбросить бит в битовом массиве</summary>
             <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
         </member>
@@ -44,52 +44,52 @@
         <member name="P:cryptoprime.BytesBuilder.Count">
             <summary>Количество всех сохранённых байтов в этом объекте</summary>
         </member>
-        <member name="P:cryptoprime.BytesBuilder.countOfBlocks">
+        <member name="P:cryptoprime.BytesBuilder.CountOfBlocks">
             <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.getBlock(System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.GetBlock(System.Int32)">
             <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник)</returns>
         </member>
         <member name="F:cryptoprime.BytesBuilder.count">
             <summary>Количество сохранённых байтов</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.add(System.Byte[],System.Int32,System.Boolean)">
+        <member name="M:cryptoprime.BytesBuilder.Add(System.Byte[],System.Int32,System.Boolean)">
             <summary>Добавляет блок в объект</summary><param name="bytesToAdded">Добавляемый блок данных</param>
             <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
             <param name="MakeCopy">MakeCopy = true говорит о том, что данные блока будут скопированы (создан новый блок и он будет добавлен). По-умолчанию false - блок будет добавлен без копирования. Это значит, что при изменении исходного блока, изменится и выход, даваемый объектом. Если исходный блок будет обнулён, то будет обнулены и выходные байты из этого объекта, соответствующие этому блоку</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addCopy(System.Byte[],System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddCopy(System.Byte[],System.Int32)">
             <summary>Копирует данные блока и добавляет его в объект</summary><param name="bytesToAdded">Добавляемый блок</param><param name="index">Индекс для добавления.  index = -1 - добавление в конец</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addByte(System.Byte,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddByte(System.Byte,System.Int32)">
             <summary>Добавляет в объект один байт</summary><param name="number">Добавляемое значение</param><param name="index">Индекс добавляемого блока. -1 - в конец</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addUshort(System.UInt16,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddUshort(System.UInt16,System.Int32)">
             <summary>Добавляет в объект двухбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addInt(System.Int32,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddInt(System.Int32,System.Int32)">
             <summary>Добавляет в объект 4-хбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addULong(System.UInt64,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddULong(System.UInt64,System.Int32)">
             <summary>Добавляет в объект 8-хбайтовое беззнаковое целое. Младший байт по младшему адресу</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.addVariableULong(System.UInt64,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.AddVariableULong(System.UInt64,System.Int32)">
             <summary>Добавляет в объект специальную кодировку 8-байтового числа, см. функцию VariableULongToBytes</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.add(System.String,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.Add(System.String,System.Int32)">
             <summary>Добавляет в объект строку UTF-8</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilder.Clear(System.Boolean)">
             <summary>Обнуляет объект</summary>
             <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.getBytes(System.IntPtr,System.Byte[])">
+        <member name="M:cryptoprime.BytesBuilder.GetBytes(System.IntPtr,System.Byte[])">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
             <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
             <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
             <returns></returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.getBytes(System.IntPtr,System.IntPtr,System.Byte[],System.Int32)">
+        <member name="M:cryptoprime.BytesBuilder.GetBytes(System.IntPtr,System.IntPtr,System.Byte[],System.Int32)">
             <summary>Получить resultCount начиная с индекса index</summary>
             <param name="resultCount">Количество байтов для получения. -1 - сформировать массив с байта index до конца байтов источника</param>
             <param name="dIndex">Стартовый индекс байта источника</param>
@@ -101,7 +101,7 @@
             <summary>Удаляет блок из объекта с позиции position, блок очищается нулями</summary>
             <returns>Возвращает длину удалённого блока</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilder.getBytesAndRemoveIt(System.Byte[],System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilder.GetBytesAndRemoveIt(System.Byte[],System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя resultCount символов, и удаляет их с очисткой из BytesBuilder</summary>
             <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
             <param name="resultCount">Размер массива-результата</param>
@@ -292,33 +292,33 @@
         <member name="P:cryptoprime.BytesBuilderForPointers.Count">
             <summary>Количество всех сохранённых байтов в этом объекте</summary>
         </member>
-        <member name="P:cryptoprime.BytesBuilderForPointers.countOfBlocks">
+        <member name="P:cryptoprime.BytesBuilderForPointers.CountOfBlocks">
             <summary>Количество всех сохранённых блоков, как они были добавлены в этот объект</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.getBlock(System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.GetBlock(System.Int32)">
             <summary>Получает сохранённых блок с определённым индексом в списке сохранения</summary><param name="number">Индекс в списке</param><returns>Сохранённый блок (не копия, подлинник!). Изменение блока повлияет на содержимое данного объекта</returns>
         </member>
         <member name="F:cryptoprime.BytesBuilderForPointers.count">
             <summary>Количество сохранённых байтов</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.addWithCopy(System.Byte*,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.AddWithCopy(System.Byte*,System.IntPtr,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.Int32)">
             <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
             <param name="len">Длина добавляемого массива</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования</param>
             <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.addWithCopy(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.AddWithCopy(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.Int32)">
             <summary>Добавляет копию блока данных в объект</summary><param name="bytesToAdded">Исходный блок данных для добавления</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования</param>
             <param name="index">Индекс, куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.addWithoutCopy(System.Byte*@,System.IntPtr,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.AddWithoutCopy(System.Byte*@,System.IntPtr,System.Int32)">
             <summary>Добавляет блок данных без копирования в объект</summary><param name="bytesToAdded">Добавляемый блок данных, указатель перезаписывается нулём с целью избежания ошибочного использования. <para>Обратите внимание, что при изменении из-вне блока данных могут измениться данные и внутри объекта</para><para>При удалении блока данных в этом буфере исходные данные будут перезатёрты нулями!</para></param>
             <param name="len">Длина добавляемого массива</param>
             <param name="index">Куда добавляется блок. По-умолчанию, в конец (index = -1)</param>
             <remarks>Обратите внимание, массив bytesToAdded лучше после этого нигде не использовать. Так как после удаления его из буфера, он будет автоматически перезаписан нулями. Необходима доп. проверка на то, что вызывающая функция нигде не использует данный объект</remarks>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.add(cryptoprime.BytesBuilderForPointers.Record,System.Int32)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Add(cryptoprime.BytesBuilderForPointers.Record,System.Int32)">
             <summary>Добавляет массив в сохранённые значения без копирования. Массив будет автоматически очищен и освобождён после окончания</summary>
             <param name="rec">Добавляемый массив (не копируется, будет уничтожен автоматически при очистке BytesBuilder). Массив нельзя использовать где-то ещё, так как он может быть неожиданно очищен</param>
             <param name="index">Индекс позиции, на которую добавляется массив</param>
@@ -327,7 +327,7 @@
             <summary>Обнуляет объект</summary>
             <param name="fast">fast = <see langword="false"/> - обнуляет все байты сохранённые в массиве и очищает память, выделенную под эти объекты</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.GetBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы. Ничего не удаляет и не очищает</summary>
             <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
             <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
@@ -335,7 +335,7 @@
             <param name="RecordDebugName">Имя создаваемой записи (для отладки). Используется, только если resultA != null.</param>
             <returns>Массив байтов результата, длиной resultCount. Если установлен resultA, то возврат совпадает с этим массивом</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte*,System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte*,System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary><param name="b">Массив для копирования</param>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Элемент, расположенный после последнего элемента для копирования</param>
@@ -343,7 +343,7 @@
             <param name="RecordName">Имя новой записи, для отладки</param>
             <returns>Новый массив, являющийся копией массива b[start .. PostEnd - 1]</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary>
             <param name="rec">Массив для копирования</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования. Может быть null, в таком случае аллокатор получается из rec</param>
@@ -352,7 +352,7 @@
             <param name="RecordName">Имя новой записи, для отладки</param>
             <returns>Новый массив, являющийся копией массива rec[start .. PostEnd - 1]</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.CloneBytes(System.Byte[],cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.IntPtr,System.IntPtr,System.String)">
             <summary>Клонирует массив, начиная с элемента start, до элемента с индексом PostEnd (не включая его)</summary>
             <param name="b">Массив для копирования</param>
             <param name="allocator">Аллокатор для выделения памяти для копирования. Не может быть null</param>
@@ -367,7 +367,7 @@
             <param name="position">Индекс удаляемого блока</param>
             <param name="doClear">Если true, то удалённый блок очищается нулями и память, выделенная под него, освобождается ( всё это делается вызовом Record.Dispose() )</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.GetBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя result.len символов, и удаляет их с очисткой из BytesBuilder</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>. Количество байтов устанавливается длиной массива. <para>Если Result.allocator, то может быть ситуация разыменования <see langword="null"/>, если нет allocator у записей, которые были добавлены в буфер</para></param>
             <param name="resultLen">Длина результата. Если -1, то длина берётся из result.len</param>
@@ -408,11 +408,11 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.#ctor(System.String)">
             <summary>Этот метод вызывать не надо (если только вы не хотите сделать обёртку под уже выделенную память). Используйте AllocatorForUnsafeMemoryInterface.AllocMemory.<para>При вызове этого метода для создания копии, нужно учитывать, что Dispose обнуляет память. Чтобы Dispose не обнулил память, необходимо обнулить array до вызова Dispose с учётом возможного возникновения исключений.</para></summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(System.Object)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(System.Object)">
             <summary>Регистрирует деструктор для вызова с помощью GC.ReRegisterForFinalize. Иначе деструктор может быть не вызван.</summary>
             <param name="obj">Объект, деструктор которого должен быть зарегистрирован для вызова.</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.getRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.GetRecordFromBytesArray(System.Byte[],cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.String)">
             <summary>Создать запись и скопировать туда содержимое массива байтов</summary>
             <param name="allocator">Аллокатор памяти, который предоставит выделение памяти посредством вызова AllocMemory</param>
             <param name="sourceArray"></param>
@@ -435,7 +435,7 @@
             <param name="RecordName">Имя записи, для отладки</param>
             <returns>Возвращает полностью скопированный массив, независимый от исходного</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface,System.Boolean,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Clone(System.IntPtr,System.IntPtr,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface,System.Boolean,System.String)">
             <summary>Клонирует запись. Данные внутри записи копируются из диапазона [start .. PostEnd - 1]</summary>
             <param name="start">Начальный элемент для копирования</param>
             <param name="PostEnd">Первый элемент, который не надо копировать</param>
@@ -474,7 +474,7 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Free">
             <summary>Вызывает Dispose(true)</summary>
         </member>
-        <member name="P:cryptoprime.BytesBuilderForPointers.Record.errorsInDispose">
+        <member name="P:cryptoprime.BytesBuilderForPointers.Record.ErrorsInDispose">
             <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.Dispose(System.Boolean)">
@@ -529,30 +529,30 @@
             <param name="postEnd">Элемент, идущий после последнего элемента для сравнения. 0 == b.len. Отрицательное значение равно b.len+postEnd</param>
             <returns>true, если значения массивов в записях равны</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.Record.checkRange(System.IntPtr,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.CheckRange(System.IntPtr,System.IntPtr)">
             <summary>Проверяет, что индексы start и end лежат внутри массива. start &lt;= end. Если условия не выполнены, то генерируется исключение.</summary>
             <param name="start">Индекс для проверки в границах массива</param>
             <param name="end">Индекс для проверки в границах массива</param>
         </member>
-        <member name="T:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface">
+        <member name="T:cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface">
             <summary>Интерфейс описывает способ выделения памяти. Реализация: AllocHGlobal_AllocatorForUnsafeMemory</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.AllocMemory(System.IntPtr,System.String)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface.AllocMemory(System.IntPtr,System.String)">
             <summary>Выделяет память. Память может быть непроинициализированной</summary>
             <param name="len">Размер выделяемого блока памяти</param>
             <param name="RecordName">Имя записи: для отладочных целей</param>
             <returns>Описатель выделенного участка памяти, включая способ удаления памяти</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.FreeMemory(cryptoprime.BytesBuilderForPointers.Record)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface.FreeMemory(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Освобождает выделенную область памяти. Не очищает память (не перезабивает её нулями). Должен вызываться автоматически в Record</summary>
             <param name="recordToFree">Память к освобождению</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.FixMemory(System.Byte[])">
+        <member name="M:cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface.FixMemory(System.Byte[])">
             <summary>Производит фиксацию в памяти массива (интерфейс должен реализовывать либо AllocMemory(nint), либо этот метод, либо оба)</summary>
             <param name="array">Исходный массив</param>
             <returns>Зафиксированный массив</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface.FixMemory(System.Object,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface.FixMemory(System.Object,System.IntPtr)">
             <summary>Производит фиксацию в памяти объекта, длиной length байтов</summary>
             <param name="array">Закрепляемый объект</param>
             <param name="length">Длина объекта в байтах. Длины массивов необходимо домножать на размер элемента массива</param>
@@ -675,16 +675,16 @@
             <param name="index">Индекс получаемого элемента</param>
             <returns>Адрес элемента массива</returns>
         </member>
-        <member name="P:cryptoprime.BytesBuilderStatic.len1">
+        <member name="P:cryptoprime.BytesBuilderStatic.Len1">
             <summary>Длина данных, приходящихся на правый (первый) сегмент данных</summary>
         </member>
-        <member name="P:cryptoprime.BytesBuilderStatic.len2">
+        <member name="P:cryptoprime.BytesBuilderStatic.Len2">
             <summary>Длина данных, приходящихся на левый сегмент данных</summary>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.add(System.Byte*,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderStatic.Add(System.Byte*,System.IntPtr)">
             <summary>Добавляет блок в буфер</summary><param name="bytesToAdded">Добавляемый блок данных. Содержимое копируется</param><param name="len">Длина добавляемого блока данных</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.add(cryptoprime.BytesBuilderForPointers.Record)">
+        <member name="M:cryptoprime.BytesBuilderStatic.Add(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Добавляет массив в сохранённые значения</summary>
             <param name="rec">Добавляемый массив (копируется)</param>
         </member>
@@ -692,11 +692,11 @@
             <summary>Очищает циклический буфер</summary>
             <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.isEntireNull">
+        <member name="M:cryptoprime.BytesBuilderStatic.IsEntireNull">
             <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
             <returns>true, если все значения внутреннего буфера равны нулю</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.getBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.AllocatorForUnsafeMemoryInterface)">
+        <member name="M:cryptoprime.BytesBuilderStatic.GetBytes(System.IntPtr,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.IAllocatorForUnsafeMemoryInterface)">
             <summary>Создаёт массив байтов, включающий в себя все сохранённые массивы</summary>
             <param name="resultCount">Размер массива-результата (если нужны все байты resultCount = -1)</param>
             <param name="resultA">Массив, в который будет записан результат. Если resultA = null, то массив создаётся</param>
@@ -707,13 +707,13 @@
             <summary>Удаляет байты из начала массива</summary>
             <param name="len">Количество байтов к удалению</param>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderStatic.GetBytesAndRemoveIt(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
             <param name="count">Длина запрашиваемых данных</param>
             <returns>Массив result</returns>
         </member>
-        <member name="M:cryptoprime.BytesBuilderStatic.getBytesAndRemoveIt(System.Byte*,System.IntPtr)">
+        <member name="M:cryptoprime.BytesBuilderStatic.GetBytesAndRemoveIt(System.Byte*,System.IntPtr)">
             <summary>Создаёт массив байтов, включающий в себя count байтов из буфера, и удаляет их с очисткой</summary>
             <param name="result">Массив, в который будет записан результат. Уже должен быть выделен. result != <see langword="null"/>.</param>
             <param name="count">Длина запрашиваемых данных</param>
@@ -728,22 +728,22 @@
         <member name="M:cryptoprime.BytesBuilderStatic.Finalize">
             <summary>Деструктор</summary>
         </member>
-        <member name="F:cryptoprime.threefish_slowly.Nw">
+        <member name="F:cryptoprime.Threefish_slowly.Nw">
             <summary>Длина ключа в словах по 8-мь байтов</summary>
         </member>
-        <member name="F:cryptoprime.threefish_slowly.keyLen">
+        <member name="F:cryptoprime.Threefish_slowly.keyLen">
             <summary>Длина ключа в байтах</summary>
         </member>
-        <member name="F:cryptoprime.threefish_slowly.twLen">
+        <member name="F:cryptoprime.Threefish_slowly.twLen">
             <summary>Длина tweak в байтах</summary>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.calcAlignment(System.IntPtr,System.Int32)">
+        <member name="M:VinKekFish_Utils.Utils.CalcAlignment(System.IntPtr,System.Int32)">
             <summary>Функция для расчёта выравнивания</summary>
             <param name="size">Размер массива для выравнивания</param>
             <param name="alignment">Размер границ, на который выравнивается</param>
             <returns>Выравненное значение size</returns>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.getAlignment64(cryptoprime.BytesBuilderForPointers.Record)">
+        <member name="M:VinKekFish_Utils.Utils.GetAlignment64(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Выравнивает массив Record по значению 64-ре байта. Массив должен быть выделен с запасом 64 байта. Проще использовать alignmentDegree в AllocHGlobal_AllocatorForUnsafeMemory</summary>
             <param name="a">Массив для выравнивания. Должен быть выделен с запасом 64-ре байта</param>
             <returns>Выравненный массив (может как совпадать с "a", так и нет)</returns>
@@ -784,7 +784,7 @@
             <param name="len">Длина массива</param>
             <returns>Строка, закодированная в шестнадцатиричном виде</returns>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.getLogFileName(System.String)">
+        <member name="M:VinKekFish_Utils.Utils.GetLogFileName(System.String)">
             <summary>Получает имя лог-файла в файловой системе для ArrayToFile</summary>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
@@ -804,7 +804,7 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.formatException(System.Exception,System.Boolean)">
+        <member name="M:VinKekFish_Utils.Utils.FormatException(System.Exception,System.Boolean)">
             <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
             <param name="ex">Исключение</param>
             <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
@@ -846,10 +846,10 @@
         <member name="F:VinKekFish_Utils.Memory.MemoryLockType.linux">
             <summary>Используется аллокатор из libc (mmap)</summary>
         </member>
-        <member name="P:VinKekFish_Utils.Memory.alloc">
+        <member name="P:VinKekFish_Utils.Memory.Alloc">
             <summary>Выделяет память. Это текущий абстрагированный аллокатор. Если выделение памяти не прошло успешно, вызывает OutOfMemoryException</summary>
         </member>
-        <member name="P:VinKekFish_Utils.Memory.free">
+        <member name="P:VinKekFish_Utils.Memory.Free">
             <summary>Освобождает память, выделенную до этого alloc</summary>
         </member>
         <member name="F:VinKekFish_Utils.Memory.allocatedRegions">
@@ -891,7 +891,7 @@
             Пример шаблона "/dev/*/*/*-event-*".
             </summary>
         </member>
-        <member name="M:VinKekFish_Utils.Glob.glob(System.Byte*,System.IntPtr,System.Void*,VinKekFish_Utils.Glob.glob_t*)">
+        <member name="M:VinKekFish_Utils.Glob.glob(System.Byte*,System.IntPtr,System.Void*,VinKekFish_Utils.Glob.Glob_t*)">
             <summary>Выдаёт имена файлов, соответствующие шаблону</summary>
             <param name="pattern">Шаблон для поиска</param>
             <param name="flags">Флаги, см. man glob</param>

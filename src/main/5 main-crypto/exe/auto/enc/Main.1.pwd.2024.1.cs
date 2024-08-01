@@ -22,7 +22,7 @@ using VinKekFish_Utils;
 /// </summary>
 public unsafe partial class Main_1_PWD_2024_1
 {
-    public partial class EncryptData: IDisposable
+    public partial class EncryptDataClass: IDisposable
     {                                                                       /// <summary>Поток данных, выравненный по длине. Автоматически создаётся и удаляется.</summary>
         public Record       AlignedStream;                                  /// <summary>Исходный поток данных, переданный в конструктор. Автоматически удаляется.</summary>
         public Record       PrimaryStream;
@@ -51,7 +51,7 @@ public unsafe partial class Main_1_PWD_2024_1
         /// <param name="getDataByAdd">Генератор ключей, который уже должен быть проинициализирован заранее. Используется только в конструкторе, далее может быть использован в других потоках и должен быть удалён вызывающим методом. Первый режим работы: 255.</param>
         /// <param name="vkfOpt">Опции создания губки VinKekFish.</param>
         /// <param name="cscOpt">Опции создания каскадной губки.</param>
-        public EncryptData(Record dataForEncrypt, FileParts file, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
+        public EncryptDataClass(Record dataForEncrypt, FileParts file, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
         {
             GC.ReRegisterForFinalize(this);
             this.vkfOpt = vkfOpt;
@@ -75,20 +75,24 @@ public unsafe partial class Main_1_PWD_2024_1
             var cur  = fLen;
             var nLen = aLen - fLen;
 
-            Key0Csc  = getDataByAdd.getBytes(tall*wide*KeccakPrime.BlockLen*2+16, 251);
-            Key1Vkf  = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
-            Key1Csc  = getDataByAdd.getBytes(tall*KeccakPrime.BlockLen*2+16, 252);
-            Key2Vkf  = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 251);
-            Key3PCsc = getDataByAdd.getBytes(tall*wide*KeccakPrime.BlockLen*2+16, 252);
-            Key4Csc  = getDataByAdd.getBytes(tall*KeccakPrime.BlockLen*2+16, 255);
-            Key5Vkf  = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
+            Key0Csc  = getDataByAdd.GetBytes(tall*wide*KeccakPrime.BlockLen*2+16, 251);
+            Key1Vkf  = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
+            Key1Csc  = getDataByAdd.GetBytes(tall*KeccakPrime.BlockLen*2+16, 252);
+            Key2Vkf  = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 251);
+            Key3PCsc = getDataByAdd.GetBytes(tall*wide*KeccakPrime.BlockLen*2+16, 252);
+            Key4Csc  = getDataByAdd.GetBytes(tall*KeccakPrime.BlockLen*2+16, 255);
+            Key5Vkf  = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
 
             var enPart = file.FindFirstPart("Encrypted");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
-        ~EncryptData()       => Dispose(true);
-        void IDisposable.Dispose() => Dispose();
+        ~EncryptDataClass()        => Dispose(true);
+        void IDisposable.Dispose()
+        {
+            Dispose();
+            GC.SuppressFinalize(this);
+        }
 
         public bool isDisposed = false;
         public virtual void Dispose(bool fromDestructor = false)
@@ -104,7 +108,7 @@ public unsafe partial class Main_1_PWD_2024_1
 
             if (isDisposed)
             {
-                Record.errorsInDispose = true;
+                Record.ErrorsInDispose = true;
                 emsg = L("DoCryptDataStream.Dispose: Dispose twiced");
                 Console.Error.WriteLine(emsg);
                 return;
@@ -125,7 +129,7 @@ public unsafe partial class Main_1_PWD_2024_1
 
             if (emsg is not null)
             {
-                Record.errorsInDispose = true;
+                Record.ErrorsInDispose = true;
                 Console.Error.WriteLine(emsg);
                 return;
             }

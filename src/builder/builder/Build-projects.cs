@@ -16,7 +16,7 @@ partial class Program
 
         // ----------------  BytesBuilder and ThreeFish slowly for ThreeFish generator  ----------------
         var (result, dir) = ExecuteBuildForProject(cd, "src/main/1 BytesBuilder/", inSingleFile: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -39,7 +39,7 @@ partial class Program
             dt_threefish1 = dt_threefish2;
 
         (result, dir) = ExecuteBuildForProject(cd, "src/main/2 generator/", inSingleFile: true, lastModified: dt_threefish1);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -74,7 +74,7 @@ partial class Program
 
         // ----------------  crypto primes  ----------------
         (result, dir) = ExecuteBuildForProject(cd, "src/main/3 cryptoprime/", inSingleFile: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -86,7 +86,7 @@ partial class Program
 
         // ----------------  VinKekFish_Utils  ----------------
         (result, dir) = ExecuteBuildForProject(cd, "src/main/4 utils/", inSingleFile: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -98,7 +98,7 @@ partial class Program
 
         // ----------------  VinKekFish_Utils test-dev  ----------------
         (result, dir) = ExecuteBuildForProject(cd, "src/test-dev/SecureCompare/", inSingleFile: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -108,7 +108,7 @@ partial class Program
 
         // ----------------  main-crypto ----------------
         (result, dir) = ExecuteBuildForProject(cd, "src/main/5 main-crypto/", inSingleFile: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -127,7 +127,7 @@ partial class Program
         var index = vkf_program.IndexOf(versionStr);
         var endIndex = vkf_program.IndexOf("\n", startIndex: index);
         vkf_program = vkf_program.Substring(0, length: index)
-                    + versionStr + "\"" + DateTimeStrings.getDateVersionString(DateTime.Now) + "\";"
+                    + versionStr + "\"" + DateTimeStrings.GetDateVersionString(DateTime.Now) + "\";"
                     + vkf_program.Substring(endIndex);
         File.WriteAllText(vkf_folder + ckf_vFile, vkf_program);
 
@@ -140,7 +140,7 @@ partial class Program
 
         // Строим проект
         (result, dir) = ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: false, SelfContained: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {
@@ -154,7 +154,7 @@ partial class Program
         // ----------------  All tests executor. MUST BE LAST  ----------------
         // Кроме одноразовых тестов test-dev
         (result, dir) = ExecuteBuildForProject(cd, "src/tests/", false, isActualCheck: false);
-        end_build_for_project_event?.Invoke(result, dir);
+        End_build_for_project_event?.Invoke(result, dir);
 
         if (result != ErrorCode.Success)
         {

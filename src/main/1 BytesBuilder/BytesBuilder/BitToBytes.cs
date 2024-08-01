@@ -26,15 +26,15 @@ namespace cryptoprime
 
         /// <summary>Получить бит из битово массива</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
-        public static bool getBit(byte[] array, nint index)
+        public static bool GetBit(byte[] array, nint index)
         {
             fixed (byte * b = array)
-                return getBit(b, index);
+                return GetBit(b, index);
         }
 
         /// <summary>Получить бит из битово массива</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс получаемого элемента</param>
-        public static bool getBit(byte* array, nint index)
+        public static bool GetBit(byte* array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
@@ -47,15 +47,15 @@ namespace cryptoprime
 
         /// <summary>Установить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void setBit(byte[] array, nint index)
+        public static void SetBit(byte[] array, nint index)
         {
             fixed (byte * b = array)
-                setBit(b, index);
+                SetBit(b, index);
         }
 
         /// <summary>Установить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void setBit(byte* array, nint index)
+        public static void SetBit(byte* array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);
@@ -65,15 +65,15 @@ namespace cryptoprime
 
         /// <summary>Сбросить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void resetBit(byte[] array, nint index)
+        public static void ResetBit(byte[] array, nint index)
         {
             fixed (byte * b = array)
-                resetBit(b, index);
+                ResetBit(b, index);
         }
 
         /// <summary>Сбросить бит в битовом массиве</summary>
         /// <param name="array">Массив битов</param><param name="index">Индекс задаваемого элемента</param>
-        public static void resetBit(byte* array, nint index)
+        public static void ResetBit(byte* array, nint index)
         {
             var i = index >> 3;
             var s = (byte) (index & 0x07);

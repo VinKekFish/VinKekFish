@@ -136,7 +136,7 @@ namespace cryptoprime.VinKekFish
             }
 
             // TODO: указатели на таблицы перестановок
-            step
+            Step
             (
                 countOfRounds: R, tablesForPermutations: tablesForPermutations,
                 tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state2, b: b, c: c
@@ -167,7 +167,7 @@ namespace cryptoprime.VinKekFish
             if (!ExtendedKey)
             {
                 InputData_Overwrite(data: null, state: state, dataLen: 0, tweak: tweak, regime: 255);
-                step
+                Step
                 (
                     countOfRounds: RE, tablesForPermutations: tablesForPermutations,
                     tweak: tweak, tweakTmp: tweakTmp, state: state, state2: state2, b: b, c: c
@@ -276,7 +276,7 @@ namespace cryptoprime.VinKekFish
         /// <param name="tablesForPermutations">Массив таблиц перестановок на каждый раунд. Длина должна быть countOfRounds*4 таблиц (CryptoStateLen*ushort на каждую таблицу)</param>
         /// <param name="b">Вспомогательный массив b для keccak.Keccackf</param>
         /// <param name="c">Вспомогательный массив c для keccak.Keccackf</param>
-        public static void step(int countOfRounds, ulong * tweak, ulong * tweakTmp, byte * state, byte * state2, ushort * tablesForPermutations, byte* b, byte* c)
+        public static void Step(int countOfRounds, ulong * tweak, ulong * tweakTmp, byte * state, byte * state2, ushort * tablesForPermutations, byte* b, byte* c)
         {
             tweakTmp[0] = tweak[0];
             tweakTmp[1] = tweak[1];
@@ -458,7 +458,7 @@ namespace cryptoprime.VinKekFish
         public static ushort* transpose200_3200_8  = null;
         // public static ushort* transpose400_3200_16 = null;
 
-        public static readonly object sync = new object();
+        public static readonly object sync = new();
 
         /// <summary>Эту процедуру нужно вызвать для инициализации таблиц перестановок перед любым вызовом методов класса. Допускается многопоточный вызов без синхронизации. Вызов производится один раз на всю программу (на весь процесс)</summary>
         public static void GenTables()

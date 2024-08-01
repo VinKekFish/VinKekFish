@@ -18,8 +18,8 @@ namespace maincrypto.keccak;
 /// <summary>Криптостойкий ГПСЧ</summary>
 public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 {                                                                                                       /// <summary>Главный аллокатор: используется для однократного выделения памяти под вспомогательные буферы inputTo и outputBuffer</summary>
-    public readonly AllocatorForUnsafeMemoryInterface curAllocator          = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();      /// <summary>Аллокатор для использования в многократных операциях по выделению памяти при сохранении данных или их преобразовании</summary>
-    public          AllocatorForUnsafeMemoryInterface allocatorForSaveBytes = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory(); // new BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory();
+    public readonly IAllocatorForUnsafeMemoryInterface curAllocator          = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory();      /// <summary>Аллокатор для использования в многократных операциях по выделению памяти при сохранении данных или их преобразовании</summary>
+    public          IAllocatorForUnsafeMemoryInterface allocatorForSaveBytes = new BytesBuilderForPointers.AllocHGlobal_AllocatorForUnsafeMemory(); // new BytesBuilderForPointers.Fixed_AllocatorForUnsafeMemory();
     // Fixed работает раза в 3 медленнее почему-то
 
     /// <summary>Создаёт пустой объект</summary>
@@ -28,12 +28,12 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <exception cref="OutOfMemoryException"></exception>
     /// <exception cref="ArgumentOutOfRangeException">Если outputSize &lt; InputSize</exception>
     /// <remarks>init() вызывается автоматически всегда</remarks>
-    public Keccak_PRNG_20201128(AllocatorForUnsafeMemoryInterface? allocator = null, nint outputSize = 4096): base(noInit: true)
+    public Keccak_PRNG_20201128(IAllocatorForUnsafeMemoryInterface? allocator = null, nint outputSize = 4096): base(noInit: true)
     {
         if (outputSize < InputSize)
         {
             this.Dispose();
-            throw new ArgumentOutOfRangeException("outputSize");
+            throw new ArgumentOutOfRangeException(nameof(outputSize));
         }
 
         if (allocator != null)
@@ -43,13 +43,13 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         outputBuffer = AllocMemory(InputSize);
         output       = new BytesBuilderStatic(outputSize);
 
-        init();
+        Init();
     }
 
     /// <summary>Инициализация объекта нулями</summary>
-    public override void init()
+    public override void Init()
     {
-        base.init();
+        base.Init();
         inputTo!.Clear();
         outputBuffer!.Clear();
     }
@@ -67,12 +67,13 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <summary>Клонирует внутреннее состояние объекта и аллокаторы. Вход и выход не копируются</summary><returns></returns>
     public override Keccak_abstract Clone()
     {
-        var result = new Keccak_PRNG_20201128(allocator: curAllocator);
-
-        result.allocatorForSaveBytes = this.allocatorForSaveBytes;
+        var result = new Keccak_PRNG_20201128(allocator: curAllocator)
+        {
+            allocatorForSaveBytes = this.allocatorForSaveBytes
+        };
 
         // Очищаем C и B, чтобы не копировать какие-то значения, которые не стоит копировать, да и хранить тоже
-        clearOnly_C_and_B();
+        ClearOnly_C_and_B();
 
         // Копировать всё состояние не обязательно. Но здесь, для надёжности, копируется всё (в т.ч. ранее очищенные нули)
         BytesBuilder.CopyTo(StateLen, StateLen, State, result.State);
@@ -82,7 +83,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
 
     /// <summary>Сюда можно добавлять байты для ввода</summary>
-    protected          BytesBuilderForPointers? INPUT = new BytesBuilderForPointers(); // Не забыт ли вызов InputBytesImmediately при добавлении сюда?
+    protected          BytesBuilderForPointers? INPUT = new(); // Не забыт ли вызов InputBytesImmediately при добавлении сюда?
     /// <summary>Размер блока вводимой (и выводимой) информации</summary>
     public    const    int InputSize = 64;
 
@@ -91,7 +92,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <summary>В массиве inputTo ожидают данные в количестве inputReady. Можно вызывать calStep</summary>
     protected          byte    inputReady   = 0;
                                                                     /// <summary>Если <see langword="true"/>, то в массиве inputTo ожидают данные. Можно вызывать calStep</summary>
-    public             bool    isInputReady => inputReady > 0;      /// <summary>Количество данных, которые доступны в массиве inputTo для непосредственного ввода в губку. Используются calStep автоматически для ввода данных перед криптографическим преобразованием</summary>
+    public             bool    IsInputReady => inputReady > 0;      /// <summary>Количество данных, которые доступны в массиве inputTo для непосредственного ввода в губку. Используются calStep автоматически для ввода данных перед криптографическим преобразованием</summary>
     public             byte    InputReady   => inputReady;
 
     /// <summary>Массив, представляющий результаты вывода</summary>
@@ -100,7 +101,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     protected          Record?             outputBuffer = null;
 
     /// <summary>Количество элементов, которые доступны для вывода без применения криптографических операций</summary>
-    public long outputCount => output!.Count;
+    public long OutputCount => output!.Count;
 
     /// <summary>Ввести рандомизирующие байты (в том числе, открытый вектор инициализации). Не выполняет криптографических операций</summary>
     /// <param name="bytesToInput">Рандомизирующие байты. Копируются. bytesToInput должны быть очищены вручную, если больше не нужны</param>
@@ -110,7 +111,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
-        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, curAllocator));
+        INPUT!.Add(BytesBuilderForPointers.CloneBytes(bytesToInput, curAllocator));
         // InputBytesImmediately(notException: true);
     }
 
@@ -123,7 +124,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (bytesToInput == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: bytesToInput == null");
 
-        INPUT!.add(BytesBuilderForPointers.CloneBytes(bytesToInput, 0, len, curAllocator));
+        INPUT!.Add(BytesBuilderForPointers.CloneBytes(bytesToInput, 0, len, curAllocator));
         // InputBytesImmediately(notException: true);
     }
 
@@ -135,7 +136,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         if (data.array == null)
             throw new ArgumentNullException("Keccak_PRNG_20201128.InputBytes: data.array == null");
 
-        INPUT!.add(data);
+        INPUT!.Add(data);
         // InputBytesImmediately(notException: true);
     }
 
@@ -146,7 +147,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="OIV_length">Длина ОВИ</param>
     public void InputKeyAndStep(byte * key, nint key_length, byte * OIV, nint OIV_length)
     {
-        if (INPUT!.countOfBlocks > 0)
+        if (INPUT!.CountOfBlocks > 0)
             throw new ArgumentException("Keccak_PRNG_20201128.InputKeyAndStep:key must be input before the generation or input an initialization vector (or see InputKeyAndStep code)");
 
         if (OIV_length > InputSize)
@@ -163,32 +164,32 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
             if (OIV_length <= 0)
                 throw new ArgumentOutOfRangeException("Keccak_PRNG_20201128.InputKeyAndStep: OIV_length <= 0");
 
-            INPUT.addWithCopy(OIV, OIV_length, curAllocator);
+            INPUT.AddWithCopy(OIV, OIV_length, curAllocator);
             InputBytesImmediately();
             if (inputReady <= 0)
                 throw new ArgumentNullException("Keccak_PRNG_20201128.InputKeyAndStep: inputReady != true with OIV != null after first input");
 
             // Вводим столько байтов, сколько есть
             while (inputReady > 0)
-                calcStep(true, Overwrite: false, regime: 1);
+                CalcStep(true, Overwrite: false, regime: 1);
         }
 
         if (INPUT.Count > 0)
             throw new Exception("Keccak_PRNG_20201128.InputKeyAndStep: fatal algorithmic error. INPUT.Count > 0 || inputReady > 0 after OIV input");
 
         // Завершаем ввод открытого вектора инициализации
-        calcStep(false, Overwrite: false, inputAlways: true, regime: 2);
+        CalcStep(false, Overwrite: false, inputAlways: true, regime: 2);
 
         // Вводим ключ
-        INPUT.addWithCopy(key, key_length, curAllocator);
+        INPUT.AddWithCopy(key, key_length, curAllocator);
         InputBytesImmediately();
         while (inputReady > 0)
-            calcStep(Overwrite: false, regime: 3);
+            CalcStep(Overwrite: false, regime: 3);
 
         // Завершаем ввод ключа конструкцией Overwrite, которая даёт некую необратимость состояния в отношении ключа
-        calcStep(false, Overwrite: true, inputAlways: true, regime: 4);
+        CalcStep(false, Overwrite: true, inputAlways: true, regime: 4);
 
-        if (INPUT.countOfBlocks > 0 || inputReady > 0)
+        if (INPUT.CountOfBlocks > 0 || inputReady > 0)
         {
             INPUT.Clear();
             // Clear(true);
@@ -261,7 +262,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                 else
                     a = inputTo.len;
 
-                INPUT.getBytesAndRemoveIt(inputTo);
+                INPUT.GetBytesAndRemoveIt(inputTo);
                 inputReady = (byte) a;
 
                 if (a > InputSize)
@@ -274,9 +275,9 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     }
 
     /// <summary>Выполняет шаг keccak и сохраняет полученный результат в output</summary>
-    public void calcStepAndSaveBytes(bool inputReadyCheck = true, byte SaveBytes = InputSize)
+    public void CalcStepAndSaveBytes(bool inputReadyCheck = true, byte SaveBytes = InputSize)
     {
-        calcStep(inputReadyCheck: inputReadyCheck, SaveBytes: SaveBytes);
+        CalcStep(inputReadyCheck: inputReadyCheck, SaveBytes: SaveBytes);
     }
 
     /// <summary>Расчитывает один шаг губки keccak. Если есть InputSize (64) байта для ввода (точнее, inputReady == true), то вводит первые 64-ре байта</summary>
@@ -287,9 +288,9 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <remarks>Перед calcStep должен быть установлен inputReady, если нужна обработка введённой информации. Функции Input* устанавливают этот флаг автоматически</remarks>
     /// <remarks>Если inputReady, то после поглощения inputTo, вызывается InputBytesImmediately, чтобы подготовить новый inputTo, если очередь ожидания на входе заполнена</remarks>
     /// <remarks>while (inputReady > 0) calcStep; позволяет рассчитывать дуплекс с заранее введёнными данными в массив INPUT</remarks>
-    public void calcStep(bool inputReadyCheck = true, byte SaveBytes = 0, bool Overwrite = false, byte regime = 0, bool inputAlways = false)
+    public void CalcStep(bool inputReadyCheck = true, byte SaveBytes = 0, bool Overwrite = false, byte regime = 0, bool inputAlways = false)
     {
-        if (isInputReady != inputReadyCheck)
+        if (IsInputReady != inputReadyCheck)
             throw new ArgumentException("Keccak_PRNG_20201128.calcStep: isInputReady != inputReadyCheck");
 
         if (State == null)
@@ -321,7 +322,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
             Keccak_Output_512(output: outputBuffer!.array, len: SaveBytes, S: S);
 
-            output     !.add(outputBuffer.array, SaveBytes);
+            output     !.Add(outputBuffer.array, SaveBytes);
             outputBuffer.Clear();
         }
     }
@@ -329,7 +330,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <summary>Выдаёт случайные криптостойкие значения байтов. Выгодно использовать при большом количестве байтов (64 и более). Выполняет криптографические операции, если байтов не хватает. Автоматически берёт данные из INPUT, если они уже введены</summary>
     /// <param name="outputRecord">Массив, в который записывается результат</param>
     /// <param name="len">Количество байтов, которые необходимо записать. Используйте outputCount, чтобы узнать, сколько байтов уже готово к выводу (без выполнения криптографических операций)</param>
-    public void getBytes(Record outputRecord, nint len)
+    public void GetBytes(Record outputRecord, nint len)
     {
         var output = outputRecord.array;
         if (outputRecord.len < len)
@@ -344,7 +345,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                 readyLen = len;
             }
 
-            using var b = this.output.getBytesAndRemoveIt(  AllocMemoryForSaveBytes(readyLen)  );
+            using var b = this.output.GetBytesAndRemoveIt(  AllocMemoryForSaveBytes(readyLen)  );
 
             BytesBuilder.CopyTo(b.len, readyLen, b.array, output);
 
@@ -363,25 +364,25 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         while (len > 0)
         {
             InputBytesImmediately(notException: true);
-            calcStep(inputReadyCheck: isInputReady);
+            CalcStep(inputReadyCheck: IsInputReady);
             Keccak_Output_512(output: output, len: (byte) (len >= 64 ? 64 : len), S: S);
             len    -= 64;
             output += 64;
         }
     }
                                                     /// <summary>Получает случайный байт</summary><returns>Случайный криптостойкий байт</returns>
-    public byte getByte()
+    public byte GetByte()
     {
         if (this.output!.Count <= 0)
         {
             InputBytesImmediately(notException: true);
-            calcStepAndSaveBytes(inputReadyCheck: isInputReady);
+            CalcStepAndSaveBytes(inputReadyCheck: IsInputReady);
         }
 
         var ba = stackalloc byte[1];
         var b  = new Record() { array = ba, len = 1 };
         // using var b = output.getBytesAndRemoveIt(  AllocMemoryForSaveBytes(1)  );
-        output.getBytesAndRemoveIt(b);
+        output.GetBytesAndRemoveIt(b);
 
         var result = ba[0];
         ba[0]      = 0;
@@ -392,7 +393,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <summary>Выдаёт случайное криптостойкое число от 0 до cutoff включительно. Это вспомогательная функция для основной функции генерации случайных чисел</summary>
     /// <param name="cutoff">Максимальное число (включительно) для генерации. cutoff должен быть близок к ulong.MaxValue или к 0x8000_0000__0000_0000U, иначе неопределённая отсрочка будет очень долгой</param>
     /// <returns>Случайное число в диапазоне [0; cutoff]</returns>
-    public ulong getUnsignedInteger(Cutoff cutoff)
+    public ulong GetUnsignedInteger(Cutoff cutoff)
     {
         var b = stackalloc byte[cutoff.cbytes];
         try
@@ -402,10 +403,10 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                 if (this.output!.Count < cutoff.cbytes)
                 {
                     InputBytesImmediately(notException: true);
-                    calcStepAndSaveBytes(inputReadyCheck: isInputReady);
+                    CalcStepAndSaveBytes(inputReadyCheck: IsInputReady);
                 }
 
-                output.getBytesAndRemoveIt(result: b, cutoff.cbytes);
+                output.GetBytesAndRemoveIt(result: b, cutoff.cbytes);
 
                 ulong result = 0;
                 byte  bn     = 0;
@@ -433,9 +434,9 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="cutoff">Результат функции getCutoffForUnsignedInteger</param>
     /// <param name="range">Результат функции getCutoffForUnsignedInteger</param>
     /// <returns>Случайное число в указанном диапазоне</returns>
-    public ulong getUnsignedInteger(ulong min, Cutoff cutoff)
+    public ulong GetUnsignedInteger(ulong min, Cutoff cutoff)
     {
-        var random = getUnsignedInteger(cutoff);
+        var random = GetUnsignedInteger(cutoff);
 
         return random + min;
     }
@@ -493,7 +494,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
     /// <param name="cutoff">Параметр cutoff для передачи getUnsignedInteger</param>
     /// <param name="range">Диапазон для ввода в функцию getUnsignedInteger</param>
     // TODO: хорошо протестировать
-    public static Cutoff getCutoffForUnsignedInteger(ulong min, ulong max)
+    public static Cutoff GetCutoffForUnsignedInteger(ulong min, ulong max)
     {
         var range = max - min;
 
@@ -502,7 +503,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
     /// <summary>Осуществляет перестановки таблицы 2-хбайтовых целых чисел</summary>
     /// <param name="table">Исходная таблица для перестановок длиной не более int.MaxValue и не менее чем 4 числа</param>
-    public void doRandomPermutationForUShorts(ushort[] table)
+    public void DoRandomPermutationForUShorts(ushort[] table)
     {
         // Иначе всё равно будет слишком долго
         if (table.LongLength > int.MaxValue)
@@ -512,11 +513,11 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
 
         fixed (ushort * T = table)
         {
-            doRandomPermutationForUShorts((ulong) table.LongLength, T);
+            DoRandomPermutationForUShorts((ulong) table.LongLength, T);
         }
     }
 
-    public void doRandomPermutationForUShorts(ulong len, ushort* T)
+    public void DoRandomPermutationForUShorts(ulong len, ushort* T)
     {
         ushort a;
         ulong  index;
@@ -525,8 +526,8 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
         // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
         for (ulong i = 0; i < len - 1; i++)
         {
-            var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);
-            index = getUnsignedInteger(0, cutoff) + i;
+            var cutoff = GetCutoffForUnsignedInteger(0, (ulong)len - i - 1);
+            index = GetUnsignedInteger(0, cutoff) + i;
 
             a        = T[i];
             T[i]     = T[index];

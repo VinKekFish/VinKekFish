@@ -16,30 +16,30 @@ public class ParentAutoSaveTask: AutoSaveTestTask
                     base
                     (
                         name:               "",
-                        dirForFiles:        getDirectoryPath(),
+                        dirForFiles:        GetDirectoryPath(),
                         executer_and_saver: executer_and_saver,
                         constructor:        constructor
                     )
     {
-        this.executer_and_saver.canCreateFile = canCreateFile;
+        this.executer_and_saver.CanCreateFile = canCreateFile;
 
         this.Name   = this.GetType().FullName ?? throw new System.ArgumentNullException();
-        dirForFiles = setDirForFiles();
+        DirForFiles = SetDirForFiles();
     }
 
-    public static DirectoryInfo getDirectoryPath(string ProjectDir = "", string DirName = "autotests")
+    public static DirectoryInfo GetDirectoryPath(string ProjectDir = "", string DirName = "autotests")
     {
         var pathToFile = new DirectoryInfo(System.AppContext.BaseDirectory)?.Parent ?? throw new Exception();
-        var dir        = new DirectoryInfo(Path.Combine(pathToFile.FullName, ProjectDir));
+        var dir        = new DirectoryInfo(System.IO.Path.Combine(pathToFile.FullName, ProjectDir));
         if (dir == null)
             throw new Exception();
 
-        return new DirectoryInfo(  Path.Combine(dir.FullName, DirName)  );
+        return new DirectoryInfo(System.IO.Path.Combine(dir.FullName, DirName)  );
     }
 
-    public virtual DirectoryInfo setDirForFiles()
+    public virtual DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath();
+        return GetDirectoryPath();
     }
 }
 
@@ -64,9 +64,9 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
         // Console.WriteLine("Keccak_sha_3_512_test test task created");
     }
 
-    public override DirectoryInfo setDirForFiles()
+    public override DirectoryInfo SetDirForFiles()
     {
-        return getDirectoryPath("src/tests/src/main/cryptoprime/keccak/tests/");
+        return GetDirectoryPath("src/tests/src/main/cryptoprime/keccak/tests/");
     }
 
     unsafe protected class Saver: TaskResultSaver
@@ -82,7 +82,7 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
             var lst = new List<object>(16);
 
             // openssl dgst -sha3-515 fileForHashing
-            Dictionary<string, string> hashes = new Dictionary<string, string>
+            Dictionary<string, string> hashes = new()
             {
                 {
                     "",
@@ -156,7 +156,7 @@ public class Keccak_sha_3_512_test: ParentAutoSaveTask
 
             foreach (var str in hashes)
             {
-                var a = KeccakPrime.getSHA3_512(Encoding.ASCII.GetBytes(str.Key));
+                var a = KeccakPrime.GetSHA3_512(Encoding.ASCII.GetBytes(str.Key));
                 lst.Add(a);
 
                 if 
@@ -192,7 +192,7 @@ public class Keccak_sha_3_512_test_performance: TestTask
     {
         // Console.WriteLine("Keccak_sha_3_512_test test task created");
 
-        taskFunc = () =>
+        TaskFunc = () =>
         {
             const int blocksCount = 1024;
             const int iterCount   = 1024;
@@ -214,7 +214,7 @@ public class Keccak_sha_3_512_test_performance: TestTask
                     using (st)
                     for (int i = 0; i < iterCount; i++)
                     {
-                        KeccakPrime.getSHA3_512(msg);
+                        KeccakPrime.GetSHA3_512(msg);
                     }
 
                     countBlocksForOneSecond = blocksCount * iterCount * 1000 / st.TotalMilliseconds;

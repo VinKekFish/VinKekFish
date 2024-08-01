@@ -22,6 +22,7 @@ public abstract class ConsoleOptions: IDisposable
     public void Dispose()
     {
         Disposing();
+        GC.SuppressFinalize(this);
     }
 
     public virtual void Disposing()

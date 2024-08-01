@@ -42,7 +42,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
     public Keccak_test_PRNG_20201128_1(TestConstructor constructor) :
                                             base(nameof(Keccak_test_PRNG_20201128_1), constructor)
     {
-        base.taskFunc = () =>
+        base.TaskFunc = () =>
         {
             keccaks = new SortedDictionary<nint, Keccak_PRNG_20201128>();
             try
@@ -64,48 +64,48 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
                     throw new Exception("Keccak_PRNG_20201128.InputSize != 64: the test destined for InputSize == 64");
 
                 osKeccak = new Keccak_PRNG_20201128();
-                addNewToKeccaks(64);
-                addNewToKeccaks(65);
-                addNewToKeccaks(66);
-                addNewToKeccaks(67);
-                addNewToKeccaks(71);
-                addNewToKeccaks(72);
-                addNewToKeccaks(73);
-                addNewToKeccaks(74);
-                addNewToKeccaks(77);
-                addNewToKeccaks(121);
-                addNewToKeccaks(127);
-                addNewToKeccaks(128);
-                addNewToKeccaks(129);
-                addNewToKeccaks(142);
-                addNewToKeccaks(143);
-                addNewToKeccaks(144);
-                addNewToKeccaks(145);
-                addNewToKeccaks(255);
-                addNewToKeccaks(256);
-                addNewToKeccaks(257);
-                addNewToKeccaks(osKeccak.output!.size-1);
-                addNewToKeccaks(osKeccak.output .size+0);
-                addNewToKeccaks(osKeccak.output .size+1);
-                addNewToKeccaks(osKeccak.output .size*16-1);
-                addNewToKeccaks(osKeccak.output .size*16+0);
-                addNewToKeccaks(osKeccak.output .size*16+1);
+                AddNewToKeccaks(64);
+                AddNewToKeccaks(65);
+                AddNewToKeccaks(66);
+                AddNewToKeccaks(67);
+                AddNewToKeccaks(71);
+                AddNewToKeccaks(72);
+                AddNewToKeccaks(73);
+                AddNewToKeccaks(74);
+                AddNewToKeccaks(77);
+                AddNewToKeccaks(121);
+                AddNewToKeccaks(127);
+                AddNewToKeccaks(128);
+                AddNewToKeccaks(129);
+                AddNewToKeccaks(142);
+                AddNewToKeccaks(143);
+                AddNewToKeccaks(144);
+                AddNewToKeccaks(145);
+                AddNewToKeccaks(255);
+                AddNewToKeccaks(256);
+                AddNewToKeccaks(257);
+                AddNewToKeccaks(osKeccak.output!.size-1);
+                AddNewToKeccaks(osKeccak.output .size+0);
+                AddNewToKeccaks(osKeccak.output .size+1);
+                AddNewToKeccaks(osKeccak.output .size*16-1);
+                AddNewToKeccaks(osKeccak.output .size*16+0);
+                AddNewToKeccaks(osKeccak.output .size*16+1);
 
                 var bytes  = Encoding.UTF8.GetBytes("Я0123456789012345678901234567890123456789");
                 var bytes2 = Encoding.UTF8.GetBytes("9876543210");
                 var bytes3 = Encoding.UTF8.GetBytes("абвгдеёжзиклмн");
 
-                using var bt2 = Record.getRecordFromBytesArray(bytes2);
-                using var bt3 = Record.getRecordFromBytesArray(bytes3);
-                exec(  (k) => k.InputKeyAndStep(bt2, bt2.len, bt3, bt3.len)  );
+                using var bt2 = Record.GetRecordFromBytesArray(bytes2);
+                using var bt3 = Record.GetRecordFromBytesArray(bytes3);
+                Exec(  (k) => k.InputKeyAndStep(bt2, bt2.len, bt3, bt3.len)  );
 
                 // Ещё вводим значения для инициализации
-                exec(  (k) => k.InputBytes(bytes)  );
+                Exec(  (k) => k.InputBytes(bytes)  );
 
                 for (int i = 0; i < 16; i++)
                 {
                     bytes[2]++;
-                    exec
+                    Exec
                     (
                         (k) =>
                         {
@@ -115,26 +115,26 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
                 }
 
                 // Рассчитываем блоки
-                exec
+                Exec
                 (
                     (k) =>
                     {
                         k.InputBytesImmediately();
-                        while (k.isInputReady)
+                        while (k.IsInputReady)
                         {
-                            k.calcStepAndSaveBytes(true, 1);
+                            k.CalcStepAndSaveBytes(true, 1);
                         }
 
-                        k.calcStepAndSaveBytes(false, 32);
+                        k.CalcStepAndSaveBytes(false, 32);
                     }
                 );
 
-                using var eRec = osKeccak.output.getBytes();
-                exec
+                using var eRec = osKeccak.output.GetBytes();
+                Exec
                 (
                     (k) =>
                     {
-                        if (k.outputCount != eRec.len)
+                        if (k.OutputCount != eRec.len)
                         lock (this)
                         {
                             var testError = new TestError()
@@ -145,7 +145,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
                         }
 
                         using var rec = k.curAllocator.AllocMemory(eRec.len);
-                        k.output!.getBytesAndRemoveIt(rec);
+                        k.output!.GetBytesAndRemoveIt(rec);
                         if (!rec.UnsecureCompare(eRec))
                         lock (this)
                         {
@@ -175,7 +175,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
         };  // base.taskFunc end
     }
 
-    private void addNewToKeccaks(nint outputSize, SortedDictionary<nint, Keccak_PRNG_20201128>? keccaks2 = null)
+    private void AddNewToKeccaks(nint outputSize, SortedDictionary<nint, Keccak_PRNG_20201128>? keccaks2 = null)
     {
         var keccak = new Keccak_PRNG_20201128(outputSize: outputSize);
         keccaks!.Add(outputSize, keccak);
@@ -185,7 +185,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
     }
 
     public delegate void Test_fn(Keccak_PRNG_20201128 keccak);
-    void exec(Test_fn func, bool doOsKeccak = true)
+    void Exec(Test_fn func, bool doOsKeccak = true)
     {
         if (doOsKeccak)
             func(osKeccak!);

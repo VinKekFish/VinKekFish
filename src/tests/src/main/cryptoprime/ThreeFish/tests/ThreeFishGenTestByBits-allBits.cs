@@ -26,7 +26,7 @@ namespace main_tests
                                         base(nameof(ThreeFishGenTestByBits_AllBits), constructor: constructor)
         {
             this.sources   = SourceTask.getIterator();
-            this.taskFunc  = StartTests;
+            this.TaskFunc  = StartTests;
             /* () =>
             {
                 StartTests();
@@ -60,13 +60,13 @@ namespace main_tests
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     key = new byte[size];
                     BytesBuilder.ToNull(key, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(key, valk);
+                    BitToBytes.ResetBit(key, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0xFF) key set at {valk}; tweak = 0; text = 0", key = key, text = text, tweak = tweak };
 
                     key = new byte[size];
                     BytesBuilder.ToNull(key);
-                    BitToBytes.setBit(key, valk);
+                    BitToBytes.SetBit(key, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0x00) key set at {valk}; tweak = 0; text = 0", key = key, text = text, tweak = tweak };
                 }
@@ -76,13 +76,13 @@ namespace main_tests
                 {
                     text = new byte[size];
                     BytesBuilder.ToNull(text, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(text, valk);
+                    BitToBytes.ResetBit(text, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0xFF) key=0; tweak = 0; text set at {valk}", key = key, text = text, tweak = tweak };
 
                     text = new byte[size];
                     BytesBuilder.ToNull(text);
-                    BitToBytes.setBit(text, valk);
+                    BitToBytes.SetBit(text, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0x00) key=0; tweak = 0; text set at {valk}", key = key, text = text, tweak = tweak };
                 }
@@ -93,13 +93,13 @@ namespace main_tests
                 {
                     tweak = new byte[tsize];
                     BytesBuilder.ToNull(tweak, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(tweak, valk);
+                    BitToBytes.ResetBit(tweak, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0xFF) key=0; tweak set at {valk}; text = 0", key = key, text = text, tweak = tweak };
 
                     tweak = new byte[tsize];
                     BytesBuilder.ToNull(tweak);
-                    BitToBytes.setBit(tweak, valk);
+                    BitToBytes.SetBit(tweak, valk);
 
                     yield return new SourceTask() {Name = $"Threfish (0x00) key=0; tweak set at {valk}; text = 0", key = key, text = text, tweak = tweak };
                 }
@@ -174,7 +174,7 @@ namespace main_tests
             byte[] h1, h2;
             var tft = new ThreefishTransform(key, ThreefishTransformMode.Encrypt);
 
-            var tw = threefish_slowly.BytesToUlong(ts.tweak);
+            var tw = Threefish_slowly.BytesToUlong(ts.tweak);
             tft.SetTweak(tw);
 
             h1 = BytesBuilder.CloneBytes(ts.text);

@@ -44,7 +44,7 @@ public partial class Program
                     }
                     catch (Exception iex)
                     {
-                        formatException(iex);
+                        FormatException(iex);
                         if (cnt > 0)
                             i++;
                         cnt++;
@@ -57,10 +57,10 @@ public partial class Program
             }
             catch (Exception ex)
             {
-                formatException(ex);
+                FormatException(ex);
             }
 
-            if (cryptoprime.BytesBuilderForPointers.Record.errorsInDispose)
+            if (cryptoprime.BytesBuilderForPointers.Record.ErrorsInDispose)
             {
                 Console.Error.WriteLine(L("Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose"));
 
@@ -68,9 +68,9 @@ public partial class Program
                     Console.Error.WriteLine(error);
             }
 
-            if (VinKekFish_Utils.Memory.allocatedMemory != 0)
+            if (VinKekFish_Utils.Memory.AllocatedMemory != 0)
             {
-                Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.allocatedMemory.ToString("#,0") + " (" + VinKekFish_Utils.Memory.AllocatedRegionsCount.ToString("#,0") + ")");
+                Console.Error.WriteLine(L("Error: leaked memory in mmap: ") + VinKekFish_Utils.Memory.AllocatedMemory.ToString("#,0") + " (" + VinKekFish_Utils.Memory.AllocatedRegionsCount.ToString("#,0") + ")");
                 DeallocateAtBreakage();
             }
         }
@@ -83,12 +83,12 @@ public partial class Program
         if (ex == null)
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + e.ExceptionObject.ToString());
         else
-            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + formatException(ex, false));
+            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + FormatException(ex, false));
 
         if (e.IsTerminating)
         if (service != null)
         {
-            service.doTerminate(true);
+            service.DoTerminate(true);
         }
     }
 
@@ -102,7 +102,7 @@ public partial class Program
             Console.Error.WriteLine(L("Not have right memory allocator") + $" ({Memory.memoryLockType})");
             return ProgramErrorCode.wrongMemoryAllocator;
         }
-        if (!Memory.memoryLockType.isCorrect())
+        if (!Memory.memoryLockType.IsCorrect())
         {
             Console.Error.WriteLine(L("Not have right memory allocator") + $" ({Memory.memoryLockType}). " + L("You must disable swap file, if you have"));
         }
@@ -166,7 +166,7 @@ public partial class Program
         Console.WriteLine();
     }
 
-    public static string genVersionNumber()
+    public static string GenVersionNumber()
     {
         // "2024.03.19.1112"
         var now = DateTime.Now;

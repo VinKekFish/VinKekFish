@@ -31,14 +31,14 @@ class Program
             new TestConstructor[] { tc },
             new DriverForTests.ExecuteTestsOptions
             {
-                sleepInMs_ForFirstOutput = 10*1000,
-                logNamesOfTests          = 3,
-                doKeepLogFile            = false // || true
+                SleepInMs_ForFirstOutput = 10*1000,
+                LogNamesOfTests          = 3,
+                DoKeepLogFile            = false // || true
             }
         );
 
         // Проверяем, что все деструкторы Record отработали без ошибок
-        if (BytesBuilderForPointers.Record.errorsInDispose)
+        if (BytesBuilderForPointers.Record.ErrorsInDispose)
         {
             Console.WriteLine("!!! ERROR !!!");
             Console.WriteLine("BytesBuilderForPointers.Record.errorsInDispose is true");
@@ -75,7 +75,7 @@ class MainTestConstructor : TestConstructor
         // new Empty();
 
         // Получаем все задачи, которые могут быть автоматически собраны из данного домена приложения
-        var list = this.getTasksFromAppDomain
+        var list = this.GetTasksFromAppDomain
         (
             // Этот обработчик срабатывает тогда, когда задача либо неавтоматическая,
             // либо не имеет нужного конструктора
@@ -102,7 +102,7 @@ class MainTestConstructor : TestConstructor
         );
 
         // Ставим эти задачи на выполнение
-        TestConstructor.addTasksForQueue(list, tasks);
+        TestConstructor.AddTasksForQueue(list, tasks);
     }
 }
 
@@ -113,7 +113,7 @@ public class Empty
         throw new Exception("\n!!!!!!!!!!!!!!\n(class Empty)");
     }
 
-    public static void @do()
+    public static void Do()
     {
         new Empty();
     }

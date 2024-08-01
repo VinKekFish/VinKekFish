@@ -23,7 +23,7 @@ namespace vinkekfish
         /// <param name="key">Это вспомогательный ключ для генерации таблиц перестановок. Основной ключ вводить нельзя! Этот ключ не может быть ключом, вводимым в VinKekFish, см. описание VinKekFish.md</param>
         /// <param name="PreRoundsForTranspose">Количество раундов, где таблицы перестановок не генерируются от ключа, а идут стандартно transpose128_3200 и transpose200_3200</param>
         /// <param name="prngToInit">Уже проинициализированная каскадная губка для инициализации таблиц перестановки. Если она не null, то key и OpenInitVector должны быть null</param>
-        public Record GenStandardPermutationTables(int Rounds, AllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0, int ThreeFishInitSteps = 2, CascadeSponge_mt_20230930? prngToInit = null)
+        public Record GenStandardPermutationTables(int Rounds, IAllocatorForUnsafeMemoryInterface? allocator = null, byte * key = null, nint key_length = 0, byte * OpenInitVector = null, nint OpenInitVector_length = 0, int PreRoundsForTranspose = 0, int ThreeFishInitSteps = 2, CascadeSponge_mt_20230930? prngToInit = null)
         {
             this.GenTables();
 
@@ -54,11 +54,11 @@ namespace vinkekfish
             {
                 if (OpenInitVector == null)
                 {
-                    prng!.initKeyAndOIV(key, key_length, null, 0, ThreeFishInitSteps, doCheckSafty: false);
+                    prng!.InitKeyAndOIV(key, key_length, null, 0, ThreeFishInitSteps, doCheckSafty: false);
                 }
                 else
                 {
-                    prng!.initKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, ThreeFishInitSteps, doCheckSafty: false);
+                    prng!.InitKeyAndOIV(key, key_length, OpenInitVector, OpenInitVector_length, ThreeFishInitSteps, doCheckSafty: false);
                 }
             }
             else
@@ -97,8 +97,8 @@ namespace vinkekfish
 
                 for (; Rounds > 0; Rounds--)
                 {
-                    prng!.doRandomPermutationForUShorts(len1, Table1);
-                    prng!.doRandomPermutationForUShorts(len1, Table2);
+                    prng!.DoRandomPermutationForUShorts(len1, Table1);
+                    prng!.DoRandomPermutationForUShorts(len1, Table2);
 
                     // Если необходимо, раскомментировать отладочный код: здесь проверяется, что перестановки были корректны (что они перестановки, а не какие-то ошибки)
                     /*CheckPermutationTable(Table1, table1.Length);
@@ -157,15 +157,15 @@ namespace vinkekfish
                 var val = table[i];
                 if (val >= Length)
                     throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} is incorrect (too big, Length={Length}). {message}");
-                if (BitToBytes.getBit(check, val))
+                if (BitToBytes.GetBit(check, val))
                     throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {val} found twice. {message}");
 
-                BitToBytes.setBit(check, val);
+                BitToBytes.SetBit(check, val);
             }
 
             for (int i = 0; i < Length; i++)
             {
-                if (!BitToBytes.getBit(check, i))
+                if (!BitToBytes.GetBit(check, i))
                     throw new Exception($"Fatal algorithmic error: CheckPermutationTable_fast.kn incorrect: value {i} not found. {message}");
             }
         }

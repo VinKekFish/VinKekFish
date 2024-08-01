@@ -17,11 +17,12 @@ using static VinKekFish_Utils.Utils;
 /// <summary>Представляет описатель части файла, которая может содержать другие части файла. Используется для того, чтобы рассчитывать размеры и адреса файлов. Потоконебезопасный, требует внешних блокировок.</summary>
 public unsafe partial class FileParts : IDisposable
 {
-    /// <summary>Если true, то Dispose не будет освобождать никакие данные внутри объекта, однако вызовет деструкторы подчинённых частей рекурсивно. Если части созданы через AddFilePart, то они наследуют настройку doNotDispose и деструкторы тоже ничего не будут делать.</summary>
+    /// <summary>Если true, то Dispose не будет освобождать никакие данные внутри объекта, однако вызовет деструкторы подчинённых частей рекурсивно. Настройка doNotDispose наследуется: если doNotDispose установлен, то он будет передан ниже и Dispose ниже по иерархии ничего не будут делать. willDispose = !doNotDispose && !parentDoNotDispose.</summary>
     public readonly bool doNotDispose = false;
-    public void Dispose()
+    public void Dispose(bool parentDoNotDispose)
     {
-        if (!doNotDispose)
+        var willDispose = !doNotDispose && !parentDoNotDispose;
+        if (willDispose)
         {
             if (btContent is not null)
                 BytesBuilder.ToNull(btContent);
@@ -32,13 +33,26 @@ public unsafe partial class FileParts : IDisposable
         this.content = null;
         btContent    = null;
 
-        size = Approximation.Null;
+        Size = Approximation.Null;
         _startAddress = Approximation.Null;
 
         foreach (var part in innerParts)
-            TryToDispose(part);
+        try
+        {
+            part.Dispose(!willDispose);
+        }
+        catch (Exception ex)
+        {
+            FormatException(ex);
+        }
 
         innerParts.Clear();
+    }
+
+    public void Dispose()
+    {
+        Dispose(doNotDispose);
+        GC.SuppressFinalize(this);
     }
 
     ~FileParts()
@@ -51,7 +65,7 @@ public unsafe partial class FileParts : IDisposable
             }
             catch (Exception e)
             {
-                formatException(e);
+                FormatException(e);
             }
 
             var msg = $"Destructor for {this.Name} of FileParts executed with a not disposed state.";

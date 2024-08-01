@@ -28,7 +28,7 @@ public class UnixSocketListener: IDisposable
     // Для проверки можно использовать nc -UN path_to_socket
     public UnixSocketListener(string path, Regime_Service service, SocketinformationType typeOfInformation , int backlog = 64)
     {
-        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
         this.typeOfInformation = typeOfInformation;
 
@@ -57,7 +57,7 @@ public class UnixSocketListener: IDisposable
             Close(true);
     }
 
-    public List<Connection> connections = new List<Connection>(4);
+    public List<Connection> connections = new(4);
     public void AcceptConnection(IAsyncResult ar)
     {
         if (doTerminate)
@@ -143,7 +143,7 @@ public class UnixSocketListener: IDisposable
             if (!closed)
             {
                 Dispose();
-                BytesBuilderForPointers.Record.errorsInDispose = true;
+                BytesBuilderForPointers.Record.ErrorsInDispose = true;
                 Console.Error.WriteLine("UnixSocketListener.Connection: not closed connection in ~Connection()");
             }
         }
@@ -193,7 +193,7 @@ public class UnixSocketListener: IDisposable
             }
             catch (Exception ex)
             {
-                formatException(ex);
+                FormatException(ex);
             }
             finally
             {
@@ -203,9 +203,9 @@ public class UnixSocketListener: IDisposable
 
         protected unsafe void SendEntropyToUser()
         {
-            nint blockSize = listenSocket.service.getMinBlockSize();
+            nint blockSize = Regime_Service.GetMinBlockSize();
 
-            using (var buff = listenSocket.service.getEntropyForOut(blockSize))
+            using (var buff = listenSocket.service.GetEntropyForOut(blockSize))
             {
                 var span = new ReadOnlySpan<byte>(buff, (int)blockSize);
                 connection.Send(span);
@@ -215,7 +215,7 @@ public class UnixSocketListener: IDisposable
         protected unsafe void SendEntropyParamsToUser()
         {
             listenSocket.service.ConditionalInputEntropyToMainSponges(nint.MaxValue);
-            var paramString = listenSocket.service.countOfBytesCounterTotal.ToString() + "\n" + listenSocket.service.countOfBytesCounterCorr.ToString();
+            var paramString = listenSocket.service.CountOfBytesCounterTotal.ToString() + "\n" + listenSocket.service.CountOfBytesCounterCorr.ToString();
 
             var @params = new UTF8Encoding().GetBytes(paramString);
             connection.Send(@params);

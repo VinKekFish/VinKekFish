@@ -24,7 +24,7 @@ namespace main_tests
         {
             this.sources   = SourceTask.getIterator();
             this.sourcestw = SourceTask.getIteratorForTweaks();
-            this.taskFunc  = StartTests;
+            this.TaskFunc  = StartTests;
             /* () =>
             {
                 StartTests();
@@ -46,21 +46,21 @@ namespace main_tests
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     var bk1 = new byte[size];
                     BytesBuilder.ToNull(bk1, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(bk1, valk);
+                    BitToBytes.ResetBit(bk1, valk);
 
                     var bk2 = new byte[size];
                     BytesBuilder.ToNull(bk2);
-                    BitToBytes.setBit(bk2, valk);
+                    BitToBytes.SetBit(bk2, valk);
 
                     for (nint valt = 0; valt < (nint) sb; valt++)
                     {
                         var b1 = new byte[size];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);
-                        BitToBytes.resetBit(b1, valt);
+                        BitToBytes.ResetBit(b1, valt);
 
                         var b2 = new byte[size];
                         BytesBuilder.ToNull(b2);
-                        BitToBytes.setBit(b2, valt);
+                        BitToBytes.SetBit(b2, valt);
 
                         yield return new SourceTask() {Name = $"Threfish with (0x00) valk = {valk}; valt = {valt}", Value = new byte[][] {bk2, b2}};
                         yield return new SourceTask() {Name = $"Threfish with (0xFF) valk = {valk}; valt = {valt}", Value = new byte[][] {bk1, b1}};
@@ -72,31 +72,31 @@ namespace main_tests
 
             public static IEnumerable<SourceTask> getIteratorForTweaks()
             {
-                const long size = threefish_slowly.keyLen;
+                const long size = Threefish_slowly.keyLen;
                 const long sb   = size << 3;    // Размер одного блока в битах
 
-                const long sizetw = threefish_slowly.twLen;
+                const long sizetw = Threefish_slowly.twLen;
                 const long sbtw   = sizetw << 3;
                 for (nint valk = 0; valk < (nint) sb; valk++)
                 {
                     // Здесь всё получаем именно внутри цикла, т.к. всё это идёт параллельно и нужно передавать каждой задаче разные массивы
                     var bk1 = new byte[size];
                     BytesBuilder.ToNull(bk1, 0xFFFF_FFFF__FFFF_FFFF);
-                    BitToBytes.resetBit(bk1, valk);
+                    BitToBytes.ResetBit(bk1, valk);
 
                     var bk2 = new byte[size];
                     BytesBuilder.ToNull(bk2);
-                    BitToBytes.setBit(bk2, valk);
+                    BitToBytes.SetBit(bk2, valk);
 
                     for (nint valt = 0; valt < (nint) sbtw; valt++)
                     {
                         var b1 = new byte[sizetw];
                         BytesBuilder.ToNull(b1, 0xFFFF_FFFF__FFFF_FFFF);
-                        BitToBytes.resetBit(b1, valt);
+                        BitToBytes.ResetBit(b1, valt);
 
                         var b2 = new byte[sizetw];
                         BytesBuilder.ToNull(b2);
-                        BitToBytes.setBit(b2, valt);
+                        BitToBytes.SetBit(b2, valt);
 
                         yield return new SourceTask() {Name = $"Threfish with (0x00) valk = {valk}; valt = {valt} (tweak)", Value = new byte[][] {bk2, b2}};
                         yield return new SourceTask() {Name = $"Threfish with (0xFF) valk = {valk}; valt = {valt} (tweak)", Value = new byte[][] {bk1, b1}};
@@ -206,7 +206,7 @@ namespace main_tests
             var tft = new ThreefishTransform(ts.Value[0], ThreefishTransformMode.Encrypt);
             var tw  = new ulong[2];
 
-            var b = threefish_slowly.BytesToUlong(ts.Value[1]);
+            var b = Threefish_slowly.BytesToUlong(ts.Value[1]);
             tw[0] = b[0];
             tw[1] = b[1];
             tft.SetTweak(tw);

@@ -6,7 +6,7 @@ using static cryptoprime.BytesBuilderForPointers;
 
 // ::test:O0s1QcshQ7zCGVMMKZtf:
 
-using static cryptoprime.threefish_slowly;
+using static cryptoprime.Threefish_slowly;
 
 /*
  * Реализация Trheefish 1024 бита. Реализовано только шифрование
@@ -17,9 +17,9 @@ namespace cryptoprime
     // Реализация Threefish 1024 бита с оптимизацией - вспомогательный класс для Threefish_Static_Generated
     public unsafe class Threefish1024: IDisposable
     {
-        public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+        public readonly static AllocHGlobal_AllocatorForUnsafeMemory allocator = new();
 
-        protected readonly Record memory = allocator.AllocMemory(3*sizeof(ulong) + (threefish_slowly.Nw + 1)*sizeof(ulong));
+        protected readonly Record memory = allocator.AllocMemory(3*sizeof(ulong) + (Threefish_slowly.Nw + 1)*sizeof(ulong));
         public    readonly ulong * tweak;
         public    readonly ulong * key;
         /// <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
@@ -27,7 +27,7 @@ namespace cryptoprime
         /// <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
         public Threefish1024(byte* Key, nint kLen, byte* Tweak, nint tLen)
         {
-            cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+            cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
             if (Key == null || Tweak == null) throw new ArgumentNullException("cryptoprime.Threefish1024.Threefish1024: Key == null || Tweak == null");
 
@@ -44,17 +44,17 @@ namespace cryptoprime
             BytesBuilder.CopyTo(twLen, twLen, Tweak, (byte*)tt);
 
             // Вычисление расширения ключа и tweak; это 17-ый элемент ключа
-            genExpandedKey(tk);
+            GenExpandedKey(tk);
 
             tt[2] = tt[0] ^ tt[1];
         }
 
         /// <summary>Сгенерировать расширение ключа</summary>
         /// <param name="tk">Ключ с дополнительным 8-мибайтовым словом для расширения (слово расширения в конце)</param>
-        public static void genExpandedKey(ulong* tk)
+        public static void GenExpandedKey(ulong* tk)
         {
-            tk[16] = threefish_slowly.C240;
-            for (int i = 0; i < threefish_slowly.Nw; i++)
+            tk[16] = Threefish_slowly.C240;
+            for (int i = 0; i < Threefish_slowly.Nw; i++)
                 tk[16] ^= tk[i];
         }
 
@@ -62,6 +62,8 @@ namespace cryptoprime
         {
             if (memory.array != null)
                 memory.Free();
+            
+            GC.SuppressFinalize(this);
         }
 
         ~Threefish1024()

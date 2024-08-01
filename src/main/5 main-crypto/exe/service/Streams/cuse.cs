@@ -31,7 +31,7 @@ public unsafe class CuseStream: IDisposable
     // Для проверки можно использовать cat path_to_socket
     public CuseStream(string path, Regime_Service service)
     {
-        cryptoprime.BytesBuilderForPointers.Record.doRegisterDestructor(this);
+        cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
         if (Cuse != null)
         {
@@ -52,10 +52,10 @@ public unsafe class CuseStream: IDisposable
         (
             () =>
             {
-                var ci  = stackalloc cuse_info[1];
-                var ops = stackalloc cuse_lowlevel_ops[1];
+                var ci  = stackalloc Cuse_info[1];
+                var ops = stackalloc Cuse_lowlevel_ops[1];
 
-                for (var i = 0; i < sizeof(cuse_lowlevel_ops); i++)
+                for (var i = 0; i < sizeof(Cuse_lowlevel_ops); i++)
                     ((byte*)ops)[i] = 0;
 
                 var stra = stackalloc byte*[1];
@@ -125,7 +125,7 @@ public unsafe class CuseStream: IDisposable
             if (fromDestructor)
                 return;
 
-            BytesBuilderForPointers.Record.errorsInDispose = true;
+            BytesBuilderForPointers.Record.ErrorsInDispose = true;
             Console.Error.WriteLine("CuseStream.Close: Close executed twice. " + fi.FullName);
 
             return;
@@ -133,7 +133,7 @@ public unsafe class CuseStream: IDisposable
         else
         if (fromDestructor)
         {
-            BytesBuilderForPointers.Record.errorsInDispose = true;
+            BytesBuilderForPointers.Record.ErrorsInDispose = true;
             Console.Error.WriteLine("CuseStream.Close: !isDisposed from destructor. " + fi.FullName);
         }
 
@@ -157,10 +157,10 @@ public unsafe class CuseStream: IDisposable
     }
                                                                                         /// <summary>Последний выданный дескриптор для открытого файла</summary>
     public    static ulong fileHandleLast = 0;                                          /// <summary>Список выданных дескрипторов</summary>
-    protected static List<ulong> fhs = new List<ulong>(128);
+    protected static List<ulong> fhs = new(128);
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void Cuse_init(void * a, fuse_conn_info * b)
+    public static unsafe void Cuse_init(void * a, Fuse_conn_info * b)
     {
         b->max_write = 0;
         b->max_read  = 4096;
@@ -173,7 +173,7 @@ public unsafe class CuseStream: IDisposable
 
     // [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void CuseOpenFunc(fuse_req* request, fuse_file_info * fileInfo)
+    public static unsafe void CuseOpenFunc(Fuse_req* request, Fuse_file_info * fileInfo)
     {
         fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.direct_io; // direct_io
         fileInfo->bitFlags |= (ulong) FuseFileInfoOptions.keep_cache; // keep_cache
@@ -191,7 +191,7 @@ public unsafe class CuseStream: IDisposable
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void Cuse_release(fuse_req* request, fuse_file_info * fileInfo)
+    public static unsafe void Cuse_release(Fuse_req* request, Fuse_file_info * fileInfo)
     {
         // Удаляем дескриптор из открытых.
         // Скорее всего, его уже тут нет, т.к. он удаляется при первом чтении.
@@ -204,7 +204,7 @@ public unsafe class CuseStream: IDisposable
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe void CuseReadFunc(fuse_req* request, nint size, nint offset, fuse_file_info * fileInfo)
+    public static unsafe void CuseReadFunc(Fuse_req* request, nint size, nint offset, Fuse_file_info * fileInfo)
     {
         if (offset > 0)
         {
@@ -227,10 +227,10 @@ public unsafe class CuseStream: IDisposable
             return;
         }
 
-        nint blockSize = Cuse!.service.getMinBlockSize();
+        nint blockSize = Regime_Service.GetMinBlockSize();
         try
         {
-            using (var buff = Cuse!.service.getEntropyForOut(blockSize))
+            using (var buff = Cuse!.service.GetEntropyForOut(blockSize))
             {
                 // Здесь из буффера информация будет скопирована в отдельно выделенный внутри fuse объект
                 fuse_reply_buf(request, buff, (int) buff.len);
@@ -239,7 +239,7 @@ public unsafe class CuseStream: IDisposable
         catch (Exception ex)
         {
             Console.Error.WriteLine("CuseStream.CuseReadFunc error");
-            Console.Error.WriteLine(formatException(ex, false));
+            Console.Error.WriteLine(FormatException(ex, false));
 
             fuse_reply_err(request, PosixErrorCode.ENOMEM);
         }
@@ -248,11 +248,11 @@ public unsafe class CuseStream: IDisposable
 
     public const string LibFuseName = "libfuse3.so.3";
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern unsafe nint cuse_lowlevel_setup(int argc, [In, MarshalAs(UnmanagedType.LPArray)] string[] argv, cuse_info * cuseInfo, cuse_lowlevel_ops * ll_ops, int * multithreaded , void * userdata);
+    public static extern unsafe nint cuse_lowlevel_setup(int argc, [In, MarshalAs(UnmanagedType.LPArray)] string[] argv, Cuse_info * cuseInfo, Cuse_lowlevel_ops * ll_ops, int * multithreaded , void * userdata);
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe nint fuse_session_loop(void * session);
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern unsafe int fuse_reply_open(void * request, fuse_file_info * fileInfo);
+    public static extern unsafe int fuse_reply_open(void * request, Fuse_file_info * fileInfo);
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_reply_buf(void * request, byte * buf, int size);
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
@@ -264,7 +264,7 @@ public unsafe class CuseStream: IDisposable
 
 
     [StructLayout(LayoutKind.Sequential/*, Pack = 4*/)]
-    public struct fuse_file_info
+    public struct Fuse_file_info
     {
         public int   flags;
         public ulong bitFlags;
@@ -273,7 +273,7 @@ public unsafe class CuseStream: IDisposable
     }
 
     [StructLayout(LayoutKind.Sequential/*, Pack = 4*/)]
-    public struct cuse_info
+    public struct Cuse_info
     {
         public int	dev_major;
         public int	dev_minor;
@@ -283,22 +283,22 @@ public unsafe class CuseStream: IDisposable
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct cuse_lowlevel_ops
+    public struct Cuse_lowlevel_ops
     {
-        public cuse_lowlevel_ops()
+        public Cuse_lowlevel_ops()
         {
         }
 
-        public delegate* unmanaged[Cdecl]<void*, fuse_conn_info *, void>                   init      = null;
+        public delegate* unmanaged[Cdecl]<void*, Fuse_conn_info *, void>                   init      = null;
         public delegate* unmanaged[Cdecl]<void*, void>                                     init_done = null;
         public void *                                                               destroy   = null;
-        public delegate* unmanaged[Cdecl]<fuse_req*, fuse_file_info *, void>               open;
-        public delegate* unmanaged[Cdecl]<fuse_req*, nint, nint, fuse_file_info *, void>   read;
+        public delegate* unmanaged[Cdecl]<Fuse_req*, Fuse_file_info *, void>               open;
+        public delegate* unmanaged[Cdecl]<Fuse_req*, nint, nint, Fuse_file_info *, void>   read;
         public void *                                                               write   = null;
         public void *                                                               flush   = null;
-        public delegate* unmanaged[Cdecl]<fuse_req*, fuse_file_info *, void>               release = null;
+        public delegate* unmanaged[Cdecl]<Fuse_req*, Fuse_file_info *, void>               release = null;
         public void *                                                               fsync   = null;
-        public delegate* unmanaged[Cdecl]<fuse_req*, int, void *, fuse_file_info *, int, void *, nint, nint, void>
+        public delegate* unmanaged[Cdecl]<Fuse_req*, int, void *, Fuse_file_info *, int, void *, nint, nint, void>
                                                                                     ioctl   = null;
         public void *                                                               poll    = null;
 
@@ -306,7 +306,7 @@ public unsafe class CuseStream: IDisposable
     }
 
     [StructLayout(LayoutKind.Sequential/*, Pack = 4*/)]
-    public struct fuse_conn_info
+    public struct Fuse_conn_info
     {
         public int proto_major;
         public int proto_minor;
@@ -322,7 +322,7 @@ public unsafe class CuseStream: IDisposable
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct fuse_req
+    public struct Fuse_req
     {
         public void * session;
         // Здесь есть ещё и другие поля!
