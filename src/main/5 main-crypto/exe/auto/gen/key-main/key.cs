@@ -18,16 +18,16 @@ public unsafe partial class AutoCrypt
 {
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public partial class GenKeyCommand: Command, IDisposable
-    {                                                                                   /// <summary>Опции шифрования ключа</summary>
+    {                                                                 /// <summary>Опции шифрования ключа</summary>
         public VinKekFishOptions VinKekFish_KeyOpts    = new();       /// <summary>Опции шифрования открытого текста</summary>
         public VinKekFishOptions VinKekFish_CipherOpts = new();       /// <summary>Опции шифрования ключа</summary>
-        public CascadeOptions    Cascade_KeyOpts       = new();          /// <summary>Опции шифрования открытого текста</summary>
+        public CascadeOptions    Cascade_KeyOpts       = new();       /// <summary>Опции шифрования открытого текста</summary>
         public CascadeOptions    Cascade_CipherOpts    = new();
 
         public VinKekFishBase_KN_20210525? VinKekFish_Key;
         public CascadeSponge_mt_20230930?  Cascade_Key;
 
-        public IIsCorrectAvailable[] CryptoOptions;                                      /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
+        public IIsCorrectAvailable[] CryptoOptions;                                     /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
         public bool                 isSimpleOutKey = false;                             /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
         public bool                 noPwd          = false;                             /// <summary>Если true, то есть скрытый пароль на скрытые данные.</summary>
         public bool                 havePwd2       = false;
