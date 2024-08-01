@@ -22,7 +22,7 @@ using VinKekFish_Utils;
 /// </summary>
 public unsafe partial class Main_1_PWD_2024_1
 {
-    public partial class EncryptDataStream: IDisposable
+    public partial class EncryptData: IDisposable
     {                                                                       /// <summary>Поток данных, выравненный по длине. Автоматически создаётся и удаляется.</summary>
         public Record       AlignedStream;                                  /// <summary>Исходный поток данных, переданный в конструктор. Автоматически удаляется.</summary>
         public Record       PrimaryStream;
@@ -45,12 +45,13 @@ public unsafe partial class Main_1_PWD_2024_1
             return a;
         }
 
-        /// <summary>Создаёт логический поток шифрования. Выравнивает его, дополняет шумами, генерирует ключи шифрования.</summary>
-        /// <param name="dataStream">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
+        /// <summary>Создаёт логический поток шифрования. Выравнивает его, дополняет шумами, генерирует ключи шифрования. Вызывать в using.</summary>
+        /// <param name="dataForEncrypt">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
+        /// <param name="file">Описатель файла, который содержит секцию "Encrypted", в которую будет вставлены зашифрованные данные из dataForEncrypt.</param>
         /// <param name="getDataByAdd">Генератор ключей, который уже должен быть проинициализирован заранее. Используется только в конструкторе, далее может быть использован в других потоках и должен быть удалён вызывающим методом. Первый режим работы: 255.</param>
         /// <param name="vkfOpt">Опции создания губки VinKekFish.</param>
         /// <param name="cscOpt">Опции создания каскадной губки.</param>
-        public EncryptDataStream(Record dataStream, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
+        public EncryptData(Record dataForEncrypt, FileParts file, GetDataByAdd getDataByAdd, VinKekFishOptions vkfOpt, CascadeOptions cscOpt)
         {
             GC.ReRegisterForFinalize(this);
             this.vkfOpt = vkfOpt;
@@ -58,11 +59,11 @@ public unsafe partial class Main_1_PWD_2024_1
             CascadeSponge_1t_20230905.CalcCascadeParameters(cscOpt.StrengthInBytes, 0, out tall, ref wide);
 
             byte[]? length_array = null;
-            BytesBuilder.VariableULongToBytes((ulong) dataStream.len, ref length_array);
-            var fLen = dataStream.len + length_array!.Length;
+            BytesBuilder.VariableULongToBytes((ulong) dataForEncrypt.len, ref length_array);
+            var fLen = dataForEncrypt.len + length_array!.Length;
             var aLen = Align(fLen + 16); // Как минимум 16 байтов на шумы - они всегда должны быть
 // aLen рассчитан НЕВЕРНО!
-            PrimaryStream = dataStream;
+            PrimaryStream = dataForEncrypt;
             AlignedStream = Keccak_abstract.allocator.AllocMemory(aLen, "Main_PWD_2024_1.DoCryptDataStream");
 
             // Копируем в выравненный поток длину открытого текста и сам открытый текст
@@ -82,11 +83,11 @@ public unsafe partial class Main_1_PWD_2024_1
             Key4Csc  = getDataByAdd.getBytes(tall*KeccakPrime.BlockLen*2+16, 255);
             Key5Vkf  = getDataByAdd.getBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
 
-            var file = new FileParts { Name = "Record" };
-
+            var enPart = file.FindFirstPart("Encrypted");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
-        ~EncryptDataStream()       => Dispose(true);
+        ~EncryptData()       => Dispose(true);
         void IDisposable.Dispose() => Dispose();
 
         public bool isDisposed = false;
@@ -119,6 +120,8 @@ public unsafe partial class Main_1_PWD_2024_1
             TryToDispose(Key3PCsc);
             TryToDispose(Key4Csc);
             TryToDispose(Key5Vkf);
+
+            isDisposed = true;
 
             if (emsg is not null)
             {

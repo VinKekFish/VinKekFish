@@ -3,10 +3,10 @@ key-main:
 out:/inRamA/2
 out-part:/inRamA/2.0
 out-part:/inRamA/2.1
-vkf-k:1
-vkf-c:1
-cascade-k:512
-cascade-c:512
+vkf-k:1 8 8
+vkf-c:1 8 8
+cascade-k:512 1
+cascade-c:512 1
 nopwd:true
 pwd2:true
 start:

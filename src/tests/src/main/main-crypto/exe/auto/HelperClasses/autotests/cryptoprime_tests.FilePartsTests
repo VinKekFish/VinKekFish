@@ -1,0 +1,44 @@
+
+{object number 0001}
+	
+	enumerableObject:		System.Byte[][]		.enumerableObject	
+	{object number 0002}
+		
+		Length:		System.Int32		.enumerableObject.Length
+			2
+		
+		LongLength:		System.Int64		.enumerableObject.LongLength
+			2
+		
+		Rank:		System.Int32		.enumerableObject.Rank
+			1
+		
+		SyncRoot:		System.Byte[][]		.enumerableObject.SyncRoot			
+			{already saved with number 0002}
+			
+		
+		IsReadOnly:		System.Boolean		.enumerableObject.IsReadOnly
+			False
+		
+		IsFixedSize:		System.Boolean		.enumerableObject.IsFixedSize
+			True
+		
+		IsSynchronized:		System.Boolean		.enumerableObject.IsSynchronized
+			False
+		
+		[IEnumerable]:		System.Byte[][]		.enumerableObject[IEnumerable]
+			[values:]
+				00:     		[:Byte[]]				
+				{object number 0003}
+				byte[29]:
+					082E 7061 7274 2031   2E0A 2E70 6172 7420   312E 312E 082E 7061   7274 2032 2E
+				01:     				
+				{object number 0004}
+				byte[29]:
+					082E 7061 7274 2031   2E0A 2E70 6172 7420   312E 312E 082E 7061   7274 2032 2E
+			[end values]
+
+
+	end of {0002} .enumerableObject
+
+end of {0001} 

@@ -9,6 +9,7 @@ public partial class Program
 {
     public static ProgramErrorCode command_manual(string[] args)
     {
+        Console.Error.WriteLine("NOT IMPLEMENTED");
         return ProgramErrorCode.success;
     }
 

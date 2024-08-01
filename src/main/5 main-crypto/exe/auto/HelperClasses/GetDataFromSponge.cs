@@ -70,7 +70,7 @@ public unsafe partial class AutoCrypt
         /// <returns>Запись, которая содержит результат (необходимо удалить через Dispose после использования).</returns>
         public virtual Record getBytes(nint len, byte regime)
         {
-            var r = Keccak_abstract.allocator.AllocMemory(len, RecordName: NameForRecord);
+            var r = Keccak_abstract.allocator.AllocMemory(len, RecordName: NameForRecord + ".getBytes");
 
             getBytes(r, regime);
             return r;
@@ -99,7 +99,7 @@ public unsafe partial class AutoCrypt
             if (!id)
             if (fromDestructor)
             {
-                var msg = $"Destructor for {NameForRecord} executed with a not disposed state.";
+                var msg = $"Destructor for {NameForRecord} executed with a not disposed state (GetDataFromSpongeClass).";
                 if (BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor)
                     throw new Exception(msg);
                 else

@@ -19,13 +19,37 @@ public unsafe partial class AutoCrypt
 {
     public class CryptoKeyPair: IDisposable
     {
-        public Record? csc {get; protected set;} = null;
+                                                                /// <summary>Ключ для каскадной губки.</summary>
+        public Record? csc {get; protected set;} = null;        /// <summary>Ключ для губки VinKekFisg.</summary>
         public Record? vkf {get; protected set;} = null;
 
-        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte, byte) regime)
+        /// <summary>Создаёт описатель пары ключей для дальнейшего их использования в генераторах.</summary>
+        /// <param name="generator">Уже проинициализированный пользователем генератор, который будет использован для генерации пары ключей.</param>
+        /// <param name="keyLenCsc">Длина ключа для каскадной губки.</param>
+        /// <param name="keyLenVkf">Длина ключа для губки VinKekFish.</param>
+        /// <param name="regime">Режимы, которые будут использованы для генерации.</param>
+        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime)
         {
-            csc = generator.getBytes(keyLenCsc, regime: regime.Item1);
-            vkf = generator.getBytes(keyLenVkf, regime: regime.Item2);
+            csc = generator.getBytes(keyLenCsc, regime: regime.csc);
+            vkf = generator.getBytes(keyLenVkf, regime: regime.vkf);
+        }
+
+        /// <summary>Получает оба ключа, представленные в описателе файла. Сначала идёт секция "csc" (каскадный ключ), затем "vkf" (ключ VinKekFish).</summary>
+        public FileParts getFilePartsForPair()
+        {
+            var file = new FileParts(Name: "CryptoKeyPair.getRecordForPair", doNotDispose: true);
+            file.AddFilePart("csc", csc!);
+            file.AddFilePart("vkf", vkf!);
+
+            return file;
+        }
+
+        /// <summary>Получает оба ключа один за другим. Каждый ключ предваряется его длиной. Сначала идёт каскадный ключ, затем ключ VinKekFish.</summary>
+        public Record getRecordForPair()
+        {
+            using var file = getFilePartsForPair();
+
+            return file.WriteToRecord();
         }
 
         public void Dispose()
@@ -129,7 +153,7 @@ public unsafe partial class AutoCrypt
             {
                 formatException(e);
             }
-
+Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             TryToDispose(main);
             isDisposed = true;
         }
@@ -195,18 +219,7 @@ public unsafe partial class AutoCrypt
                 }
             );
         }
-/*
-        protected void CreateKeyFiles(ref int status, int countOfTasks)
-        {
-            // Что мне надо сделать?
-            // Создать абстрактный генератор данных для того, чтобы можно было с ним работать без особенностей губок
-            // Сделать функцию ввода пароля
-            // Сгенерировать синхропосылки и распределить их по частям файла, если нужно: для этого мне надо создать функцию или вспомогательный класс для генерации данных с помощью сложения из двух функций
-            // Выделить место в оперативной памяти для шифрования
-            // Рассчитать с помощью иерархических классов потребное место
-            throw new NotImplementedException();
-        }
-*/
+
         public void ClearList(bool doDispose = true)
         {
             if (doDispose)

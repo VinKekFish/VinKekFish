@@ -1,5 +1,7 @@
-// TODO: tests
 using System.Runtime;
+
+// TODO: tests. Тесты сделаны, но очень слабые. Нужно ещё.
+// test:6mN7tkWO7uSf70KW9M3I:
 
 namespace VinKekFish_EXE;
 
@@ -17,8 +19,19 @@ using static VinKekFish_Utils.Utils;
 /// <summary>Представляет описатель части файла, которая может содержать другие части файла. Используется для того, чтобы рассчитывать размеры и адреса файлов. Потоконебезопасный, требует внешних блокировок.</summary>
 public unsafe partial class FileParts
 {
+    /// <summary>Это нужно задать при создании. Мнемоническое имя части, используется для облегчения ориентирования программиста в файле.</summary>
+    public readonly string Name;
+    public readonly FileParts? parent = null;
+
+    public FileParts(string Name, bool doNotDispose = false, FileParts? parent = null)
+    {
+        this.Name         = Name;
+        this.doNotDispose = doNotDispose;
+        this.parent       = parent;
+    }
+
     /// <summary>Представляет минимальную и максимальную величины чего-либо, например, оценки размера некоторого файла или поля.</summary>
-    public class Approximation
+    public struct Approximation
     {
         public readonly nint min = 0;
         public readonly nint max = 0;
@@ -73,10 +86,8 @@ public unsafe partial class FileParts
     }
 
                                                                                 /// <summary>Содержимое части. Если это поле записывается с помощью setArrayToRecord, то переопределяется и поле size.</summary>
-    public Record? content   = null;                                            /// <summary>Содержимое части. Если есть и content, и btContent, сначала идёт btContent.</summary>
+    public Record? content   = null;                                            /// <summary>Вспомогательное содержимое части. Если есть и content, и btContent, сначала идёт btContent. btContent, по умолчанию, содержит длину content.</summary>
     public byte[]? btContent = null;
-
-    public required string Name {get; init;}
                                                                                                     /// <summary>Части файла, отсортированные по порядку их вхождения в файл.</summary>
     public readonly List<FileParts> innerParts = new List<FileParts>();
 
@@ -89,6 +100,8 @@ public unsafe partial class FileParts
         get
         {
             Approximation result = Approximation.Null;
+
+            result += size;
             foreach (var part in innerParts)
             {
                 result += part.fullLen;
@@ -136,7 +149,7 @@ public unsafe partial class FileParts
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
     public (int, FileParts) AddFilePart(string Name, nint min = 0, nint max = 0)
     {
-        var result = new FileParts() {Name = Name};
+        var result = new FileParts(Name, doNotDispose, parent: this);
         innerParts.Add(result);
 
         result.size = new Approximation(min, max);
@@ -144,29 +157,24 @@ public unsafe partial class FileParts
         return (innerParts.Count - 1, result);
     }
 
-    /// <summary>Добавляет в конец файла новую часть</summary>
+    /// <summary>Добавляет в конец файла новую часть и пересчитывает size.</summary>
     /// <param name="Name">Имя добавляемой части файла</param>
-    /// <param name="btContent">Содержимое части</param>
-    /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
-    public (int, FileParts) AddFilePart(string Name, byte[] btContent)
-    {
-        var result = new FileParts() {Name = Name};
-        innerParts.Add(result);
-
-        result.size      = new Approximation(btContent.Length, btContent.Length);
-        result.btContent = btContent;
-
-        return (innerParts.Count - 1, result);
-    }
-
-    /// <summary>Добавляет в конец файла новую часть</summary>
-    /// <param name="Name">Имя добавляемой части файла</param>
-    /// <param name="content">Содержимое части</param>
+    /// <param name="content">Содержимое части. Копируется в новый Record. Массив content может быть (и, возможно, должен быть) перезаписан сразу после возврата функции.</param>
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
-    public (int, FileParts) AddFilePart(string Name, Record content, bool createLengthArray = false)
+    public (int Index, FileParts newFilePart) AddFilePart(string Name, byte[] content, bool createLengthArray = true)
     {
-        var result = new FileParts() {Name = Name};
+        return AddFilePart(Name, Record.getRecordFromBytesArray(content), createLengthArray);
+    }
+
+    /// <summary>Добавляет в конец файла новую часть и пересчитывает size.</summary>
+    /// <param name="Name">Имя добавляемой части файла</param>
+    /// <param name="content">Содержимое части. Запоминается по ссылке. Уничтожается автоматически при Dispose объекта FileParts.</param>
+    /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
+    /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
+    public (int Index, FileParts newFilePart) AddFilePart(string Name, Record content, bool createLengthArray = true)
+    {
+        var result = new FileParts(Name, doNotDispose, parent: this);
         innerParts.Add(result);
 
         result.setArrayToRecord(content, createLengthArray);
@@ -178,7 +186,7 @@ public unsafe partial class FileParts
     /// <param name="Name">Имя искомой части.</param>
     /// <param name="startIndex">Начальный индекс в списке частей, с которого мы будем искать.</param>
     /// <returns>Индекс найденной части в списке innerParts. -1 - если ничего не найдено. Найденная часть файла или null, если ничего не найдено.</returns>
-    public (int, FileParts?) FindFirstPart(string Name, int startIndex = 0)
+    public (int Index, FileParts? FoundFilePart) FindFirstPart(string Name, int startIndex = 0)
     {
         for (int i = startIndex; i < innerParts.Count; i++)
         {
@@ -208,7 +216,9 @@ public unsafe partial class FileParts
         this.size = new Approximation(content.len + btLen);
     }
 
-    public void writeToFile(FileStream fs)
+    /// <summary>Записывает данные в поток ввода-вывода.</summary>
+    /// <param name="fs">Поток ввода вывода. FileStream, MemoryStream (если нужно, с использованием далее StreamReader) и др.</param>
+    public void WriteToFile(Stream fs)
     {
         if (btContent is not null)
         if (btContent.LongLength > 0)
@@ -220,21 +230,72 @@ public unsafe partial class FileParts
 
         foreach (var f in innerParts)
         {
-            f.writeToFile(fs);
+            f.WriteToFile(fs);
         }
     }
 
-    public void writeToFile(FileInfo outKeyFile)
+    /// <summary>Записывает данные в файл.</summary>
+    /// <param name="outKeyFile">Описатель файла. Файл должен не существовать.</param>
+    /// <param name="fileMode">Режим открытия файла. По-умолчанию файл должен не существовать (FileMode.CreateNew).</param>
+    public void WriteToFile(FileInfo outKeyFile, FileMode fileMode = FileMode.CreateNew)
     {
-        var fs = new FileStream(outKeyFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        var fs = new FileStream(outKeyFile.FullName, fileMode, FileAccess.Write, FileShare.None);
         try
         {
-            writeToFile(fs);
+            WriteToFile(fs);
         }
         finally
         {
             fs.Flush();
             fs.Close();
         }
+    }
+
+    /// <summary>Записывает данные из объекта в Record.</summary>
+    /// <param name="rec">Объект Record, в который происходит запись данных. Может быть null. В таком случае, объект создаётся в методе и возвращается как результат метода. Объект не удаляется.</param>
+    /// <returns>Возвращает объект rec, в который была произведена запись. Если rec был не равен нулю, то это тот же объект, что был передан как параметр rec, в противнос случае это вновь созданный объект.</returns>
+    /// <exception cref="InvalidDataException">Если размер данного объекта не определён.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Если rec слишком мал.</exception>
+    public Record WriteToRecord(Record? rec = null)
+    {
+        nint cur = 0;
+        return WriteToRecord(ref cur, rec);
+    }
+
+    /// <summary>Записывает данные из объекта в Record.</summary>
+    /// <param name="current">Вероятнее всего 0, если вызывается из пользовательского кода. Это - начальное смещение относительно начала записи rec, с которого начинается запись в rec.</param>
+    /// <param name="rec">Объект Record, в который происходит запись данных. Может быть null. В таком случае, объект создаётся в методе и возвращается как результат метода. Объект не удаляется.</param>
+    /// <returns>Возвращает объект rec, в который была произведена запись. Если rec был не равен нулю, то это тот же объект, что был передан как параметр rec, в противнос случае это вновь созданный объект.</returns>
+    /// <exception cref="InvalidDataException">Если размер данного объекта не определён.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Если rec слишком мал.</exception>
+    public Record WriteToRecord(ref nint current, Record? rec = null)
+    {
+        var fSize = this.fullLen;
+        if (fSize.min != fSize.max)
+            throw new InvalidDataException("FileParts.WriteToRecord: fullLen.min != fullLen.max. Data has not been initialized.");
+
+        if (rec == null)
+            rec = Keccak_abstract.allocator.AllocMemory(fSize.max, "FileParts.WriteToRecord");
+
+        if (rec.len < fSize.max)
+            throw new ArgumentOutOfRangeException("rec", "FileParts.WriteToRecord: rec.len < fullLen.max");
+
+        if (btContent is not null)
+        if (btContent.LongLength > 0)
+        fixed (byte * bt = btContent)
+        {
+            current += BytesBuilder.CopyTo((nint) btContent.LongLength, rec.len, bt, rec, current);
+        }
+
+        if (content is not null)
+        if (content.len > 0)
+            current += BytesBuilder.CopyTo(content.len, rec.len, content, rec, current);
+
+        foreach (var f in innerParts)
+        {
+            f.WriteToRecord(ref current, rec);
+        }
+
+        return rec;
     }
 }
