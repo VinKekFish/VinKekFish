@@ -1,4 +1,6 @@
 ﻿// #define RECORD_DEBUG
+#pragma warning disable CA2211
+#pragma warning disable CA1816
 
 using System;
 using System.Collections.Concurrent;
@@ -72,8 +74,7 @@ namespace cryptoprime
             /// <param name="RecordDebugName">Идентификатор записи, для отладки удаления памяти</param>
             public static Record GetRecordFromBytesArray(byte[] sourceArray, IAllocatorForUnsafeMemoryInterface? allocator = null, string? RecordDebugName = null)
             {
-                if (allocator == null)
-                    allocator = new AllocHGlobal_AllocatorForUnsafeMemory();
+                allocator ??= new AllocHGlobal_AllocatorForUnsafeMemory();
 
                 var r = allocator.AllocMemory((nint) sourceArray.LongLength, RecordName: RecordDebugName);
 
@@ -214,7 +215,7 @@ namespace cryptoprime
                 if (isDisposed)
                     throw new ObjectDisposedException("Record.NoCopyClone");
                 if (shift < 0 || shift >= this.len)
-                    throw new ArgumentOutOfRangeException("shift");
+                    throw new ArgumentOutOfRangeException(nameof(shift));
 
                 if (len <= 0)
                 {
@@ -222,7 +223,7 @@ namespace cryptoprime
                 }
 
                 if (len + shift > this.len || len == 0)
-                    throw new ArgumentOutOfRangeException("len");
+                    throw new ArgumentOutOfRangeException(nameof(len));
 
                 var r = new Record()
                 {
@@ -248,7 +249,7 @@ namespace cryptoprime
                 if (PostEnd < 0)
                     PostEnd = this.len;
                 if (PostEnd > this.len)
-                    throw new ArgumentOutOfRangeException("PostEnd", "BytesBuilderForPointers.Record.CloneToSafeBytes: PostEnd out of range");
+                    throw new ArgumentOutOfRangeException(nameof(PostEnd), "BytesBuilderForPointers.Record.CloneToSafeBytes: PostEnd out of range");
 
                 var result = new byte[PostEnd - start];
                 fixed (byte * r = result)
@@ -294,7 +295,6 @@ namespace cryptoprime
             }
 
             public readonly static List<string> errorsInDispose_List = new();
-
             protected static volatile bool _errorsInDispose = false;/// <summary>Если true, то была ошибка либо в деструкторе Record, либо Record.Dispose, либо в других классах, которые используют флаги "doException...". Это может быть только установлено, но не сброшено. Данный флаг используется и в других классах для того, чтобы показать аналогичные ошибки в Dispose</summary>
             public    static          bool  ErrorsInDispose
             {
@@ -443,7 +443,7 @@ namespace cryptoprime
             public static Record operator >>(Record a, nint len)
             {
                 if (a.len <= len)
-                    throw new ArgumentOutOfRangeException("len", "in '>>' operator");
+                    throw new ArgumentOutOfRangeException(nameof(len), "in '>>' operator");
 
                 var r = new Record()
                 {
@@ -459,9 +459,9 @@ namespace cryptoprime
             public static Record operator <<(Record a, nint subtracted)
             {
                 if (subtracted < 0)
-                    throw new ArgumentOutOfRangeException("subtracted", "subtracted < 0");
+                    throw new ArgumentOutOfRangeException(nameof(subtracted), "subtracted < 0");
                 if (a.len <= subtracted)
-                    throw new ArgumentOutOfRangeException("subtracted", "in Record.'<<' operator: a.len <= subtracted");
+                    throw new ArgumentOutOfRangeException(nameof(subtracted), "in Record.'<<' operator: a.len <= subtracted");
 
                 var r = new Record()
                 {
@@ -528,7 +528,7 @@ namespace cryptoprime
 
                 var lenb = postEnd - start;
                 if (lenb > b.len)
-                    throw new ArgumentOutOfRangeException("start", "postEnd - start > b.len");
+                    throw new ArgumentOutOfRangeException(nameof(start), "postEnd - start > b.len");
 
                 if (this.len != lenb)
                     return false;
@@ -727,7 +727,7 @@ namespace cryptoprime
             public virtual Record AllocMemory(nint len, string? RecordName = null)
             {
                 if (len < 1)
-                    throw new ArgumentOutOfRangeException("len", "AllocHGlobal_AllocatorForUnsafeMemory: len must be > 0");
+                    throw new ArgumentOutOfRangeException(nameof(len), "AllocHGlobal_AllocatorForUnsafeMemory: len must be > 0");
 
                 // ptr никогда не null, если не хватает памяти, то будет OutOfMemoryException
                 // alignmentSize домножаем на два, чтобы при невыравненной памяти захватить как память в начале (для выравнивания),

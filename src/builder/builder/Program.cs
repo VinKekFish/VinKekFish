@@ -24,7 +24,7 @@ public partial class Program
 
         if (args.Length > 2)
         {
-            var flags = args[2].Trim().ToLowerInvariant().Split(new string[] {" ", ",", ", "}, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            // var flags = args[2].Trim().ToLowerInvariant().Split(new string[] {" ", ",", ", "}, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             for (int i = 2; i < args.Length; i++)
             {
                 var flag = args[i];
@@ -47,25 +47,25 @@ public partial class Program
 
         // ---------------- Компиляция ----------------
 
-        var ec = MainBuild();
-        if (ec.resultCode != ErrorCode.Success)
+        var (resultCode, WillTests) = MainBuild();
+        if (resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
                 Console.Error.Write($"{GetTimeString(DateTime.Now)}. Error during build");
 
-            return (int) ec.resultCode;
+            return (int) resultCode;
         }
 
-        if (!ec.WillTests)
-            return (int) ec.resultCode;
+        if (!WillTests)
+            return (int) resultCode;
 
 
         using (var _ = new NotImportantConsoleOptions())
             Console.Write($"Tests started at {GetTimeString(DateTime.Now)}");
 
         // ---------------- Тесты ----------------
-        ec.resultCode = MainTests(testTags);
-        if (ec.resultCode != ErrorCode.Success)
+        resultCode = MainTests(testTags);
+        if (resultCode != ErrorCode.Success)
         {
             using (var _ = new ErrorConsoleOptions())
             {
@@ -73,7 +73,7 @@ public partial class Program
                 Console.Error.WriteLine($"Working dir {Directory.GetCurrentDirectory()}");
             }
 
-            return (int) ec.resultCode;
+            return (int) resultCode;
         }
 
         using (var _ = new NotErrorConsoleOptions())

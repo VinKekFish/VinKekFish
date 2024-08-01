@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE0059 // Ненужное присваивание
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -305,16 +307,16 @@ namespace cryptoprime
 
             if (resultCount > count)
             {
-                throw new System.ArgumentOutOfRangeException("resultCount", "BytesBuilderStatic: resultCount is too large: resultCount > count || resultCount == 0");
+                throw new System.ArgumentOutOfRangeException(nameof(resultCount), "BytesBuilderStatic: resultCount is too large: resultCount > count || resultCount == 0");
             }
 
             if (resultCount == 0)
             {
-                throw new System.ArgumentOutOfRangeException("resultCount", "resultCount == 0");
+                throw new System.ArgumentOutOfRangeException(nameof(resultCount), "resultCount == 0");
             }
 
             if (resultA != null && resultA.len < resultCount)
-                throw new System.ArgumentOutOfRangeException("resultA", "resultA is too small");
+                throw new System.ArgumentOutOfRangeException(nameof(resultA), "resultA is too small");
             if (resultA != null && resultA.isDisposed)
                 throw new ArgumentOutOfRangeException(nameof(resultA), "BytesBuilderStatic.getBytesAndRemoveIt: resultA.isDisposed");
 

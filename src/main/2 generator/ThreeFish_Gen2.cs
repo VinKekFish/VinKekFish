@@ -121,8 +121,8 @@ namespace CodeGenerator
                         index -= Threefish_slowly.Nw + 1;
 
                     var subkey = gKey(index);
-                    int s3 = s % 3;
-                    var sb2 = gTw(s3);
+                    int s3; // = s % 3;
+                    string sb2; // = gTw(s3);
 
                     var i1 = correspondenceTable[i - 1];
                     var i2 = correspondenceTable[i + 0];

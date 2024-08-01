@@ -1,4 +1,6 @@
-﻿// dotnet publish --output ./build.dev -c Release --self-contained false --use-current-runtime true /p:PublishSingleFile=true
+﻿#pragma warning disable
+
+// dotnet publish --output ./build.dev -c Release --self-contained false --use-current-runtime true /p:PublishSingleFile=true
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;

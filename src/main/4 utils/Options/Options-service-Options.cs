@@ -15,11 +15,11 @@ public partial class Options_Service
 
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
-            switch(canonicalName)
+            doLogEveryInputEntropyToSponge = canonicalName switch
             {
-                case "do log every input entropy to sponge": doLogEveryInputEntropyToSponge = true; break;
-                default:                       throw new Options_Service_Exception($"At line {1+block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'do log every input entropy to sponge'");
-            }
+                "do log every input entropy to sponge" => true,
+                _ => throw new Options_Service_Exception($"At line {1 + block.startLine} in the root of service options found the unknown element '{block.Name}'. Acceptable is 'do log every input entropy to sponge'"),
+            };
         }
 
         public override void Check()

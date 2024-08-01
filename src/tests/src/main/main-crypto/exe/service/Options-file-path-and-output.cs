@@ -217,7 +217,7 @@ public class ServiceAutoTestFile: ServiceAutoTests
             return lst;
         }
 
-        void Add(List<string> lst, string msg, Func func)
+        static void Add(List<string> lst, string msg, Func func)
         {
             try
             {

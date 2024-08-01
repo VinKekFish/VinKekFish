@@ -244,9 +244,9 @@ namespace vinkekfish
             if (TweakInit != null && TweakInit.len < CryptoTweakLen)
                 throw new ArgumentOutOfRangeException("TweakInit.len", $"VinKekFishBase_KN_20210525.InputKey: TweakInit.len < CryptoTweakLen ({TweakInit.len} < {CryptoTweakLen})");
             if (RoundsForFinal < MIN_ROUNDS_K)
-                throw new ArgumentOutOfRangeException("RoundsForFinal", $"VinKekFishBase_KN_20210525.InputKey: RoundsForFinal < MIN_ROUNDS_K ({RoundsForFinal} < {MIN_ROUNDS_K})");
+                throw new ArgumentOutOfRangeException(nameof(RoundsForFinal), $"VinKekFishBase_KN_20210525.InputKey: RoundsForFinal < MIN_ROUNDS_K ({RoundsForFinal} < {MIN_ROUNDS_K})");
             if (RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K)
-                throw new ArgumentOutOfRangeException("RoundsForFirstKeyBlock", $"VinKekFishBase_KN_20210525.InputKey: RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForFirstKeyBlock} < {MIN_ABSORPTION_ROUNDS_D_K})");
+                throw new ArgumentOutOfRangeException(nameof(RoundsForFirstKeyBlock), $"VinKekFishBase_KN_20210525.InputKey: RoundsForFirstKeyBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForFirstKeyBlock} < {MIN_ABSORPTION_ROUNDS_D_K})");
             if (RoundsForTailBlocks < MIN_ABSORPTION_ROUNDS_D_K)
                 throw new ArgumentOutOfRangeException("RoundsForTailsBlock", $"VinKekFishBase_KN_20210525.InputKey: RoundsForTailsBlock < MIN_ABSORPTION_ROUNDS_D_K ({RoundsForTailBlocks} < {MIN_ABSORPTION_ROUNDS_D_K})");
 
@@ -357,7 +357,7 @@ namespace vinkekfish
         public void InputData_Overwrite(byte * data, nint dataLen, byte regime, bool nullPadding = true)
         {
             if (dataLen > BLOCK_SIZE_K)
-                throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Overwrite: dataLen > BLOCK_SIZE_K");
+                throw new ArgumentOutOfRangeException(nameof(dataLen), "VinKekFishBase_KN_20210525.InputData_Overwrite: dataLen > BLOCK_SIZE_K");
             if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Overwrite: Fatal algorithmic error: !State1Main");
 
@@ -397,7 +397,7 @@ namespace vinkekfish
         public void InputData_Xor(byte * data, long dataLen, byte regime)
         {
             if (dataLen > BLOCK_SIZE_K)
-                throw new ArgumentOutOfRangeException("dataLen", "VinKekFishBase_KN_20210525.InputData_Xor: dataLen > BLOCK_SIZE_K");
+                throw new ArgumentOutOfRangeException(nameof(dataLen), "VinKekFishBase_KN_20210525.InputData_Xor: dataLen > BLOCK_SIZE_K");
             if (!IsState1Main)
                 throw new Exception("VinKekFishBase_KN_20210525.InputData_Xor: Fatal algorithmic error: !State1Main");
 

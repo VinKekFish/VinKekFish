@@ -19,7 +19,7 @@ public class Keccak_test_example: Keccak_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             return lst;
         }

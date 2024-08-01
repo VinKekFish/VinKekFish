@@ -14,14 +14,14 @@ using static VinKekFish_Utils.Language;
 
 public partial class Program
 {
-    public static ProgramErrorCode command_install(string[] args)
+    public static ProgramErrorCode DoCommand_install(string[] args)
     {
-        var cmd = new Command_install();
+        _ = new Command_install();
 
         return ProgramErrorCode.success;
     }
 
-    public static bool is_command_install(string[] args)
+    public static bool Is_command_install(string[] args)
     {
         if (args[0].ToLowerInvariant().Trim() == "install")
             return true;

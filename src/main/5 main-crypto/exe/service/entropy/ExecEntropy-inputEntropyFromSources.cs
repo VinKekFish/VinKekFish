@@ -214,7 +214,7 @@ public partial class Regime_Service
         checked
         {
             if (record.len < len)
-                throw new ArgumentOutOfRangeException("len", $"Regime_Service.InputBuffToSponges: record.len < len ({record.len} < {len})");
+                throw new ArgumentOutOfRangeException(nameof(len), $"Regime_Service.InputBuffToSponges: record.len < len ({record.len} < {len})");
 
             lock (entropy_sync)
             Parallel.Invoke

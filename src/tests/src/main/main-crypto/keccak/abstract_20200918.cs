@@ -30,7 +30,7 @@ public class Keccak_test_erfc_S : TestTask
             };
             foreach (var eval in etalon)
             {
-                var val = Keccak_test_parent.erfc((decimal) eval.Key);
+                var val = Keccak_test_parent.Erfc((decimal) eval.Key);
                 if (Math.Abs(((double) val - eval.Value)/eval.Value) > 1e-12)
                 {
                     throw new Exception($"{val:E17} == {eval.Value:E17}; for {eval.Key:E3}");
@@ -54,12 +54,12 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<string> lst = new List<string>();
+            List<string> lst = new();
 
             using var k           = new Keccak_20200918();
             using var debugRecord = new Record() { array = k.S, len = KeccakPrime.b_size };
 
-            isNull(k, "1.1");
+            IsNull(k, "1.1");
             k.CalcStep();
             int deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
 
@@ -85,7 +85,7 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             lst.Add("Deviation: " + deviation.ToString("D2"));
 
             k2.ClearOnly_C_and_B();
-            isNullBC(k2, "k2.b || k2.c != null");
+            IsNullBC(k2, "k2.b || k2.c != null");
             k2.ClearStateWithoutStateField();
             k2.CalcStep();
             if (BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
@@ -101,8 +101,8 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
                 k.CalcStep();
                 // deviation = GetDeviationOfBits(k);
                 deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
-                var P  = Keccak_test_parent.erfc(deviation / Keccak_test_parent.sqrt(KeccakPrime.b_size << 3) / Keccak_test_parent.sqrt2);
-                var P2 = Keccak_test_parent.erfc_2N(deviation, KeccakPrime.b_size << 3);
+                var P  = Keccak_test_parent.Erfc(deviation / Keccak_test_parent.Sqrt(KeccakPrime.b_size << 3) / Keccak_test_parent.sqrt2);
+                var P2 = Keccak_test_parent.Erfc_2N(deviation, KeccakPrime.b_size << 3);
                 if (Math.Abs(P - P2) > 1e-22m)
                     throw new Exception("Math.Abs(P - P2) > 1e-22m");
 
@@ -115,14 +115,14 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             return lst;
         }
 
-        private static void isNull(Keccak_abstract k, string msg)
+        private static void IsNull(Keccak_abstract k, string msg)
         {
             for (int i = 0; i < KeccakPrime.b_size; i++)
                 if (k.S[i] != 0)
                     throw new Exception(msg);
         }
 
-        private static void isNullBC(Keccak_abstract k, string msg)
+        private static void IsNullBC(Keccak_abstract k, string msg)
         {
             for (int i = 0; i < KeccakPrime.b_size; i++)
                 if (k.B[i] != 0)

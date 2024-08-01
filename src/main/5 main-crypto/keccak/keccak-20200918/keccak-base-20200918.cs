@@ -261,18 +261,13 @@ public abstract class Keccak_base_20200918: Keccak_abstract
     /// <returns>Массив с запрошенным хешем</returns>
     public unsafe byte[] GetHash512(byte * message, long messageFullLen, bool doClear = true, long startIndex = 0, long countToHash = -1, bool isInitialized = false, byte[]? forResult = null, ulong index = 0, DoubleHash doubleHash = DoubleHash.one)
     {
-        byte[]? result = forResult;
-        if (result == null)
-        {
-            result = doubleHash switch
+        byte[]? result = forResult ?? doubleHash switch
             {
                 DoubleHash.one    => new byte[64],
                 DoubleHash.two    => new byte[128],
                 DoubleHash.full72 => new byte[r_512b],      // 72
                 _ => throw new ArgumentOutOfRangeException("unknown doubleHash value"),
             };
-        }
-
         long mLen = 0;
         if (countToHash < 0)
             mLen = messageFullLen - startIndex;

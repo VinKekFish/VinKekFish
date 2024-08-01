@@ -39,16 +39,16 @@ public class Keccak_test_parent: ParentAutoSaveTask
     /// <param name="torelance">Точность</param>
     /// <returns>erfc(x)</returns>
     // Для проверки https://statpages.info/scicalc.html или http://www.mhtl.uwaterloo.ca/old/courses/me303/calc/func_calc.html
-    public static decimal erfc(decimal x, decimal tolerance = 1e-26m)
+    public static decimal Erfc(decimal x, decimal tolerance = 1e-26m)
     {
         /*
         Формула для приближения:
         сумма от 0 до бесконечности по n
         2/sqrt(pi)*summ(x/(2n+1)*P[i=1;n](-x^2/i))
         */
-        decimal K = (decimal)(  2 / sqrt(PI)  );
+        decimal K = (decimal)(  2 / Sqrt(PI)  );
         decimal R = 0;
-        decimal A = 0;
+        decimal A;
 
         decimal n = 0;
         do
@@ -66,7 +66,7 @@ public class Keccak_test_parent: ParentAutoSaveTask
         decimal result = (decimal)(  R * K  );
         return 1m - result;
 
-        decimal P(decimal n, decimal x)
+        static decimal P(decimal n, decimal x)
         {
             decimal result = 1;
             for (int i = 1; i <= n; i++)
@@ -85,9 +85,9 @@ public class Keccak_test_parent: ParentAutoSaveTask
     /// <param name="x">Отклонение количества установленных битов от идеального значения</param>
     /// <param name="nBits">Длина массива битов (в битах)</param>
     /// <param name="tolerance">Точность расчёта. Можно не указывать</param>
-    public static decimal erfc_2N(decimal x, int nBits, decimal tolerance = 1e-26m)
+    public static decimal Erfc_2N(decimal x, int nBits, decimal tolerance = 1e-26m)
     {
-        return erfc(x / sqrt(nBits) / sqrt2);
+        return Erfc(x / Sqrt(nBits) / sqrt2);
     }
 
     /// <summary>Вычисляет отклонение количества установленных битов от идеально случайного (половина битов установлена)</summary>
@@ -121,7 +121,7 @@ public class Keccak_test_parent: ParentAutoSaveTask
     public static readonly decimal PI    = 3.1415926535_8979323846_2643383279_5028841971m;
     public static readonly decimal sqrt2 = 1.41421356237309504880168872420969807856967187537694807317667m;
 
-    public static decimal sqrt(decimal x, decimal tolerance = 1e-27m)
+    public static decimal Sqrt(decimal x, decimal tolerance = 1e-27m)
     {
         if (x == 0)
             return 0;

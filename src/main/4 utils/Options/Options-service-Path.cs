@@ -1,3 +1,5 @@
+#pragma warning disable IDE0066 // switch
+
 // TODO: tests
 using System.Diagnostics;
 using System.Text;

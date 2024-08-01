@@ -17,11 +17,11 @@ public partial class Options_Service
 
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
-            switch(canonicalName)
+            random = canonicalName switch
             {
-                case "random": random = new Random(this, block.blocks, block); break;
-                default:       throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'random'");
-            }
+                "random" => new Random(this, block.blocks, block),
+                _ => throw new Options_Service_Exception($"At line {1 + block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'random'"),
+            };
         }
 
         public override void Check()
@@ -47,12 +47,14 @@ public partial class Options_Service
 
             public override void SelectBlock(Options.Block block, string canonicalName)
             {
+                #pragma warning disable IDE0059
                 Element e = canonicalName switch
                 {
                     "unix stream"              => unixStream = new UnixStream     (this, block.blocks, block),
                     "character device in /dev" => charDevice = new CharacterDevice(this, block.blocks, block),
                     _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'unix stream'")
                 };
+                #pragma warning restore IDE0059
             }
 
             public override void Check()
@@ -76,11 +78,13 @@ public partial class Options_Service
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
+                    #pragma warning disable IDE0059
                     Element e = canonicalName switch
                     {
                         "path"  => path = new Path(this, block.blocks, block),
                         _ => throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'path'")
                     };
+                    #pragma warning restore IDE0059
                 }
 
                 public override void Check()

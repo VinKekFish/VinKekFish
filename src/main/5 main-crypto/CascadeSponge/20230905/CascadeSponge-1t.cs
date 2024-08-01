@@ -65,6 +65,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         return new CascadeSponge_1t_20230905(_tall: _tall, _wide: _wide);
     }
 
+    #pragma warning disable IDE0059 // Ненужные присваивания
     // CascadeSponge_1t_20230905.CalcCascadeParameters(192, 404, _tall: out nint _tall, _wide: out nint _wide);
     /// <summary>Вычисляет требуемые параметры каскада по заданной целевой стойкости и длине блока</summary>
     /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов)</param>
@@ -108,6 +109,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (Mx < targetBlockLen || (_wide & 1) > 0)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.getCascade: fatal algorithmic error: Mx < targetBlockLen || (_wide & 1) > 0");
     }
+    #pragma warning restore IDE0059
 
     /// <summary>Вычисляет коэффициент запаса W и максимальный вход/выход одной губки Wn</summary>
     /// <param name="_tall">Высота губки</param>
@@ -420,7 +422,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="i">Номер матрицы на входном слое</param>
     protected byte * GetInputLayerS (nint i)
     {
-        GetKeccakS(0, i, S: out byte * S, C: out byte * C, B: out byte * B);
+        GetKeccakS(0, i, S: out byte * S, C: out _, B: out _);
 
         return S;
     }
@@ -429,7 +431,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="i">Номер матрицы на входном слое</param>
     protected byte * GetOutputLayerS(nint i)
     {
-        GetKeccakS(tall-1, i, S: out byte * S, C: out byte * C, B: out byte * B);
+        GetKeccakS(tall-1, i, S: out byte * S, C: out _, B: out _);
 
         return S;
     }

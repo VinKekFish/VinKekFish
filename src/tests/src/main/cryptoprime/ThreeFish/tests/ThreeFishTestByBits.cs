@@ -96,9 +96,10 @@ namespace main_tests
             if (ts.Value == null) throw new NullReferenceException();
 
             var s0 = BytesBuilder.CloneBytes(ts.Value[0]);      // Ключ
-            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Текст
+            // var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Текст
 
-            byte[] h1 = new byte[128], h2;
+            //byte[] h1 = new byte[128], h2;
+            byte[] h1, h2;
             var tft = new ThreefishTransform(ts.Value[0], ThreefishTransformMode.Encrypt);
             var tw = new ulong[2];
             tft.SetTweak(tw);
@@ -130,7 +131,7 @@ namespace main_tests
             if (ts.Value == null) throw new NullReferenceException();
 
             var s0 = BytesBuilder.CloneBytes(ts.Value[0]);      // Ключ
-            var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Твик
+            // var s1 = BytesBuilder.CloneBytes(ts.Value[1]);      // Твик
 
             byte[] h1 = new byte[128], h2;          // Шифротекст оставляем нулём
             // BytesBuilder.CopyTo(s0, bn);
@@ -148,7 +149,7 @@ namespace main_tests
             var input = new ulong[16];
             tw = new ulong[2];
             var b0 = Threefish_slowly.BytesToUlong(ts.Value[0]);
-            var b1 = Threefish_slowly.BytesToUlong(ts.Value[1]);
+            // var b1 = Threefish_slowly.BytesToUlong(ts.Value[1]);
             tw[0] = b[0];
             tw[1] = b[2];
             h2 = Threefish_slowly.UlongToBytes(Threefish_slowly.Encrypt(b0, tw, input), null);

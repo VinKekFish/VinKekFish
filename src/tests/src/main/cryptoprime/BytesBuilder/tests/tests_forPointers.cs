@@ -57,7 +57,7 @@ public unsafe class BytesBuilder_ForPointers_Record_test1: BytesBuilder_test_par
                     }
                 }
 
-                byte * a = null;
+                byte * a; // = null;
                 using (var r = allocator.AllocMemory(memoryToAllocate, "BytesBuilder_ForPointers_Record_test1"))
                 {
                     i += memoryToAllocate;
@@ -626,7 +626,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 }
                 catch (BytesBuilder.NotFoundAllocator)
                 {
-                    lst.Add(new byte[0]);
+                    lst.Add(Array.Empty<byte>());
                 }
 
                 try
@@ -635,7 +635,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    lst.Add(new byte[0]);
+                    lst.Add(Array.Empty<byte>());
                 }
 
                 // Пытаемся взять больше, чем есть
@@ -645,7 +645,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 }
                 catch (BytesBuilder.ResultCountIsTooLarge)
                 {
-                    lst.Add(new byte[0]);
+                    lst.Add(Array.Empty<byte>());
                 }
 
                 var str1a = BytesBuilderForPointers.Record.GetRecordFromBytesArray(bStr1);
@@ -693,7 +693,7 @@ public class BytesBuilder_ForPointers_test: BytesBuilder_test_parent
                 }
                 catch (BytesBuilder.ResultAIsTooSmall)
                 {
-                    lst.Add(new byte[0]);
+                    lst.Add(Array.Empty<byte>());
                 }
 
 

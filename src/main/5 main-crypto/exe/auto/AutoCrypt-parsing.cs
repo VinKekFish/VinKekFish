@@ -13,8 +13,11 @@ public partial class AutoCrypt
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
     public abstract partial class Command
     {
-        protected static Regex SpaceRegex = new("[ \t]+", RegexOptions.Compiled | RegexOptions.Singleline);
-        protected static Regex CommaRegex = new("[,;]",   RegexOptions.Compiled | RegexOptions.Singleline);
+        #pragma warning disable SYSLIB1045 // Используйте "GeneratedRegexAttribute", чтобы создавать реализацию регулярного выражения во время компиляции. [maincrypto]
+        protected static readonly Regex SpaceRegex = new("[ \t]+", RegexOptions.Compiled | RegexOptions.Singleline);
+        protected static readonly Regex CommaRegex = new("[,;]",   RegexOptions.Compiled | RegexOptions.Singleline);
+        #pragma warning restore SYSLIB1045
+
         public static string[] ToSpaceSeparated(string value)
         {
             lock (CommaRegex)
@@ -35,7 +38,7 @@ public partial class AutoCrypt
         /// <param name="fileList">Список файлов для добавления созданного описателя. Может быть null.</param>
         /// <param name="title">Заголовок окна zenity. По умолчанию - пустая строка.</param>
         /// <returns>Описатель файла, располагающегося по пути PathToFile или null.</returns>
-        protected FileInfo? ParseFileOptions(string PathToFile, bool isDebugMode = false, FileMustExists mustExists = FileMustExists.indifferent, List<FileInfo>? fileList = null, string title = "")
+        protected static FileInfo? ParseFileOptions(string PathToFile, bool isDebugMode = false, FileMustExists mustExists = FileMustExists.indifferent, List<FileInfo>? fileList = null, string title = "")
         {
             if (string.IsNullOrEmpty(PathToFile))
             {
@@ -81,8 +84,7 @@ public partial class AutoCrypt
 
             if (r is not null)
             {
-                if (fileList is not null)
-                    fileList.Add(r);
+                fileList?.Add(r);
             }
             else
             {

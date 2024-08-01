@@ -7,7 +7,7 @@ using static VinKekFish_Utils.Memory;
 
 public partial class Program
 {
-    public static ProgramErrorCode command_check(string[] args)
+    public static ProgramErrorCode Command_check(string[] args)
     {
         isService = true;
         var list  = new List<string>(args);
@@ -33,7 +33,7 @@ public partial class Program
         return ProgramErrorCode.success;
     }
 
-    public static bool is_command_check(string[] args)
+    public static bool Is_command_check(string[] args)
     {
         if (args[0].ToLowerInvariant().Trim() == "check")
             return true;

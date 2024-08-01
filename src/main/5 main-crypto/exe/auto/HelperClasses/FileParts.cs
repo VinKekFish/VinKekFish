@@ -33,7 +33,7 @@ public unsafe partial class FileParts
     }
 
     /// <summary>Представляет минимальную и максимальную величины чего-либо, например, оценки размера некоторого файла или поля.</summary>
-    public struct Approximation
+    public readonly struct Approximation
     {
         public readonly nint min = 0;
         public readonly nint max = 0;
@@ -276,11 +276,10 @@ public unsafe partial class FileParts
         if (fSize.min != fSize.max)
             throw new InvalidDataException("FileParts.WriteToRecord: fullLen.min != fullLen.max. Data has not been initialized.");
 
-        if (rec == null)
-            rec = Keccak_abstract.allocator.AllocMemory(fSize.max, "FileParts.WriteToRecord");
+        rec ??= Keccak_abstract.allocator.AllocMemory(fSize.max, "FileParts.WriteToRecord");
 
         if (rec.len < fSize.max)
-            throw new ArgumentOutOfRangeException("rec", "FileParts.WriteToRecord: rec.len < fullLen.max");
+            throw new ArgumentOutOfRangeException(nameof(rec), "FileParts.WriteToRecord: rec.len < fullLen.max");
 
         if (btContent is not null)
         if (btContent.LongLength > 0)

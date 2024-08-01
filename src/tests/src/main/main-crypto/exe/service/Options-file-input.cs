@@ -597,7 +597,7 @@ public class ServiceAutoTestFile_Input: ServiceAutoTests
             }
         }
 
-        void Add(List<string> lst, string msg, Func func)
+        static void Add(List<string> lst, string msg, Func func)
         {
             try
             {

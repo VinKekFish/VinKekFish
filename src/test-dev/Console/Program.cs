@@ -18,7 +18,7 @@ unsafe class Program
         // 24bit or truecolor
         var tc = System.Environment.GetEnvironmentVariable("COLORTERM");
         Console.WriteLine(tc);
-        Console.WriteLine($"isTrueColor: {isTrueColor(tc)}");
+        Console.WriteLine($"isTrueColor: {IsTrueColor(tc)}");
         Console.WriteLine($"Эти цвета явно различны, если TrueColor поддерживается:");
         // \x1b то же, что и echo -e "\033" в терминале
         Console.WriteLine("\x1b[1m\x1b[48;2;255;0;0m\x1b[38;2;0;0;255mTRUECOLOR\x1b[0m\x1b[0m");
@@ -65,7 +65,7 @@ unsafe class Program
         }
 
         Console.WriteLine();
-        var pGlob = stackalloc glob_t[1];   // Здесь нельзя просто создать объект, т.к. он будет перемещаемым
+        var pGlob = stackalloc Glob_t[1];   // Здесь нельзя просто создать объект, т.к. он будет перемещаемым
         var str   = "/dev/*/*/*-event-*";
         var str8  = Utf8StringMarshaller.ConvertToUnmanaged(str);
         glob(str8, 0, null, pGlob);
@@ -182,7 +182,7 @@ unsafe class Program
 
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct glob_t
+    public unsafe struct Glob_t
     {
         public nint   pathCount;
         public byte** pathes;   // char **
@@ -192,7 +192,7 @@ unsafe class Program
 // TODO: вот здесь нужно будет вставить проверку в реальном VinKekFish, что это функция реально работает и возвращает верный результат
 // Нужно взять текущего пользователя, его домашний каталог, а потом проверить, что всё норм, и что также создаётся stream с этими же правами (а что, если у нас у пользователя нет каталога? - не будет проверять, видимо этот пункт)
     // entry::warn:onlylinux:sOq1JvFKRxQyw7FQ:
-    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
     public static extern int stat(string path, ref StatBuf sb);
 // TODO: path, возможно, стоит снабдить дополнительным атрибутом; см. интернет подробнее
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
@@ -205,12 +205,12 @@ unsafe class Program
     public static extern void free(void * buff);
 
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void glob(byte * pattern, nint flags, void * func, glob_t * pGlob);
+    public static extern void glob(byte * pattern, nint flags, void * func, Glob_t * pGlob);
 
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void globfree(glob_t * pGlob);
+    public static extern void globfree(Glob_t * pGlob);
 
-    public static int strlen(byte * str)
+    public static int Strlen(byte * str)
     {
         int len = 0;
         while (*str != 0)
@@ -228,7 +228,7 @@ unsafe class Program
         try
         {
             var bt = (*owner_nm).userName;
-            return new ASCIIEncoding().GetString(bt, strlen(bt));
+            return new ASCIIEncoding().GetString(bt, Strlen(bt));
         }
         finally
         {
@@ -291,7 +291,7 @@ unsafe class Program
         return id1;
     }
 
-    public static bool isTrueColor(string? COLORTERM)
+    public static bool IsTrueColor(string? COLORTERM)
     {
         if (COLORTERM == null)
             return false;

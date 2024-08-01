@@ -18,11 +18,11 @@ public partial class Options_Service
 
         public override void SelectBlock(Options.Block block, string canonicalName)
         {
-            switch(canonicalName)
+            entropy = canonicalName switch
             {
-                case "entropy": entropy = new Entropy(this, block.blocks, block); break;
-                default:        throw new Options_Service_Exception($"At line {1+block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'entropy'");
-            }
+                "entropy" => new Entropy(this, block.blocks, block),
+                _ => throw new Options_Service_Exception($"At line {1 + block.startLine} in the '{GetFullElementName()}' element found the unknown element '{block.Name}'. Acceptable is 'entropy'"),
+            };
         }
 
         public override void Check()
@@ -155,7 +155,7 @@ public partial class Options_Service
                         case "file":
                             var childBlockName = block.blocks.Count > 0 ? block.blocks[0].Name : "";
 
-                            if (!childBlockName.Contains("*") && !childBlockName.Contains("?"))
+                            if (!childBlockName.Contains('*') && !childBlockName.Contains('?'))
                             {
                                 var r = GetNewInputFileElement(parent, block);
                                 result.Add(r);
@@ -231,8 +231,7 @@ public partial class Options_Service
                     // Это делаем именно здесь, т.к. PathString сначала записывается в SelectBlock,
                     // а потом перезаписывается в конструкторе
                     // SelectBlock на этот момент уже вызван
-                    if (PathString == null)
-                        PathString = this.PathString;
+                    PathString ??= this.PathString;
 
                     if (PathString is not null)
                     {
@@ -252,7 +251,7 @@ public partial class Options_Service
                 {
                     if (string.IsNullOrEmpty(PathString))
                         throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option must have 'PathString' element. Have no 'PathString' element");
-                    if (FileInfo!.FullName.Contains("*") || FileInfo!.FullName.Contains("?"))
+                    if (FileInfo!.FullName.Contains('*') || FileInfo!.FullName.Contains('?'))
                         throw new Options_Service_Exception($"FATAL ERROR: In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option contains element with wildcards '{FileInfo!.FullName}'. This is the error made at the development stage, have no error in the option file.");
 
                     base.Check();
@@ -511,8 +510,8 @@ public partial class Options_Service
 
                 public override void SelectBlock(Options.Block block, string canonicalName)
                 {
-                    IntervalTypeEnum IntervalType = IntervalTypeEnum.none;
-                    long time = -2;
+                    IntervalTypeEnum IntervalType; // = IntervalTypeEnum.none;
+                    long time; // = -2;
                     if (canonicalName == "once")
                     {
                         time = -1;

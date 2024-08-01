@@ -1,3 +1,5 @@
+namespace cryptoprime_tests;
+
 using cryptoprime_tests;
 using DriverForTestsLib;
 
@@ -96,7 +98,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         TW[1] += 4UL << 40;
         TW[2]  = TW[0] ^ TW[1];
 
-        calcRound(state, TW, 9);
+        CalcRound(state, TW, 9);
 
         var r = stackalloc byte[512*3];
 
@@ -133,7 +135,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         TW[1] += 8190;
         TW[2] = TW[0] ^ TW[1];
 
-        calcRound(state, TW, 4);
+        CalcRound(state, TW, 4);
 
         // Вводим остаток ключа (весь остаток не умещается)
         BytesBuilder.CopyTo(512*3, 9600, key.array + 2048*3, state.array + 3);
@@ -144,7 +146,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         TW[1] += 512*3 + 0x0100_0000_0000_0000;
         TW[2] = TW[0] ^ TW[1];
 
-        calcRound(state, TW, 2);
+        CalcRound(state, TW, 2);
 
         // Окончание ключа
         BytesBuilder.CopyTo(510, 9600, key.array + 2048*3 + 512*3, state.array + 3);
@@ -155,7 +157,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         TW[1] += 510 + 0x0100_0000_0000_0000;
         TW[2] = TW[0] ^ TW[1];
 
-        calcRound(state, TW, 2);
+        CalcRound(state, TW, 2);
 
         // Отбивка ключа
         BytesBuilder.ToNull(512*3, state.array + 3);
@@ -168,58 +170,58 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         TW[1] += 255UL << 40;
         TW[2] = TW[0] ^ TW[1];
 
-        calcRound(state, TW, 9);
+        CalcRound(state, TW, 9);
     }
 
-    private void calcRound(Record state, ulong* TW, ulong NumberOfRounds)
+    private void CalcRound(Record state, ulong* TW, ulong NumberOfRounds)
     {
         VinKekFish_Utils.Utils.MsgToFile($"round started {NumberOfRounds}", "KNe");
         VinKekFish_Utils.Utils.ArrayToFile((byte*)TW, 16, "KNe");
 
         // Осуществляем предварительное преобразование
-        transpose128(state);
+        Transpose128(state);
         ThreeFish(state, TW, 0);
-        transpose128(state);
+        Transpose128(state);
 
         // r - номер раунда. Расчёт номеров полураундов осуществляется в цикле
         for (ulong r = 0; r < NumberOfRounds; r++)
         {
             VinKekFish_Utils.Utils.MsgToFile($"semiround {r * 2 + 0}", "KNe");
-            keccak(state);
-            transpose200_8(state);
+            Keccak(state);
+            Transpose200_8(state);
             ThreeFish(state, TW, r * 2);
-            transpose128(state);
+            Transpose128(state);
 
             VinKekFish_Utils.Utils.MsgToFile($"semiround {r * 2 + 1}", "KNe");
-            keccak(state);
-            transpose200(state);
+            Keccak(state);
+            Transpose200(state);
             ThreeFish(state, TW, r * 2 + 1);
-            transpose128(state);
+            Transpose128(state);
         }
 
         VinKekFish_Utils.Utils.MsgToFile($"final", "KNe");
 
-        keccak(state);
-        transpose200(state);
-        keccak(state);
-        transpose200_8(state);
-        keccak(state);
-        transpose200(state);
-        keccak(state);
-        transpose200_8(state);
+        Keccak(state);
+        Transpose200(state);
+        Keccak(state);
+        Transpose200_8(state);
+        Keccak(state);
+        Transpose200(state);
+        Keccak(state);
+        Transpose200_8(state);
 
-        keccak(state);
-        transpose200(state);
-        keccak(state);
-        transpose200_8(state);
-        keccak(state);
-        transpose200(state);
-        keccak(state);
-        transpose200_8(state);
+        Keccak(state);
+        Transpose200(state);
+        Keccak(state);
+        Transpose200_8(state);
+        Keccak(state);
+        Transpose200(state);
+        Keccak(state);
+        Transpose200_8(state);
     }
 
     // Выполняет преобразование для перестановок, в частности, самое первое транспонирование перед ThreeFish предварительного преобразования
-    private void transpose128(Record state)
+    private void Transpose128(Record state)
     {
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
 
@@ -249,7 +251,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
     }
 
-    private void transpose200(Record state)
+    private void Transpose200(Record state)
     {
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
 
@@ -279,68 +281,68 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
     }
 
-    private void transpose200_8(Record state)
+    private void Transpose200_8(Record state)
     {
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
 
         var buff = stackalloc byte[9600];
 
         int j = 0;
-        j = tr_200_8_h(state, buff, j, 000); if (j != 48) throw new Exception("transpose200_8: j != 48");
-        j = tr_200_8_h(state, buff, j, 008);
-        j = tr_200_8_h(state, buff, j, 016);
-        j = tr_200_8_h(state, buff, j, 024);
-        j = tr_200_8_h(state, buff, j, 032);
-        j = tr_200_8_h(state, buff, j, 040);
-        j = tr_200_8_h(state, buff, j, 048);
-        j = tr_200_8_h(state, buff, j, 056);
-        j = tr_200_8_h(state, buff, j, 064);
-        j = tr_200_8_h(state, buff, j, 072);
-        j = tr_200_8_h(state, buff, j, 080);
-        j = tr_200_8_h(state, buff, j, 088);
-        j = tr_200_8_h(state, buff, j, 096);
-        j = tr_200_8_h(state, buff, j, 104);
-        j = tr_200_8_h(state, buff, j, 112);
-        j = tr_200_8_h(state, buff, j, 120);
-        j = tr_200_8_h(state, buff, j, 128);
-        j = tr_200_8_h(state, buff, j, 136);
-        j = tr_200_8_h(state, buff, j, 144);
-        j = tr_200_8_h(state, buff, j, 152);
-        j = tr_200_8_h(state, buff, j, 160);
-        j = tr_200_8_h(state, buff, j, 168);
-        j = tr_200_8_h(state, buff, j, 176);
-        j = tr_200_8_h(state, buff, j, 184);
-        j = tr_200_8_h(state, buff, j, 192);
+        j = Tr_200_8_h(state, buff, j, 000); if (j != 48) throw new Exception("transpose200_8: j != 48");
+        j = Tr_200_8_h(state, buff, j, 008);
+        j = Tr_200_8_h(state, buff, j, 016);
+        j = Tr_200_8_h(state, buff, j, 024);
+        j = Tr_200_8_h(state, buff, j, 032);
+        j = Tr_200_8_h(state, buff, j, 040);
+        j = Tr_200_8_h(state, buff, j, 048);
+        j = Tr_200_8_h(state, buff, j, 056);
+        j = Tr_200_8_h(state, buff, j, 064);
+        j = Tr_200_8_h(state, buff, j, 072);
+        j = Tr_200_8_h(state, buff, j, 080);
+        j = Tr_200_8_h(state, buff, j, 088);
+        j = Tr_200_8_h(state, buff, j, 096);
+        j = Tr_200_8_h(state, buff, j, 104);
+        j = Tr_200_8_h(state, buff, j, 112);
+        j = Tr_200_8_h(state, buff, j, 120);
+        j = Tr_200_8_h(state, buff, j, 128);
+        j = Tr_200_8_h(state, buff, j, 136);
+        j = Tr_200_8_h(state, buff, j, 144);
+        j = Tr_200_8_h(state, buff, j, 152);
+        j = Tr_200_8_h(state, buff, j, 160);
+        j = Tr_200_8_h(state, buff, j, 168);
+        j = Tr_200_8_h(state, buff, j, 176);
+        j = Tr_200_8_h(state, buff, j, 184);
+        j = Tr_200_8_h(state, buff, j, 192);
 
         for (int i = 1; i < 8; i++)
         {
             if (j != 48*25*i) throw new Exception("transpose200_8: j != 48*25*i)");
 
-            j = tr_200_8_h(state, buff, j, 000+i);
-            j = tr_200_8_h(state, buff, j, 008+i);
-            j = tr_200_8_h(state, buff, j, 016+i);
-            j = tr_200_8_h(state, buff, j, 024+i);
-            j = tr_200_8_h(state, buff, j, 032+i);
-            j = tr_200_8_h(state, buff, j, 040+i);
-            j = tr_200_8_h(state, buff, j, 048+i);
-            j = tr_200_8_h(state, buff, j, 056+i);
-            j = tr_200_8_h(state, buff, j, 064+i);
-            j = tr_200_8_h(state, buff, j, 072+i);
-            j = tr_200_8_h(state, buff, j, 080+i);
-            j = tr_200_8_h(state, buff, j, 088+i);
-            j = tr_200_8_h(state, buff, j, 096+i);
-            j = tr_200_8_h(state, buff, j, 104+i);
-            j = tr_200_8_h(state, buff, j, 112+i);
-            j = tr_200_8_h(state, buff, j, 120+i);
-            j = tr_200_8_h(state, buff, j, 128+i);
-            j = tr_200_8_h(state, buff, j, 136+i);
-            j = tr_200_8_h(state, buff, j, 144+i);
-            j = tr_200_8_h(state, buff, j, 152+i);
-            j = tr_200_8_h(state, buff, j, 160+i);
-            j = tr_200_8_h(state, buff, j, 168+i);
-            j = tr_200_8_h(state, buff, j, 176+i);
-            j = tr_200_8_h(state, buff, j, 184+i);
-            j = tr_200_8_h(state, buff, j, 192+i);
+            j = Tr_200_8_h(state, buff, j, 000+i);
+            j = Tr_200_8_h(state, buff, j, 008+i);
+            j = Tr_200_8_h(state, buff, j, 016+i);
+            j = Tr_200_8_h(state, buff, j, 024+i);
+            j = Tr_200_8_h(state, buff, j, 032+i);
+            j = Tr_200_8_h(state, buff, j, 040+i);
+            j = Tr_200_8_h(state, buff, j, 048+i);
+            j = Tr_200_8_h(state, buff, j, 056+i);
+            j = Tr_200_8_h(state, buff, j, 064+i);
+            j = Tr_200_8_h(state, buff, j, 072+i);
+            j = Tr_200_8_h(state, buff, j, 080+i);
+            j = Tr_200_8_h(state, buff, j, 088+i);
+            j = Tr_200_8_h(state, buff, j, 096+i);
+            j = Tr_200_8_h(state, buff, j, 104+i);
+            j = Tr_200_8_h(state, buff, j, 112+i);
+            j = Tr_200_8_h(state, buff, j, 120+i);
+            j = Tr_200_8_h(state, buff, j, 128+i);
+            j = Tr_200_8_h(state, buff, j, 136+i);
+            j = Tr_200_8_h(state, buff, j, 144+i);
+            j = Tr_200_8_h(state, buff, j, 152+i);
+            j = Tr_200_8_h(state, buff, j, 160+i);
+            j = Tr_200_8_h(state, buff, j, 168+i);
+            j = Tr_200_8_h(state, buff, j, 176+i);
+            j = Tr_200_8_h(state, buff, j, 184+i);
+            j = Tr_200_8_h(state, buff, j, 192+i);
         }
         
 
@@ -348,7 +350,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         VinKekFish_Utils.Utils.ArrayToFile(state, 9600, "KNe");
     }
 
-    private static int tr_200_8_h(Record state, byte* buff, int j, int start)
+    private static int Tr_200_8_h(Record state, byte* buff, int j, int start)
     {
         for (int i = start; i < 9600; i += 200)
             buff[j++] = state[i];
@@ -406,7 +408,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
         BytesBuilder.CopyTo(128, 128, text, pt1);
     }
 
-    private void keccak(Record state)
+    private void Keccak(Record state)
     {
         var c = stackalloc byte[200];   // Это имеет размер 040
         var b = stackalloc byte[200];

@@ -1,3 +1,5 @@
+namespace cryptoprime_tests;
+
 using cryptoprime_tests;
 using DriverForTestsLib;
 

@@ -468,7 +468,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
                 return;
             }
             if (range == 0)
-                throw new ArgumentOutOfRangeException("range", "Keccak_PRNG_20201128.Cutoff.Cutoff: range == 0");
+                throw new ArgumentOutOfRangeException(nameof(range), "Keccak_PRNG_20201128.Cutoff.Cutoff: range == 0");
 
             // cutoff <- [1; 0x7FFF_FFFF__FFFF_FFFFU]
 

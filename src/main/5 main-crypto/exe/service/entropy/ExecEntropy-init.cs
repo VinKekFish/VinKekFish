@@ -259,7 +259,7 @@ public partial class Regime_Service
                     {
                         if (string.IsNullOrEmpty(rnd.PathString))
                             throw new Exception($"Regime_Service.StartEntropy: for the element '{rnd.GetFullElementName()} at line {rnd.thisBlock.startLine}': file name is empty. The random file name is required.");
-
+                                                    #pragma warning disable IDE0066
                         switch (rnd)
                         {
                             case Options_Service.Input.Entropy.InputFileElement fileElement:
@@ -283,7 +283,7 @@ public partial class Regime_Service
                     }
                 }
             }
-
+                                                    #pragma warning restore IDE0066
             if (sb.Length > 0)
             {
                 Console.WriteLine(L("Initialization got random values from file or command"));
@@ -312,8 +312,7 @@ public partial class Regime_Service
             if (cmdElement.userName is not null)
             {
                 psi.UserName = cmdElement.userName;
-                if (psi.WorkingDirectory is null)
-                    psi.WorkingDirectory = Directory.GetCurrentDirectory();
+                psi.WorkingDirectory ??= Directory.GetCurrentDirectory();
             }
 
             var ps = Process.Start(psi);

@@ -7,13 +7,13 @@ using VinKekFish_EXE;
 
 public partial class Program
 {
-    public static ProgramErrorCode command_manual(string[] args)
+    public static ProgramErrorCode DoCommand_manual(string[] args)
     {
         Console.Error.WriteLine("NOT IMPLEMENTED");
         return ProgramErrorCode.success;
     }
 
-    public static bool is_command_manual(string[] args)
+    public static bool Is_command_manual(string[] args)
     {
         if (args[0].ToLowerInvariant().Trim() == "manual")
             return true;

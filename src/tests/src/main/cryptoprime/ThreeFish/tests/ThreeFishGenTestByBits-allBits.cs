@@ -25,7 +25,7 @@ namespace main_tests
         public unsafe ThreeFishGenTestByBits_AllBits(TestConstructor constructor):
                                         base(nameof(ThreeFishGenTestByBits_AllBits), constructor: constructor)
         {
-            this.sources   = SourceTask.getIterator();
+            this.sources   = SourceTask.GetIterator();
             this.TaskFunc  = StartTests;
             /* () =>
             {
@@ -43,7 +43,7 @@ namespace main_tests
             public List<byte[]>? vals = null;
 
 
-            public static IEnumerable<SourceTask> getIterator()
+            public static IEnumerable<SourceTask> GetIterator()
             {
                 // 128 - это размер одного блока
                 const long size  = 128;

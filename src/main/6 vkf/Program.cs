@@ -78,18 +78,13 @@ public partial class Program
 
     protected static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
     {
-        var ex = e.ExceptionObject as Exception;
-
-        if (ex == null)
+        if (e.ExceptionObject is not Exception ex)
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + e.ExceptionObject.ToString());
         else
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + FormatException(ex, false));
 
         if (e.IsTerminating)
-        if (service != null)
-        {
-            service.DoTerminate(true);
-        }
+            service?.DoTerminate(true);
     }
 
     public static ProgramErrorCode Main_ec(string[] args)
@@ -122,28 +117,28 @@ public partial class Program
             return ProgramErrorCode.version;
         }
 
-        if (is_command_auto(args))
+        if (Is_command_auto(args))
         {
-            return command_auto(args);
+            return Command_auto(args);
         }
 
-        if (is_command_check(args))
+        if (Is_command_check(args))
         {
-            return command_check(args);
+            return Command_check(args);
         }
 
-        if (is_command_service(args))
+        if (Is_command_service(args))
         {
-            return command_service(args);
+            return Command_service(args);
         }
 
-        if (is_command_install(args))
+        if (Is_command_install(args))
         {
-            return command_install(args);
+            return DoCommand_install(args);
         }
 
         if (!isAutomaticProgram)
-        if (!is_command_manual(args))
+        if (!Is_command_manual(args))
         {
             PrintVersionHeader();
             PrintHelp();
@@ -151,7 +146,7 @@ public partial class Program
             return ProgramErrorCode.errorRegimeArgs;
         }
 
-        return command_manual(args);
+        return DoCommand_manual(args);
 
         // return ProgramErrorCode.success;
     }

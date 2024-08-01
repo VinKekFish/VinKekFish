@@ -89,6 +89,7 @@ public class UnixSocketListener: IDisposable
     public void Dispose()
     {
         Close(false);
+        GC.SuppressFinalize(this);
     }
 
     public bool isDisposed = false;
@@ -151,6 +152,7 @@ public class UnixSocketListener: IDisposable
         public void Dispose()
         {
             Close();
+            GC.SuppressFinalize(this);
         }
 
         public virtual void Close(bool deleteFromConnections = true)

@@ -42,8 +42,6 @@ public unsafe partial class AutoCrypt
                 throw new InvalidOperationException("GenKeyCommand.CreateKeyFiles: VinKekFish_Key.input.Count > 0");
 
 
-            VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator; //, VinKekFish_KeyGenerator2 = null;
-            CascadeSponge_mt_20230930?  Cascade_KeyGenerator; //, Cascade_KeyGenerator2 = null;
             Record? obfRegimeName = null, OIV = null, keysToEncrypt = null;
             GetDataByAdd?     gdKeyGenerator = null, gdKeyGenerator2 = null;
             KeyDataGenerator? dataGenerator  = null;
@@ -112,7 +110,7 @@ public unsafe partial class AutoCrypt
                 // Пароль вводится здесь. Он вводится после генерации синхропосылки и её частей,
                 // т.к. ввод сразу в губку,
                 // а губка должна быть проинициализирована до этого синхропосылками
-                gdKeyGenerator  = InitKeyGenerator(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator , out Cascade_KeyGenerator, noPwd);
+                gdKeyGenerator  = InitKeyGenerator(obfRegimeName, OIV, OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator , out CascadeSponge_mt_20230930? Cascade_KeyGenerator, noPwd);
                 // gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len, !havePwd2);
 
                 file.AddFilePart("Encrypted", 0, nint.MaxValue);
@@ -194,7 +192,7 @@ public unsafe partial class AutoCrypt
 
             // Вводим пароль в обе губки
             if (!noPwd)
-                new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: Cascade_KeyOpts.ArmoringSteps, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps);
+                _ = new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: Cascade_KeyOpts.ArmoringSteps, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps);
 
             // Перекрёстная инициализация губок
             var gdVinKekFish_KeyGenerator = new GetDataFromVinKekFishSponge(VinKekFish_KeyGenerator);

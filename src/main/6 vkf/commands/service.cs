@@ -9,8 +9,10 @@ using VinKekFish_EXE;
 
 public partial class Program
 {
+                                                                    #pragma warning disable CA2211
     public static Regime_Service? service = null;
-    public static ProgramErrorCode command_service(string[] args)
+                                                                    #pragma warning restore CA2211
+    public static ProgramErrorCode Command_service(string[] args)
     {
         isService = true;
         var list  = new List<string>(args);
@@ -29,7 +31,7 @@ public partial class Program
         return service.Start(list);
     }
 
-    public static bool is_command_service(string[] args)
+    public static bool Is_command_service(string[] args)
     {
         if (args[0].ToLowerInvariant().Trim() == "service")
             return true;

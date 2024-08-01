@@ -1,3 +1,6 @@
+#pragma warning disable CA2211
+#pragma warning disable CA1401
+
 // TODO: tests
 using System.Data;
 using System.Diagnostics;
@@ -82,7 +85,7 @@ public unsafe class CuseStream: IDisposable
                 var r = fuse_session_loop(session);
 
                 // Завершаем работу программы
-                cuse_lowlevel_teardown(session);
+                _ = cuse_lowlevel_teardown(session);
                 GC.KeepAlive(A);
             }
         );
@@ -115,6 +118,7 @@ public unsafe class CuseStream: IDisposable
     public void Dispose()
     {
         Close(false);
+        GC.SuppressFinalize(this);
     }
 
     public bool isDisposed = false;
@@ -143,7 +147,7 @@ public unsafe class CuseStream: IDisposable
         {
             if (session != null)
             {
-                fuse_session_exit(session);
+                _ = fuse_session_exit(session);
                 try
                 {
                     File.ReadAllText(fi.FullName);  // Читаем данные из символьного устройства, чтобы дать событие для завершения сессии
@@ -187,7 +191,7 @@ public unsafe class CuseStream: IDisposable
         lock (fhs)
             fhs.Add(fileInfo->fh);
 
-        fuse_reply_open(request, fileInfo);
+        _ = fuse_reply_open(request, fileInfo);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -200,7 +204,7 @@ public unsafe class CuseStream: IDisposable
         lock (fhs)
             fhs.Remove(fileInfo->fh);
 
-        fuse_reply_err(request, PosixErrorCode.Success);
+        _ = fuse_reply_err(request, PosixErrorCode.Success);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -208,7 +212,7 @@ public unsafe class CuseStream: IDisposable
     {
         if (offset > 0)
         {
-            fuse_reply_err(request, PosixErrorCode.EOPNOTSUPP);
+            _ = fuse_reply_err(request, PosixErrorCode.EOPNOTSUPP);
             return;
         }
 
@@ -223,7 +227,7 @@ public unsafe class CuseStream: IDisposable
         // Он обозначается выводом нулевого количества байтов.
         if (!exists)
         {
-            fuse_reply_buf(request, null, 0);
+            _ = fuse_reply_buf(request, null, 0);
             return;
         }
 
@@ -233,7 +237,7 @@ public unsafe class CuseStream: IDisposable
             using (var buff = Cuse!.service.GetEntropyForOut(blockSize))
             {
                 // Здесь из буффера информация будет скопирована в отдельно выделенный внутри fuse объект
-                fuse_reply_buf(request, buff, (int) buff.len);
+                _ = fuse_reply_buf(request, buff, (int) buff.len);
             }
         }
         catch (Exception ex)
@@ -241,7 +245,7 @@ public unsafe class CuseStream: IDisposable
             Console.Error.WriteLine("CuseStream.CuseReadFunc error");
             Console.Error.WriteLine(FormatException(ex, false));
 
-            fuse_reply_err(request, PosixErrorCode.ENOMEM);
+            _ = fuse_reply_err(request, PosixErrorCode.ENOMEM);
         }
     }
 

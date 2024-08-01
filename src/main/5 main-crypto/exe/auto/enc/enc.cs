@@ -27,13 +27,13 @@ public partial class AutoCrypt
             switch (command.name)
             {
                 case "file":
-                        ParseFileOptions(command.value.TrimStart());
+                    ParseFileOptions(command.value.TrimStart());
                     break;
                 case "out":
-                        ParseFileOptions(command.value.TrimStart());
+                    ParseFileOptions(command.value.TrimStart());
                     break;
                 case "key":
-                        ParseFileOptions(command.value.TrimStart());
+                    ParseFileOptions(command.value.TrimStart());
                     break;
                 case "start":
                     if (Terminated)

@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿#pragma warning disable CA1821  // Пустые завершающие методы
+
+using System.Collections.Concurrent;
 using DriverForTestsLib;
 using cryptoprime;
 using cryptoprime_tests;
@@ -115,6 +117,6 @@ public class Empty
 
     public static void Do()
     {
-        new Empty();
+        _ = new Empty();
     }
 }

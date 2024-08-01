@@ -75,21 +75,21 @@ namespace cryptoprime.VinKekFish
                 throw new ArgumentOutOfRangeException("SecondKey", "VinKekFishBase_etalonK1.InputKey: SecondKey != Initiated");
 
             if (OIV == null && OIV_length != 0)
-                throw new ArgumentOutOfRangeException("OIV", "VinKekFishBase_etalonK1.InputKey: OIV == null && OIV_length != 0");
+                throw new ArgumentOutOfRangeException(nameof(OIV), "VinKekFishBase_etalonK1.InputKey: OIV == null && OIV_length != 0");
 
             if (OIV != null && OIV_length > MAX_OIV)
-                throw new ArgumentOutOfRangeException("OIV_length", "VinKekFishBase_etalonK1.InputKey: OIV_length > MAX_OIV");
+                throw new ArgumentOutOfRangeException(nameof(OIV_length), "VinKekFishBase_etalonK1.InputKey: OIV_length > MAX_OIV");
 
             if (key == null)
-                throw new ArgumentNullException("key", "VinKekFishBase_etalonK1.InputKey: key == null");
+                throw new ArgumentNullException(nameof(key), "VinKekFishBase_etalonK1.InputKey: key == null");
 
             if (key_length <= 0)
-                throw new ArgumentNullException("key_length", "VinKekFishBase_etalonK1.InputKey: key_length <= 0");
+                throw new ArgumentNullException(nameof(key_length), "VinKekFishBase_etalonK1.InputKey: key_length <= 0");
 
             if (R < MIN_ABSORPTION_ROUNDS_D)
-                throw new ArgumentOutOfRangeException("R", "VinKekFishBase_etalonK1.InputKey: R < MIN_ABSORPTION_ROUNDS_D");
+                throw new ArgumentOutOfRangeException(nameof(R), "VinKekFishBase_etalonK1.InputKey: R < MIN_ABSORPTION_ROUNDS_D");
             if (RE < MIN_ROUNDS && !ExtendedKey)
-                throw new ArgumentOutOfRangeException("RE", "VinKekFishBase_etalonK1.InputKey: RE < MIN_ROUNDS && !SecondKey");
+                throw new ArgumentOutOfRangeException(nameof(RE), "VinKekFishBase_etalonK1.InputKey: RE < MIN_ROUNDS && !SecondKey");
 
 
             var dataLen = key_length;
@@ -185,7 +185,7 @@ namespace cryptoprime.VinKekFish
         public static void InputData_Overwrite(byte * data, byte * state, nint dataLen, ulong * tweak, byte regime, bool nullPaddding = true)
         {
             if (dataLen > BLOCK_SIZE)
-                throw new ArgumentOutOfRangeException("dataLen", "InputData_Overwrite: dataLen > BLOCK_SIZE");
+                throw new ArgumentOutOfRangeException(nameof(dataLen), "InputData_Overwrite: dataLen > BLOCK_SIZE");
 
             nint i = 0;
             for (; i < dataLen; i++, data++)
@@ -453,10 +453,13 @@ namespace cryptoprime.VinKekFish
             #endif
         }
 
+        #pragma warning disable CA2211
         public static ushort* transpose128_3200    = null;
         public static ushort* transpose200_3200    = null;
         public static ushort* transpose200_3200_8  = null;
         // public static ushort* transpose400_3200_16 = null;
+
+        #pragma warning restore CA2211
 
         public static readonly object sync = new();
 

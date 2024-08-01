@@ -108,7 +108,7 @@ namespace vinkekfish
             MAX_OIV_K        = K * MAX_OIV;
             MAX_SINGLE_KEY_K = K * MAX_SINGLE_KEY;
 
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce(double x) => (int) Math.Ceiling(x);
 
             // var kr = (K - 1) >> 1;
             // Рассчитываем константы для рекомендуемого количества раундов
@@ -204,7 +204,7 @@ namespace vinkekfish
 
         public static int Calc_MIN_ROUNDS_K(int K)
         {
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce(double x) => (int) Math.Ceiling(x);
 
             var MIN_ROUNDS_K = ce(K * 2.674);
             if (MIN_ROUNDS_K < ce(4.0 * Math.Log2(K + 1)))
@@ -215,28 +215,28 @@ namespace vinkekfish
 
         public static int Calc_REDUCED_ROUNDS_K(int K)
         {
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce (double x) => (int) Math.Ceiling(x);
 
             return ce(K * 6.168);
         }
 
         public static int Calc_NORMAL_ROUNDS_K(int K)
         {
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce (double x) => (int) Math.Ceiling(x);
 
             return ce(K * 6.168 * 1.5);
         }
 
         public static int Calc_EXTRA_ROUNDS_K(int K)
         {
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce (double x) => (int)Math.Ceiling(x);
 
             return ce(K * 25.0);
         }
 
         public static int Calc_MAX_ROUNDS_K(int K)
         {
-            var ce = (double x) => (int)Math.Ceiling(x);
+            static int ce (double x) => (int)Math.Ceiling(x);
 
             return ce(K * 25.0 * (2 * Math.Log2(K + 1) + 2));
         }

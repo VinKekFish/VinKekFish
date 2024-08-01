@@ -196,7 +196,7 @@ public partial class Regime_Service
             if (poResult != ProgramErrorCode.success)
                 return poResult;
 
-            Console.WriteLine($"{L("initialization started at")} {DateTime.Now.ToString()}");
+            Console.WriteLine($"{L("initialization started at")} {DateTime.Now}");
 
             // Мы сначала создаём прослушиватель, но делаем это сразу в блокировке, чтобы не было возможности получить данные ещё из непроинициализированных губок
             lock (entropy_sync)
@@ -218,7 +218,7 @@ public partial class Regime_Service
                 ExecEntropy();
             }
 
-            Console.WriteLine($"{L("service started at")} {DateTime.Now.ToString()}");
+            Console.WriteLine($"{L("service started at")} {DateTime.Now}");
 
             try
             {
@@ -235,11 +235,11 @@ public partial class Regime_Service
         }
         finally
         {
-            Console.WriteLine($"Regime_Service.Start: exiting started at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Regime_Service.Start: exiting started at {DateTime.Now}");
 
             StopEntropy();
 
-            Console.WriteLine($"Regime_Service.Start: exited at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Regime_Service.Start: exited at {DateTime.Now}");
         }
 
         return ProgramErrorCode.success;
@@ -284,7 +284,7 @@ public partial class Regime_Service
         return ProgramErrorCode.success;
     }
 
-    public string? GetStringFromOptions(string path, Options opt, Options.Block? block = null)
+    public static string? GetStringFromOptions(string path, Options opt, Options.Block? block = null)
     {
         var foundedBlock = opt.SearchBlock(path, block?.blockHeaderIndent ?? 0, block);
         if (foundedBlock is null)

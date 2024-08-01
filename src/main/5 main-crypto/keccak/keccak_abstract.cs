@@ -137,6 +137,7 @@ public unsafe abstract class Keccak_abstract: IDisposable
     public void Dispose()
     {
         Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     ~Keccak_abstract()

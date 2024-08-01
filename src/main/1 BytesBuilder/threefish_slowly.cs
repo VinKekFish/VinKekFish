@@ -77,7 +77,7 @@ namespace cryptoprime
         };
 
         // C240 - constant, see page 11 (numbers in page, not in editor) of skein 1.3 specification
-        public static ulong C240 = 0x1BD11BDAA9FC1A22;
+        public const ulong C240 = 0x1BD11BDAA9FC1A22;
 
         // d - round mod 8
         // Mixing and word permutation, see page 10 (numbers in page, not in editor)

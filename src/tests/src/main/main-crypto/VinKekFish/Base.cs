@@ -1,3 +1,5 @@
+namespace cryptoprime_tests;
+
 using cryptoprime_tests;
 using DriverForTestsLib;
 
@@ -41,10 +43,10 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
     public VinKekFish_test_base_compareToEtalon(TestConstructor constructor) :
                                             base(nameof(VinKekFish_test_base_compareToEtalon), constructor)
     {
-        TaskFunc = this.Test;
+        TaskFunc = Test;
     }
 
-    public void Test()
+    public static void Test()
     {
         File.Delete("log-k1.log");
         File.Delete("log-KN.log");
@@ -57,7 +59,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         TestByIncorrect();
     }
 
-    private void ConstantRoundsTests(int keyLen)
+    private static void ConstantRoundsTests(int keyLen)
     {
         Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, VinKekFishBase_etalonK1.MIN_ABSORPTION_ROUNDS_D, keyLen);
         Test(VinKekFishBase_etalonK1.MIN_ROUNDS,     VinKekFishBase_etalonK1.MIN_ROUNDS,     1, 1, keyLen);
@@ -72,7 +74,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         Test(128, 128, 1, 1, keyLen);
     }
 
-    public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock, int keyLen)
+    public static void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock, int keyLen)
     {
         using var k1e   = new VinKekFish_k1_base_20210419();
         using var k1t1  = new VinKekFishBase_KN_20210525(CountOfRounds: roundsCnt, ThreadCount: 1);
@@ -136,7 +138,7 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
         }
     }
 
-    public void TestByIncorrect()
+    public static void TestByIncorrect()
     {
         int incorrect = 0;
         try

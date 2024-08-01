@@ -54,9 +54,9 @@ public unsafe static partial class Utils
         if (len > len2)
             len = len2;
         if (start1 + len1 > r1.len)
-            throw new ArgumentOutOfRangeException("r1");
+            throw new ArgumentOutOfRangeException(nameof(r1));
         if (start2 + len2 > r2.len)
-            throw new ArgumentOutOfRangeException("r2");
+            throw new ArgumentOutOfRangeException(nameof(r2));
 
         byte * r1a = r1.array + start1, r2a = r2.array + start2, End1 = r1a + len;
 

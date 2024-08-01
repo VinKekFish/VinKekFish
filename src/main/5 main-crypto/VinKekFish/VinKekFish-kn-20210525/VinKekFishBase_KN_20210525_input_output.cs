@@ -49,8 +49,7 @@ namespace vinkekfish
             {
                 lock (input)
                 {
-                    if (inputRecord == null)
-                        inputRecord = allocator.AllocMemory(BLOCK_SIZE_K);
+                    inputRecord ??= allocator.AllocMemory(BLOCK_SIZE_K);
 
                     int inputLen = input.Count > BLOCK_SIZE_K ? BLOCK_SIZE_K : (int) input.Count;
                     input.GetBytesAndRemoveIt(inputRecord, inputLen);

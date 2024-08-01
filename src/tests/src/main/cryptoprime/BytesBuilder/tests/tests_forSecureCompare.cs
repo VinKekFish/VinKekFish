@@ -33,7 +33,7 @@ public unsafe class SecureCompare_test: BytesBuilder_test_parent
     {
         public override object ExecuteTest(AutoSaveTestTask task)
         {
-            List<byte[]> lst = new List<byte[]>();
+            List<byte[]> lst = new();
 
             var b = new byte[256];
             for (int i = 0; i < b.Length; i++)

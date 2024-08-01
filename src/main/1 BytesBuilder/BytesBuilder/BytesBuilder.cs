@@ -1,4 +1,7 @@
-﻿using System;
+﻿#pragma warning disable IDE0059 // Ненужное присваивание
+// #pragma warning restore IDE0059
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -189,7 +192,7 @@ namespace cryptoprime
             public ResultCountIsTooLarge(nint resultCount, nint count):
                                         base
                                         (
-                                            "resultCount",
+                                            nameof(resultCount),
                                             $"ResultCountIsTooLarge: resultCount is too large: resultCount > count ({resultCount} > {count})"
                                         )
             {}
@@ -200,7 +203,7 @@ namespace cryptoprime
             public ResultAIsTooSmall(byte[] resultA, nint resultCount):
                                         base
                                         (
-                                            "resultA",
+                                            nameof(resultA),
                                             $"ResultAIsTooSmall: resultA is too small: ({resultA.LongLength} < {resultCount})"
                                         )
             {}
@@ -487,15 +490,15 @@ namespace cryptoprime
             }
 
             if (count <= 0)
-                throw new ArgumentOutOfRangeException("count", "BytesBuilder.CopyTo: count <= 0");
+                throw new ArgumentOutOfRangeException(nameof(count), "BytesBuilder.CopyTo: count <= 0");
             if (index < 0)
-                throw new ArgumentOutOfRangeException("index", "BytesBuilder.CopyTo: index < 0");
+                throw new ArgumentOutOfRangeException(nameof(index), "BytesBuilder.CopyTo: index < 0");
             if (index >= sourceLength)
-                throw new ArgumentOutOfRangeException("index", "BytesBuilder.CopyTo: index >= sourceLength");
+                throw new ArgumentOutOfRangeException(nameof(index), "BytesBuilder.CopyTo: index >= sourceLength");
             if (targetIndex < 0)
-                throw new ArgumentOutOfRangeException("targetIndex", "BytesBuilder.CopyTo: targetIndex < 0");
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), "BytesBuilder.CopyTo: targetIndex < 0");
             if (targetIndex >= targetLength)
-                throw new ArgumentOutOfRangeException("targetIndex", "BytesBuilder.CopyTo: targetIndex >= targetLength");
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), "BytesBuilder.CopyTo: targetIndex >= targetLength");
 
             if (count > maxCout)
                 count = maxCout;
@@ -679,8 +682,7 @@ namespace cryptoprime
         /// <param name="start">Начальный индекс для записи числа</param>
         public unsafe static void UIntToBytes(uint data, ref byte[]? target, nint start = 0)
         {
-            if (target == null)
-                target = new byte[4];
+            target ??= new byte[4];
 
             if (start < 0 || start + 4 > target.LongLength)
                 throw new IndexOutOfRangeException();
@@ -701,8 +703,7 @@ namespace cryptoprime
         /// <param name="start">Начальный индекс для записи числа</param>
         public unsafe static void ULongToBytes(ulong data, ref byte[]? target, nint start = 0)
         {
-            if (target == null)
-                target = new byte[8];
+            target ??= new byte[8];
 
             if (start < 0 || start + 8 > target.LongLength)
                 throw new IndexOutOfRangeException();
@@ -727,7 +728,7 @@ namespace cryptoprime
             if (start < 0 || start + 8 > len)
                 throw new IndexOutOfRangeException("ULongToBytes");
             if (target == null)
-                throw new ArgumentNullException("target", "BytesBuilder.ULongToBytes");
+                throw new ArgumentNullException(nameof(target), "BytesBuilder.ULongToBytes");
 
             for (nint i = start; i < start + 8; i++)
             {
@@ -767,7 +768,7 @@ namespace cryptoprime
             if (start < 0 || start + 8 > len)
                 throw new IndexOutOfRangeException("BytesToULong");
             if (target == null)
-                throw new ArgumentNullException("target", "BytesBuilder.BytesToULong");
+                throw new ArgumentNullException(nameof(target), "BytesBuilder.BytesToULong");
 
             for (nint i = start + 8 - 1; i >= start; i--)
             {
@@ -884,7 +885,7 @@ namespace cryptoprime
         public unsafe static bool UnsecureCompare(nint wellLen, nint hashLen, byte* wellHash, byte* hash, nint count = -1, nint indexWell = 0)
         {
             if (indexWell < 0)
-                throw new ArgumentOutOfRangeException("indexWell");
+                throw new ArgumentOutOfRangeException(nameof(indexWell));
 
             if (count == -1)
             {
@@ -929,7 +930,7 @@ namespace cryptoprime
         public unsafe static bool UnsecureCompare(byte[] wellHash, byte[] hash, int count = -1, int indexWell = 0)
         {
             if (indexWell < 0)
-                throw new ArgumentOutOfRangeException("indexWell");
+                throw new ArgumentOutOfRangeException(nameof(indexWell));
 
             if (count == -1)
             {

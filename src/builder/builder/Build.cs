@@ -30,7 +30,7 @@ partial class Program
             dllPatterns.Add(dllName);
         }
 
-        var isActual  = isActualCheck ? IsActualVersion(output_di, di, dllPatterns, null, lastModified) : false;
+        var isActual  = isActualCheck && IsActualVersion(output_di, di, dllPatterns, null, lastModified);
 
         if (isActual)
         {
@@ -66,7 +66,7 @@ partial class Program
         return (ErrorCode.Success, di);
     }
 
-    protected static string[] isActualVersion_sourcePattern_cs = new string[] { "*.cs" };
+    protected static readonly string[] isActualVersion_sourcePattern_cs = new string[] { "*.cs" };
 
     /// <summary>Проверяет, что исходники не старше, чем файлы библиотек</summary>
     /// <param name="output_di">Директория, где мы ищем dll</param>

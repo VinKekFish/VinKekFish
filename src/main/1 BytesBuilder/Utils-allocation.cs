@@ -1,4 +1,7 @@
-﻿namespace VinKekFish_Utils;
+﻿#pragma warning disable CA2211 // Поля, не являющиеся константами, не должны быть видимыми [bytesbuilder]
+#pragma warning disable CA1401 // Метод P/Invoke "mmap" не должен быть видимым [bytesbuilder]
+
+namespace VinKekFish_Utils;
 
 using System.Runtime.InteropServices;
 using cryptoprime;

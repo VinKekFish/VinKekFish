@@ -227,9 +227,9 @@ public partial class Regime_Service
                 lock (this)
                 {
                     if (len <= 0)
-                        throw new ArgumentOutOfRangeException("len", "len <= 0");
+                        throw new ArgumentOutOfRangeException(nameof(len), "len <= 0");
                     if (bytes > len)
-                        throw new ArgumentOutOfRangeException("bytes", "bytes > len");
+                        throw new ArgumentOutOfRangeException(nameof(bytes), "bytes > len");
 
                     if (keccak is not null)
                     {
@@ -270,6 +270,8 @@ public partial class Regime_Service
 
                 Disposed = true;
             }
+
+            GC.SuppressFinalize(this);
         }
 
         protected volatile bool MandatoryUse = false;
@@ -283,10 +285,10 @@ public partial class Regime_Service
     public void Sleep(int milliseconds, int maxWait = 1000)
     {
         if (milliseconds < 0)
-            throw new ArgumentOutOfRangeException("milliseconds", $"milliseconds < 0 ({milliseconds})");
+            throw new ArgumentOutOfRangeException(nameof(milliseconds), $"milliseconds < 0 ({milliseconds})");
 
         var cnt = milliseconds;
-        var cur = 0;
+        int cur;
         while (cnt > 0 && !Terminated)
         {
             cur = cnt;
@@ -734,8 +736,7 @@ public partial class Regime_Service
             if (cmdElement.userName is not null)
             {
                 psi.UserName = cmdElement.userName;
-                if (psi.WorkingDirectory is null)
-                    psi.WorkingDirectory = Directory.GetCurrentDirectory();
+                psi.WorkingDirectory ??= Directory.GetCurrentDirectory();
             }
 
             var ps = Process.Start(psi);

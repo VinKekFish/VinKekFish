@@ -139,7 +139,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
         nint index = ThreadIndex;
 
-        byte * S, B, C, sb, sb2, buff = stackalloc byte[MaxInputForKeccak];
+        byte* sb, sb2, buff = stackalloc byte[MaxInputForKeccak];
         byte * st = (byte *) stepBuffer;
         try
         {
@@ -165,7 +165,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                     sb2 = st + ReserveConnectionLen;
                 }
 
-                GetKeccakS(ThreadsLayer, index, S: out S, B: out B, C: out C);
+                GetKeccakS(ThreadsLayer, index, S: out byte* S, B: out byte* B, C: out byte* C);
                 if (ThreadsLayer > 0)
                 {
                     var si = index*MaxInputForKeccak;

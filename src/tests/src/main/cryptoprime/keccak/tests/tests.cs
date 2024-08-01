@@ -27,6 +27,7 @@ public class ParentAutoSaveTask: AutoSaveTestTask
         DirForFiles = SetDirForFiles();
     }
 
+    #pragma warning disable IDE0270
     public static DirectoryInfo GetDirectoryPath(string ProjectDir = "", string DirName = "autotests")
     {
         var pathToFile = new DirectoryInfo(System.AppContext.BaseDirectory)?.Parent ?? throw new Exception();
@@ -36,6 +37,7 @@ public class ParentAutoSaveTask: AutoSaveTestTask
 
         return new DirectoryInfo(System.IO.Path.Combine(dir.FullName, DirName)  );
     }
+    #pragma warning disable IDE0270
 
     public virtual DirectoryInfo SetDirForFiles()
     {

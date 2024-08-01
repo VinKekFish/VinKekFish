@@ -217,7 +217,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "out-part2":
-                        ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts2);
+                    ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts2);
                     goto start;
                 case "start":
                     if (Terminated)
@@ -286,14 +286,15 @@ public unsafe partial class AutoCrypt
 
         /// <summary>Распарсить опции команды regime</summary>
         /// <param name="value">Опции, разделённые пробелом.</param>
-        protected void ParseFRegimeOptions(string value)
+        protected static void ParseFRegimeOptions(string value)
         {
+            /*
                 value  = value.Replace('.', ' ');
             var values = ToSpaceSeparated(value);
             if (values.Length >= 1)
             {
                 var val = values[0].Trim();
-            }
+            }*/
         }
 
         /// <summary>Инициализирует вспомогательные губки для инициализации ключей</summary>
@@ -630,7 +631,7 @@ public unsafe partial class AutoCrypt
         /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>
         /// <param name="rnd">Список файлов. К каждому элементу списка применяется Refresh() перед получением длины файла.</param>
         /// <param name="maxLen">Если файл более, чем maxLen, то его размер не будет учтён.</param>
-        protected int GetRndFileLen(List<FileInfo> rnd, int maxLen = 65536)
+        protected static int GetRndFileLen(List<FileInfo> rnd, int maxLen = 65536)
         {
             var result = 0;
             foreach (var rndFile in rnd)

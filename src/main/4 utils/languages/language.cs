@@ -1,4 +1,6 @@
-﻿// TODO: tests
+﻿#pragma warning disable CA2211 // Поля, не являющиеся константами, не должны быть видимыми [4 utils]
+
+// TODO: tests
 namespace VinKekFish_Utils;
 
 using System.Globalization;
@@ -43,8 +45,7 @@ public class Language
             if (name.blocks.Count < 1)
                 continue;
 
-            Options.StringBlock? sb = name.blocks[0] as Options.StringBlock;
-            if (sb is null)
+            if (name.blocks[0] is not Options.StringBlock sb)
                 continue;
 
             if (strings.ContainsKey(name.Name))

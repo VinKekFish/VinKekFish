@@ -219,8 +219,7 @@ namespace vinkekfish
             if (PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds)
                 throw new ArgumentOutOfRangeException("VinKekFish_k1_base_20210419.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
 
-            if (allocator == null)
-                allocator = AllocHGlobal_allocator;
+            allocator ??= AllocHGlobal_allocator;
 
             using var prng = new Keccak_PRNG_20201128();
 

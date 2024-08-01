@@ -28,7 +28,7 @@ public unsafe class Keccak_test_PRNG_20201128_1 : TestTask
         keccaks  = null;
     }
 
-    private void DisposeKeccaks(SortedDictionary<nint, Keccak_PRNG_20201128>? keccaks)
+    private static void DisposeKeccaks(SortedDictionary<nint, Keccak_PRNG_20201128>? keccaks)
     {
         if (keccaks is not null)
         {

@@ -34,8 +34,7 @@ namespace vinkekfish
                 // throw new ArgumentOutOfRangeException("VinKekFish_KN_base_20210525.GenStandardPermutationTables: PreRoundsForTranspose < 1 || PreRoundsForTranspose > Rounds");
                 PreRoundsForTranspose = this.MIN_ABSORPTION_ROUNDS_D_K;
 
-            if (allocator == null)
-                allocator = VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
+            allocator ??= VinKekFish_k1_base_20210419.AllocHGlobal_allocator;
 
             //using var prng = new Keccak_PRNG_20201128();
             // this.K*1024 - реальная стойкость VinKekFish в байтах именно такая (либо 1344*K). Поэтому, создаём губку именно такой стойкости

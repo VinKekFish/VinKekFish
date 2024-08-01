@@ -22,8 +22,8 @@ namespace main_tests
         public unsafe ThreeFishGenTestByBits(TestConstructor constructor):
                                         base(nameof(ThreeFishGenTestByBits), constructor: constructor)
         {
-            this.sources   = SourceTask.getIterator();
-            this.sourcestw = SourceTask.getIteratorForTweaks();
+            this.sources   = SourceTask.GetIterator();
+            this.sourcestw = SourceTask.GetIteratorForTweaks();
             this.TaskFunc  = StartTests;
             /* () =>
             {
@@ -36,7 +36,7 @@ namespace main_tests
             public string?   Name;
             public byte[][]? Value;
 
-            public static IEnumerable<SourceTask> getIterator()
+            public static IEnumerable<SourceTask> GetIterator()
             {
                 // 128 - это размер одного блока
                 const long size = 128;
@@ -70,7 +70,7 @@ namespace main_tests
                 yield break;
             }
 
-            public static IEnumerable<SourceTask> getIteratorForTweaks()
+            public static IEnumerable<SourceTask> GetIteratorForTweaks()
             {
                 const long size = Threefish_slowly.keyLen;
                 const long sb   = size << 3;    // Размер одного блока в битах

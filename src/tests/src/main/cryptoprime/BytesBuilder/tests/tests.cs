@@ -50,7 +50,7 @@ public class BytesBuilder_test_parent: ParentAutoSaveTask
         /// <param name="f2">Доп. константа</param>
         /// <param name="c2">Доп. константа</param>
         /// <returns></returns>
-        public byte[] CreateByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
+        public static byte[] CreateByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
         {
             var r = new byte[len];
             for (int i = 0; i < r.Length; i++)
@@ -184,7 +184,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             }
             catch (BytesBuilder.ResultCountIsTooLarge)
             {
-                lst.Add(new byte[0]);
+                lst.Add(Array.Empty<byte>());
             }
 
             // Тестируем конкатенацию массивов
@@ -227,7 +227,7 @@ public class BytesBuilder_test1: BytesBuilder_test_parent
             }
             catch (BytesBuilder.ResultAIsTooSmall)
             {
-                lst.Add(new byte[0]);
+                lst.Add(Array.Empty<byte>());
             }
 
 
@@ -294,7 +294,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
             var bb1 = new BytesBuilder();
             var bb2 = new BytesBuilder();
-            var bb3 = new BytesBuilder();
+            // var bb3 = new BytesBuilder();
 
             // Тестируем addCopy и CloneBytes
             var a1 = CreateByteArray(64, 0);
@@ -348,7 +348,7 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
             try
             {
                 // При верной работе должен выдать ArgumentOutOfRangeException
-                bb1.Add(new byte[0]);
+                bb1.Add(Array.Empty<byte>());
                 throw new Exception("BytesBuilder_test2: ex01");
             }
             catch (ArgumentOutOfRangeException)
@@ -519,17 +519,17 @@ public class BytesBuilder_test2: BytesBuilder_test_parent
 
             // UnsecureCompare - тестируем другую версию
             a1 = CreateByteArray(1 << 15, 1, 1, 3, 5);
-            if (!BytesBuilder.UnsecureCompare(a1, a1, out nint index10))
+            if (!BytesBuilder.UnsecureCompare(a1, a1, out _))
                 throw new Exception("BytesBuilder_test2: 011-0");
-            
+
             a2 = BytesBuilder.CloneBytes(a1);
-            if (!BytesBuilder.UnsecureCompare(a1, a2, out index10))
+            if (!BytesBuilder.UnsecureCompare(a1, a2, out _))
                 throw new Exception("BytesBuilder_test2: 011-1");
 
             a2[^1] = 0xFF;
-            if (BytesBuilder.UnsecureCompare(a1, a2, out index10) || index10 != a2.Length-1)
+            if (BytesBuilder.UnsecureCompare(a1, a2, out nint index10) || index10 != a2.Length - 1)
                 throw new Exception("BytesBuilder_test2: 011-2");
-            
+
             for (int i = a2.Length - 2; i >= 0; i--)
             {
                 if (a2[i] != 0)
@@ -852,8 +852,7 @@ public unsafe class BytesBuilder_test5_add_performance: TestTask
     {
         TaskFunc = () =>
         {
-
-            byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
+            static byte[] createByteArray(int len, int f, int c = 0, int f2 = 0, int c2 = 1)
             {
                 var r = new byte[len];
                 for (int i = 0; i < r.Length; i++)
@@ -919,7 +918,7 @@ public unsafe class BytesBuilder_test5_reverse: TestTask
     {
         TaskFunc = () =>
         {
-            byte[] createByteArray(int len, int f, int c)
+            static byte[] createByteArray(int len, int f, int c)
             {
                 var r = new byte[len];
                 for (int i = 0; i < r.Length; i++)
@@ -966,7 +965,7 @@ public unsafe class BytesBuilder_test5_xor: TestTask
     {
         TaskFunc = () =>
         {
-            byte[] createByteArray(int len, int f, int c)
+            static byte[] createByteArray(int len, int f, int c)
             {
                 var r = new byte[len];
                 for (int i = 0; i < r.Length; i++)

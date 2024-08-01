@@ -172,7 +172,7 @@ public unsafe partial class PasswordEnter: IDisposable
         }
     }
 
-    public void Clear(string c = " ")
+    public static void Clear(string c = " ")
     {
         //for (int i = 0; i < stepsH[stepsH.Length-1]+1; i++)
         //for (int j = 0; j < stepsV[stepsV.Length-1]+1; j++)
@@ -184,7 +184,9 @@ public unsafe partial class PasswordEnter: IDisposable
         }
     }
 
-    public int ReadKey()
+    /// <summary>Прочитать клавишу с клавиатуры (при вводе пароля)</summary>
+    /// <returns></returns>
+    public static int ReadKey()
     {
         var key = Console.ReadKey(true);
         if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)

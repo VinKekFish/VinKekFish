@@ -109,12 +109,11 @@ namespace alien_SkeinFish
 
         public static ThreefishCipher CreateCipher(int stateSize)
         {
-            switch (stateSize)
+            return stateSize switch
             {
-                case 1024: return new Threefish1024();
-            }
-
-            throw new NotImplementedException();
+                1024 => new Threefish1024(),
+                _ => throw new NotImplementedException(),
+            };
         }
 
         abstract public void Encrypt(ulong[] input, ulong[] output);
@@ -1553,11 +1552,11 @@ namespace alien_SkeinFish
             depadBuffer = new byte[cipherBytes];
             //this.iv = new ulong[cipherWords];
             //GetBytes(iv, 0, this.iv, cipherBytes);
-            switch (OutputBlockSize)
+            cipher = OutputBlockSize switch
             {
-            case 1024/8: cipher = new Threefish1024(); break;
-            default: throw new System.Exception("Unsupported key/block size.");
-            }
+                1024 / 8 => new Threefish1024(),
+                _ => throw new System.Exception("Unsupported key/block size."),
+            };
             bool e = transformMode==ThreefishTransformMode.Encrypt;
             transformFunc = EcbEncrypt;
 

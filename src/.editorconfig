@@ -5,3 +5,7 @@ dotnet_diagnostic.IDE0017.severity = none
 dotnet_diagnostic.IDE0044.severity = none
 dotnet_diagnostic.IDE0057.severity = none
 dotnet_diagnostic.IDE0060.severity = none
+dotnet_diagnostic.IDE0063.severity = none
+
+# Использовать выражение switch [4 utils]
+dotnet_diagnostic.SYSLIB1054.severity = none

@@ -1,4 +1,6 @@
-﻿namespace VinKekFish_Utils;
+﻿#pragma warning disable CA1401 // Метод P/Invoke "mmap" не должен быть видимым [bytesbuilder]
+
+namespace VinKekFish_Utils;
 
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
