@@ -61,13 +61,13 @@ public unsafe partial class AutoCrypt
                 };
 
                 // Генерируем ключи, которые мы будем записывать в ключевой файл для последующего использования
-                dataGenerator.Generate();
+                dataGenerator.Generate(RecordNameSuffix: ":CreateKeyFiles.dataGenerator.Generate");
 
                 // Отбиваем основные ключи от информации, которую будем генерировать далее
                 // На всякий случай проводим полную отбивку, потому что синхропосылки доступны злоумышленнику
                 dataGenerator.DoChopRegime();
 
-                OIV = dataGenerator.GetBytes(newKeyLenMin, regime: 17);
+                OIV = dataGenerator.GetBytes(newKeyLenMin, regime: 17, RecordNameSuffix: ":CreateKeyFiles.dataGenerator.OIV");
 
                 // Генерация отдельных частей синхропосылки
                 var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
@@ -240,23 +240,39 @@ public unsafe partial class AutoCrypt
             }
         }
 
+        /// <summary>Эта константа указывает, какова может быть минимальная длина имени режима шифрования. Её нельзя просто так изменить, т.к. от неё зависит расчёт реальной длины строки имени (0 - это уже строка минимальной длины).</summary>
+        public const int MinLengthForRegimeName = 16;
+
         /// <summary>Создаёт начальную часть файла. Это включает в себя обфусцированное имя режима, обфускационную часть синхропосылки (создаётся внутри функции), синхропосылку (передаётся в функцию).</summary>
-        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки в режиме 23.</param>
+        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки в режиме 23. Завершается генерацией в режиме 24.</param>
         /// <param name="file">FileParts в который добавляется начальная часть файла.</param>
-        /// <param name="OIV">Открытый вектор инициализации (синхропосылка). Должен быть создан заранее вне функции. Нет ограничений использование main для этого.</param>
+        /// <param name="OIV">Открытый вектор инициализации (синхропосылка). Должен быть создан заранее вне функции. Нет ограничений на использование main для генерации этого (если OIV генерируется сразу перед функцией, не используйте режим 23). OIV должен быть ранее сгенерирован и может быть использован далее после функции. Пользователь сам освобождает OIV.</param>
         /// <param name="obfRegimeName">Имя режима берётся из поля RegimeName. Здесь имя режима возвращается скопированным в obfRegimeName. Это нужно удалить вручную.</param>
         protected void AddStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
         {
             var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
+
+            if (asciiRegimeName.Length > 255 + MinLengthForRegimeName || asciiRegimeName.Length < MinLengthForRegimeName)
+                throw new ArgumentOutOfRangeException("RegimeName", $"asciiRegimeName (RegimeName) length must be <- [{MinLengthForRegimeName}, {255+MinLengthForRegimeName}]. Requested regime: \"{RegimeName}\".");
+
                 obfRegimeName   = main.GetBytes(asciiRegimeName.Length, regime: 23);
             var recRegimeName   = Record.GetRecordFromBytesArray(asciiRegimeName);
             BytesBuilder.ArithmeticAddBytes(obfRegimeName.len, recRegimeName, obfRegimeName);
 
-            file.AddFilePart("Regime name",     recRegimeName);
-            file.AddFilePart("Regime name add", obfRegimeName, createLengthArray: false);
+            using var regimeObfs = main.GetBytes(2, regime: 24);
+
+            // Создаём массив из двух байтов, которые характеризуют длину режима шифрования и обфусцируют эту длину
+            var regimeLen = new byte[3] { (byte) (asciiRegimeName.Length - MinLengthForRegimeName), 0, 0 };
+            regimeLen[0] += unchecked(  (byte) (regimeObfs[0] + regimeObfs[1])  );
+            regimeLen[1]  = regimeObfs[0];
+            regimeLen[2]  = regimeObfs[1];
+
+            file.AddFilePart("Regime len",      regimeLen,     createLengthArray: false);
+            file.AddFilePart("Regime name",     recRegimeName, createLengthArray: false);
+            file.AddFilePart("Regime name add", obfRegimeName, createLengthArray: false, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
 
             // file.AddFilePart("OIV len", OIV_len_record!);
-            file.AddFilePart("OIV", OIV);
+            file.AddFilePart("OIV", OIV, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
         }
     }
 }

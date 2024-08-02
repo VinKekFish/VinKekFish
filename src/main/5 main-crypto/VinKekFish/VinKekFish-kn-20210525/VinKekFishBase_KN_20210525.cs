@@ -311,6 +311,8 @@ namespace vinkekfish
                 output?.Clear();
                 isHaveOutputData = false;
                 isDataInputed    = false;
+
+                entireCountOfRoundHasBeen = 0;
             }
         }
 

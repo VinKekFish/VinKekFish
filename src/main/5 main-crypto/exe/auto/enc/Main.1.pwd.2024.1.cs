@@ -84,7 +84,6 @@ public unsafe partial class Main_1_PWD_2024_1
             Key5Vkf  = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
 
             var enPart = file.FindFirstPart("Encrypted");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         ~EncryptDataClass()        => Dispose(true);

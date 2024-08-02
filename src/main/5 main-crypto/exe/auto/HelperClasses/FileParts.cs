@@ -172,11 +172,13 @@ public unsafe partial class FileParts
     /// <summary>Добавляет в конец файла новую часть и пересчитывает size.</summary>
     /// <param name="Name">Имя добавляемой части файла</param>
     /// <param name="content">Содержимое части. Запоминается по ссылке. Уничтожается автоматически при Dispose объекта FileParts.</param>
+    /// <param name="createLengthArray">Вставить перед записью длину записи.</param>
+    /// <param name="doNotDisposeOption">Если doNotDispose == true (yes), то новая запись будет создана с doNotDispose == true. Если "no", то запись будет создана с doNotDispose == false. Иначе (unknown) будет унаследована от текущей записи.</param>
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
-    public (int Index, FileParts newFilePart) AddFilePart(string Name, Record content, bool createLengthArray = true)
+    public (int Index, FileParts newFilePart) AddFilePart(string Name, Record content, bool createLengthArray = true, DoNotDisposeEnum doNotDisposeOption = DoNotDisposeEnum.unknown)
     {
-        var result = new FileParts(Name, doNotDispose, parent: this);
+        var result = new FileParts(Name, doNotDisposeOption.ResetDoNotDispose(doNotDispose), parent: this);
         innerParts.Add(result);
 
         result.SetArrayToRecord(content, createLengthArray);

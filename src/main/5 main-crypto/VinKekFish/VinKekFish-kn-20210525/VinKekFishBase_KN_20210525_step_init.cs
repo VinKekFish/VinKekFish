@@ -27,8 +27,8 @@ namespace vinkekfish
         public bool IsInit1 => isInit1;                         /// <summary>Если <see langword="true"/>, то выполнена инициализация 2 (полная инициализация состояния)</summary>
         public bool IsInit2 => isInit2;
                                                                 /// <summary>Перед шагом необходимо изменить tweak и state, даже если ничего не вводилось. Если false - при попытке выполнить шаг будет сгенерированно исключение. Устанавливается в функциях, изменяющих tweak от шага к шагу (InputData_Xor и InputData_Overwrite; InputData_ChangeTweakAndState).</summary>
-        protected bool isDataInputed = false;
-
+        protected bool isDataInputed = false;                   /// <summary>Полное количество раундов, которое было выполнено губкой за всё время её существования после Init2.</summary>
+        protected int  entireCountOfRoundHasBeen = 0;
 
         /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
         /// <param name="askedCountOfRounds">Количество раундов.</param>
@@ -73,6 +73,8 @@ namespace vinkekfish
             askedCountOfRounds <<= 1;
             for (int round = 0; round < askedCountOfRounds; round++)
             {
+                entireCountOfRoundHasBeen++;
+
                 #if DEBUG_OUTPUT
                 VinKekFish_Utils.Utils.MsgToFile($"semiround {round}", "KN");
                 #endif
@@ -184,6 +186,8 @@ namespace vinkekfish
 
                 output?.Clear();
                 isInit2 = true;
+
+                entireCountOfRoundHasBeen = 0;
             }
         }
                                                             /// <summary>Запускает все потоки</summary>
@@ -434,6 +438,7 @@ namespace vinkekfish
             State1[2] ^= regime;
 
             isDataInputed = true;
+            lastRegime    = regime;
         }
 
         /// <summary>Если никаких данных не введено в режиме Sponge (xor), изменяет tweak. Вместо этого можно вызвать InputData_Xor(null, 0, regime)</summary>
@@ -448,6 +453,7 @@ namespace vinkekfish
             State1[2] ^= regime;
 
             isDataInputed = true;
+            lastRegime    = regime;
         }
     }
 }

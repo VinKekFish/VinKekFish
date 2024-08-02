@@ -21,6 +21,9 @@ namespace vinkekfish
         public    BytesBuilderStatic? input       = null;
         protected Record?             inputRecord = null;
 
+        protected byte lastRegime = 0;                          /// <summary>Последний режим, который был использован в функции Step.</summary>
+        public    byte LastRegime => lastRegime;
+
         /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата. Данные для ввода в шаги берутся из переменной input. while (VinKekFish.input!.Count > 0) doStepAndIO();</summary>
         /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K. -1 - взять максимальное количество раундов, указанное при конструировании объекта.</param>
         /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K</param>

@@ -17,29 +17,30 @@ using static VinKekFish_Utils.Utils;
 // В этом файле объявлены KeyDataGenerator и GetDataByAdd (сумма губок)
 public unsafe partial class AutoCrypt
 {
+                                                                                #pragma warning disable IDE1006 // Нарушение правил наименования
     public class CryptoKeyPair: IDisposable
     {
                                                                 /// <summary>Ключ для каскадной губки.</summary>
-        public Record? CSC {get; protected set;} = null;        /// <summary>Ключ для губки VinKekFisg.</summary>
-        public Record? VKF {get; protected set;} = null;
-
+        public Record? csc {get; protected set;} = null;        /// <summary>Ключ для губки VinKekFisg.</summary>
+        public Record? vkf {get; protected set;} = null;
+                                                                                #pragma warning restore IDE1006 // Нарушение правил наименования
         /// <summary>Создаёт описатель пары ключей для дальнейшего их использования в генераторах.</summary>
         /// <param name="generator">Уже проинициализированный пользователем генератор, который будет использован для генерации пары ключей.</param>
         /// <param name="keyLenCsc">Длина ключа для каскадной губки.</param>
         /// <param name="keyLenVkf">Длина ключа для губки VinKekFish.</param>
         /// <param name="regime">Режимы, которые будут использованы для генерации.</param>
-        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime)
+        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime, string RecordNameSuffix = "")
         {
-            CSC = generator.GetBytes(keyLenCsc, regime: regime.csc);
-            VKF = generator.GetBytes(keyLenVkf, regime: regime.vkf);
+            csc = generator.GetBytes(keyLenCsc, regime: regime.csc, RecordNameSuffix);
+            vkf = generator.GetBytes(keyLenVkf, regime: regime.vkf, RecordNameSuffix);
         }
 
         /// <summary>Получает оба ключа, представленные в описателе файла. Сначала идёт секция "csc" (каскадный ключ), затем "vkf" (ключ VinKekFish).</summary>
         public FileParts GetFilePartsForPair()
         {
             var file = new FileParts(Name: "CryptoKeyPair.getRecordForPair", doNotDispose: true);
-            file.AddFilePart("csc", CSC!);
-            file.AddFilePart("vkf", VKF!);
+            file.AddFilePart("csc", csc!);
+            file.AddFilePart("vkf", vkf!);
 
             return file;
         }
@@ -54,11 +55,11 @@ public unsafe partial class AutoCrypt
 
         public void Dispose()
         {
-            TryToDispose(VKF);
-            TryToDispose(CSC);
+            TryToDispose(vkf);
+            TryToDispose(csc);
 
-            VKF = null;
-            CSC = null;
+            vkf = null;
+            csc = null;
 
             GC.SuppressFinalize(this);
         }
@@ -102,11 +103,12 @@ public unsafe partial class AutoCrypt
 
         /// <summary>Сгенерировать пару ключей шифрования и записать и в data_key</summary>
         /// <param name="count">Количество пар ключей, которое нужно сгенерировать.</param>
-        public void Generate(nint count = 1)
+        /// <param name="RecordNameSuffix">Суффикс, добавляемый к отладочному имени выделяемой записи.</param>
+        public void Generate(nint count = 1, string RecordNameSuffix = "")
         {
             for (nint i = 0; i < count; i++)
             {
-                var keyPair = new CryptoKeyPair(this, KeyLenCsc, KeyLenVkf, (13, 15));
+                var keyPair = new CryptoKeyPair(this, KeyLenCsc, KeyLenVkf, (13, 15), RecordNameSuffix);
                 keys.Add(keyPair);
             }
         }
@@ -114,10 +116,10 @@ public unsafe partial class AutoCrypt
         /// <summary>Получает псевдослучайные криптостойкие байты (например, ключи или синхропосылки). Полностью аналогично GetDataByAdd.getBytes.</summary>
         /// <param name="len">Длина получаемых данных.</param>
         /// <param name="regime">Числовой режим генерации (вводится в губки)</param>
-        /// <returns></returns>
-        public Record GetBytes(nint len, byte regime)
+        /// <param name="RecordNameSuffix">Суффикс, добавляемый к отладочному имени выделяемой записи.</param>
+        public Record GetBytes(nint len, byte regime, string RecordNameSuffix = "")
         {
-            return main.GetBytes(len: len, regime: regime);
+            return main.GetBytes(len: len, regime: regime, RecordNameSuffix);
         }
 
         /// <summary>Делает необратимое преобразование в обеих губках ("отбивает" предыдущие состояния от будущих). (InitThreeFishByCascade и doStepAndIO с Overwrite: true).</summary>
@@ -155,7 +157,7 @@ public unsafe partial class AutoCrypt
             {
                 FormatException(e);
             }
-Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
             TryToDispose(main);
             IsDisposed = true;
 
@@ -192,6 +194,8 @@ Console.WriteLine("!!(((((((((((((((((((((((((((!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         public override void GetBytes(byte* forData, nint len, byte regime)
         {
+            ExceptionIfLastRegimeIsEqual(regime);
+
             if (list.Count <= 0)
                 throw new GetDataFromSpongeException("GetDataByAdd.getBytes: list.Count <= 0");
 
