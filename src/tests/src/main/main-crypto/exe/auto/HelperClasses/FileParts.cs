@@ -32,7 +32,8 @@ public class FilePartsAutoTests: Keccak_test_parent
     }
 }
 
-[TestTagAttribute("inWork")]
+// [TestTagAttribute("inWork")]
+[TestTagAttribute("Mandatory")]
 [TestTagAttribute("FileParts", duration: 100, singleThread: false)]
 public class FilePartsTests : FilePartsAutoTests
 {
