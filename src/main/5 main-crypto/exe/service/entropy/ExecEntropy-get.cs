@@ -50,7 +50,7 @@ public partial class Regime_Service
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
 
         return randomAtFolder_Current.GetOldestFile();

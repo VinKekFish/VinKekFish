@@ -414,7 +414,7 @@ public partial class Regime_Service
                             }
                             catch (Exception ex)
                             {
-                                FormatException(ex);
+                                DoFormatException(ex);
                                 Sleep(3557);
                             }
                         }
@@ -482,7 +482,7 @@ public partial class Regime_Service
                 {}
                 catch (Exception ex)
                 {
-                    FormatException(ex);
+                    DoFormatException(ex);
                     Sleep(3557);
                 }
                 finally
@@ -497,7 +497,7 @@ public partial class Regime_Service
             }
             catch (Exception ex)
             {
-                FormatException(ex);
+                DoFormatException(ex);
                 Sleep(3557);
             }
 
@@ -639,6 +639,9 @@ public partial class Regime_Service
                         try
                         {
                             GetRandomFromCommand_continuously_h(rnd, interval, cmdElement, cgr);
+                            if (Terminated)
+                                break;
+
                             Sleep(sleepTime);
 
                             lastLogDate = SendGetterDebugMsgToConsole(interval, cmdElement, lastLogDate, cgr);
@@ -646,7 +649,7 @@ public partial class Regime_Service
                             if (interval.IntervalType == IntervalTypeEnum.waitAndOnce)
                             {
                                 // Ожидание завершеня работы через Thread.Interrupt
-                                // Теперь Thread.Interrupt отсутствует
+                                // Теперь Thread.Interrupt отсутствует (присутствует только аварийно)
                                 while (!Terminated && cgr.MandatoryUseGet)
                                     Thread.Sleep(1000);
 
@@ -661,7 +664,7 @@ public partial class Regime_Service
                         {
                             Ex_cnt++;
                             Console.Error.WriteLine(L("Error for command") + " " + cmdElement.PathString + " "  + cmdElement.parameters);
-                            Console.Error.WriteLine(FormatException(ex, false));
+                            Console.Error.WriteLine(DoFormatException(ex, false));
 
                             if (Ex_cnt > 5)
                             {
@@ -742,6 +745,10 @@ public partial class Regime_Service
             var ps = Process.Start(psi);
             while (!ps!.WaitForExit(1000) && !Terminated)
             {}
+
+            // Если мы завершаем работу, но процесс не завершился, то мы не работаем с процессом, т.к. он может подвесить нас на ожидании конца потоков ввода-вывода
+            if (!ps.HasExited && Terminated)
+                return;
 
             int len = 256*1024;
             if (interval.Length!.Length > 0)

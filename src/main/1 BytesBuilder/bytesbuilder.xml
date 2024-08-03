@@ -804,7 +804,7 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.FormatException(System.Exception,System.Boolean)">
+        <member name="M:VinKekFish_Utils.Utils.DoFormatException(System.Exception,System.Boolean)">
             <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
             <param name="ex">Исключение</param>
             <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>

@@ -76,7 +76,7 @@ public unsafe static partial class Utils
     /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
     /// <param name="ex">Исключение</param>
     /// <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
-    public static string FormatException(Exception ex, bool toConsole = true)
+    public static string DoFormatException(Exception ex, bool toConsole = true)
     {
         var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
 
@@ -86,7 +86,7 @@ public unsafe static partial class Utils
         if (ex.InnerException is not null)
         {
             sb.AppendLine("Inner exception");
-            sb.AppendLine(FormatException(ex.InnerException));
+            sb.AppendLine(DoFormatException(ex.InnerException));
         }
 
         sb.AppendLine("----------------------------------------------------------------");
@@ -107,7 +107,7 @@ public unsafe static partial class Utils
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
     }
 }

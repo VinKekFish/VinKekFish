@@ -87,7 +87,7 @@ public unsafe partial class FileParts : IDisposable
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
 
         innerParts.Clear();
@@ -109,7 +109,7 @@ public unsafe partial class FileParts : IDisposable
             }
             catch (Exception e)
             {
-                FormatException(e);
+                DoFormatException(e);
             }
 
             var msg = $"Destructor for {this.Name} of FileParts executed with a not disposed state.";

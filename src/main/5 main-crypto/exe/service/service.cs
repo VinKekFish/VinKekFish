@@ -89,6 +89,13 @@ public partial class Regime_Service
                 {
                     if (time > 0 || getter.CountOfBytesFromLastOutput > 0)
                         Console.WriteLine(L("Wait for getter") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.IsDataReady(1)}; countOfBytesFromLastOutput = {getter.CountOfBytesFromLastOutput})");
+
+                    if (errTime > 12)
+                    lock (getter)
+                    {
+                        getter.StreamForClose?.Close();
+                        getter.StreamForClose = null;
+                    }
                 }
 
                 time++;
@@ -123,6 +130,17 @@ public partial class Regime_Service
             {
                 if (!getter.thread.ThreadState.HasFlag(ThreadState.Stopped))
                     Console.WriteLine(L("Getter has not be ended") + ": " + getter.inputElement.PathString + $" (isDataReady = {getter.IsDataReady(1)}; countOfBytesFromLastOutput = {getter.CountOfBytesFromLastOutput}; ThreadState = {getter.thread.ThreadState}); StreamForClose = {getter.StreamForClose} ");
+
+                try
+                {
+                    // Пытаемся аварийно завершить работу потока, т.к. таймаут вышел
+                    lock (getter)
+                        getter.thread.Interrupt();
+                }
+                catch (Exception ex)
+                {
+                    DoFormatException(ex);
+                }
             }
 
             Console.WriteLine("Regime_Service.doTerminate: ended");
@@ -168,11 +186,14 @@ public partial class Regime_Service
                         // и в первый раз прервать поток ввода-вывода
                         // getter.thread.Interrupt();
                         lock (getter)
+                        {
                             getter.StreamForClose?.Close();
+                            getter.StreamForClose = null;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        FormatException(ex);
+                        DoFormatException(ex);
                     }
                 }
             }

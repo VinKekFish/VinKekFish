@@ -243,7 +243,7 @@ public unsafe class CuseStream: IDisposable
         catch (Exception ex)
         {
             Console.Error.WriteLine("CuseStream.CuseReadFunc error");
-            Console.Error.WriteLine(FormatException(ex, false));
+            Console.Error.WriteLine(DoFormatException(ex, false));
 
             _ = fuse_reply_err(request, PosixErrorCode.ENOMEM);
         }

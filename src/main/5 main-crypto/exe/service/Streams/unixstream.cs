@@ -195,7 +195,7 @@ public class UnixSocketListener: IDisposable
             }
             catch (Exception ex)
             {
-                FormatException(ex);
+                DoFormatException(ex);
             }
             finally
             {

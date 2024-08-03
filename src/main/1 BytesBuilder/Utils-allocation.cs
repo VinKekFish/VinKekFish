@@ -291,7 +291,7 @@ public unsafe static class Memory
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
     }
 

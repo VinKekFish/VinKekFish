@@ -345,7 +345,7 @@ public unsafe partial class AutoCrypt
             }
             catch (Exception ex)
             {
-                FormatException(ex);
+                DoFormatException(ex);
                 Terminated = true;
             }
             finally
@@ -685,7 +685,7 @@ public unsafe partial class AutoCrypt
             }
             catch (Exception ex)
             {
-                FormatException(ex);
+                DoFormatException(ex);
                 Terminated = true;
             }
         }

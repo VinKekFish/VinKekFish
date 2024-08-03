@@ -155,7 +155,7 @@ public unsafe partial class AutoCrypt
             }
             catch (Exception e)
             {
-                FormatException(e);
+                DoFormatException(e);
             }
 
             TryToDispose(main);

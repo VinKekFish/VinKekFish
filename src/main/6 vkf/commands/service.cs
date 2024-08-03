@@ -50,7 +50,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
     }
 
@@ -70,7 +70,7 @@ public partial class Program
         }
         catch (Exception ex)
         {
-            FormatException(ex);
+            DoFormatException(ex);
         }
     }
 }

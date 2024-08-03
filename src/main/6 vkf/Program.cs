@@ -44,7 +44,7 @@ public partial class Program
                     }
                     catch (Exception iex)
                     {
-                        FormatException(iex);
+                        DoFormatException(iex);
                         if (cnt > 0)
                             i++;
                         cnt++;
@@ -57,7 +57,7 @@ public partial class Program
             }
             catch (Exception ex)
             {
-                FormatException(ex);
+                DoFormatException(ex);
             }
 
             if (cryptoprime.BytesBuilderForPointers.Record.ErrorsInDispose)
@@ -81,7 +81,7 @@ public partial class Program
         if (e.ExceptionObject is not Exception ex)
             Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + e.ExceptionObject.ToString());
         else
-            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + FormatException(ex, false));
+            Console.Error.WriteLine(L("Unhandled Exception occured") + ".\n" + DoFormatException(ex, false));
 
         if (e.IsTerminating)
             service?.DoTerminate(true);

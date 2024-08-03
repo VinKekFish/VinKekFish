@@ -64,7 +64,7 @@ namespace cryptoprime
                 }
                 catch (Exception ex)
                 {
-                    FormatException(ex);
+                    DoFormatException(ex);
                 }
             }
 
