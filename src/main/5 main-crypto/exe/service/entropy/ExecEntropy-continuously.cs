@@ -54,6 +54,9 @@ public partial class Regime_Service
                 var intervals = rnd.intervals!.Interval!.inner;
                 foreach (var interval in intervals)
                 {
+                    if (Terminated)
+                        return;
+
                     if (
                         interval.IntervalType == IntervalTypeEnum.continuously ||
                         interval.IntervalType == IntervalTypeEnum.fast ||

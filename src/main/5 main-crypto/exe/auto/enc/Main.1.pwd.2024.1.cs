@@ -64,7 +64,7 @@ public unsafe partial class Main_1_PWD_2024_1
             var aLen = Align(fLen + 16); // Как минимум 16 байтов на шумы - они всегда должны быть
 // aLen рассчитан НЕВЕРНО!
             PrimaryStream = dataForEncrypt;
-            AlignedStream = Keccak_abstract.allocator.AllocMemory(aLen, "Main_PWD_2024_1.DoCryptDataStream");
+            AlignedStream = Keccak_abstract.allocator.AllocMemory(aLen, "Main_PWD_2024_1.EncryptDataClass");
 
             // Копируем в выравненный поток длину открытого текста и сам открытый текст
             fixed (byte * s = length_array)

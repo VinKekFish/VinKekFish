@@ -1022,7 +1022,7 @@ namespace cryptoprime
         /// <param name="rc1">Первое число. Результат сложения будет записан в этот же массив</param>
         /// <param name="rc2">Второе число.</param>
         /// <param name="cf">Флаг переноса или некоторое число (от 0 до 2^32 не включая), с которым надо сложить младший элемент массива.</param>
-        public static unsafe void ArithmeticAddBytes(nint len, byte* rc1, byte* rc2, ulong cf = 0)
+        public static unsafe nint ArithmeticAddBytes(nint len, byte* rc1, byte* rc2, ulong cf = 0)
         {
             checked
             {
@@ -1048,6 +1048,8 @@ namespace cryptoprime
                     ArithmeticAddBytesTail(len - i, rc1, rc2, (ushort) cf);
                 }
             }
+
+            return len;
         }
 
         /// <summary>Налагает гамму gamma на массив байтов text</summary>

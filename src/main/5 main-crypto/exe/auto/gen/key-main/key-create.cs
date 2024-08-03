@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using cryptoprime;
 using maincrypto.keccak;
+using Microsoft.VisualBasic;
 using vinkekfish;
 using VinKekFish_Utils;
 using VinKekFish_Utils.ProgramOptions;
@@ -143,7 +144,7 @@ public unsafe partial class AutoCrypt
         }
 
         /// <summary>Инициализирует генератор сессионных ключей для шифрования конкретного файла.</summary>
-        /// <param name="obfRegimeName">Режим шифрования. Используется как рандомизирующая информация.</param>
+        /// <param name="obfRegimeName">Дополнительная рандомизирующая информация, полученная из функции AddStartPart.</param>
         /// <param name="OIV">Главная синхропосылка.</param>
         /// <param name="OIV_parts">Части синхропосылки из отдельных файлов.</param>
         /// <param name="VinKekFish_KeyGenerator">Созданный генератор ключей на основе VinKekFish. Для сведения. Может не использоваться и не удаляться.</param>
@@ -244,10 +245,10 @@ public unsafe partial class AutoCrypt
         public const int MinLengthForRegimeName = 16;
 
         /// <summary>Создаёт начальную часть файла. Это включает в себя обфусцированное имя режима, обфускационную часть синхропосылки (создаётся внутри функции), синхропосылку (передаётся в функцию).</summary>
-        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки в режиме 23. Завершается генерацией в режиме 24.</param>
+        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки в режиме 23.</param>
         /// <param name="file">FileParts в который добавляется начальная часть файла.</param>
         /// <param name="OIV">Открытый вектор инициализации (синхропосылка). Должен быть создан заранее вне функции. Нет ограничений на использование main для генерации этого (если OIV генерируется сразу перед функцией, не используйте режим 23). OIV должен быть ранее сгенерирован и может быть использован далее после функции. Пользователь сам освобождает OIV.</param>
-        /// <param name="obfRegimeName">Имя режима берётся из поля RegimeName. Здесь имя режима возвращается скопированным в obfRegimeName. Это нужно удалить вручную.</param>
+        /// <param name="obfRegimeName">Это нужно удалить вручную после получения. Возвращается массив, сгенерированный внутри функции и обфусцирующий имя режима: это отдельный массив, который генерируется так же, как и OIV, и он может быть для этого использован. Этот массив записан в секции файла "Regime name add".</param>
         protected void AddStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
         {
             var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
@@ -255,17 +256,37 @@ public unsafe partial class AutoCrypt
             if (asciiRegimeName.Length > 255 + MinLengthForRegimeName || asciiRegimeName.Length < MinLengthForRegimeName)
                 throw new ArgumentOutOfRangeException("RegimeName", $"asciiRegimeName (RegimeName) length must be <- [{MinLengthForRegimeName}, {255+MinLengthForRegimeName}]. Requested regime: \"{RegimeName}\".");
 
-                obfRegimeName   = main.GetBytes(asciiRegimeName.Length, regime: 23);
-            var recRegimeName   = Record.GetRecordFromBytesArray(asciiRegimeName);
-            BytesBuilder.ArithmeticAddBytes(obfRegimeName.len, recRegimeName, obfRegimeName);
+            var recRegimeName = Record.GetRecordFromBytesArray(asciiRegimeName);
 
-            using var regimeObfs = main.GetBytes(2, regime: 24);
+            byte[]? SIB64 = null, vkfRounds = null, vkfPreRounds = null, cscArmoringSteps = null;
+            BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.StrengthInBytes / 64, ref SIB64);
+            BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.Rounds,               ref vkfRounds);
+            BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.PreRounds,            ref vkfPreRounds);
+            BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.ArmoringSteps,        ref cscArmoringSteps);
 
-            // Создаём массив из двух байтов, которые характеризуют длину режима шифрования и обфусцируют эту длину
-            var regimeLen = new byte[3] { (byte) (asciiRegimeName.Length - MinLengthForRegimeName), 0, 0 };
-            regimeLen[0] += unchecked(  (byte) (regimeObfs[0] + regimeObfs[1])  );
-            regimeLen[1]  = regimeObfs[0];
-            regimeLen[2]  = regimeObfs[1];
+            // Создаём массив с параметрами шифрования
+            var regimeLen = new byte[2 + SIB64!.Length + vkfRounds!.Length + vkfPreRounds!.Length + cscArmoringSteps!.Length];
+            regimeLen[0]  = (byte) (asciiRegimeName.Length - MinLengthForRegimeName);
+            regimeLen[1]  = (byte) VinKekFish_KeyOpts.K;
+// TODO: такой файл невозможно разобфусцировать. Исправить
+            nint cur = 2;
+            cur += BytesBuilder.CopyTo(SIB64,            regimeLen, cur);
+            cur += BytesBuilder.CopyTo(vkfRounds,        regimeLen, cur);
+            cur += BytesBuilder.CopyTo(vkfPreRounds,     regimeLen, cur);
+            cur += BytesBuilder.CopyTo(cscArmoringSteps, regimeLen, cur);
+
+            var obfLen    = regimeLen.Length + asciiRegimeName.Length;
+            obfLen        *= 2;
+            obfRegimeName = main.GetBytes(obfLen, regime: 23);
+
+            cur = 0;
+            fixed (byte * bp_regimeLen = regimeLen)
+            {
+                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, obfRegimeName.array + cur);
+                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, obfRegimeName.array + cur);
+            }
+            cur += BytesBuilder.ArithmeticAddBytes(recRegimeName.len, recRegimeName, obfRegimeName.array + cur);
+            cur += BytesBuilder.ArithmeticAddBytes(recRegimeName.len, recRegimeName, obfRegimeName.array + cur);
 
             file.AddFilePart("Regime len",      regimeLen,     createLengthArray: false);
             file.AddFilePart("Regime name",     recRegimeName, createLengthArray: false);
