@@ -225,11 +225,18 @@ public partial class Regime_Service
                 vkfListener     = new UnixSocketListener(UnixStreamPath      !.FullName, this, UnixSocketListener.SocketinformationType.entropy);
                 vkfInfoListener = new UnixSocketListener(UnixStreamPathParams!.FullName, this, UnixSocketListener.SocketinformationType.entropyParams);
 
-                if (options_service?.root?.output?.random?.charDevice?.path != null)
+                try
                 {
-                    var crandomPath = options_service?.root?.output?.random?.charDevice?.path!;
-                    Console.WriteLine(L("Try to create character device by path /dev/") + crandomPath);
-                    vkfCuseListener = new CuseStream(crandomPath, this);
+                    if (options_service?.root?.output?.random?.charDevice?.path != null)
+                    {
+                        var crandomPath = options_service?.root?.output?.random?.charDevice?.path!;
+                        Console.WriteLine(L("Try to create character device by path /dev/") + crandomPath);
+                        vkfCuseListener = new CuseStream(crandomPath, this);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DoFormatException(ex);
                 }
 
                 // Сразу берём источники энтропии, до того, как будем губку инициализировать,
