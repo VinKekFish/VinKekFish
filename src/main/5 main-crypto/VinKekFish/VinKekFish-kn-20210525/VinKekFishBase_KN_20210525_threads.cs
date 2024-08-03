@@ -26,11 +26,28 @@ namespace vinkekfish
             CurrentKeccakBlockNumber[1] = 1;
 
             if (ThreadCount > 1)
-                Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_Keccak());
-            else
-                ThreadFunction_Keccak();
+            {
+                // Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_Keccak());
+                int tc  = ThreadCount-1;
+                int cnt = tc;
+                for (int i = 0; i < tc; i++)
+                ThreadPool.QueueUserWorkItem
+                (
+                    delegate
+                    {
+                        ThreadFunction_Keccak();
+                        Interlocked.Decrement(ref cnt);
+                    }
+                );
 
-            IsState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
+                ThreadFunction_Keccak();
+                while (cnt > 0)
+                {}
+
+                IsState1Main ^= true;                 // Переключаем состояния (вспомогательный и основной массив состояний)
+            }
+            else
+                ThreadFunction_Keccak_signleThread();
         }
 
                                                                                             /// <summary>Массив счётчика блоков для определения текущего блока для обработки keccak. [0] - чётные элементы, [1] - нечётные элементы</summary>
@@ -38,7 +55,7 @@ namespace vinkekfish
         protected void ThreadFunction_Keccak()
         {
             byte * mat = stackalloc byte[MatrixLen];
-
+/*
             for (int i = 0; i <= 1; i++)
             {
                 do
@@ -71,8 +88,69 @@ namespace vinkekfish
                 }
                 while (true);
             }
+*/
+
+            // Проходим чётные узлы (делаем узлы через один для того, чтобы потоки не залезали друг другу на линии кеша)
+            do
+            {
+                // Interlocked.Add возвращает результат сложения. А нам нужно значение до результата. Поэтому вычитаем назад 2, чтобы получить индекс нужного нам блока
+                var index  = Interlocked.Add(ref CurrentKeccakBlockNumber[0], 2) - 2;
+                if (index >= LenInKeccak)
+                {
+                    break;
+                }
+
+                var offset = KeccakBlockLen * index;
+                var off1   = st1 + offset;
+                var off2   = st2 + offset;
+
+                byte * off = off1;
+
+                BytesBuilder.CopyTo(KeccakBlockLen, KeccakBlockLen, off1, off2);
+                off = off2;
+
+                KeccakPrime.Keccackf(a: (ulong *) off, c: (ulong *) (mat + KeccakPrime.b_size), b: (ulong *) mat);
+            }
+            while (true);
+
+            // Проходим нечётные узлы
+            do
+            {
+                // Interlocked.Add возвращает результат сложения. А нам нужно значение до результата. Поэтому вычитаем назад 2, чтобы получить индекс нужного нам блока
+                var index  = Interlocked.Add(ref CurrentKeccakBlockNumber[1], 2) - 2;
+                if (index >= LenInKeccak)
+                {
+                    break;
+                }
+
+                var offset = KeccakBlockLen * index;
+                var off1   = st1 + offset;
+                var off2   = st2 + offset;
+
+                byte * off = off1;
+
+                KeccakPrime.Keccackf(a: (ulong *) off, c: (ulong *) (mat + KeccakPrime.b_size), b: (ulong *) mat);
+
+                BytesBuilder.CopyTo(KeccakBlockLen, KeccakBlockLen, off1, off2);
+            }
+            while (true);
 
             BytesBuilder.ToNull(MatrixLen, mat);
+        }
+
+        protected void ThreadFunction_Keccak_signleThread()
+        {
+            byte * mat = stackalloc byte[MatrixLen];
+
+            byte * off = st1;
+            for (int index = 0; index < LenInKeccak; index++)
+            {
+                KeccakPrime.Keccackf(a: (ulong *) off, c: (ulong *) (mat + KeccakPrime.b_size), b: (ulong *) mat);
+                off += KeccakBlockLen;
+            }
+
+            BytesBuilder.ToNull(MatrixLen, mat);
+
         }
 
         protected void DoThreeFish()
@@ -81,9 +159,31 @@ namespace vinkekfish
             BytesBuilder.CopyTo(Len, Len, st1, st2);        // Копируем старое состояние в новое, чтобы можно было его шифровать на новом месте
             // Копируем расширение ключа для последнего блока - это самые первые 8-мь байтов нулевого блока
             BytesBuilder.CopyTo(FullLen, FullLen, st1, st1, targetIndex: Len, count: CryptoStateLenExtension, index: 0);
-
+/*
             if (ThreadCount > 1)
                 Parallel.For(0, ThreadCount, (i, state) => ThreadFunction_ThreeFish());
+            else
+                ThreadFunction_ThreeFish(0, null);
+*/
+
+            if (ThreadCount > 1)
+            {
+                int tc  = ThreadCount-1;
+                int cnt = tc;
+                for (int i = 0; i < tc; i++)
+                ThreadPool.QueueUserWorkItem
+                (
+                    delegate
+                    {
+                        ThreadFunction_ThreeFish();
+                        Interlocked.Decrement(ref cnt);
+                    }
+                );
+
+                ThreadFunction_ThreeFish();
+                while (cnt > 0)
+                {}
+            }
             else
                 ThreadFunction_ThreeFish();
 

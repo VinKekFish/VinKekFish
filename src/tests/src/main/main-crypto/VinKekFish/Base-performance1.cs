@@ -13,7 +13,7 @@ using static VinKekFish_Utils.Utils;
 
 // [TestTagAttribute("inWork")]
 [TestTagAttribute("performance")]
-[TestTagAttribute("VinKekFish", duration: 15e3, singleThread: true)]
+[TestTagAttribute("VinKekFish", duration: 1e3, singleThread: true)]
 public unsafe class VinKekFish_test_base_performance1 : TestTask
 {
     public VinKekFish_test_base_performance1(TestConstructor constructor) :
@@ -25,7 +25,7 @@ public unsafe class VinKekFish_test_base_performance1 : TestTask
     public void Test()
     {
         var keyLen = 128;
-        Test(4, 4, 1, 1, keyLen);
+        Test(512, 4, 1, 1, keyLen, min: 100);   // Позволяем многопоточной реализации быть неоптимальной
     }
 
     public void Test(int roundsCnt, int RoundsForFinal, int RoundsForFirstKeyBlock, int RoundsForTailsBlock, int keyLen, int min = 100)
@@ -53,18 +53,18 @@ public unsafe class VinKekFish_test_base_performance1 : TestTask
         k1t4 .Init2(key, RoundsForTailsBlock: RoundsForTailsBlock, RoundsForFinal: RoundsForFinal, RoundsForFirstKeyBlock: RoundsForFirstKeyBlock);
 
         var st1 = new DriverForTestsLib.SimpleTimeMeter();
-        k1e  .InputData_Xor(null, 0, 0);
-        k1e  .DoStep(roundsCnt);
+        k1e.InputData_Xor(null, 0, 0);
+        k1e.DoStep(roundsCnt);
         st1.Dispose();
 
         var stm = new DriverForTestsLib.SimpleTimeMeter();
-        k1t4 .DoStepAndIO(roundsCnt);
+        k1t4.DoStepAndIO(roundsCnt);
         stm.Dispose();
 
-        k1e .OutputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
+        k1e.OutputData(out1e , 0, out1e.len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);
 
-        using var out1t4 = k1t4 .output.GetBytes();
+        using var out1t4 = k1t4.output.GetBytes();
         sp = new ReadOnlySpan<byte>(out1t4, (int) out1t4.len);
 
         if (!out1t4.UnsecureCompare(out1e))
@@ -75,7 +75,7 @@ public unsafe class VinKekFish_test_base_performance1 : TestTask
         var tm = st1.TotalMilliseconds * 100 / stm.TotalMilliseconds;
         var   cntPerSecond = (int) (1 * 1000.0 / stm.TotalMilliseconds);
         var bytePerSecornd = cntPerSecond * 512;
-        this.Name += $" {(int)tm,3}% {cntPerSecond,4}, {$"{bytePerSecornd:#,0}",7}";
+        this.Name += $" {(int)tm,3}% {cntPerSecond,4}, {$"{bytePerSecornd:#,0}",7}, {(int) stm.TotalMilliseconds} ms";
         // var min = 100; //cascademt.ThreadsCount * 100 / 2;
         var max = Environment.ProcessorCount * 110;
         if (tm < min)   // ??? Производительность плавает постоянно
