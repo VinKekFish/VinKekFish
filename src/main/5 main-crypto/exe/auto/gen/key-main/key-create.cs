@@ -264,6 +264,9 @@ public unsafe partial class AutoCrypt
             BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.PreRounds,            ref vkfPreRounds);
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.ArmoringSteps,        ref cscArmoringSteps);
 
+            var bb = new BytesBuilder();
+            
+
             // Создаём массив с параметрами шифрования
             var regimeLen = new byte[2 + SIB64!.Length + vkfRounds!.Length + vkfPreRounds!.Length + cscArmoringSteps!.Length];
             regimeLen[0]  = (byte) (asciiRegimeName.Length - MinLengthForRegimeName);
