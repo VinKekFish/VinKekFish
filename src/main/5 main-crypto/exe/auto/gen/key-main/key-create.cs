@@ -54,7 +54,7 @@ public unsafe partial class AutoCrypt
                 // Шифруемая информация - это ключи,
                 // которые в дальнейшем будут использованы для генерации сессионных ключей
                 // при других сессиях шифрования. То есть здесь эти ключи использованы не будут.
-                dataGenerator = new KeyDataGenerator(VinKekFish_Key!, Cascade_Key!, Cascade_KeyOpts.ArmoringSteps, "GenKeyCommand.CreateKeyFiles.KeyDataGenerator")
+                dataGenerator = new KeyDataGenerator(VinKekFish_Key!, Cascade_Key!, (nint) Cascade_KeyOpts.ArmoringSteps, "GenKeyCommand.CreateKeyFiles.KeyDataGenerator")
                 {
                     KeyLenCsc = newKeyLenCsc,
                     KeyLenVkf = newKeyLenVkf,
@@ -193,12 +193,12 @@ public unsafe partial class AutoCrypt
 
             // Вводим пароль в обе губки
             if (!noPwd)
-                _ = new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: Cascade_KeyOpts.ArmoringSteps, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps);
+                _ = new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: (nint) Cascade_KeyOpts.ArmoringSteps, ArmoringSteps: (nint) Cascade_KeyOpts.ArmoringSteps);
 
             // Перекрёстная инициализация губок
             var gdVinKekFish_KeyGenerator = new GetDataFromVinKekFishSponge(VinKekFish_KeyGenerator);
             using (var cross = gdVinKekFish_KeyGenerator.GetBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
-                Cascade_KeyGenerator.Step(data: cross, dataLen: cross.len, ArmoringSteps: Cascade_KeyOpts.ArmoringSteps, regime: 96);
+                Cascade_KeyGenerator.Step(data: cross, dataLen: cross.len, ArmoringSteps: (nint) Cascade_KeyOpts.ArmoringSteps, regime: 96);
 
             var gdCascade_KeyGenerator = new GetDataFromCascadeSponge(Cascade_KeyGenerator);
             using (var cross = gdCascade_KeyGenerator.GetBytes(VinKekFish_KeyGenerator.BLOCK_SIZE_K*2, regime: 69))
@@ -241,62 +241,85 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        /// <summary>Эта константа указывает, какова может быть минимальная длина имени режима шифрования. Её нельзя просто так изменить, т.к. от неё зависит расчёт реальной длины строки имени (0 - это уже строка минимальной длины).</summary>
+        /// <summary>Эта константа указывает, какова может быть минимальная длина имени режима шифрования. Сейчас это значение можно уменьшить, если требуется.</summary>
         public const int MinLengthForRegimeName = 16;
+        public const int MaxLengthForRegimeName = 32768;
 
         /// <summary>Создаёт начальную часть файла. Это включает в себя обфусцированное имя режима, обфускационную часть синхропосылки (создаётся внутри функции), синхропосылку (передаётся в функцию).</summary>
-        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки в режиме 23.</param>
+        /// <param name="main">Генератор ключей. Используется для генерации обфускационной части синхропосылки. Начинает в режиме 23, заканчивает в режиме 24.</param>
         /// <param name="file">FileParts в который добавляется начальная часть файла.</param>
         /// <param name="OIV">Открытый вектор инициализации (синхропосылка). Должен быть создан заранее вне функции. Нет ограничений на использование main для генерации этого (если OIV генерируется сразу перед функцией, не используйте режим 23). OIV должен быть ранее сгенерирован и может быть использован далее после функции. Пользователь сам освобождает OIV.</param>
-        /// <param name="obfRegimeName">Это нужно удалить вручную после получения. Возвращается массив, сгенерированный внутри функции и обфусцирующий имя режима: это отдельный массив, который генерируется так же, как и OIV, и он может быть для этого использован. Этот массив записан в секции файла "Regime name add".</param>
+        /// <param name="obfRegimeName">Это нужно удалить вручную после получения. Возвращается массив, сгенерированный внутри функции для обфускации имени режима: это отдельный массив, который генерируется так же, как и OIV, и он может быть для этого использован. Этот массив записан в секции файла "Regime name add". Возвращается из функции для использования в качестве дополнительной рандомизирующей информации (синхропосылки).</param>
         protected void AddStartPart(KeyDataGenerator main, FileParts file, Record OIV, out Record obfRegimeName)
         {
             var asciiRegimeName = new ASCIIEncoding().GetBytes(RegimeName);
 
-            if (asciiRegimeName.Length > 255 + MinLengthForRegimeName || asciiRegimeName.Length < MinLengthForRegimeName)
-                throw new ArgumentOutOfRangeException("RegimeName", $"asciiRegimeName (RegimeName) length must be <- [{MinLengthForRegimeName}, {255+MinLengthForRegimeName}]. Requested regime: \"{RegimeName}\".");
+            if (asciiRegimeName.Length > MaxLengthForRegimeName || asciiRegimeName.Length < MinLengthForRegimeName)
+                throw new ArgumentOutOfRangeException("RegimeName", $"asciiRegimeName (RegimeName) length must be <- [{MinLengthForRegimeName}, {MaxLengthForRegimeName}]. Requested regime: \"{RegimeName}\".");
 
-            var recRegimeName = Record.GetRecordFromBytesArray(asciiRegimeName);
-
-            byte[]? SIB64 = null, vkfRounds = null, vkfPreRounds = null, cscArmoringSteps = null;
+            byte[]? SIB64 = null, vkfRounds = null, vkfPreRounds = null, cscArmoringSteps = null, cscInitSteps = null, cscStepsForTable = null, OIVLength = null;
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.StrengthInBytes / 64, ref SIB64);
             BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.Rounds,               ref vkfRounds);
             BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.PreRounds,            ref vkfPreRounds);
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.ArmoringSteps,        ref cscArmoringSteps);
+            BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.InitSteps,            ref cscInitSteps);
+            BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.StepsForTable,        ref cscStepsForTable);
+            BytesBuilder.VariableULongToBytes((ulong) OIV.len,                                 ref OIVLength);
 
+            // Параметры шифрования
             var bb = new BytesBuilder();
-            
+            bb.AddByte((byte) VinKekFish_KeyOpts.K);
+            bb.Add(OIVLength!);
+            bb.Add(SIB64!);
+            bb.Add(cscArmoringSteps!);
+            bb.Add(cscInitSteps!);
+            bb.Add(cscStepsForTable!);
+            bb.Add(vkfRounds!);
+            bb.Add(vkfPreRounds!);
 
-            // Создаём массив с параметрами шифрования
-            var regimeLen = new byte[2 + SIB64!.Length + vkfRounds!.Length + vkfPreRounds!.Length + cscArmoringSteps!.Length];
-            regimeLen[0]  = (byte) (asciiRegimeName.Length - MinLengthForRegimeName);
-            regimeLen[1]  = (byte) VinKekFish_KeyOpts.K;
-// TODO: такой файл невозможно разобфусцировать. Исправить
-            nint cur = 2;
-            cur += BytesBuilder.CopyTo(SIB64,            regimeLen, cur);
-            cur += BytesBuilder.CopyTo(vkfRounds,        regimeLen, cur);
-            cur += BytesBuilder.CopyTo(vkfPreRounds,     regimeLen, cur);
-            cur += BytesBuilder.CopyTo(cscArmoringSteps, regimeLen, cur);
 
-            var obfLen    = regimeLen.Length + asciiRegimeName.Length;
-            obfLen        *= 2;
-            obfRegimeName = main.GetBytes(obfLen, regime: 23);
+            // Создаём массив с длинами массивов
+            // Этот массив идёт самым первым
+            var  regimeLen = new byte[4];
+            nint val       = asciiRegimeName.Length;
+            regimeLen[0]   = (byte) val; val >>= 8;
+            regimeLen[1]   = (byte) val;
 
-            cur = 0;
+            val          = bb.Count;
+            regimeLen[2] = (byte) val; val >>= 8;
+            regimeLen[3] = (byte) val;
+
+            // Генерируем массив, обфусцирующий байты длин. Этот массив идёт сразу за массивами длин
+            var lenObfs = main.GetBytes(regimeLen.Length*2, regime: 23);
+
+            // Накладываем на массив длин обфускацию
+            nint cur = 0;
             fixed (byte * bp_regimeLen = regimeLen)
             {
-                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, obfRegimeName.array + cur);
-                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, obfRegimeName.array + cur);
+                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, lenObfs.array + cur);
+                cur += BytesBuilder.ArithmeticAddBytes(regimeLen.Length, bp_regimeLen, lenObfs.array + cur);
             }
+
+            // Собираем массив описания режима шифрования, содержащий: имя шифрования в начале и парамаметры шифрования после него
+            bb.Add(asciiRegimeName, 0);
+
+            var regimeDescriptionArray = bb.GetBytes(); bb.Clear(); bb = null;
+            var recRegimeName          = Record.GetRecordFromBytesArray(regimeDescriptionArray, RecordDebugName: "AddStartPart.recRegimeName");
+
+            obfRegimeName = main.GetBytes(recRegimeName.len * 2, regime: 24);
+
+            // Накладываем обфускацию на остальные массивы
+            cur = 0;
             cur += BytesBuilder.ArithmeticAddBytes(recRegimeName.len, recRegimeName, obfRegimeName.array + cur);
             cur += BytesBuilder.ArithmeticAddBytes(recRegimeName.len, recRegimeName, obfRegimeName.array + cur);
 
             file.AddFilePart("Regime len",      regimeLen,     createLengthArray: false);
-            file.AddFilePart("Regime name",     recRegimeName, createLengthArray: false);
-            file.AddFilePart("Regime name add", obfRegimeName, createLengthArray: false, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
+            file.AddFilePart("Regime len obfs", lenObfs,       createLengthArray: false);
+            file.AddFilePart("Regime obfs",     obfRegimeName, createLengthArray: false, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
+            file.AddFilePart("Regime",          recRegimeName, createLengthArray: false);
 
             // file.AddFilePart("OIV len", OIV_len_record!);
-            file.AddFilePart("OIV", OIV, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
+            file.AddFilePart("OIV", OIV, createLengthArray: false, doNotDisposeOption: FileParts.DoNotDisposeEnum.yes);
         }
     }
 }

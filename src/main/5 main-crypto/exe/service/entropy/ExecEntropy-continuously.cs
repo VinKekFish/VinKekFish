@@ -285,7 +285,7 @@ public partial class Regime_Service
         }
     }
 
-    public void Sleep(int milliseconds, int maxWait = 1000)
+    public void Sleep(int milliseconds, int maxWait = 10000)
     {
         if (milliseconds < 0)
             throw new ArgumentOutOfRangeException(nameof(milliseconds), $"milliseconds < 0 ({milliseconds})");

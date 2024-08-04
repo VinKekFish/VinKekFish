@@ -145,7 +145,7 @@ public unsafe partial class AutoCrypt
             BlockLen    = sponge.lastOutput.len >> 1;
         }
 
-        public int ArmoringSteps = 0;
+        public long ArmoringSteps = 0;
         public override void GetBytes(byte* forData, nint len, byte regime)
         {
             ExceptionIfLastRegimeIsEqual(regime);
@@ -154,7 +154,7 @@ public unsafe partial class AutoCrypt
             var current = forData;
             do
             {
-                sponge!.Step(ArmoringSteps: ArmoringSteps, regime: regime);
+                sponge!.Step(ArmoringSteps: (nint) ArmoringSteps, regime: regime);
                 BytesBuilder.CopyTo(BlockLen, reqLen, sponge.lastOutput, current);
 
                 reqLen  -= BlockLen;

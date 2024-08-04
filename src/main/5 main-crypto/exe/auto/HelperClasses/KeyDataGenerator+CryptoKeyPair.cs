@@ -82,7 +82,7 @@ public unsafe partial class AutoCrypt
         /// <param name="csc_keyGenerator">Проинициализированная каскадная губка, готовая к генерации ключа шифрования (режимы 13 и 15)</param>
         /// <param name="ArmoringSteps">Количество дополнительных холостых шагов, усиливающих шифрование</param>
         /// <param name="NameForRecord">Отладочное имя для выделения памяти</param>
-        public KeyDataGenerator(VinKekFishBase_KN_20210525 vkf_keyGenerator, CascadeSponge_mt_20230930 csc_keyGenerator, int ArmoringSteps, string NameForRecord)
+        public KeyDataGenerator(VinKekFishBase_KN_20210525 vkf_keyGenerator, CascadeSponge_mt_20230930 csc_keyGenerator, long ArmoringSteps, string NameForRecord)
         {
             GC.ReRegisterForFinalize(this);
 

@@ -517,6 +517,12 @@
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_BitwiseAnd(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_BitwiseOr(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Конкатенация двух массивов</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.Concat(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record)">
+            <summary>Конкатенация двух массивов a и b в массив result</summary>
+        </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.UnsecureCompare(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Сравнивает две записи</summary>
             <param name="b">Вторая запись для сравнения</param>

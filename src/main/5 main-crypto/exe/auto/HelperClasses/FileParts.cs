@@ -159,8 +159,8 @@ public unsafe partial class FileParts
         return (innerParts.Count - 1, result);
     }
 
-    /// <summary>Добавляет в конец файла новую часть и пересчитывает size.</summary>
-    /// <param name="Name">Имя добавляемой части файла</param>
+    /// <summary>Добавляет в конец секции файла новую часть и пересчитывает size.</summary>
+    /// <param name="Name">Имя добавляемой части файла.</param>
     /// <param name="content">Содержимое части. Копируется в новый Record. Массив content может быть (и, возможно, должен быть) перезаписан сразу после возврата функции.</param>
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
@@ -173,7 +173,7 @@ public unsafe partial class FileParts
     /// <param name="Name">Имя добавляемой части файла</param>
     /// <param name="content">Содержимое части. Запоминается по ссылке. Уничтожается автоматически при Dispose объекта FileParts.</param>
     /// <param name="createLengthArray">Вставить перед записью длину записи.</param>
-    /// <param name="doNotDisposeOption">Если doNotDispose == true (yes), то новая запись будет создана с doNotDispose == true. Если "no", то запись будет создана с doNotDispose == false. Иначе (unknown) будет унаследована от текущей записи.</param>
+    /// <param name="doNotDisposeOption">Если doNotDispose == true (yes), то новая запись будет создана с doNotDispose == true. Если "no", то запись будет создана с doNotDispose == false. Иначе (unknown) будет унаследована от текущей записи. Значение "yes" означает, что параметр content не будет автоматически освобождён и пользователь должен освободить его сам после использования в этой секции.</param>
     /// <returns>(Индекс добавленной части в списке innerParts. Сама добавленная часть файла)</returns>
     /// <param name="createLengthArray">Если true, то btContent (должен быть null) будет содержать массив с длиной записи content.</param>
     public (int Index, FileParts newFilePart) AddFilePart(string Name, Record content, bool createLengthArray = true, DoNotDisposeEnum doNotDisposeOption = DoNotDisposeEnum.unknown)

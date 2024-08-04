@@ -11,6 +11,7 @@ using VinKekFish_Utils;
 using static VinKekFish_Utils.Utils;
 using static VinKekFish_Utils.Memory;
 using System.Diagnostics;
+using System.Reflection;
 
 // #pragma warning disable CA1034 // Nested types should not be visible
 namespace cryptoprime
@@ -494,7 +495,25 @@ namespace cryptoprime
 
                 return t.len;
             }*/
+                                                                            /// <summary>Конкатенация двух массивов</summary>
+            public static Record operator |(Record a, Record b)
+            {
+                var allocator = a.allocator ?? b.allocator ?? throw new InvalidOperationException("Record.| : a.allocator ?? b.allocator == null. " + a.Name + " | " + b.Name);
+                var result    = allocator.AllocMemory(a.len + b.len, a.Name + " | " + b.Name);
 
+                Concat(result, a, b);
+// TODO: tests
+                return result;
+            }
+                                                                            /// <summary>Конкатенация двух массивов a и b в массив result</summary>
+            public static void Concat(Record result, Record a, Record b)
+            {
+                if (result.len < a.len + b.len)
+                    throw new ArgumentOutOfRangeException(nameof(result), "result.len < a.len + b.len");
+
+                var cur = BytesBuilder.CopyTo(a.len, result.len, a, result);
+                          BytesBuilder.CopyTo(b.len, result.len, b, result, cur);
+            }
 
             /// <summary>Сравнивает две записи</summary>
             /// <param name="b">Вторая запись для сравнения</param>

@@ -157,12 +157,14 @@ public partial class AutoCrypt
 
         public class CascadeOptions: IIsCorrectAvailable
         {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
-            public int   StrengthInBytes = 0;
-            public int   ArmoringSteps   = 0;
+            public int  StrengthInBytes = 0;        /// <summary>Количество дополнительных шагов губки на один запрошенный шаг.</summary>
+            public long ArmoringSteps   = 0;        /// <summary>Количество шагов инициализации (stepToKeyConst) с помощью InitThreeFishByCascade (по умолчанию - 2).</summary>
+            public long InitSteps       = 2;        /// <summary>Количество шагов губки при генерации таблицы подстановок. Параметр countOfStepsForSubstitutionTable в InitThreeFishByCascade.</summary>
+            public long StepsForTable   = 1;
 
             public override string ToString()
             {
-                return $"StrengthInBytes={StrengthInBytes};ArmoringSteps={ArmoringSteps}";
+                return $"StrengthInBytes={StrengthInBytes};ArmoringSteps={ArmoringSteps};InitSteps={InitSteps};StepsForTable={StepsForTable}";
             }
 
             /// <summary>Проверяет корректность инициализации структуры</summary>
@@ -186,6 +188,7 @@ public partial class AutoCrypt
                     var bytes = int.Parse(val);
                     if (bytes > 0)
                     {
+                        bytes = (int) (Math.Ceiling(bytes / 64.0) * 64);
                         opts.StrengthInBytes = bytes;
                     }
                 }
@@ -206,6 +209,29 @@ public partial class AutoCrypt
                 else
                     doCalcAndSetArmoringSteps(opts, forKey);
 
+                if (values.Length >= 3)
+                {
+                    var val       = values[2].Trim();
+                    var InitSteps = int.Parse(val);
+                    if (InitSteps > 0)
+                    {
+                        opts.InitSteps = InitSteps;
+                    }
+                    else
+                        opts.InitSteps = 2;
+                }
+
+                if (values.Length >= 4)
+                {
+                    var val           = values[3].Trim();
+                    var StepsForTable = int.Parse(val);
+                    if (StepsForTable > 0)
+                    {
+                        opts.StepsForTable = StepsForTable;
+                    }
+                    else
+                        opts.StepsForTable = 1;
+                }
 
                 if (isDebugMode)
                     Console.WriteLine(opts);

@@ -85,7 +85,6 @@ public unsafe partial class AutoCrypt
                         regime:main.1.pwd.2024.1
                         fregime:1.0
                         cascade-c:11264 2
-                        cascade-c:11264 2 0
                         vkf-c:11
                         cascade-k:11264 2
                         vkf-k:11
