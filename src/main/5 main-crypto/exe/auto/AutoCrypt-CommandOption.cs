@@ -158,9 +158,9 @@ public partial class AutoCrypt
         public class CascadeOptions: IIsCorrectAvailable
         {                                           /// <summary>Стойкость каскадной губки в байтах</summary>
             public int  StrengthInBytes = 0;        /// <summary>Количество дополнительных шагов губки на один запрошенный шаг.</summary>
-            public long ArmoringSteps   = 0;        /// <summary>Количество шагов инициализации (stepToKeyConst) с помощью InitThreeFishByCascade (по умолчанию - 2).</summary>
-            public long InitSteps       = 2;        /// <summary>Количество шагов губки при генерации таблицы подстановок. Параметр countOfStepsForSubstitutionTable в InitThreeFishByCascade.</summary>
-            public long StepsForTable   = 1;
+            public nint ArmoringSteps   = 0;        /// <summary>Количество шагов инициализации (stepToKeyConst) с помощью InitThreeFishByCascade (по умолчанию - 2).</summary>
+            public nint InitSteps       = 2;        /// <summary>Количество шагов губки при генерации таблицы подстановок. Параметр countOfStepsForSubstitutionTable в InitThreeFishByCascade.</summary>
+            public nint StepsForTable   = 1;
 
             public override string ToString()
             {

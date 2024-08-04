@@ -114,11 +114,12 @@ public unsafe partial class AutoCrypt
                 gdKeyGenerator  = InitKeyGenerator(obfRegimeName, OIV, OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator , out CascadeSponge_mt_20230930? Cascade_KeyGenerator, noPwd);
                 // gdKeyGenerator2 = InitKeyGenerators(obfRegimeName, OIV, OIV_parts, out VinKekFish_KeyGenerator2, out Cascade_KeyGenerator2, oiv_part_len, !havePwd2);
 
-                file.AddFilePart("Encrypted", 0, nint.MaxValue);
-
-                // TODO: здесь нужно будет посмотреть, какие опции действительно имеют значение при создании чего-либо
-                using (var encrypt = new Main_1_PWD_2024_1.EncryptDataClass(keysToEncrypt, file, gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts))
+                // var tmpBytes = new UTF8Encoding().GetBytes("Данные для шифрования: это открытый текст. 1234567890");
+                // var tmpRec   = Record.GetRecordFromBytesArray(tmpBytes);
+                using (var encrypt = new Main_1_PWD_2024_1.CryptDataClass(gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts))
                 {
+                    // encrypt.DoEncrypt(tmpRec, file);
+                    encrypt.DoEncrypt(keysToEncrypt, file);
                     keysToEncrypt = null;   // Чтобы избежать двойной очистки
                 }
 
@@ -257,7 +258,7 @@ public unsafe partial class AutoCrypt
             if (asciiRegimeName.Length > MaxLengthForRegimeName || asciiRegimeName.Length < MinLengthForRegimeName)
                 throw new ArgumentOutOfRangeException("RegimeName", $"asciiRegimeName (RegimeName) length must be <- [{MinLengthForRegimeName}, {MaxLengthForRegimeName}]. Requested regime: \"{RegimeName}\".");
 
-            byte[]? SIB64 = null, vkfRounds = null, vkfPreRounds = null, cscArmoringSteps = null, cscInitSteps = null, cscStepsForTable = null, OIVLength = null;
+            byte[]? SIB64 = null, vkfRounds = null, vkfPreRounds = null, cscArmoringSteps = null, cscInitSteps = null, cscStepsForTable = null, OIVLength = null, Align = null;
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.StrengthInBytes / 64, ref SIB64);
             BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.Rounds,               ref vkfRounds);
             BytesBuilder.VariableULongToBytes((ulong) VinKekFish_KeyOpts.PreRounds,            ref vkfPreRounds);
@@ -265,11 +266,13 @@ public unsafe partial class AutoCrypt
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.InitSteps,            ref cscInitSteps);
             BytesBuilder.VariableULongToBytes((ulong) Cascade_CipherOpts.StepsForTable,        ref cscStepsForTable);
             BytesBuilder.VariableULongToBytes((ulong) OIV.len,                                 ref OIVLength);
+            BytesBuilder.VariableULongToBytes((ulong) 65536,                                   ref Align);      // TODO: вставить настраиваемый Align
 
             // Параметры шифрования
             var bb = new BytesBuilder();
             bb.AddByte((byte) VinKekFish_KeyOpts.K);
             bb.Add(OIVLength!);
+            bb.Add(Align!);
             bb.Add(SIB64!);
             bb.Add(cscArmoringSteps!);
             bb.Add(cscInitSteps!);

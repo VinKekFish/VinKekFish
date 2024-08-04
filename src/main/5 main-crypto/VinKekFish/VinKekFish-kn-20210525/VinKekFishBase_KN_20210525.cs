@@ -121,7 +121,12 @@ namespace vinkekfish
             MAX_ROUNDS_K              = Calc_MAX_ROUNDS_K    (K);
 
             if (ThreadCount == 0)
+            {
                 ThreadCount = Environment.ProcessorCount;
+                if (ThreadCount > K)
+                    ThreadCount = K;
+            }
+
             this.ThreadCount = ThreadCount;
 
             if (CountOfRounds < 0)

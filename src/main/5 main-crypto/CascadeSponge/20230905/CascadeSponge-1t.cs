@@ -330,6 +330,31 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         ExpandThreeFish();
     }
+// TODO: tests здесь не протестирована функция InitThreeFishByKey
+    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом. Tweak не трогает. После вызова этой функции можно вызвать InitSubstitutionTable для инициализации таблицы перестановок отдельно, либо InitThreeFishByCascade для переинициализации как таблицы перестановок, так и ключей ThreeFish.</summary>
+    public void InitThreeFishByKey(Record key)
+    {
+        ObjectDisposedCheck("CascadeSponge_1t_20230905.InitThreeFishByKey");
+
+        if (key.len < Threefish_slowly.keyLen * countOfThreeFish)
+            throw new ArgumentOutOfRangeException("CascadeSponge_1t_20230905.InitThreeFishByKey: key.len must be greater or equals by " + Threefish_slowly.keyLen * countOfThreeFish);
+
+        var rc  = threefishCrypto!.array + 0;    // Сразу выполняем переход на ключи
+        var ka  = (ulong *) key.array;
+        for (ulong i = 0; i < (ulong) countOfThreeFish; i++)
+        {
+            var rck = (ulong*) rc;
+            rc += 256;                          // Переход на следующий массив ключей (для следующего блока ThreeFish)
+
+            for (int j = 0; j < Threefish_slowly.Nw; j++)
+            {
+                rck[j] = *ka;
+                ka++;
+            }
+        }
+
+        ExpandThreeFish();
+    }
 
     /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом и твиками (вызывает InitEmptyThreeFishTweaks). Это уменьшает стойкость алгоритма. В данном случае, tweak инициализируется константами с помощью вызова InitEmptyThreeFishTweaks, ключи с помощью InitEmptyThreeFishKeys. Лучше вместо этого использовать InitThreeFishByCascade.</summary>
     public void InitEmptyThreeFish(ulong emptyKeyInitValue = KeyInitIncrement, ulong emptyTweakInitValue = TweakInitIncrement)

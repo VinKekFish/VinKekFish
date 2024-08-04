@@ -179,7 +179,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="noInitSubstitutionTables">Если true, то не делает инициализацию таблиц подстановок.</param>
     /// <param name="countOfSteps">Количество шагов, которые будет делать губка для генерации одного вывода губки. 0 - это количество шагов по умолчанию (1 шаг). Этот параметр передаётся в функцию step. Релевантные значения: 0 (==countStepsForKeyGeneration), 1,  countStepsForHardening, countStepsForKeyGeneration</param>
     /// <param name="countOfStepsForSubstitutionTable">Количество шагов, которые будет делать губка для генерации одного вывода губки при формировании таблицы подстановок. Формирование таблицы подстановок может занимать длительное время, поэтому не рекомендуется увеличивать количество шагов. Параметр по умолчанию 0 означает 1 шаг</param>
-    public void InitThreeFishByCascade(int stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0, nint countOfStepsForSubstitutionTable = 0)
+    public void InitThreeFishByCascade(nint stepToKeyConst = 2, bool doCheckSafty = true, nint dataLenFromStep = 0, bool noInitSubstitutionTables = false, nint countOfSteps = 0, nint countOfStepsForSubstitutionTable = 0)
     {
         // Защита от вызова на непроинициализированной губке
         if (doCheckSafty && CountOfProcessedSteps < countStepsForKeyGeneration)
@@ -251,7 +251,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         }
     }
 
-    /// <summary>Эту функцию не нужно вызывать напрямую (но можно вызвать дополнительно, если нужно подготовить значения с более стойким countOfSteps). Она вызывается из InitThreeFishByCascade. Функция инициализирует таблицу подстановок обратной связи с помощью самой губки.</summary>
+    /// <summary>Эту функцию не нужно вызывать напрямую (если только для отдельной инициализации таблиц подстановок после инициализации ключей ThreeFish из внешних ключей). Она вызывается из InitThreeFishByCascade. Функция инициализирует таблицу подстановок обратной связи с помощью самой губки. Шаги производятся в режиме 7.</summary>
     /// <param name="countOfSteps">Количество шагов, которые будет делать губка для генерации одного вывода губки. 0 - это количество шагов по умолчанию (1 шаг). Этот параметр передаётся в функцию step и не является аналогом параметра stepToKeyConst в функции InitThreeFishByCascade. Релевантные значения: 0 (==1), countStepsForHardening, countStepsForKeyGeneration (в порядке возрастания трудоёмкости)</param>
     public void InitSubstitutionTable(nint countOfSteps = 0)
     {
@@ -271,7 +271,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void InitKeyAndOIV(Record key, Record? OIV = null, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
+    public void InitKeyAndOIV(Record key, Record? OIV = null, nint InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
         InitKeyAndOIV(key, key.len, OIV, OIV?.len ?? 0, InitThreeFishByCascade_stepToKeyConst, doCheckSafty);
     }
@@ -281,7 +281,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="OIV">Синхропосылка (открытый вектор инициализации). Открытый вектор инициализации может быть любой, в том числе предсказуемый противником, но не повторяющийся. Может быть null</param>
     /// <param name="InitThreeFishByCascade_stepToKeyConst">0 - ничего не делать. 2 или более: вызвать InitThreeFishByCascade со значением stepToKeyConst равным InitThreeFishByCascade_stepToKeyConst. Это количество генераций ключей ThreeFish, если они отдельно не вводились пользователем. По-умолчанию - 2. 0 - если перед этой функцией была сделана инициализация ключей ThreeFish функцией setThreeFishKeysAndTweak</param>
     /// <param name="doCheckSafty">Если false, то данный метод можно вызвать с параметром stepToKeyConst = 1 или на непроинициализированной губке</param>
-    public void InitKeyAndOIV(byte * key, nint key_length, byte * OIV = null, nint OIV_length = 0, int InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
+    public void InitKeyAndOIV(byte * key, nint key_length, byte * OIV = null, nint OIV_length = 0, nint InitThreeFishByCascade_stepToKeyConst = 2, bool doCheckSafty = true)
     {
         if (OIV is not null)
         {
