@@ -38,8 +38,10 @@
 Количество шагов губки при генерации таблицы подстановок. Параметр countOfStepsForSubstitutionTable в InitThreeFishByCascade.
 
 
-*** Variable ulong. vkfRounds. Количество раундов для VinKekFish.
-*** Variable ulong. vkfPreRounds. Количество раундов для VinKekFish с константными таблицами.
+*** Variable ulong. vkfRounds.
+Количество раундов для VinKekFish.
+*** Variable ulong. vkfPreRounds.
+Количество раундов для VinKekFish с константными таблицами.
 
 
 --- Секция "OIV" ---

@@ -62,9 +62,9 @@ public unsafe partial class Main_1_PWD_2024_1
             BytesBuilder.VariableULongToBytes((ulong) dataForEncrypt.len, ref length_array);
             var fLen = dataForEncrypt.len + length_array!.Length;
             var aLen = Align(fLen + 16); // Как минимум 16 байтов на шумы - они всегда должны быть
-// aLen рассчитан НЕВЕРНО!
-            PrimaryStream = dataForEncrypt;
-            AlignedStream = Keccak_abstract.allocator.AllocMemory(aLen, "Main_PWD_2024_1.EncryptDataClass");
+// aLen рассчитан НЕВЕРНО! Нужно добавить туда минимальные длины хешей и т.п.
+            this.PrimaryStream = dataForEncrypt;
+            this.AlignedStream = Keccak_abstract.allocator.AllocMemory(aLen, "Main_PWD_2024_1.EncryptDataClass");
 
             // Копируем в выравненный поток длину открытого текста и сам открытый текст
             fixed (byte * s = length_array)
