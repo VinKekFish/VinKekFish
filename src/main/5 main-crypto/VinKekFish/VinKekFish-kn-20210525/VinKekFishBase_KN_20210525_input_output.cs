@@ -32,7 +32,7 @@ namespace vinkekfish
         /// <param name="nullPadding">Если true - включён режим nullPadding (при overwrite будет перезаписано BLOCK_SIZE_K байтов вне зависимости от длины ввода)</param>
         /// <exception cref="Exception">Неверное состояние губки или другое</exception>
         /// <exception cref="ArgumentOutOfRangeException">Неверные аргументы</exception>
-        public void DoStepAndIO(int countOfRounds = -1, int outputLen = -1, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
+        public void DoStepAndIO(nint countOfRounds = -1, int outputLen = -1, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
         {
             if (!isInit1 || !isInit2)
                 throw new Exception("VinKekFishBase_KN_20210525.step: you must call Init1 and Init2 before doing this");

@@ -56,8 +56,8 @@ namespace vinkekfish
         public readonly int LenInThreadBlock = 0;
                                                                             /// <summary>Максимальная длина ОВИ (открытого вектора инициализации)</summary>
         public readonly int MAX_OIV_K;                                      /// <summary>Максимальная длина первого блока ключа (это максимально рекомендуемая длина, но можно вводить больше)</summary>
-        public readonly int MAX_SINGLE_KEY_K;                               /// <summary>Длина блока ввода/вывода</summary>
-        public readonly int BLOCK_SIZE_K;                                   /// <summary>Длина блока ввода/вывода при генерации ключевой информации (сниженная длина)</summary>
+        public readonly int MAX_SINGLE_KEY_K;                               /// <summary>Длина стандартного блока ввода/вывода. Равна номинальной стройкости VinKekFish. В байтах это 512*K.</summary>
+        public readonly int BLOCK_SIZE_K;                                   /// <summary>Длина уменьшенного блока ввода/вывода для генерации ключевой информации (сниженная длина). Для 4k (в битах) варианта это - 73 байта: длина стандартного блока делится на 1+2*math.log2(8*K).</summary>
         public readonly int BLOCK_SIZE_KEY_K;
                                                                             /// <summary>Минимальное количество раундов для поглощения без выдачи выходных данных, для установленного K. Нестойкое значение: обеспечивается диффузия, но криптостойкость может быть недостаточной</summary>
         public readonly int MIN_ABSORPTION_ROUNDS_D_K;                                                                    /// <summary>Минимальное количество раундов для поглощения без выдачи выходных данных, для установленного K</summary>

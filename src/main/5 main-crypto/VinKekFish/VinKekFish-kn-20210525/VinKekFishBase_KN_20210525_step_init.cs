@@ -32,7 +32,7 @@ namespace vinkekfish
 
         /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
         /// <param name="askedCountOfRounds">Количество раундов.</param>
-        public void Step(int askedCountOfRounds = -1)
+        public void Step(nint askedCountOfRounds = -1)
         {
             if (!isDataInputed)
                 throw new ArgumentException("VinKekFishBase_KN_20210525.step: !isDataInputed. Before step you must call InputData_Overwrite or InputData_Xor", "isDataInputed");

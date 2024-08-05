@@ -139,10 +139,18 @@ public unsafe partial class AutoCrypt
         public override string NameForRecord {get; set;} = "GetDataFromCascadeSponge.getBytes";
 
         public CascadeSponge_mt_20230930? sponge;
-        public GetDataFromCascadeSponge(CascadeSponge_mt_20230930 sponge)
+        public GetDataFromCascadeSponge(CascadeSponge_mt_20230930 sponge, nint setBlockLen = 0, nint setArmoringSteps = 0)
         {
-            this.sponge = sponge;
-            BlockLen    = sponge.lastOutput.len >> 1;
+            this.sponge  = sponge;
+            if (setBlockLen <= 0)
+                BlockLen = sponge.lastOutput.len >> 1;
+            else
+                BlockLen = setBlockLen;
+
+            if (setArmoringSteps > 0)
+                ArmoringSteps = setArmoringSteps;
+            else
+                ArmoringSteps = 0;
         }
 
         public long ArmoringSteps = 0;
@@ -186,12 +194,21 @@ public unsafe partial class AutoCrypt
         public override string NameForRecord {get; set;} = "GetDataFromVinKekFishSponge.getBytes";
 
         public VinKekFishBase_KN_20210525? sponge;
-        public GetDataFromVinKekFishSponge(VinKekFishBase_KN_20210525 sponge)
+        public GetDataFromVinKekFishSponge(VinKekFishBase_KN_20210525 sponge, nint setBlockLen = 0, nint setArmoringSteps = 0)
         {
-            this.sponge = sponge;
-            BlockLen    = sponge.BLOCK_SIZE_KEY_K;
+            this.sponge  = sponge;
+            if (setBlockLen <= 0)
+                BlockLen = sponge.BLOCK_SIZE_KEY_K;
+            else
+                BlockLen = setBlockLen;
+
+            if (setArmoringSteps > 0)
+                ArmoringSteps = setArmoringSteps;
+            else
+                ArmoringSteps = sponge.CountOfRounds;
         }
 
+        public nint ArmoringSteps = 0;
         public override void GetBytes(byte* forData, nint len, byte regime)
         {
             // Защита от того, что байты будут сгенерированы в одном и том же режиме два раза подряд
@@ -211,7 +228,7 @@ public unsafe partial class AutoCrypt
 
             do
             {
-                sponge.DoStepAndIO(outputLen: (int) BlockLen, regime: 1);
+                sponge.DoStepAndIO(ArmoringSteps, outputLen: (int) BlockLen, regime: 1);
 
                 var reqLenCurrent = Math.Min(reqLen, BlockLen);
                 sponge.output.GetBytesAndRemoveIt(current, reqLenCurrent);

@@ -32,11 +32,10 @@ public unsafe partial class Main_1_PWD_2024_1
         protected Record   Key0Csc_init;                /// <summary>Ключ для VinKekFish для гаммирования суммой губок.</summary>
         protected Record   Key1Vkf;                     /// <summary>Ключ для каскадной губки для гаммирования суммой губок.</summary>
         protected Record   Key1Csc;                     /// <summary>Ключ для инициализации ThreeFish во втором шифровании (гаммировании). Этот ключ логически является составной частью второго ключа. wide*Threefish_slowly.keyLen</summary>
-        protected Record   Key1Csc_init;                /// <summary>Ключ для VinKekFish с обратной связью и хешированием.</summary>
-        protected Record   Key2Vkf;                     /// <summary>Ключ для перемешивания и инициализации таблиц перестановок VinKekFish.</summary>
-        protected Record   Key3PCsc;                    /// <summary>Ключ для гаммирования с обратной связью без хеша.</summary>
-        protected Record   Key4Csc;                     /// <summary>Ключ для гаммирования с обратной связью без хеша.</summary>
-        protected Record   Key5Vkf;
+        protected Record   Key1Csc_init;
+        protected Record   Key2Csc;
+        protected Record   Key2Csc_init;
+
 
         protected FileParts? file;
 
@@ -77,10 +76,8 @@ public unsafe partial class Main_1_PWD_2024_1
             Key1Vkf      = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
             Key1Csc      = getDataByAdd.GetBytes(tall*KeccakPrime.BlockLen*2,                     252);
             Key1Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
-            Key2Vkf      = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 251);
-            Key3PCsc     = getDataByAdd.GetBytes(tall*wide*KeccakPrime.BlockLen*2+16,             252);
-            Key4Csc      = getDataByAdd.GetBytes(tall*KeccakPrime.BlockLen*2+16,                  255);
-            Key5Vkf      = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
+            Key2Csc      = getDataByAdd.GetBytes(tall*wide*KeccakPrime.BlockLen*2,                251);
+            Key2Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
         }
 
         /// <summary>Зашифровать данные. Вызывается только один раз за всё время жизни объекта. new CryptDataClass + DoEncrypt + Dispose.</summary>
@@ -103,6 +100,8 @@ public unsafe partial class Main_1_PWD_2024_1
 
                 EncryptStage1();
                 EncryptStage2();
+                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream);
+                EncryptStage3();
 
                 file.AddFilePart("Encrypted", PrimaryStream);
                 this.PrimaryStream = null;
@@ -112,83 +111,6 @@ public unsafe partial class Main_1_PWD_2024_1
                 // dataForEncrypt уже был обнулён при уничтожении bbp, если только не произошло исключение
                 if (!dataForEncrypt.isDisposed)
                     dataForEncrypt.Dispose();
-            }
-        }
-
-        /// <summary>Первый проход шифрования: гаммирование с обратной связью каскадной губкой с ключами Key0Csc и Key0Csc_init.</summary>
-        protected void EncryptStage1()
-        {
-            // Инициализация первой губки для гаммирования с обратной связью.
-            using var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall);
-            sponge.InitThreeFishByKey(Key0Csc_init);
-            sponge.InitKeyAndOIV(Key0Csc, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
-            sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);
-
-            // Выделяем память на шифротекст
-            SecondaryStream = Keccak_abstract.allocator.AllocMemory(ResultFileLen - file!.FullLen.max - VkfHashLen);
-            SecondaryStream.Clear();
-            BytesBuilder.CopyTo(PrimaryStream!.len, SecondaryStream.len, PrimaryStream, SecondaryStream);
-
-            // Начинаем шифровать
-            nint cur = 0, curPrimary = 0;
-            sponge.Step(0, cscOpt.ArmoringSteps, regime: 1);
-            var curLen = PrimaryStream.len;
-            if (curLen > sponge.maxDataLen)
-                curLen = sponge.maxDataLen;
-
-            BytesBuilder.Xor(curLen, SecondaryStream.array + cur, sponge.lastOutput);
-            cur += curLen;
-
-            while (cur < PrimaryStream!.len)
-            {
-                curLen = PrimaryStream.len - cur;
-                if (curLen > sponge.maxDataLen)
-                    curLen = sponge.maxDataLen;
-
-                curPrimary += sponge.Step(1, cscOpt.ArmoringSteps, data: PrimaryStream.array + curPrimary, dataLen: curLen, regime: 0);
-                BytesBuilder.Xor(curLen, SecondaryStream.array + cur, sponge.lastOutput);
-                cur += curLen;
-            }
-
-            while (cur < SecondaryStream.len)
-            {
-                sponge.Step(1, cscOpt.ArmoringSteps, regime: 3);
-                cur += BytesBuilder.CopyTo(sponge.lastOutput.len, SecondaryStream.len, sponge.lastOutput, SecondaryStream, cur);
-            }
-
-            TryToDispose(PrimaryStream);
-
-            this.PrimaryStream   = SecondaryStream;
-            this.SecondaryStream = null;
-        }
-
-        /// <summary>Второй проход шифрования: простое гаммирование.</summary>
-        protected void EncryptStage2()
-        {
-            // При освобождении gen автоматически освободятся и губки, входящие в него
-            using var gen    = new GetDataByAdd();
-                  var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall);
-                  var vkf    = new VinKekFishBase_KN_20210525(vkfOpt.Rounds, vkfOpt.K);
-
-            sponge.InitThreeFishByKey(Key1Csc_init);
-            sponge.InitKeyAndOIV(Key1Csc, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
-            sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);
-
-            vkf.Init1(vkfOpt.PreRounds, prngToInit: sponge);
-            vkf.Init2(Key1Vkf, RoundsForFinal: vkfOpt.Rounds, RoundsForFirstKeyBlock: vkfOpt.Rounds, RoundsForTailsBlock: vkfOpt.Rounds);
-
-            gen.AddSponge(new GetDataFromCascadeSponge(sponge));
-            gen.AddSponge(new GetDataFromVinKekFishSponge(vkf));
-
-            this.SecondaryStream = gen.GetBytes(this.PrimaryStream!.len, 11);
-            try
-            {
-                BytesBuilder.Xor(PrimaryStream.len, PrimaryStream, SecondaryStream);
-            }
-            finally
-            {
-                TryToDispose(SecondaryStream);
-                this.SecondaryStream = null;
             }
         }
 
@@ -227,10 +149,8 @@ public unsafe partial class Main_1_PWD_2024_1
             TryToDispose(Key1Vkf);
             TryToDispose(Key1Csc);
             TryToDispose(Key1Csc_init);
-            TryToDispose(Key2Vkf);
-            TryToDispose(Key3PCsc);
-            TryToDispose(Key4Csc);
-            TryToDispose(Key5Vkf);
+            TryToDispose(Key2Csc);
+            TryToDispose(Key2Csc_init);
 
             isDisposed = true;
 
