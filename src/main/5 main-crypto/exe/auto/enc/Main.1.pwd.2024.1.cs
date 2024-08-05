@@ -33,8 +33,6 @@ public unsafe partial class Main_1_PWD_2024_1
         protected Record   Key2Vkf;                     /// <summary>Ключ для каскадной губки для гаммирования суммой губок.</summary>
         protected Record   Key2Csc;                     /// <summary>Ключ для инициализации ThreeFish во втором шифровании (гаммировании). Этот ключ логически является составной частью второго ключа. wide*Threefish_slowly.keyLen</summary>
         protected Record   Key2Csc_init;
-        protected Record   Key3Csc;
-        protected Record   Key3Csc_init;
         protected Record   Key4Csc;
         protected Record   Key4Csc_init;
         protected Record   Key5Csc;
@@ -90,9 +88,7 @@ public unsafe partial class Main_1_PWD_2024_1
             Key2Vkf      = getDataByAdd.GetBytes(vkfOpt.K * VinKekFishBase_etalonK1.BLOCK_SIZE*4, 254);
             Key2Csc      = getDataByAdd.GetBytes(cscKeyLen,                                       252);
             Key2Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
-            Key3Csc      = getDataByAdd.GetBytes(cscKeyLen,                                       251);
-            Key3Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
-            Key4Csc      = getDataByAdd.GetBytes(cscKeyLen,                                       252);
+            Key4Csc      = getDataByAdd.GetBytes(cscKeyLen,                                       253);
             Key4Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
             Key5Csc      = getDataByAdd.GetBytes(cscKeyLen,                                       251);
             Key5Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
@@ -102,9 +98,30 @@ public unsafe partial class Main_1_PWD_2024_1
             Key9Csc_init = getDataByAdd.GetBytes(wide*Threefish_slowly.keyLen,                      8);
         }
 
+        public class StageOfCrypt
+        {
+            protected int stage = 0;
+            public    int Stage
+            {
+                get
+                {
+                    return stage;
+                }
+                set
+                {
+                    stage = value;
+                    lock (this)
+                        Monitor.PulseAll(this);
+                }
+            }
+
+            public readonly int maxStage = 9;
+        }
+
         /// <summary>Зашифровать данные. Вызывается только один раз за всё время жизни объекта. new CryptDataClass + DoEncrypt + Dispose.</summary>
         /// <param name="dataForEncrypt">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
-        public void DoEncrypt(Record dataForEncrypt, FileParts file)
+        /// <param name="stage">Стадия, на которой находится шифрование.</param>
+        public void DoEncrypt(Record dataForEncrypt, FileParts file, StageOfCrypt stage)
         {
             try
             {
@@ -120,15 +137,17 @@ public unsafe partial class Main_1_PWD_2024_1
                 this.PrimaryStream = bbp.GetBytes();
                 this.ResultFileLen = Align(file.FullLen.max + bbp.Count + VkfHashLen + CscHashLen);
 
-                EncryptStage1();
-                EncryptStage2();
-                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream);    // Стадия 3
-                EncryptStage4();
-                EncryptStagePermutation(Key5Csc, Key5Csc_init, 33, out sponge5);    // Стадия 5
-                EncryptStage6();
-                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream);    // Стадия 7
-                EncryptStage8();
-                EncryptStagePermutation(Key9Csc, Key9Csc_init, 43, out CascadeSponge_mt_20230930? sponge9);    // Стадия 9
+                EncryptStage1(); stage.Stage = 1;
+                EncryptStage2(); stage.Stage = 2;
+                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 3
+                EncryptStage4(); stage.Stage = 4;
+                EncryptStagePermutation(Key5Csc, Key5Csc_init, 33, out sponge5); stage.Stage = 5;    // Стадия 5
+                EncryptStage6(); stage.Stage = 6;
+                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 7
+                EncryptStage8(); stage.Stage = 8;
+                EncryptStagePermutation(Key9Csc, Key9Csc_init, 43, out CascadeSponge_mt_20230930? sponge9); stage.Stage = 9;    // Стадия 9
+
+                TryToDispose(sponge9);
 
                 file.AddFilePart("Encrypted", PrimaryStream, createLengthArray: false);
                 this.PrimaryStream = null;
@@ -176,8 +195,6 @@ public unsafe partial class Main_1_PWD_2024_1
             TryToDispose(Key2Vkf);
             TryToDispose(Key2Csc);
             TryToDispose(Key2Csc_init);
-            TryToDispose(Key3Csc);
-            TryToDispose(Key3Csc_init);
             TryToDispose(Key4Csc);
             TryToDispose(Key4Csc_init);
             TryToDispose(Key5Csc);

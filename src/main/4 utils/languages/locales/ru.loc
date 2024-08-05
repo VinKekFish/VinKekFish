@@ -142,4 +142,10 @@ Regime name is undefined
     Имя режима шифрования не указано
 NOT IMPLEMENTED
     НЕ РЕАЛИЗОВАНО
+Encryption stage
+    Стадия шифрования
+Encryption ended. Wait to write the file.
+    Шифрование закончено. Ждём записи в файл.
+Encryption ended. File ready to use.
+    Шифрование закончено. Файл готов к использованию.
 :

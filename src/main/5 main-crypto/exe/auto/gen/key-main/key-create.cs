@@ -120,12 +120,31 @@ public unsafe partial class AutoCrypt
                 using (var encrypt = new Main_1_PWD_2024_1.CryptDataClass(gdKeyGenerator, this.VinKekFish_KeyOpts, Cascade_CipherOpts))
                 {
                     // encrypt.DoEncrypt(tmpRec, file);
-                    encrypt.DoEncrypt(keysToEncrypt, file);
+                    Main_1_PWD_2024_1.CryptDataClass.StageOfCrypt st = new();
+                    Parallel.Invoke
+                    (
+                        () => encrypt.DoEncrypt(keysToEncrypt, file, st),
+                        () =>
+                        {
+                            lock (st)
+                            while (st.Stage < st.maxStage)
+                            {
+                                var (Left, Top) = Console.GetCursorPosition();
+                                Console.WriteLine(L("Encryption stage") + $": {st.Stage}/{st.maxStage}\t{DateTime.Now.ToLongTimeString()}\t\t\t");
+                                Console.SetCursorPosition(Left, Top);
+                                Monitor.Wait(st);
+                            }
+                        }
+                    );
+
                     keysToEncrypt = null;   // Чтобы избежать двойной очистки
                 }
 
+                Console.WriteLine(L("Encryption ended. Wait to write the file.") + $" [{outKeyFile!.FullName}]");
                 file.WriteToFile(outKeyFile!);
+                Console.WriteLine(L("Encryption ended. File ready to use."));
                 ResetWriteByChmod(outKeyFile!.FullName);
+                ResetReadByChmod (outKeyFile!.FullName);
             }
             finally
             {
@@ -241,15 +260,28 @@ public unsafe partial class AutoCrypt
                 }
 
                 ResetWriteByChmod(outParts[scNum].FullName);
+                ResetReadByChmod (outParts[scNum].FullName);
                 OIV_parts.Add(OIV_part);
             }
         }
 
-        public static void ResetWriteByChmod(string fullFileName)
+        public static void ResetWriteByChmod(string fullFileName, string deleteFrom = "a")
         {
             try
             {
-                System.Diagnostics.Process.Start("chmod", "a-w " + '"' + fullFileName + '"');
+                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-w " + '"' + fullFileName + '"');
+            }
+            catch (Exception ex)
+            {
+                DoFormatException(ex);
+            }
+        }
+
+        public static void ResetReadByChmod(string fullFileName, string deleteFrom = "go")
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-r " + '"' + fullFileName + '"');
             }
             catch (Exception ex)
             {

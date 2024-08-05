@@ -166,7 +166,7 @@ public unsafe partial class Main_1_PWD_2024_1
             vkf.Init1(vkfOpt.PreRounds, prngToInit: sponge5);
             vkf.Init2(Key6Vkf, RoundsForFinal: vkfOpt.Rounds, RoundsForFirstKeyBlock: vkfOpt.Rounds, RoundsForTailsBlock: vkfOpt.Rounds);
 
-            var getData = new GetDataFromVinKekFishSponge(vkf, setBlockLen: MaxBlockLen, setArmoringSteps: vkfOpt.Rounds);
+            using var getData = new GetDataFromVinKekFishSponge(vkf, setBlockLen: MaxBlockLen, setArmoringSteps: vkfOpt.Rounds); getData.NameForRecord = "EncryptStage6.GetDataFromVinKekFishSponge.getData";
 
             // Выделяем память на шифротекст
             SecondaryStream = Keccak_abstract.allocator.AllocMemory(PrimaryStream!.len + VkfHashLen*vkfOpt.K);
@@ -223,7 +223,7 @@ public unsafe partial class Main_1_PWD_2024_1
             vkf.Init1(vkfOpt.PreRounds, prngToInit: sponge5);
             vkf.Init2(Key8Vkf, RoundsForFinal: vkfOpt.Rounds, RoundsForFirstKeyBlock: vkfOpt.Rounds, RoundsForTailsBlock: vkfOpt.Rounds);
 
-            var getData = new GetDataFromVinKekFishSponge(vkf, setBlockLen: MaxBlockLen, setArmoringSteps: vkfOpt.Rounds);
+            using var getData = new GetDataFromVinKekFishSponge(vkf, setBlockLen: MaxBlockLen, setArmoringSteps: vkfOpt.Rounds); getData.NameForRecord = "EncryptStage8.GetDataFromVinKekFishSponge.getData";
 
             // Выделяем память на шифротекст
             SecondaryStream = Keccak_abstract.allocator.AllocMemory(PrimaryStream!.len);
