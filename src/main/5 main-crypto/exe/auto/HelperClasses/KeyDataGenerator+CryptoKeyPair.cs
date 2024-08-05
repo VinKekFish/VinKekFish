@@ -192,7 +192,7 @@ public unsafe partial class AutoCrypt
                 list.Add(sponge);
         }
 
-        public override void GetBytes(byte* forData, nint len, byte regime)
+        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true)
         {
             ExceptionIfLastRegimeIsEqual(regime);
 
@@ -201,7 +201,7 @@ public unsafe partial class AutoCrypt
 
             if (list.Count == 1)
             {
-                list[0].GetBytes(forData, len, regime);
+                list[0].GetBytes(forData, len, regime, doCheckLastRegime);
                 return;
             }
 
@@ -215,7 +215,7 @@ public unsafe partial class AutoCrypt
                     var sub = Keccak_abstract.allocator.AllocMemory(len, "GetDataByAdd.getBytes." + NameForRecord + "." + i);
                     try
                     {
-                        list[i].GetBytes(sub, regime);
+                        list[i].GetBytes(sub, regime, doCheckLastRegime);
 
                         lock (this)
                         BytesBuilder.ArithmeticAddBytes(len, forData, sub);

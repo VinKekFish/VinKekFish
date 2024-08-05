@@ -5,6 +5,7 @@ namespace VinKekFish_EXE;
 
 using System.Net.Mime;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
 using cryptoprime;
 using maincrypto.keccak;
@@ -124,6 +125,7 @@ public unsafe partial class AutoCrypt
                 }
 
                 file.WriteToFile(outKeyFile!);
+                ResetWriteByChmod(outKeyFile!.FullName);
             }
             finally
             {
@@ -238,7 +240,20 @@ public unsafe partial class AutoCrypt
                     fs.Flush();
                 }
 
+                ResetWriteByChmod(outParts[scNum].FullName);
                 OIV_parts.Add(OIV_part);
+            }
+        }
+
+        public static void ResetWriteByChmod(string fullFileName)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("chmod", "a-w " + '"' + fullFileName + '"');
+            }
+            catch (Exception ex)
+            {
+                DoFormatException(ex);
             }
         }
 
