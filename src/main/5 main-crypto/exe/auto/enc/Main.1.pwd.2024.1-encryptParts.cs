@@ -59,6 +59,9 @@ public unsafe partial class Main_1_PWD_2024_1
                 cur += curLen;
             }
 
+            // Делаем сброс инициализации перед вычислением хеша.
+            sponge.InitThreeFishByCascade(1, false);
+
             // Вычисляем хеш
             while (cur < SecondaryStream.len)
             {
