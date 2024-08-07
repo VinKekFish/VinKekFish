@@ -155,7 +155,32 @@ public unsafe partial class Main_1_PWD_2024_1
             sponge.InitKeyAndOIV(key, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
             sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);
 
-            sponge.DoRandomPermutationForBytes(PrimaryStream!.len, PrimaryStream, cscOpt.StepsForTable, regime: regime);
+            if (PrimaryStream!.len > int.MaxValue)
+            {
+                using var pArray = Keccak_abstract.allocator.AllocMemory(PrimaryStream.len * sizeof(nint));
+                sponge.GetRandomPermutationNumbers(PrimaryStream!.len, (nint *) pArray, cscOpt.StepsForTable, regime: regime);
+
+                byte a;
+                for (nint i = PrimaryStream.len - 2; i >= 0; i--)
+                {
+                    a = PrimaryStream[pArray[i]];
+                    PrimaryStream[pArray[i]] = PrimaryStream[i];
+                    PrimaryStream[i] = a;
+                }
+            }
+            else
+            {
+                using var pArray = Keccak_abstract.allocator.AllocMemory(PrimaryStream.len * sizeof(uint));
+                sponge.GetRandomPermutationNumbers(PrimaryStream!.len, (uint *) pArray, cscOpt.StepsForTable, regime: regime);
+
+                byte a;
+                for (nint i = PrimaryStream.len - 2; i >= 0; i--)
+                {
+                    a = PrimaryStream[pArray[i]];
+                    PrimaryStream[pArray[i]] = PrimaryStream[i];
+                    PrimaryStream[i] = a;
+                }
+            }
         }
 
         protected void DecryptStage6()

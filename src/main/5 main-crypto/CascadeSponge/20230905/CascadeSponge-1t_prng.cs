@@ -106,10 +106,13 @@ public partial class CascadeSponge_1t_20230905
         return r;
     }
 
-    public unsafe void DoRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1)
+    public unsafe void DoRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1)
     {
         byte a, err = 0;
         nint index;
+
+        if (maxDataLen <= 0)
+            maxDataLen = lastOutput.len;
 
         using var bb = new BytesBuilderStatic(this.maxDataLen*4);
 
@@ -121,10 +124,10 @@ public partial class CascadeSponge_1t_20230905
             // index = getUnsignedInteger(0, cutoff) + i;
 
             // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
-            if (bb.Count < bb.size - this.maxDataLen)
+            if (bb.Count < bb.size - maxDataLen)
             {
                 Step(countOfSteps: countOfSteps, regime: regime);
-                bb.Add(lastOutput);
+                bb.Add(lastOutput, maxDataLen);
                 this.haveOutput = false;
             }
 
@@ -153,10 +156,21 @@ public partial class CascadeSponge_1t_20230905
     }
 
 
-    public unsafe void GetRandomPermutationNumbers(nint len, ulong* T, nint countOfSteps = 0, byte regime = 1)
+    // Ниже копия для Int32
+    /// <summary>Получает числа для перестановок в массиве.</summary>
+    /// <param name="len">Длина массива для перестановок и массива T (массив T может быть на 1 элемент меньше).</param>
+    /// <param name="T">Приёмник для чисел перестановок в массиве.</param>
+    /// <param name="countOfSteps">Количество шагов, которое делает губка перед генерацией одного блока данных.</param>
+    /// <param name="regime">Логический режим шифрования. (не должен совпадать с предыдущим логическим режимом шифроания).</param>
+    /// <param name="maxDataLen">Максимальное количество данных, получаемое из губки за раз (после countOfSteps шагов).</param>
+    public unsafe void GetRandomPermutationNumbers(nint len, nint* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1)
     {
-        byte a, err = 0;
+        byte err = 0;
         nint index;
+        nint current = 0;
+
+        if (maxDataLen <= 0)
+            maxDataLen = lastOutput.len;
 
         using var bb = new BytesBuilderStatic(this.maxDataLen*4);
 
@@ -168,10 +182,10 @@ public partial class CascadeSponge_1t_20230905
             // index = getUnsignedInteger(0, cutoff) + i;
 
             // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
-            if (bb.Count < bb.size - this.maxDataLen)
+            if (bb.Count < bb.size - maxDataLen)
             {
                 Step(countOfSteps: countOfSteps, regime: regime);
-                bb.Add(lastOutput);
+                bb.Add(lastOutput, maxDataLen);
                 this.haveOutput = false;
             }
 
@@ -179,6 +193,8 @@ public partial class CascadeSponge_1t_20230905
             try
             {
                 index = (nint) GetUnsignedInteger((nuint)(len - i - 1), bb) + i;
+                T[current] = index;
+                current++;
                 err = 0;
             }
             catch (NotEnoughtBytesException)
@@ -190,12 +206,53 @@ public partial class CascadeSponge_1t_20230905
                 i--;
                 continue;
             }
-
-            a        = T[i];
-            T[i]     = T[index];
-            T[index] = a;
         }
+    }
 
-        a = 0;
+    // Эта функция должна быь абсолютной копией предыдущей, за исключением 
+    public unsafe void GetRandomPermutationNumbers(nint len, UInt32* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1)
+    {
+        byte  err = 0;
+        nint index;
+        nint  current = 0;
+
+        if (maxDataLen <= 0)
+            maxDataLen = lastOutput.len;
+
+        using var bb = new BytesBuilderStatic(this.maxDataLen*4);
+
+        // Алгоритм тасования Дурштенфельда
+        // https://ru.wikipedia.org/wiki/Тасование_Фишера_—_Йетса
+        for (nint i = 0; i < len - 1; i++)
+        {
+            // var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);ulong
+            // index = getUnsignedInteger(0, cutoff) + i;
+
+            // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
+            if (bb.Count < bb.size - maxDataLen)
+            {
+                Step(countOfSteps: countOfSteps, regime: regime);
+                bb.Add(lastOutput, maxDataLen);
+                this.haveOutput = false;
+            }
+
+            // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
+            try
+            {
+                index = (nint) GetUnsignedInteger((nuint)(len - i - 1), bb) + i;
+                T[current] = (UInt32) index;
+                current++;
+                err = 0;
+            }
+            catch (NotEnoughtBytesException)
+            {
+                if (err > 64)
+                    throw;
+
+                err++;
+                i--;
+                continue;
+            }
+        }
     }
 }
