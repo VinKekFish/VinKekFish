@@ -141,11 +141,11 @@ public unsafe partial class Main_1_PWD_2024_1
                 EncryptStage2(); stage.Stage = 2;
                 BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 3
                 EncryptStage4(); stage.Stage = 4;
-                EncryptStagePermutation(Key5Csc, Key5Csc_init, 33, out sponge5); stage.Stage = 5;    // Стадия 5
+                DecryptStagePermutation(Key5Csc, Key5Csc_init, 33, out sponge5); stage.Stage = 5;    // Стадия 5
                 EncryptStage6(); stage.Stage = 6;
                 BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 7
                 EncryptStage8(); stage.Stage = 8;
-                EncryptStagePermutation(Key9Csc, Key9Csc_init, 43, out CascadeSponge_mt_20230930? sponge9); stage.Stage = 9;    // Стадия 9
+                DecryptStagePermutation(Key9Csc, Key9Csc_init, 43, out CascadeSponge_mt_20230930? sponge9); stage.Stage = 9;    // Стадия 9
 
                 TryToDispose(sponge9);
 
@@ -157,6 +157,48 @@ public unsafe partial class Main_1_PWD_2024_1
                 // dataForEncrypt уже был обнулён при уничтожении bbp, если только не произошло исключение
                 if (!dataForEncrypt.isDisposed)
                     dataForEncrypt.Dispose();
+            }
+        }
+
+        /// <summary>Расшифровать данные. Вызывается только один раз за всё время жизни объекта. new CryptDataClass + DoDecrypt + Dispose.</summary>
+        /// <param name="dataForDecrypt">Исходные данные для шифрования. Будут автоматически очищены при очистке этого объекта.</param>
+        /// <param name="stage">Стадия, на которой находится шифрование.</param>
+        public void DoDecrypt(Record dataForDecrypt, FileParts file, StageOfCrypt stage)
+        {
+            try
+            {
+                this.file  = file;
+
+                byte[]? dataForEncryptLen = null;
+                BytesBuilder.ULongToBytes((ulong) dataForDecrypt.len, ref dataForEncryptLen);
+
+                using var bbp = new BytesBuilderForPointers();
+                bbp.Add(Record.GetRecordFromBytesArray(dataForEncryptLen!));
+                bbp.Add(dataForDecrypt);
+
+                this.PrimaryStream = bbp.GetBytes();
+                this.ResultFileLen = Align(file.FullLen.max + bbp.Count + VkfHashLen + CscHashLen);
+
+                EncryptStagePermutation(Key9Csc, Key9Csc_init, 43, out CascadeSponge_mt_20230930? sponge9); stage.Stage = 1;    // Стадия 9
+                TryToDispose(sponge9);
+
+                DecryptStage8(); stage.Stage = 2;                            // Стадия 8
+                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 7
+                DecryptStage6(); stage.Stage = 4;
+                DecryptStagePermutation(Key5Csc, Key5Csc_init, 33, out sponge5); stage.Stage = 5;    // Стадия 5
+                DecryptStage4(); stage.Stage = 6;
+                BytesBuilder.ReverseBytes(PrimaryStream.len, PrimaryStream); // Стадия 3
+                DecryptStage2(); stage.Stage = 7;
+                DecryptStage1(); stage.Stage = 8;
+
+                file.AddFilePart("Decrypted", PrimaryStream, createLengthArray: false);
+                this.PrimaryStream = null;
+            }
+            finally
+            {
+                // dataForEncrypt уже был обнулён при уничтожении bbp, если только не произошло исключение
+                if (!dataForDecrypt.isDisposed)
+                    dataForDecrypt.Dispose();
             }
         }
 
