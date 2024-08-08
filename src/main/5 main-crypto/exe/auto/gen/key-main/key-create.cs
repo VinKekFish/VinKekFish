@@ -72,7 +72,7 @@ public unsafe partial class AutoCrypt
                 OIV = dataGenerator.GetBytes(newKeyLenMin, regime: 17, RecordNameSuffix: ":CreateKeyFiles.dataGenerator.OIV");
 
                 // Генерация отдельных частей синхропосылки
-                var oiv_part_len = AlignUtils.Align(newKeyLenMax, 2, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру.
+                var oiv_part_len = AlignUtils.Align(newKeyLenMax, 16384, 16384);       // 16384 - это минимальный размер синхропосылки из учёта того, что синхропосылка должна быть с высокой вероятностью кратна сектору, а ещё лучше - кластеру (на любой системе с любыми настройками, хотя блоки бывают и по 2 Мб).
                 try
                 {
                     GenerateAndWriteOivParts(dataGenerator, OIV_parts, oiv_part_len);
