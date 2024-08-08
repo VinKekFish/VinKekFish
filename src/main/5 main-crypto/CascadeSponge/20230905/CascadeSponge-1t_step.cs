@@ -78,7 +78,11 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             if (curDataLen > maxDataLen)
                 curDataLen = maxDataLen;
 
-            Step_once(data, curDataLen, regime, inputRegime);
+            // Мы вводим одни и те же данные tall раз. Это связано с тем, что в верхних слоях губки могут быть коллизии и их нужно избежать. Кроме этого, это позволяет лучше перемешать данные.
+            for (int i = 0; i < tall; i++)
+                Step_once(data, curDataLen, regime, inputRegime);
+
+            if (data != null)
             data        += curDataLen;
             dataLen     -= curDataLen;
             dataUsedLen += curDataLen;
