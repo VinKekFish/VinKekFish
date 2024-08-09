@@ -21,7 +21,7 @@ public class FilePartsAutoTests: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: parentSaver  )
     {
         #if CAN_CREATEFILE_FOR_HelperClasses
-        this.parentSaver.canCreateFile = true;
+        this.parentSaver.СanCreateFile = true;
         #warning CAN_CREATEFILE_FOR_HelperClasses
         #endif
     }

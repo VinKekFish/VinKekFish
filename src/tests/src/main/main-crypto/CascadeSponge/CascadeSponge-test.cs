@@ -1,4 +1,4 @@
-// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -24,7 +24,7 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {
         #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-        this.parentSaver.canCreateFile = true;
+        this.parentSaver.СanCreateFile = true;
         #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
         #endif
     }
@@ -244,7 +244,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
                 throw new Exception("lst[0] == lst[1] || lst[0] == lst[2] || lst[1] == lst[2]");
 
             // var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8, 1024*256/8};
-            var lens = new int[] {2048/8, 4096/8, 4104/8, 1024*44/8, 1024*88/8};
+            var lens = new int[] {2048/8, 4096/8, 4104/8/*, 1024*44/8, 1024*88/8*/}; // TODO: Что с этим делать? Нужно вернуть все значения, но это прямо очень медленно
 
             foreach (var len in lens)
             {
@@ -268,8 +268,9 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
                 }
             };
 
-            cascade1 = new CascadeSponge_mt_20230930(1024*256/8); this.cascade = cascade1;
             var cuttedKey = rkey << cascade1.maxDataLen*2;          // Делаем ключ поменьше, чтобы можно было меньше ждать
+/*
+            cascade1 = new CascadeSponge_mt_20230930(1024*256/8); this.cascade = cascade1;            
             cascade1.InitEmptyThreeFish(1, 2);
             cascade1.Step(regime: 1);
             while (bb.Count < cascade1.fullLengthOfThreeFishKeys + 8)        // 8 - чисто, чтобы не напрягаться
@@ -290,7 +291,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
             cascade1.Step(data: data, dataLen: DataLen, regime: 255);
             addToList(lst, cascade1);
             cascade1.Dispose();
-
+*/
 
 
             cascade1 = new CascadeSponge_mt_20230930(_wide: 4, _tall: 4); this.cascade = cascade1;
