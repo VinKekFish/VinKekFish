@@ -24,7 +24,7 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {
         #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-        this.parentSaver.СanCreateFile = true;
+        this.parentSaver.CanCreateFile = true;
         #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
         #endif
     }
@@ -92,7 +92,7 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {
         #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-        this.parentSaver.canCreateFile = true;
+        this.parentSaver.CanCreateFile = true;
         #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
         #endif
     }
@@ -160,7 +160,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
                             base (  constructor: constructor, parentSaver: new Saver()  )
     {
         #if CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
-        this.parentSaver.canCreateFile = true;
+        this.parentSaver.CanCreateFile = true;
         #warning CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
         #endif
 
@@ -320,7 +320,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
     }
 }
 
-
+[TestTagAttribute("inWork")]
 [TestTagAttribute("CascadeSponge", duration: 500, singleThread: false)]
 public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 {
@@ -382,7 +382,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // wide = 4
             var output = stackalloc byte[64 * 4];
             var revcon = stackalloc byte[64 * 4];
-            var buff = stackalloc byte[64 * 4];
+            var buff   = stackalloc byte[64 * 4];
             var Threef = stackalloc byte[256 * 4];    // Это твики и ключи ThreeFish обратной связи. По 256 на каждый ключ (128+8 байтов ключ + 16 байтов твик)
 
             // Инициализируем ключи и твики обратной связи
@@ -461,37 +461,41 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 
             // Console.WriteLine("test: keys"); Console.WriteLine(ArrayToHex(Threef, cascade.countOfThreeFish*256));
 
-
-            // Ввводим 83 байта ввода в верхнюю губку
-            BytesBuilder.ToNull(256, revcon);
-            BytesBuilder.CopyTo(21, 256, a + 0, revcon + 0);
-            BytesBuilder.CopyTo(21, 256, a + 21, revcon + 64);
-            BytesBuilder.CopyTo(21, 256, a + 42, revcon + 128);
-            BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
+            // Начинаем первый шаг шифрования
 
             // Вводим данные и делаем шаг (тут сразу двойной шаг). Имитируем, что вводим синхропосылку и ключ
             cascade.Step(data: data, dataLen: dlen, regime: 255);
 
-            // Делаем первый шаг: это первая фаза двойного шага
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            BytesBuilder.ToNull(256, revcon);
+            // Ввводим 83 байта ввода в верхнюю губку
+            for (int w = 0; w < 4; w++)
+            {                
+                BytesBuilder.CopyTo(21, 256, a + 0,  revcon + 0);
+                BytesBuilder.CopyTo(21, 256, a + 21, revcon + 64);
+                BytesBuilder.CopyTo(21, 256, a + 42, revcon + 128);
+                BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
 
-            // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
+                // Делаем первый шаг: это первая фаза двойного шага многократный ввод данных в губку)
+                DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
 
-            BytesBuilder.CopyTo(256, 256, revcon, output);
-            BytesBuilder.CopyTo(256, 256, revcon, buff);
-            Threefish1024_step(TFl + 0,  TFl + 0 + 24,  (ulong*)output);       // Обратная связь
-            Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
-            //            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
-            //            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
+                // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
 
-            // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
-            SubstituteEmpty(output);
+                BytesBuilder.CopyTo(256, 256, revcon, output);
+                BytesBuilder.CopyTo(256, 256, revcon, buff);
+                Threefish1024_step(TFl + 0,  TFl +  0 + 24, (ulong*)output);       // Обратная связь
+                Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
+                //            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
+                //            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
 
-            // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
+                // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
+                SubstituteEmpty(output);
 
-            // Транспонируем вывод: по 128-мь байтов блок
-            Transpose128_2(output, revcon);     // Обратная связь
-            Transpose128_2(buff,   output);     // Выход
+                // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
+
+                // Транспонируем вывод: по 128-мь байтов блок
+                Transpose128_2(output, revcon);     // Обратная связь
+                Transpose128_2(buff,   output);     // Выход
+            }
 
             // Console.WriteLine("test:  rc after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
             // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
