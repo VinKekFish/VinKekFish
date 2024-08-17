@@ -343,7 +343,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
         // Console.WriteLine(_tall);Console.WriteLine(_wide);
 
 
-        var cascade = new CascadeSponge_1t_20230905();
+        var cascade = new CascadeSponge_1t_20230905() { ShortStepForAbsorption = true };
         // Console.WriteLine(cascade);
         try
         {
@@ -377,7 +377,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // var W      = 3.0; // = Math.Log2(4)+1;
             // var Wn     = 21;  // Wn = 64 / W
             if (21 != cascade.Wn || dlen != 21 * 4 - 1 || cascade.countOfThreeFish_RC != 2)
-                throw new Exception($"CascadeSponge_20230905_BaseTest: 21 != cascade.Wn || dlen != 83 || cascade.countOfThreeFish != 2. {cascade.Wn} {dlen} {cascade}");
+                throw new Exception($"CascadeSponge_20230905_BaseTest_once: 21 != cascade.Wn || dlen != 83 || cascade.countOfThreeFish != 2. {cascade.Wn} {dlen} {cascade}");
 
             // wide = 4
             var output = stackalloc byte[64 * 4];
@@ -468,34 +468,32 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
 
             BytesBuilder.ToNull(256, revcon);
             // Ввводим 83 байта ввода в верхнюю губку
-            for (int w = 0; w < 4; w++)
-            {                
-                BytesBuilder.CopyTo(21, 256, a + 0,  revcon + 0);
-                BytesBuilder.CopyTo(21, 256, a + 21, revcon + 64);
-                BytesBuilder.CopyTo(21, 256, a + 42, revcon + 128);
-                BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
 
-                // Делаем первый шаг: это первая фаза двойного шага многократный ввод данных в губку)
-                DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            BytesBuilder.CopyTo(21, 256, a + 0,  revcon + 0);
+            BytesBuilder.CopyTo(21, 256, a + 21, revcon + 64);
+            BytesBuilder.CopyTo(21, 256, a + 42, revcon + 128);
+            BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
 
-                // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
+            // Делаем первый шаг: это первая фаза двойного шага многократный ввод данных в губку)
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
 
-                BytesBuilder.CopyTo(256, 256, revcon, output);
-                BytesBuilder.CopyTo(256, 256, revcon, buff);
-                Threefish1024_step(TFl + 0,  TFl +  0 + 24, (ulong*)output);       // Обратная связь
-                Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
-                //            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
-                //            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
+            // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
 
-                // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
-                SubstituteEmpty(output);
+            BytesBuilder.CopyTo(256, 256, revcon, output);
+            BytesBuilder.CopyTo(256, 256, revcon, buff);
+            Threefish1024_step(TFl + 0,  TFl +  0 + 24, (ulong*)output);       // Обратная связь
+            Threefish1024_step(TFl + 32, TFl + 32 + 24, (ulong*)(output + 128));
+            //            Threefish1024_step(TFl + 64, TFl + 64 + 24, (ulong*) buff);         // Вывод - сейчас вывод не делается, ведь вывод только на последней фазе двойного шага
+            //            Threefish1024_step(TFl + 96, TFl + 96 + 24, (ulong*)(buff + 128));
 
-                // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
+            // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
+            SubstituteEmpty(output);
 
-                // Транспонируем вывод: по 128-мь байтов блок
-                Transpose128_2(output, revcon);     // Обратная связь
-                Transpose128_2(buff,   output);     // Выход
-            }
+            // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
+
+            // Транспонируем вывод: по 128-мь байтов блок
+            Transpose128_2(output, revcon);     // Обратная связь
+            Transpose128_2(buff,   output);     // Выход
 
             // Console.WriteLine("test:  rc after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
             // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
@@ -537,7 +535,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
 
             if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
-                throw new Exception("CascadeSponge_20230905_BaseTest: results not equals (step 1d)");
+                throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 1d)");
 
             cascade.Step(data: null, dataLen: 0, regime: 34);
             DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
@@ -576,7 +574,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
 
             if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
-                throw new Exception("CascadeSponge_20230905_BaseTest: results not equals (step 2)");
+                throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 2)");
         }
         finally
         {

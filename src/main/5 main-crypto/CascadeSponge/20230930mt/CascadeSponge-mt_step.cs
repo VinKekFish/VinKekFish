@@ -28,15 +28,16 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра ShortStepForAbsorption: если ShortStepForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то ShortStepForAbsorption игнорируется.</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public override nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    public override nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0)
     {
         // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
         try
         {
             Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
-            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress, StepsForAbsorption: StepsForAbsorption);
         }
         finally
         {
@@ -54,16 +55,17 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра ShortStepForAbsorption: если ShortStepForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то ShortStepForAbsorption игнорируется.</param>
     /// <param name="noResetEvent">Если true, то состояние синхронизации не будет сбрасываться. Это нужно, если после одного шага сразу следует другой. В таком случае, потоки будут находится в цикле ожидания, тратя процессорные ресурсы вхолостую, но готовые вновь быстро взять задачи.</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, bool noResetEvent = false)
+    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0, bool noResetEvent = false)
     {
         // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
         try
         {
             Event.Set();    // Сразу же предлагаем потокам работать, чтобы потом не тратить время на синхронизацию
-            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress);
+            result = base.Step(countOfSteps: countOfSteps, ArmoringSteps: ArmoringSteps, data: data, dataLen: dataLen, regime: regime, inputRegime: inputRegime, progress: progress, StepsForAbsorption: StepsForAbsorption);
         }
         finally
         {

@@ -34,8 +34,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
+    /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра ShortStepForAbsorption: если ShortStepForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то ShortStepForAbsorption игнорируется.</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null)
+    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.step");
 
@@ -60,6 +61,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             }
         }
 
+        if (StepsForAbsorption <= 0)
+        {
+            if (ShortStepForAbsorption)
+                StepsForAbsorption = 1;
+            else
+                StepsForAbsorption = tall;
+        }
+
         if (countOfSteps <= 0)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: fatal algorithmic error (send message to VinKekFish developer): countOfSteps <= 0");
         if (dataLen > maxDataLen*countOfSteps)
@@ -79,7 +88,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 curDataLen = maxDataLen;
 
             // Мы вводим одни и те же данные tall раз. Это связано с тем, что в верхних слоях губки могут быть коллизии и их нужно избежать. Кроме этого, это позволяет лучше перемешать данные.
-            for (int i = 0; i < tall; i++)
+            for (int i = 0; i < StepsForAbsorption; i++)
                 Step_once(data, curDataLen, regime, inputRegime);
 
             if (data != null)

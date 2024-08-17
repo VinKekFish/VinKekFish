@@ -98,7 +98,7 @@ namespace vinkekfish
         /// <summary>Создаёт и первично инициализирует объект VinKekFish (инициализация ключём и ОВИ должна быть отдельно). Создаёт Environment.ProcessorCount потоков для объекта. После конструктора необходимо вызвать init1 и init2</summary>
         /// <param name="CountOfRounds">Максимальное количество раундов шифрования, которое будет использовано, не менее VinKekFishBase_etalonK1.MIN_ROUNDS</param>
         /// <param name="K">Коэффициент размера K. Только нечётное число. Подробности смотреть в VinKekFish.md</param>
-        /// <param name="ThreadCount">Количество потоков. Может быть 0 (Environment.ProcessorCount). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный</param>
+        /// <param name="ThreadCount">Количество потоков (можно использовать Environment.ProcessorCount). Может быть 0 (в таком случае, по умолчанию, создаётся 1 поток). Рекомендуется значение 1, т.к. при большем количестве потоков рост производительности незначительный и бывают проблемы с деградацией производительности.</param>
         public VinKekFishBase_KN_20210525(int CountOfRounds = -1, int K = 1, int ThreadCount = 0)
         {
             cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
@@ -122,9 +122,13 @@ namespace vinkekfish
 
             if (ThreadCount == 0)
             {
+                /*
                 ThreadCount = Environment.ProcessorCount;
                 if (ThreadCount > K)
-                    ThreadCount = K;
+                    ThreadCount = K / 8;
+
+                if (ThreadCount <= 0)*/
+                ThreadCount = 1;
             }
 
             this.ThreadCount = ThreadCount;
