@@ -54,6 +54,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     protected nint _countOfProcessedSteps = 0;                          /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
     public    nint  CountOfProcessedSteps => _countOfProcessedSteps;
 
+    public    bool  ShortStep
+
     /// <summary>Создаёт каскадную губку (каскад) по заданной целевой стойкости и длине блока</summary>
     /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов)</param>
     /// <param name="targetBlockLen">Длина выходного блока в байтах</param>
