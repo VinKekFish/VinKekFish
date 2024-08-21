@@ -34,7 +34,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="data">Данные для ввода. Память может быть выделена через stackalloc, если это требуется</param>
     /// <param name="dataLen">Длина данных для ввода. Не более maxDataLen</param>
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
-    /// <param name="reverseConnectionData">Может быть null. Если данные указаны, то они должны быть длиной ReserveConnectionFullLen, из которых ReserveConnectionLen байтов приходятся на данные обратной связи. После этого должно следовать магическое число MagicNumber_ReverseConnectionLink_forInput. Память может быть выделена через stackalloc byte[ReserveConnectionFullLen]</param>
+    /// <param name="reverseConnectionData">Может быть null. Если данные указаны, то они должны быть длиной ReserveConnectionFullLen, из которых ReverseConnectionLen байтов приходятся на данные обратной связи. После этого должно следовать магическое число MagicNumber_ReverseConnectionLink_forInput. Память может быть выделена через stackalloc byte[ReserveConnectionFullLen]</param>
     /// <param name="inputRegime">Режим ввода. xor - обычный режим ввода, overwrite - режим ввода с перезаписью</param>
     protected void InputData(byte * data, nint dataLen, byte regime, byte * reverseConnectionData = null, InputRegime inputRegime = xor)
     {
@@ -42,6 +42,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         if (reverseConnectionData != null)
             CheckMagicNumber(reverseConnectionData, "CascadeSponge_1t_20230905.InputData: magic != MagicNumber_ReverseConnectionLink_forInput");
+
+if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
+    Console.WriteLine("rcd: " + ArrayToHex((byte *) reverseConnectionData, ReverseConnectionLen));
 
         if (dataLen > maxDataLen)
             throw new CascadeSpongeException($"dataLen > maxDataLen ({dataLen} > {maxDataLen})");
@@ -80,13 +83,13 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 // Данные из обратной связи берутся постольку, поскольку не введены внешние данные
                 // Их всё равно будет вводится где-то половина или более, т.к. Wn всегда меньше, чем MaxInputForKeccak (32 или менее против 64-х)
                 rcd_len = MaxInputForKeccak - dataLenToInput;
-                BytesBuilder.CopyTo(rcd_len, MaxInputForKeccak, reverseConnectionData, buffer + dataLenToInput);
+                BytesBuilder.CopyTo(MaxInputForKeccak, rcd_len, reverseConnectionData, buffer + dataLenToInput);
                 reverseConnectionData += MaxInputForKeccak; // Здесь мы приращаем данные так, как будто ввели полный блок
             }
-
+if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
+    Console.WriteLine("rcd: " + ArrayToHex((byte *) reverseConnectionData, ReverseConnectionLen));
             // Console.WriteLine(ArrayToHex(buffer, (int) MaxInputForKeccak));
-
-            input(buffer, (byte) (dataLenToInput + rcd_len), GetInputLayerS(w), regime);
+            input(buffer, (byte) (dataLenToInput + rcd_len), GetInputLayerS(w), regime, (byte) dataLenToInput);
             cur += dataLenToInput;
         }
 
@@ -112,36 +115,36 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Транспонируем состояние в data, чтобы перемешать блоки
         TransposeOutput(fullOutput);
         // Копируем fullOutput в rcOutput, чтобы использовать fullOutput для дальнейшего заключительного преобразования
-        BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, fullOutput, rcOutput);
+        BytesBuilder.CopyTo(ReverseConnectionLen, ReverseConnectionLen, fullOutput, rcOutput);
 
         // Console.WriteLine();
-        // Console.WriteLine("outputAllData: before ThreeFish"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+        // Console.WriteLine("outputAllData: before ThreeFish"); Console.WriteLine(ArrayToHex(fullOutput, ReverseConnectionLen));
 
         // Выполняем преобразование обратной связи
         DoThreeFish(rcOutput, this.threefishCrypto!.array + 0);                           // Обратная связь
         DoSubstitution(rcOutput);
 
-        // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+        // Console.WriteLine("outputAllData: out after ThreeFish before transpose"); Console.WriteLine(ArrayToHex(fullOutput, ReverseConnectionLen));
 
         TransposeOutput(rcOutput, 128);
 
-        // Console.WriteLine("outputAllData:  rc after ThreeFish +t"); Console.WriteLine(ArrayToHex(  rcOutput, ReserveConnectionLen));
-        // Console.WriteLine("outputAllData: out after ThreeFish +t"); Console.WriteLine(ArrayToHex(fullOutput, ReserveConnectionLen));
+        // Console.WriteLine("outputAllData:  rc after ThreeFish +t"); Console.WriteLine(ArrayToHex(  rcOutput, ReverseConnectionLen));
+        // Console.WriteLine("outputAllData: out after ThreeFish +t"); Console.WriteLine(ArrayToHex(fullOutput, ReverseConnectionLen));
         // Console.WriteLine();
     }
 
-    /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReserveConnectionLen</param>
+    /// <summary>Транспонирует (перемешивает) данные в выходном массиве для того, чтобы можно было просто взять эти данные на выход, а остальные отправить в обратную связь уже перемешанными</summary><param name="data">Данные для перемешивания. Длина данных - ReverseConnectionLen</param>
     public void TransposeOutput(byte * data, int transposeStep = MaxInputForKeccak)
     {
-        var buffer = stackalloc byte[(int)ReserveConnectionLen];
-        BytesBuilder.CopyTo(ReserveConnectionLen, ReserveConnectionLen, data, buffer);
+        var buffer = stackalloc byte[(int)ReverseConnectionLen];
+        BytesBuilder.CopyTo(ReverseConnectionLen, ReverseConnectionLen, data, buffer);
 
         nint j = 0, k = 0;
-        for (nint i = 0; i < ReserveConnectionLen; i++)
+        for (nint i = 0; i < ReverseConnectionLen; i++)
         {
             data[i] = buffer[j];
             j += transposeStep;
-            if (j >= ReserveConnectionLen)
+            if (j >= ReverseConnectionLen)
                 j = ++k;
         }
 
@@ -149,14 +152,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (k != MaxInputForKeccak)
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905.transposeOutput: k != MaxInputForKeccak ({k} != {MaxInputForKeccak})");
 
-        BytesBuilder.ToNull(ReserveConnectionLen, buffer);
+        BytesBuilder.ToNull(ReverseConnectionLen, buffer);
     }
 
     protected void DoSubstitution(Record data)
     {
         CheckMagicNumber(data, "CascadeSponge_1t_20230905.doSubstitution: magic != MagicNumber_ReverseConnectionLink_forInput");
 
-        var len = ReserveConnectionLen >> 1;
+        var len = ReverseConnectionLen >> 1;
         var dt  = (ushort *) data.array;
         var sb  = (ushort*) SubstitutionTable;
         for (nint i = 0; i < len; i += 8)
@@ -173,7 +176,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     }
 
     /// <summary>Сделать поблочное преобразование ThreeFish1024 для массива обратной связи (указан в параметре data)</summary>
-    /// <param name="data">Массив для шифрования, длиной ReserveConnectionLen. Заканчивается магическим числом</param>
+    /// <param name="data">Массив для шифрования, длиной ReverseConnectionLen. Заканчивается магическим числом</param>
     /// <param name="threefishCrypto">Массив ключей и твиков. Первыми в this.threefishCrypto идут ключи для обратной связи.</param>
     protected void DoThreeFish(byte * data, byte * threefishCrypto)
     {
@@ -195,17 +198,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             tweaks[0]  = tw;
             tweaks[2]  = tweaks[0] ^ tweaks[1];
 
+    if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
+    Console.WriteLine("DoThreeFish: " + ArrayToHex((byte *) &(tweaks[0]), 8));
+
             keys   += Threefish_slowly.Nw*2;        // Шаг следования ключей - 256 байтов
             tweaks += Threefish_slowly.Nw*2;
             dt     += Threefish_slowly.Nw;          // Шаг следования блоков данных - 128 байтов
         }
     }
 
-    /// <summary>Проверяет наличие в массиве, размером ReserveConnectionFullLen (ReserveConnectionLen + 8 байтов магического числа), наличие верного магического числа MagicNumber_ReverseConnectionLink_forInput. Если числа нет, выдаёт исключение CascaseSpongeException(message)</summary><param name="data">Массив для проверки</param><param name="message">Сообщение для выдачи исключения</param>
+    /// <summary>Проверяет наличие в массиве, размером ReserveConnectionFullLen (ReverseConnectionLen + 8 байтов магического числа), наличие верного магического числа MagicNumber_ReverseConnectionLink_forInput. Если числа нет, выдаёт исключение CascaseSpongeException(message)</summary><param name="data">Массив для проверки</param><param name="message">Сообщение для выдачи исключения</param>
     public void CheckMagicNumber(byte* data, string message, nint arrayLen = 0)
     {
         if (arrayLen == 0)
-            arrayLen = ReserveConnectionLen;
+            arrayLen = ReverseConnectionLen;
 
         BytesBuilder.BytesToULong(out ulong magic, data + arrayLen, 8);
         if (magic != MagicNumber_ReverseConnectionLink_forInput)

@@ -22,7 +22,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public readonly nint   tall;                                /// <summary>Параметр W - коэффициент, уменьшающий количество внешних данных для ввода и вывода из каждой губки</summary>
     public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество внешних (пользовательских) байтов, которое можно за один шаг ввести или вывести из каждой внешней губки keccak с учётом ограничений каскада</summary>
     public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи. Это же полный размер данных, передаваемых между разными уровнями каскада keccak. Это значение также иногда равно (и не более чем) номинальной стойкости губки, хотя значение стойкости есть strenghtInBytes.</summary>
-    public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
+    public readonly nint   ReverseConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
     public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая из-вне за один раз или выводимая во-вне (пользователю) за один раз (за один шаг). Это длина данных уже со всей каскадной губки. Для 4k (в битах) варианта это 128-мь байтов. Для генерации ключей всегда уменьшать длину блока в два раза.</summary>
     public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (4). Ширина губки всегда должна быть чётной. Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
     public const    nint   MinWide = 4;                         /// <summary>Минимальная высота каскадной губки (4)</summary>
@@ -206,8 +206,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             (W, Wn) = CalcW(tall);
 
             maxDataLen               = Wn * wide;
-            ReserveConnectionLen     = MaxInputForKeccak * wide;
-            ReserveConnectionFullLen = ReserveConnectionLen + 8;
+            ReverseConnectionLen     = MaxInputForKeccak * wide;
+            ReserveConnectionFullLen = ReverseConnectionLen + 8;
             strenghtInBytes          = tall * MaxInputForKeccak;
 
             // Вероятность коллизии с входными данными равна 2^-512*countStepsForEffectiveAbsorption (при StepTypeForAbsorption == TypeForShortStepForAbsorption.effective).
@@ -232,8 +232,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             rcOutput   = Keccak_abstract.allocator.AllocMemory(ReserveConnectionFullLen, "CascadeSponge_1t_20230905.rcOutput");
             BytesBuilder.ToNull(maxDataLen, lastOutput);
             BytesBuilder.ToNull(ReserveConnectionFullLen, fullOutput);
-            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
-            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, rcOutput, ReserveConnectionFullLen, ReserveConnectionLen);        // Устанавливаем магическое число
+            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, fullOutput, ReserveConnectionFullLen, ReverseConnectionLen);        // Устанавливаем магическое число
+            BytesBuilder.ULongToBytes(MagicNumber_ReverseConnectionLink_forInput, rcOutput, ReserveConnectionFullLen, ReverseConnectionLen);        // Устанавливаем магическое число
 
             // Для выравнивания, считаем, что на один ThreeFish приходится 256 байтов. Это используется в setThreeFishKeysAndTweak
             countOfThreeFish_RC = wide >> 1;

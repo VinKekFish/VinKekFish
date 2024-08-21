@@ -43,7 +43,7 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
 
             const int maxKeyLen = 8192;
             var  key = stackalloc byte[maxKeyLen];
-            var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_simpleTest.Record" };
+            var rkey = new Record() { array = key, len = maxKeyLen, Name = "CascadeSponge_1t_20230905_simpleTest2.Record" };
             for (int i = 0; i < maxKeyLen; i += 2)
             {
                 key[i + 0] = (byte) i;
@@ -491,19 +491,11 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Делаем подстановку таблицей подстановок по-умолчанию (для обратной связи)
             SubstituteEmpty(output);
 
-            // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReserveConnectionLen));
+            // Console.WriteLine("test: after ThreeFish step1a without transpose"); Console.WriteLine(ArrayToHex(buff, cascade.ReverseConnectionLen));
 
             // Транспонируем вывод: по 128-мь байтов блок
             Transpose128_2(output, revcon);     // Обратная связь
             Transpose128_2(buff,   output);     // Выход
-
-            // Console.WriteLine("test:  rc after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
-            // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
-
-            // Делаем из первого шага двойной (удваиваем первый шаг)
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
-
-            // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
 
             TFl[00 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[00 + 25] += 0;
@@ -521,6 +513,15 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
                         TFl[96 + 25] += 0;  // Здесь всё ещё нет переполнения
                         TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
             */
+
+            // Console.WriteLine("test:  rc after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
+            // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReverseConnectionLen));
+
+            // Делаем из первого шага двойной (удваиваем первый шаг)
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+
+            // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
+
             BytesBuilder.CopyTo(256, 256, revcon, output);
             BytesBuilder.CopyTo(256, 256, revcon, buff);
             Threefish1024_step(TFl + 0,  TFl + 0 + 24,  (ulong*)output);       // Обратная связь
@@ -532,17 +533,6 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             SubstituteEmpty(output);
             Transpose128_2(output, revcon);
             Transpose128_2(buff, output);
-
-            // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
-            // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
-
-            if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
-                throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 1d)");
-
-            cascade.Step(data: null, dataLen: 0, regime: 34);
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
-
-            // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
 
             TFl[00 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[00 + 25] += 0;
@@ -560,6 +550,17 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             TFl[96 + 25] += 0;  // Здесь всё ещё нет переполнения
             TFl[96 + 26] = TFl[96 + 24] ^ TFl[96 + 25];
 
+            // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
+            // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReverseConnectionLen));
+
+            if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
+                throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 1d)");
+
+            cascade.Step(data: null, dataLen: 0, regime: 34);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
+
+            // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
+
             BytesBuilder.CopyTo(256, 256, revcon, output);
             BytesBuilder.CopyTo(256, 256, revcon, buff);
             Threefish1024_step(TFl + 0, TFl + 0 + 24, (ulong*)output);       // Обратная связь
@@ -572,8 +573,8 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             Transpose128_2(output, revcon);*/
             Transpose128_2(buff, output);
 
-            // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReserveConnectionLen));
-            // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReserveConnectionLen));
+            // Console.WriteLine("test:  rc after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
+            // Console.WriteLine("test: out after ThreeFish step1d +t"); Console.WriteLine(ArrayToHex(output, cascade.ReverseConnectionLen));
 
             if (!BytesBuilder.UnsecureCompare(cascade.maxDataLen, cascade.maxDataLen, cascade.lastOutput, output))
                 throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 2)");

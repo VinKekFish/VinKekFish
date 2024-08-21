@@ -1,5 +1,4 @@
-﻿CascadeSponge_20230905_BaseTest
-VinKekFish_test_simplebase
+﻿CascadeSponge_20230905_BaseTest_noonce
 
 
 Проверить, что при генерации файлов учтены все параметры настроек. Удалить лишние параметры настроек и пройтись по генерации.

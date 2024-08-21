@@ -141,7 +141,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
         // Последний уровень губки, включая преобразование обратной связи
         OutputAllData();
 
-        BytesBuilder.ToNull(ReserveConnectionLen, buffer);
+        BytesBuilder.ToNull(ReverseConnectionLen, buffer);
         _countOfProcessedSteps++;
         LastRegime = regime;
     }

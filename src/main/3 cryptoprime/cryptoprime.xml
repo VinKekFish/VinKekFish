@@ -65,7 +65,7 @@
             <param name="S">Внутреннее состояние S</param>
             <param name="setPaddings">Если <see langword="true"/> - ввести padding в массив (при вычислении хеша делать на последнем блоке <![CDATA[<=]]> 71 байта)</param>
         </member>
-        <member name="M:cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512(System.Byte*,System.Byte,System.Byte*,System.Byte)">
+        <member name="M:cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512(System.Byte*,System.Byte,System.Byte*,System.Byte,System.Byte)">
             <summary>
             Эта конструкция разработана по мотивам keccak Overwrite, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием, а логический режим ввода, заменяющий framebit, вводится как xor с ещё одним байтом внутреннего состояния. Это рекомендуемая разработчиком VinKekFish функция.
             </summary>
@@ -73,11 +73,12 @@
             <param name="len">длина массива message, 64 или менее</param>
             <param name="S">Внутреннее состояние keccak</param>
             <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
+            <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину.</param>
         </member>
         <member name="F:cryptoprime.KeccakPrime.BlockLen">
             <summary>Размер блока keccak в данной реализации (на ввод и на вывод)</summary>
         </member>
-        <member name="M:cryptoprime.KeccakPrime.Keccak_Input64_512(System.Byte*,System.Byte,System.Byte*,System.Byte)">
+        <member name="M:cryptoprime.KeccakPrime.Keccak_Input64_512(System.Byte*,System.Byte,System.Byte*,System.Byte,System.Byte)">
             <summary>
             Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием, а логический режим ввода, заменяющий framebit, вводится как xor с ещё одним байтом внутреннего состояния. Это рекомендуемая разработчиком VinKekFish функция.
             </summary>
@@ -85,6 +86,7 @@
             <param name="len">длина массива message, 64 или менее</param>
             <param name="S">Внутреннее состояние keccak</param>
             <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
+            <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину.</param>
         </member>
         <member name="M:cryptoprime.KeccakPrime.Keccak_Output_512(System.Byte*,System.Byte,System.Byte*)">
             <summary>Вывод данных из состояния keccak. Предназначен только для версии 512 битов</summary>

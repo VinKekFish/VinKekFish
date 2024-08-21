@@ -372,16 +372,19 @@ namespace cryptoprime
         /// <param name="len">длина массива message, 64 или менее</param>
         /// <param name="S">Внутреннее состояние keccak</param>
         /// <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
+        /// <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину.</param>
 
         // Этот метод должен быть почти полной копией Keccak_Input_512, за исключением небольших изменений
         // Ниже ещё один аналог!
-        public static unsafe void Keccak_InputOverwrite64_512(byte * message, byte len, byte * S, byte regime = 0)
+        public static unsafe void Keccak_InputOverwrite64_512(byte * message, byte len, byte * S, byte regime = 0, byte logicalLen = 255)
         {
             const byte RB = 64;
             if (len > RB || len < 0)
             {
                 throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: len > 64 || len < 0");
             }
+            if (logicalLen == 255)
+                logicalLen = len;
 
             byte * lastS  = S;           // Если len = 0, то записываем в первый байт
 
@@ -428,7 +431,7 @@ namespace cryptoprime
             if (lastS >= S + b_size)
                 throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: lastS >= S + b_size");
 
-            *lastS ^= len; lastS++;
+            *lastS ^= logicalLen; lastS++;
             *lastS ^= regime;
         }
                                                     /// <summary>Размер блока keccak в данной реализации (на ввод и на вывод)</summary>
@@ -441,12 +444,15 @@ namespace cryptoprime
         /// <param name="len">длина массива message, 64 или менее</param>
         /// <param name="S">Внутреннее состояние keccak</param>
         /// <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
-        public static unsafe void Keccak_Input64_512(byte * message, byte len, byte * S, byte regime = 0)
+        /// <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину.</param>
+        public static unsafe void Keccak_Input64_512(byte * message, byte len, byte * S, byte regime = 0, byte logicalLen = 255)
         {
             if (len > BlockLen || len < 0)
             {
                 throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: len > 64 || len < 0");
             }
+            if (logicalLen == 255)
+                logicalLen = len;
 
             byte * lastS  = S;           // Если len = 0, то записываем в первый байт
 
@@ -493,7 +499,7 @@ namespace cryptoprime
             if (lastS >= S + b_size)
                 throw new ArgumentOutOfRangeException("cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512: lastS >= S + b_size");
 
-            *lastS ^= len; lastS++;
+            *lastS ^= logicalLen; lastS++;
             *lastS ^= regime;
         }
 

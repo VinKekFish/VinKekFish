@@ -157,12 +157,12 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                 if (curStepBuffer < 0)
                 {
                     sb2 = st;
-                    sb  = st + ReserveConnectionLen;
+                    sb  = st + ReverseConnectionLen;
                 }
                 else
                 {
                     sb  = st;
-                    sb2 = st + ReserveConnectionLen;
+                    sb2 = st + ReverseConnectionLen;
                 }
 
                 GetKeccakS(ThreadsLayer, index, S: out byte* S, B: out byte* B, C: out byte* C);
@@ -181,13 +181,13 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                         buff[bi] = sb[i];
 
                         i += MaxInputForKeccak;
-                        if (i >= ReserveConnectionLen)
+                        if (i >= ReverseConnectionLen)
                         {
                             i = ++j;
                         }
                     }
 
-                    input(buff, MaxInputForKeccak, S, regime);
+                    input(buff, MaxInputForKeccak, S, regime, 255);
                 }
 
                 KeccakPrime.Keccackf(a: (ulong*)S, c: (ulong*)C, b: (ulong*)B);

@@ -56,7 +56,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
         }
         StartThreads();
 
-        stepBuffer = Keccak_abstract.allocator.AllocMemory(ReserveConnectionLen*2, "CascadeSponge_mt_20230930: stepBuffer");
+        stepBuffer = Keccak_abstract.allocator.AllocMemory(ReverseConnectionLen*2, "CascadeSponge_mt_20230930: stepBuffer");
     }
 
     public override void Dispose(bool fromDestructor = false)
@@ -74,7 +74,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
                     Event.Close();
                 else
                 {
-                    Record.ErrorsInDispose = true;
+                    Record .ErrorsInDispose = true;
                     Console.Error.WriteLine($"CascadeSponge_mt_20230930.Dispose: ThreadsExecuted > 0 ({ThreadsExecuted})");
                 }
             }

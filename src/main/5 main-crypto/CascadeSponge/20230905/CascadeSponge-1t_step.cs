@@ -5,6 +5,7 @@ using cryptoprime;
 using static cryptoprime.BytesBuilderForPointers;
 
 using static CascadeSponge_1t_20230905.InputRegime;
+using System.Data;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
 // ::cp:alg:a7L6XjXsuwWGVxwJSN1x.step:20230930
@@ -16,7 +17,7 @@ using static CascadeSponge_1t_20230905.InputRegime;
 /// </summary>
 public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 {
-    public delegate void Keccak_Input_Delegate(byte * message, byte len, byte * S, byte regime);
+    public delegate void Keccak_Input_Delegate(byte * message, byte len, byte * S, byte regime, byte logicalLen);
 
     protected volatile Keccak_Input_Delegate input = KeccakPrime.Keccak_Input64_512;
 
@@ -71,6 +72,14 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (dataLen > maxDataLen*countOfSteps)
             throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: dataLen > maxDataLen*countOfSteps");
 
+        if (data == null)
+        {
+            if (dataLen > 0)
+                throw new CascadeSpongeException("CascadeSponge_1t_20230905.step: dataLen != 0 && data == null");
+
+            dataLen = 0;
+        }
+
         if (progress is not null)
         {
             progress.allSteps   = countOfSteps;
@@ -88,7 +97,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             for (int i = 0; i < StepsForAbsorption; i++)
                 Step_once(data, curDataLen, regime, inputRegime);
 
-            if (data != null)
             data        += curDataLen;
             dataLen     -= curDataLen;
             dataUsedLen += curDataLen;
@@ -110,7 +118,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         TransposeOutput(fullOutput, 128);
 
         // Копируем начало вывода нижних губок в массив пользовательского вывода
-        BytesBuilder.CopyTo(ReserveConnectionLen, maxDataLen, fullOutput, lastOutput);
+        BytesBuilder.CopyTo(ReverseConnectionLen, maxDataLen, fullOutput, lastOutput);
 
         haveOutput = true;
 
@@ -142,7 +150,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Вводим данные, включая обратную связь, в верхний слой губки
         InputData(data, dataLen, regime, rcOutput, inputRegime);
 
-        var buffer = stackalloc byte[(int) ReserveConnectionLen];
+        var buffer = stackalloc byte[(int) ReverseConnectionLen];
         if (inputRegime == overwrite)
             input = KeccakPrime.Keccak_InputOverwrite64_512;
         else
@@ -179,7 +187,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             {
                 GetKeccakS(layer+1, i, S: out S, B: out B, C: out C);
 
-                input(buff, MaxInputForKeccak, S, regime);
+                input(buff, MaxInputForKeccak, S, regime, 255);
                 buff += MaxInputForKeccak;
             }
         }
@@ -187,7 +195,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         // Последний уровень губки, включая преобразование обратной связи
         OutputAllData();
 
-        BytesBuilder.ToNull(ReserveConnectionLen, buffer);
+        BytesBuilder.ToNull(ReverseConnectionLen, buffer);
         _countOfProcessedSteps++;
         LastRegime = regime;
     }
