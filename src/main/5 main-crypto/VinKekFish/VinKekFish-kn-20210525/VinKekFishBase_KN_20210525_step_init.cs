@@ -1,6 +1,7 @@
 ﻿// TODO: tests
 
 // #define DEBUG_OUTPUT
+#define DEBUG_OUTPUT_PRETRANSFORMATION
 
 using System;
 using System.Collections.Generic;
@@ -57,16 +58,38 @@ namespace vinkekfish
             Tweaks[2+1] = Tweaks[0+1];
 
             #if DEBUG_OUTPUT
-            VinKekFish_Utils.Utils.MsgToFile($"round started {askedCountOfRounds}", "KN");
+            VinKekFish_Utils.Utils.MsgToFile($"step started {askedCountOfRounds}", "KN");
             VinKekFish_Utils.Utils.ArrayToFile((byte *) Tweaks, 16, "KN");
             #endif
 
-            // Предварительное преобразование
-            DoPermutation(transpose128);
-            DoThreeFish();
-            DoPermutation(transpose128);
+            #if DEBUG_OUTPUT_PRETRANSFORMATION
+            VinKekFish_Utils.Utils.MsgToFile("State1", "State");
+            VinKekFish_Utils.Utils.ArrayToFile(State1, this.Len, "State");
+            #endif
 
-            BytesBuilder.CopyTo(Len, Len, State2, State1); IsState1Main = true;
+            // Предварительное преобразование
+            // После перераспределения входных данных между блоками ThreeFish,
+            // нам нужно достичь некоторой степени диффузии для того, чтобы избежать дальнейших возможностей для коллизий с разными данными внутри подблоков keccak. Это аналогично ::docs:blukp2nlAfFcIXUzG6Pd:
+            DoPermutation(transpose128);
+            var prc = LenInThreeFish;
+            for (int pRound = 0; pRound < prc; pRound++)
+            {
+                // Здесь идёт диффузия без перемешивания, чтобы обеспечить сохранность тех блоков, которые точно были изменены и не потерять энтропию
+                DoThreeFish();
+                Tweaks[2+0] += 0x1_0000_0000U;
+
+                #if DEBUG_OUTPUT_PRETRANSFORMATION
+                VinKekFish_Utils.Utils.MsgToFile($"State1, presemiround {pRound}", "State");
+                VinKekFish_Utils.Utils.ArrayToFile(this.st1, this.Len, "State");
+                #endif
+            }
+
+            DoPermutation(transpose128);
+            if (!IsState1Main)
+            {
+                BytesBuilder.CopyTo(Len, Len, State2, State1);
+                IsState1Main = true;
+            }
 
             // Основной шаг алгоритма: раунды
             // Каждая итерация цикла - это полураунд

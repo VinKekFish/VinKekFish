@@ -35,7 +35,7 @@ public unsafe class CascadeSponge_20230905_BaseTest_noonce : TestTask
         // Console.WriteLine(_tall);Console.WriteLine(_wide);
 
 
-        var cascade = new CascadeSponge_1t_20230905();
+        var cascade = new CascadeSponge_1t_20230905() { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
         // Console.WriteLine(cascade);
         try
         {

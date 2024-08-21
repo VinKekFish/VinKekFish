@@ -59,7 +59,7 @@ public class CascadeSponge_1t_20230905_simpleTest2: Keccak_test_parent
 
             // Инициализация губки минимальной стойкости
             // Сразу же инициализируем ключи ThreeFish от основного ключа
-            using var cascade1 = new CascadeSponge_1t_20230905();
+            using var cascade1 = new CascadeSponge_1t_20230905()  { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
             cascade1.InitKeyAndOIV(rkey, null, 0);
 
             // Вводим некоторые данные для шифрования или хеширования
@@ -127,7 +127,7 @@ public class CascadeSponge_1t_20230905_simpleTest: Keccak_test_parent
 
             // Инициализация губки минимальной стойкости
             // Сразу же инициализируем ключи ThreeFish от основного ключа
-            using var cascade1 = new CascadeSponge_1t_20230905();
+            using var cascade1 = new CascadeSponge_1t_20230905() { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
             cascade1.InitKeyAndOIV(rkey, null, 3);
 
             // Вводим некоторые данные для шифрования или хеширования
@@ -211,7 +211,7 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
 
             // Инициализация губки стойкостью 1536 битов (192 байта)
             // Сразу же инициализируем ключи ThreeFish от основного ключа
-            var cascade1 = new CascadeSponge_mt_20230930(192);
+            var cascade1 = new CascadeSponge_mt_20230930(192) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
             cascade1.InitKeyAndOIV(rkey, null, 2);
 
             // Вводим некоторые данные для шифрования или хеширования
@@ -224,14 +224,14 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
 
 
             // Аналогично, но инициализация ThreeFish идёт не в два шага, а в три (более сложно для криптоанализа)
-            var cascade2 = new CascadeSponge_mt_20230930(192);
+            var cascade2 = new CascadeSponge_mt_20230930(192) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
             cascade2.InitKeyAndOIV(rkey, null, 3);
             cascade2.Step(data: data, dataLen: DataLen);
             addToList(lst, cascade2);
             cascade2.Dispose();
 
             // Без инициализации ThreeFish
-            var cascade3 = new CascadeSponge_mt_20230930(192);
+            var cascade3 = new CascadeSponge_mt_20230930(192) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
             cascade3.InitKeyAndOIV(rkey, null, 0);
             cascade3.Step(data: data, dataLen: DataLen);
             addToList(lst, cascade3);
@@ -250,7 +250,8 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
             {
                 try
                 {
-                    cascade1 = new CascadeSponge_mt_20230930(len); this.cascade = cascade1;
+                    cascade1 = new CascadeSponge_mt_20230930(len) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
+                    cascade  = cascade1;
                     cascade1.InitKeyAndOIV(rkey, null, 2);
                     cascade1.Step(data: data, dataLen: DataLen);
                     bb.AddWithCopy(cascade1.lastOutput);        // Берём данные с выхода
@@ -294,7 +295,8 @@ public class CascadeSponge_mt_20230930_exampleTest: Keccak_test_parent
 */
 
 
-            cascade1 = new CascadeSponge_mt_20230930(_wide: 4, _tall: 4); this.cascade = cascade1;
+            cascade1 = new CascadeSponge_mt_20230930(_wide: 4, _tall: 4) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak }; 
+            cascade  = cascade1;
             cascade1.InitKeyAndOIV(rkey, null, 3);
             cascade1.Step(data: data, dataLen: DataLen);
             cascade1.Step(1024);
@@ -343,7 +345,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
         // Console.WriteLine(_tall);Console.WriteLine(_wide);
 
 
-        var cascade = new CascadeSponge_1t_20230905() { ShortStepForAbsorption = true };
+        var cascade = new CascadeSponge_1t_20230905() { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
         // Console.WriteLine(cascade);
         try
         {

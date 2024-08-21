@@ -180,7 +180,8 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         // Осуществляем предварительное преобразование
         Transpose128(state);
-        ThreeFish(state, TW, 0);
+        for (ulong i = 0; i < 25*3; i++)
+            ThreeFish(state, TW,  i);
         Transpose128(state);
 
         // r - номер раунда. Расчёт номеров полураундов осуществляется в цикле
@@ -189,13 +190,13 @@ public unsafe class VinKekFish_test_simplebase : TestTask
             VinKekFish_Utils.Utils.MsgToFile($"semiround {r * 2 + 0}", "KNe");
             Keccak(state);
             Transpose200_8(state);
-            ThreeFish(state, TW, r * 2);
+            ThreeFish(state, TW, 25*3 + r * 2);
             Transpose128(state);
 
             VinKekFish_Utils.Utils.MsgToFile($"semiround {r * 2 + 1}", "KNe");
             Keccak(state);
             Transpose200(state);
-            ThreeFish(state, TW, r * 2 + 1);
+            ThreeFish(state, TW, 25*3 + r * 2 + 1);
             Transpose128(state);
         }
 

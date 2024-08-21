@@ -21,7 +21,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public readonly nint   wide;                                /// <summary>Высота каскадной губки</summary>
     public readonly nint   tall;                                /// <summary>Параметр W - коэффициент, уменьшающий количество внешних данных для ввода и вывода из каждой губки</summary>
     public readonly double W;                                   /// <summary>Параметр Wn - максимальное количество внешних (пользовательских) байтов, которое можно за один шаг ввести или вывести из каждой внешней губки keccak с учётом ограничений каскада</summary>
-    public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи. Это же полный размер данных, передаваемых между разными уровнями каскада keccak.</summary>
+    public readonly nint   Wn;                                  /// <summary>Количество данных, которые нужно вводить в обратной связи. Это же полный размер данных, передаваемых между разными уровнями каскада keccak. Это значение также иногда равно (и не более чем) номинальной стойкости губки, хотя значение стойкости есть strenghtInBytes.</summary>
     public readonly nint   ReserveConnectionLen;                /// <summary>Размер массива, который необходимо выделить для данных обратной связи с учётом магического числа</summary>
     public readonly nint   ReserveConnectionFullLen;            /// <summary>Максимальная длина данных, вводимая из-вне за один раз или выводимая во-вне (пользователю) за один раз (за один шаг). Это длина данных уже со всей каскадной губки. Для 4k (в битах) варианта это 128-мь байтов. Для генерации ключей всегда уменьшать длину блока в два раза.</summary>
     public readonly nint   maxDataLen;                          /// <summary>Минимальная ширина губки (4). Ширина губки всегда должна быть чётной. Минимальная ширина зависит от высоты губки, см. CalcMinWide</summary>
@@ -49,30 +49,34 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public    readonly nint   fullLengthOfThreeFishKeys;
                                                                 /// <summary>Количество шагов губки, которое пропускается (делается расчёт вхолостую) после ввода/вывода информации в шаге в генерации ключей. Пользователь может вводить это как параметр основного количества шагов в функции step (или как параметр ArmoringSteps; там можно вычесть 1) при генерации важных данных, таких как ключи шифрования.</summary>
     public    readonly nint   countStepsForKeyGeneration;       /// <summary>Количество шагов губки, которое пропускается после ввода/вывода информации в режиме повышенной стойкости (это меньше, чем countStepsForKeyGeneration). Пользователь может вводить это как параметр ArmoringSteps в функции step для усиления криптостойкости сгенерированных данных, например, при шифровании важных данных, или один раз как основное количество холостых шагов перед вычислением имитовставки после шифрования</summary>
-    public    readonly nint   countStepsForHardening;
+    public    readonly nint   countStepsForHardening;           /// <summary>Количество шагов губки для впитывания данных при StepTypeForAbsorption = TypeForShortStepForAbsorption.effective. Это значение всегда равно 1.</summary>
+    public    readonly nint   countStepsForEffectiveAbsorption;
 
     protected nint _countOfProcessedSteps = 0;                   /// <summary>Общее количество шагов, которые провела каскадная губка за всё время шифрования, включая поглощение синхропосылки и ключа.</summary>
     public    nint  CountOfProcessedSteps => _countOfProcessedSteps;
-                                                                /// <summary>false - безопасное значение, пригодное всегда с точки зрения безопасности. Однако, когда в губку вводятся данные, шагов становится так много, что губка может работать очень долго. true говорит о том, что каждый блок данных будет впитываться только один раз, вместо tall раз - это сильно быстрее при впитывании данных, но повышает вероятность коллизий на тех же данных (например, проще провести атаку нахождения второго прообраза на хеш).</summary>
-    public    bool  ShortStepForAbsorption = false;
+                                                                /// <summary>full - безопасное значение, пригодное всегда с точки зрения безопасности. Однако, когда в губку вводятся данные, шагов становится так много, что губка может работать очень долго. weak говорит о том, что каждый блок данных будет впитываться только один раз, вместо tall раз - это сильно быстрее при впитывании данных, но повышает вероятность коллизий на тех же данных (например, проще решить задачу нахождения второго прообраза на хеш). Для целей стойкого хеширования weak использовать нельзя (стойкость хеша к такой атаке будет порядка 512-ти битов).</summary>
+    public required TypeForShortStepForAbsorption StepTypeForAbsorption; // = TypeForShortStepForAbsorption.weak;
 
-    /// <summary>Варианты значений параметра ShortStepForAbsorption. Характеризуют, сколько будет сделано шагов при впитывании данных на впитывание одного и того же блока.</summary>
+    /// <summary>Варианты значений параметра StepTypeForAbsorption. Характеризуют, сколько будет сделано шагов при впитывании данных на впитывание одного и того же блока.</summary>
     public    enum  TypeForShortStepForAbsorption
-    {                                                /// <summary>Будет сделан только один шаг на впитывание.</summary>
-        weak = 1,                                    /// <summary>Количество шагов на впитывание будет рассчитано исходя из того, что вероятность взникновения коллизионного блока будет по значению в битах не более -(20+).</summary>
-        effective = 2,
-        full = 3
+    {                                                /// <summary>Значение не установлено. Используется в функциях для использования значения по умолчанию.</summary>
+        undefined = 0,                               /// <summary>Будет сделан только один шаг на впитывание. Это уменьшает стойкость к нахождению второго прообраза при атаке на хеш до 512-ти битов.</summary>
+        weak = 1,                                    /// <summary>Количество шагов на впитывание будет рассчитано исходя из того, что вероятность взникновения коллизионного блока при нахождении второго прообраза будет не более чем -(20+256) битов (это всегда один шаг). ::docs:blukp2nlAfFcIXUzG6Pd:</summary>
+        effective = 2,                               /// <summary>Количество шагов на впитывание равно 2. ::docs:blukp2nlAfFcIXUzG6Pd:</summary>
+        elevated  = 3,                               /// <summary>Полное впитывание: будет сделано tall шагов на впитывание одного и того же блока данных.</summary>
+        full = 4
     };
 
-    /// <summary>Создаёт каскадную губку (каскад) по заданной целевой стойкости и длине блока</summary>
-    /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов)</param>
-    /// <param name="targetBlockLen">Длина выходного блока в байтах</param>
-    public static CascadeSponge_1t_20230905 GetCascade(nint _strenghtInBytes, nint targetBlockLen)
+    /// <summary>Создаёт каскадную губку (каскад) по заданной целевой стойкости и длине блока.</summary>
+    /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов).</param>
+    /// <param name="targetBlockLen">Длина выходного блока в байтах.</param>
+    /// <param name="StepTypeForAbsorption">Устанавливает параметр StepTypeForAbsorption.</param>
+    public static CascadeSponge_1t_20230905 GetCascade(nint _strenghtInBytes, nint targetBlockLen, TypeForShortStepForAbsorption StepTypeForAbsorption)
     {
         nint _wide = 0;
         CalcCascadeParameters(_strenghtInBytes, targetBlockLen, _tall: out nint _tall, _wide: ref _wide);
 
-        return new CascadeSponge_1t_20230905(_tall: _tall, _wide: _wide);
+        return new CascadeSponge_1t_20230905(_tall: _tall, _wide: _wide) { StepTypeForAbsorption = StepTypeForAbsorption };
     }
 
     #pragma warning disable IDE0059 // Ненужные присваивания
@@ -205,6 +209,17 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             ReserveConnectionLen     = MaxInputForKeccak * wide;
             ReserveConnectionFullLen = ReserveConnectionLen + 8;
             strenghtInBytes          = tall * MaxInputForKeccak;
+
+            // Вероятность коллизии с входными данными равна 2^-512*countStepsForEffectiveAbsorption (при StepTypeForAbsorption == TypeForShortStepForAbsorption.effective).
+            // Количество вариантов вводимых данных равно 2^(Wn*8)
+            // Следовательно, частота появления коллизий равна (в битах) P = Wn*8-512*countStepsForEffectiveAbsorption
+            // По условию, P < -(20+256) ::docs:blukp2nlAfFcIXUzG6Pd:
+            // Wn*8-512*countStepsForEffectiveAbsorption < -(20+256)
+            // -512*countStepsForEffectiveAbsorption < -(20+256) - Wn*8
+            // 512*countStepsForEffectiveAbsorption > (20+256) + Wn*8
+            // countStepsForEffectiveAbsorption > ((20+256) + Wn*8)/512
+            var tmpCSE = ((20+256) + Wn*8)/512.0;
+            countStepsForEffectiveAbsorption = (nint) Math.Ceiling(tmpCSE);
 
             // countStepsForKeyGeneration = (nint) Math.Ceiling(  2*tall*Math.Log2(tall) + 1  );        // Это очень долго
             // countStepsForKeyGeneration = (nint) Math.Ceiling(  Math.Log2(tall)+1  );

@@ -34,7 +34,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <param name="regime">Режим ввода (логический параметр, декларируемый схемой шифрования; может быть любым однобайтовым значением)</param>
     /// <param name="inputRegime">Режим ввода данных в губку: либо обычный xor, либо режим overwrite для обеспечения необратимости шифрования и защиты ключа перед его использованием</param>
     /// <param name="progress">Структура, получающая прогресс расчёта</param>
-    /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра ShortStepForAbsorption: если ShortStepForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то ShortStepForAbsorption игнорируется.</param>
+    /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра StepTypeForAbsorption: если StepTypeForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то StepTypeForAbsorption игнорируется.</param>
     /// <returns>Количество данных, введённых в губку</returns>
     public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0)
     {
@@ -63,10 +63,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         if (StepsForAbsorption <= 0)
         {
-            if (ShortStepForAbsorption)
-                StepsForAbsorption = 1;
-            else
-                StepsForAbsorption = tall;
+            StepsForAbsorption = GetCountOfStepsForAbsorption();
         }
 
         if (countOfSteps <= 0)
@@ -118,6 +115,20 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         haveOutput = true;
 
         return dataUsedLen;
+    }
+
+    // ::docs:blukp2nlAfFcIXUzG6Pd:
+    /// <summary>Возвращает количество шагов на впитывание одних и те же данных, которое вычисленно исходя из значения StepTypeForAbsorption. Эта функция вычисляет количество шагов по умолчанию для функции step.</summary>
+    public nint GetCountOfStepsForAbsorption()
+    {
+        return StepTypeForAbsorption switch
+        {
+            TypeForShortStepForAbsorption.weak      => 1,
+            TypeForShortStepForAbsorption.effective => countStepsForEffectiveAbsorption, // => 1
+            TypeForShortStepForAbsorption.elevated  => 2,
+            TypeForShortStepForAbsorption.full      => tall,
+            _ => throw new InvalidDataException("CascadeSponge_1t_20230905.step: switch (StepTypeForAbsorption).default"),
+        };
     }
 
     /// <summary>Выполняет одиночный шаг. Двойной шаг при вводе данных этот алгоритм не выполняет!</summary>

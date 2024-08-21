@@ -293,7 +293,12 @@ namespace cryptoprime.VinKekFish
 
             // Распределение впитывания (Предварительное преобразование)
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
-            DoThreefishForAllBlocks(state2, state, tweakTmp);
+            for (nint i = 0; i < 12; i++) // CryptoStateLenThreeFish / 2
+            {
+                DoThreefishForAllBlocks(state2, state,  tweakTmp); tweakTmp[0] += 0x1_0000_0000U;
+                DoThreefishForAllBlocks(state , state2, tweakTmp); tweakTmp[0] += 0x1_0000_0000U;
+            }
+            DoThreefishForAllBlocks(state2, state,  tweakTmp);  tweakTmp[0] += 0x1_0000_0000U;
             DoPermutation(state, state2, CryptoStateLen, transpose128_3200);
             BytesBuilder.CopyTo(CryptoStateLen, CryptoStateLen, state2, state);
 

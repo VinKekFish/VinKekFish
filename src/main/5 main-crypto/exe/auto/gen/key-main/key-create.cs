@@ -177,7 +177,7 @@ public unsafe partial class AutoCrypt
         {
             // Инициализируем генераторы ключей синхропосылками
             var regime_KG = 3;
-            Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
+            Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
             Cascade_KeyGenerator.Step(data: obfRegimeName, dataLen: obfRegimeName.len, regime: 1);
             Cascade_KeyGenerator.Step(data: OIV,           dataLen: OIV.len,           regime: 2);
 

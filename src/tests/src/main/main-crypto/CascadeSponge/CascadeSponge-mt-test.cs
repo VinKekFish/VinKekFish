@@ -30,7 +30,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
     public virtual void Test()
     {
         // В первый раз, почему-то, очень медленно работает шаг - делаем это вне измерений производительности
-        var cascade1t = new CascadeSponge_1t_20230905(_tall: 4, _wide: 4);
+        var cascade1t = new CascadeSponge_1t_20230905(_tall: 4, _wide: 4) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
         cascade1t.Step(countOfSteps: 1);
         cascade1t.Dispose();
     }
@@ -41,8 +41,8 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
         GC.WaitForPendingFinalizers();
         var cc = GC.CollectionCount(0);
 
-        var cascade1t = new CascadeSponge_1t_20230905(_tall: tall, _wide: wide);
-        var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 0);
+        var cascade1t = new CascadeSponge_1t_20230905(_tall: tall, _wide: wide) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
+        var cascademt = new CascadeSponge_mt_20230930(_tall: tall, _wide: wide, ThreadsCount: 0) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
 
         // var dlen = cascade1t.maxDataLen*5 - 1;
         var dlen = cascade1t.maxDataLen;

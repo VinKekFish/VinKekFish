@@ -46,7 +46,7 @@ namespace vinkekfish
         public readonly int CountOfRounds  = 0;                             /// <summary>Коэффициент размера K</summary>
         public readonly int K              = 1;                             /// <summary>Количество заключительных пар перестановок в завершающем преобразовании (2 => 4*keccak, 3 => 6*keccak)</summary>
         public readonly int CountOfFinal   = Int32.MaxValue;
-                                                                            /// <summary>Размер одного криптографического состояния в байтах, включая продление для расширения ключа ThreeFish для последнего блока</summary>
+                                                                            /// <summary>Размер одного технического массива криптографического состояния в байтах, включая продление для расширения ключа ThreeFish для последнего блока. Логическое значение длины состояния см. Len.</summary>
         public readonly int FullLen        = 0;                             /// <summary>Размер одного криптографического состояния в байтах (логический, без продления состояния для расширения ключа ThreeFish для последнего блока)</summary>
         public readonly int Len            = 0;                             /// <summary>Размер криптографического состояния в блоках ThreeFish</summary>
         public readonly int LenInThreeFish = 0;                             /// <summary>Размер криптографического состояния в блока Keccak</summary>

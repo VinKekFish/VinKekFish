@@ -43,7 +43,7 @@ namespace vinkekfish
                 gpKeyLen = key_length;
 
             var prng = PreRoundsForTranspose >= Rounds ? null
-                             : prngToInit ?? new CascadeSponge_mt_20230930(gpKeyLen);
+                             : prngToInit ?? new CascadeSponge_mt_20230930(gpKeyLen) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
 
             if (key != null || OpenInitVector != null)
             if (prng == null)

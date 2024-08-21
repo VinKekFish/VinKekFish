@@ -29,7 +29,7 @@ public partial class Regime_Service
 
     public const int OutputStrenght = 11*1024;      // При изменении этого, поменять инициализацию VinKekFish
     public VinKekFishBase_KN_20210525 VinKekFish    = new(VinKekFishBase_KN_20210525.Calc_EXTRA_ROUNDS_K(11), 11, 1);   // 275 == inKekFish.EXTRA_ROUNDS_K, K = 11, ThreadCount = 1
-    public CascadeSponge_mt_20230930  CascadeSponge = new(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1) { ShortStepForAbsorption = true };
+    public CascadeSponge_mt_20230930  CascadeSponge = new(OutputStrenght, ThreadsCount: Environment.ProcessorCount - 1) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.weak };
 
     public bool IsInitiated { get; protected set; } = false;
                                                                     /// <summary>Буферная запись, которая создаётся в StartEntropy и используется в InputEntropyFromSources. Осторожно, она хранит данные между запусками функций: её нельзя нигде использовать. Её размер MAX_RANDOM_AT_START_FILE_LENGTH</summary>

@@ -324,7 +324,7 @@ public unsafe partial class AutoCrypt
 
             try
             {
-                Cascade_Key = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes);
+                Cascade_Key = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
 
                 Record? br2 = null, br3 = null;
                 try

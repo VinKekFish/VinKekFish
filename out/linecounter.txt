@@ -1,0 +1,1580 @@
+===============================================================================
+EXTENSION NAME : linecounter
+EXTENSION VERSION : 0.2.7
+-------------------------------------------------------------------------------
+count time : 2024-08-21 12:45:02
+count workspace : /Arcs/Repos/Crypto/VinKekFish
+total files : 966
+total code lines : 84213
+total comment lines : 13606
+total blank lines : 7754
+
+    statistics
+   |      extension|     total code|  total comment|    total blank|percent|
+   -------------------------------------------------------------------------
+   |           .xml|          19335|              0|              1|     23|
+   |            .cs|          31712|           7681|           5109|     38|
+   |          .json|           6130|              0|            241|    7.3|
+   |        .csproj|            259|              0|             63|   0.31|
+   |            .md|           2423|             37|            976|    2.9|
+   |           .fmc|             21|              0|              1|  0.025|
+   |          .--cs|            225|             78|             61|   0.27|
+   |           .-cs|            230|             98|             52|   0.27|
+   |       .targets|             30|              0|              0|  0.036|
+   |           .txt|           1167|             30|            221|    1.4|
+   |         .cache|            195|              0|             11|   0.23|
+   |         .props|            225|              0|              0|   0.27|
+   |  .editorconfig|            422|              0|              0|   0.50|
+   |  .CopyComplete|              0|              0|              0|    0.0|
+   |            .sh|            394|             58|            127|   0.47|
+   |       .service|            195|              9|             57|   0.23|
+   |       .options|           1186|            576|            103|    1.4|
+   |               |            150|             64|             27|   0.18|
+   |           .loc|            856|              0|              0|    1.0|
+   |.Keccak_sha_3_512_test|             78|              0|              8|  0.093|
+   |.CascadeSponge_mt_20230930_exampleTest|             27|              0|             21|  0.032|
+   |.CascadeSponge_1t_20230905_simpleTest2|             15|              0|              9|  0.018|
+   |.CascadeSponge_1t_20230905_simpleTest|             15|              0|              9|  0.018|
+   |.Keccak_test_abstract_20200918|             56|              0|             17|  0.066|
+   |.Keccak_test_example|             12|              0|              8|  0.014|
+   |.BytesBuilder_Static_test2|             82|              0|             28|  0.097|
+   |.BytesBuilder_ForPointers_test|             94|              0|             11|   0.11|
+   |.SecureCompare_test|             12|              0|              8|  0.014|
+   |.BytesBuilder_test5_add|             44|              0|              8|  0.052|
+   |.BytesBuilder_ForPointers_Record_test3|             30|              0|              8|  0.036|
+   |.BytesBuilder_ForPointers_Record_test2|             48|              0|              8|  0.057|
+   |.BytesBuilder_ForPointers_Record_test4|             12|              0|              8|  0.014|
+   |.BitToBytes_test1|             78|              0|              8|  0.093|
+   |.BytesBuilder_test3|            270|              0|              8|   0.32|
+   |.BytesBuilder_ForPointers_Record_test5|             12|              0|              8|  0.014|
+   |.BytesBuilder_Static_test1|             82|              0|             28|  0.097|
+   |.BytesBuilder_test1|             93|              0|              9|   0.11|
+   |.BytesBuilder_ForPointers_Record_test1|             12|              0|              8|  0.014|
+   |.BytesBuilder_test5_add4|           7264|              0|              8|    8.6|
+   |.BytesBuilder_test4|            526|              0|              8|   0.62|
+   |.BytesBuilder_test2|           8355|              0|              8|    9.9|
+   |.ServiceAutoTestFile|             23|              0|              8|  0.027|
+   |.ServiceAutoTestFile_Input|             43|              0|              8|  0.051|
+   |.FilePartsTests|             30|              0|             14|  0.036|
+   |.code-workspace|             24|              0|              0|  0.028|
+   |           .log|            375|              0|            375|   0.45|
+   |.1-ФорматПервичногоФайла|             43|              0|             18|  0.051|
+   |             .1|             73|              2|             30|  0.087|
+   |           .pdf|           1230|           4973|              7|    1.5|
+   -------------------------------------------------------------------------
+.gitignore, code is 114, comment is 64, blank is 24.
+b/build.sh, code is 15, comment is 1, blank is 7.
+b/fbuild.sh, code is 23, comment is 5, blank is 10.
+b/opts, code is 12, comment is 0, blank is 0.
+b/optsne, code is 9, comment is 0, blank is 0.
+b/rebuild.sh, code is 21, comment is 4, blank is 7.
+b/tbuild.sh, code is 11, comment is 3, blank is 3.
+build.md, code is 43, comment is 3, blank is 26.
+build/4 utils.deps.json, code is 37, comment is 0, blank is 0.
+build/4 utils.dll, it is a binary file.
+build/arcs/dotnet7/exe/install-p.sh, code is 101, comment is 7, blank is 28.
+build/arcs/dotnet7/exe/install.sh, code is 1, comment is 8, blank is 4.
+build/arcs/dotnet7/exe/locales/en.loc, code is 134, comment is 0, blank is 0.
+build/arcs/dotnet7/exe/locales/ru.loc, code is 151, comment is 0, blank is 0.
+build/arcs/dotnet7/exe/service.options, code is 319, comment is 192, blank is 26.
+build/arcs/dotnet7/exe/test.options, code is 56, comment is 0, blank is 7.
+build/arcs/dotnet7/exe/vkf, it is a binary file.
+build/arcs/dotnet7/exe/vkf.service, code is 65, comment is 3, blank is 19.
+build/arcs/vkf-dotnet7.7z, it is a binary file.
+build/builder/builder, it is a binary file.
+build/builder/builder.deps.json, code is 48, comment is 0, blank is 0.
+build/builder/builder.dll, it is a binary file.
+build/builder/builder.pdb, it is a binary file.
+build/builder/builder.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/builder/DriverForTestsLib.dll, it is a binary file.
+build/builder/DriverForTestsLib.pdb, it is a binary file.
+build/builder/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+build/builder/utils.dll, it is a binary file.
+build/builder/utils.pdb, it is a binary file.
+build/bytesbuilder.deps.json, code is 24, comment is 0, blank is 0.
+build/bytesbuilder.dll, it is a binary file.
+build/bytesbuilder.pdb, it is a binary file.
+build/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+build/cryptoprime.deps.json, code is 37, comment is 0, blank is 0.
+build/cryptoprime.dll, it is a binary file.
+build/cryptoprime.pdb, it is a binary file.
+build/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+build/DriverForTestsLib.dll, it is a binary file.
+build/DriverForTestsLib.pdb, it is a binary file.
+build/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+build/generator, it is a binary file.
+build/generator.pdb, it is a binary file.
+build/install-p.sh, code is 101, comment is 7, blank is 28.
+build/install.sh, code is 1, comment is 8, blank is 4.
+build/locales/en.loc, code is 134, comment is 0, blank is 0.
+build/locales/ru.loc, code is 151, comment is 0, blank is 0.
+build/maincrypto.deps.json, code is 64, comment is 0, blank is 0.
+build/maincrypto.dll, it is a binary file.
+build/SecureCompare, it is a binary file.
+build/SecureCompare.deps.json, code is 63, comment is 0, blank is 0.
+build/SecureCompare.dll, it is a binary file.
+build/SecureCompare.pdb, it is a binary file.
+build/SecureCompare.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/service.options, code is 319, comment is 192, blank is 26.
+build/test.options, code is 56, comment is 0, blank is 7.
+build/tests, it is a binary file.
+build/tests.deps.json, code is 101, comment is 0, blank is 0.
+build/tests.dll, it is a binary file.
+build/tests.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/Threefish_Static_Generated.cs, code is 2183, comment is 729, blank is 86.
+build/Threefish_Static_Generated2.cs, code is 2143, comment is 728, blank is 84.
+build/utils.dll, it is a binary file.
+build/utils.pdb, it is a binary file.
+build/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+build/vkf, it is a binary file.
+build/vkf.service, code is 65, comment is 3, blank is 19.
+cmp.sh, code is 9, comment is 0, blank is 2.
+cmpe.sh, code is 9, comment is 0, blank is 2.
+Docs/Dev/CodeReview/КонтрольныйСписок/_Проверки.txt, code is 58, comment is 5, blank is 17.
+Docs/Dev/CodeReview/КонтрольныйСписок/АлгоритмПроверки.txt, code is 57, comment is 1, blank is 24.
+Docs/Dev/CodeReview/КонтрольныйСписок/Возможные_ошибки.txt, code is 10, comment is 0, blank is 6.
+Docs/Dev/CodeReview/КонтрольныйСписок/Конфи.txt, code is 20, comment is 0, blank is 3.
+Docs/Dev/CodeReview/КонтрольныйСписок/Память.txt, code is 4, comment is 0, blank is 0.
+Docs/Dev/CodeReview/КонтрольныйСписок/Память_диапазоны.txt, code is 6, comment is 0, blank is 2.
+Docs/Dev/CodeReview/КонтрольныйСписок/ПотокиДанных, code is 4, comment is 0, blank is 1.
+Docs/Dev/CodeReview/КонтрольныйСписок/Состояния_Документация.txt, code is 35, comment is 0, blank is 4.
+Docs/Dev/CodeReview/КонтрольныйСписок/Состояния_Проверка.txt, code is 74, comment is 0, blank is 12.
+Docs/Dev/CodeReview/КонтрольныйСписок/ЦиклыИУсловия.txt, code is 12, comment is 0, blank is 2.
+Docs/Dev/Crypto/keys-templates.md, code is 25, comment is 0, blank is 10.
+Docs/Dev/Crypto/Threats/МодельУгроз.md, code is 166, comment is 0, blank is 83.
+Docs/Dev/Crypto/VinKekFish/Description/cascadeSponge.md, code is 215, comment is 0, blank is 78.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/CascadeSponge_1t.md, code is 6, comment is 0, blank is 5.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/GeneralOfDetails.md, code is 4, comment is 0, blank is 3.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/SingleThreadEtalon1K-2021.md, code is 176, comment is 10, blank is 86.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/VinKekFishBase_KN_20210525.md, code is 18, comment is 1, blank is 11.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.key.2024.1, code is 4, comment is 1, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.pwd.2024.1, code is 39, comment is 1, blank is 18.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.pwd.2024.1-ФорматПервичногоФайла, code is 43, comment is 0, blank is 18.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.4.pwd.2024.1, code is 30, comment is 0, blank is 11.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/simple.file.2024.1, code is 0, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-128.txt, code is 25, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-200.txt, code is 16, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-200_8.txt, code is 16, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/VinKekFish.md, code is 540, comment is 5, blank is 262.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/МинимальноеКоличествоПредставленныхЧисел.txt, code is 73, comment is 0, blank is 26.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/ОтклонениеОтСлучайности.txt, code is 1, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/СравнениеМассиваКоличестваВстреч.txt, code is 1, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/2/Перемешивание.txt, code is 4, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/2/РазмышленияПостроениеРасширенногоАлгоритма.txt, code is 113, comment is 1, blank is 39.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Какие должны быть шифры.txt, code is 82, comment is 0, blank is 26.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Каскадирование ключей.txt, code is 4, comment is 0, blank is 4.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/МашинаМодель1.md, code is 114, comment is 0, blank is 50.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Общие размышления.txt, code is 7, comment is 0, blank is 5.
+Docs/Dev/Crypto/Задачи/Задачи.txt, code is 31, comment is 5, blank is 18.
+Docs/Dev/Crypto/Задачи/Записки.txt, code is 78, comment is 18, blank is 29.
+Docs/Dev/Crypto/Использование/СценарииИспользование/Общее.md, code is 95, comment is 13, blank is 24.
+Docs/Dev/Crypto/Конфигурация/service.options, code is 61, comment is 0, blank is 4.
+Docs/Dev/README.md, code is 23, comment is 0, blank is 12.
+Docs/External/Keccak-reference-3.0.pdf, it is a binary file.
+Docs/External/NIST.FIPS.202.pdf, code is 1230, comment is 4973, blank is 7.
+Docs/External/skein.pdf, it is a binary file.
+Docs/External/SkeinFish-0.5.0.zip, it is a binary file.
+log-KNe.log, code is 375, comment is 0, blank is 375.
+README.md, code is 48, comment is 4, blank is 38.
+REDEFINE.loc, code is 1, comment is 0, blank is 0.
+src/.editorconfig, code is 9, comment is 0, blank is 2.
+src/builder/builder/assembly.cs, code is 1, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.deps.json, code is 48, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.pdb, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/builder/builder/Build-projects.cs, code is 131, comment is 11, blank is 37.
+src/builder/builder/Build.cs, code is 97, comment is 17, blank is 28.
+src/builder/builder/Builder.cs, code is 50, comment is 38, blank is 12.
+src/builder/builder/builder.csproj, code is 13, comment is 0, blank is 3.
+src/builder/builder/obj/builder.csproj.nuget.dgspec.json, code is 184, comment is 0, blank is 12.
+src/builder/builder/obj/builder.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/builder/builder/obj/builder.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/builder/builder/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/builder/builder/obj/Debug/net7.0/builder.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/builder/builder/obj/Debug/net7.0/builder.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/builder/builder/obj/Debug/net7.0/builder.assets.cache, it is a binary file.
+src/builder/builder/obj/Debug/net7.0/builder.csproj.AssemblyReference.cache, it is a binary file.
+src/builder/builder/obj/Debug/net7.0/builder.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/builder/builder/obj/Debug/net7.0/builder.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/builder/builder/obj/Debug/net7.0/builder.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/builder/builder/obj/project.assets.json, code is 137, comment is 0, blank is 5.
+src/builder/builder/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/builder/builder/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.assets.cache, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.csproj.AssemblyReference.cache, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.csproj.FileListAbsolute.txt, code is 21, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.dll, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/builder.pdb, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/PublishOutputs.e59dd6dee8.txt, code is 10, comment is 0, blank is 0.
+src/builder/builder/obj/Release/net7.0/linux-x64/ref/builder.dll, it is a binary file.
+src/builder/builder/obj/Release/net7.0/linux-x64/refint/builder.dll, it is a binary file.
+src/builder/builder/Program.cs, code is 128, comment is 16, blank is 40.
+src/builder/builder/Tester.cs, code is 22, comment is 4, blank is 7.
+src/builder/README.md, code is 4, comment is 1, blank is 4.
+src/main/1 BytesBuilder/.editorconfig, code is 2, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.deps.json, code is 23, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.deps.json, code is 24, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bytesbuilder.csproj, code is 24, comment is 0, blank is 8.
+src/main/1 BytesBuilder/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/BytesBuilder/BitToBytes.cs, code is 57, comment is 15, blank is 12.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilder.cs, code is 703, comment is 247, blank is 183.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderForPointers.cs, code is 208, comment is 73, blank is 63.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderForPointers_record.cs, code is 666, comment is 153, blank is 155.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderStatic.cs, code is 295, comment is 65, blank is 75.
+src/main/1 BytesBuilder/BytesBuilder/Documentation/BytesBuilderForPointers.md, code is 81, comment is 0, blank is 24.
+src/main/1 BytesBuilder/BytesBuilder/Documentation/BytesBuilderForPointers.Record.md, code is 169, comment is 0, blank is 43.
+src/main/1 BytesBuilder/Memory/Utils-alignment.cs, code is 22, comment is 8, blank is 5.
+src/main/1 BytesBuilder/Memory/Utils-compare.cs, code is 55, comment is 26, blank is 15.
+src/main/1 BytesBuilder/obj/bytesbuilder.csproj.nuget.dgspec.json, code is 63, comment is 0, blank is 4.
+src/main/1 BytesBuilder/obj/bytesbuilder.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/bytesbuilder.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.assets.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.csproj.AssemblyReference.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Debug/net7.0/bytesbuilder.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/project.assets.json, code is 69, comment is 0, blank is 4.
+src/main/1 BytesBuilder/obj/project.nuget.cache, code is 8, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.assets.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.csproj.AssemblyReference.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.csproj.FileListAbsolute.txt, code is 13, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.assets.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.csproj.AssemblyReference.cache, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.csproj.FileListAbsolute.txt, code is 13, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 4, comment is 0, blank is 0.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/ref/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/linux-x64/refint/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/ref/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/obj/Release/net7.0/refint/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/threefish_slowly.cs, code is 132, comment is 29, blank is 28.
+src/main/1 BytesBuilder/Utils-allocation.cs, code is 210, comment is 76, blank is 51.
+src/main/1 BytesBuilder/Utils-debug.cs, code is 75, comment is 22, blank is 16.
+src/main/1 BytesBuilder/Utils-glob.cs, code is 44, comment is 12, blank is 15.
+src/main/2 generator/BaseCodeGenerator.cs, code is 66, comment is 0, blank is 12.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.deps.json, code is 48, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.dll, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/main/2 generator/generator.csproj, code is 14, comment is 0, blank is 3.
+src/main/2 generator/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/2 generator/obj/Debug/net7.0/generator.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/2 generator/obj/Debug/net7.0/generator.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/2 generator/obj/Debug/net7.0/generator.assets.cache, it is a binary file.
+src/main/2 generator/obj/Debug/net7.0/generator.csproj.AssemblyReference.cache, it is a binary file.
+src/main/2 generator/obj/Debug/net7.0/generator.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/main/2 generator/obj/Debug/net7.0/generator.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/2 generator/obj/Debug/net7.0/generator.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/2 generator/obj/generator.csproj.nuget.dgspec.json, code is 184, comment is 0, blank is 12.
+src/main/2 generator/obj/generator.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/2 generator/obj/generator.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/2 generator/obj/project.assets.json, code is 136, comment is 0, blank is 5.
+src/main/2 generator/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/main/2 generator/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.assets.cache, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.csproj.AssemblyReference.cache, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.csproj.FileListAbsolute.txt, code is 22, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.dll, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/generator.pdb, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 6, comment is 0, blank is 0.
+src/main/2 generator/obj/Release/net7.0/linux-x64/ref/generator.dll, it is a binary file.
+src/main/2 generator/obj/Release/net7.0/linux-x64/refint/generator.dll, it is a binary file.
+src/main/2 generator/Program.cs, code is 14, comment is 1, blank is 2.
+src/main/2 generator/ThreeFish_Gen.cs, code is 157, comment is 15, blank is 41.
+src/main/2 generator/ThreeFish_Gen2.cs, code is 145, comment is 36, blank is 40.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.deps.json, code is 36, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.deps.json, code is 37, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/cryptoprime.csproj, code is 26, comment is 0, blank is 8.
+src/main/3 cryptoprime/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/keccak/KeccakPrime.cs, code is 384, comment is 179, blank is 87.
+src/main/3 cryptoprime/obj/cryptoprime.csproj.nuget.dgspec.json, code is 122, comment is 0, blank is 8.
+src/main/3 cryptoprime/obj/cryptoprime.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/cryptoprime.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.assets.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.csproj.AssemblyReference.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Debug/net7.0/cryptoprime.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/project.assets.json, code is 102, comment is 0, blank is 5.
+src/main/3 cryptoprime/obj/project.nuget.cache, code is 8, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.assets.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.csproj.AssemblyReference.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.csproj.FileListAbsolute.txt, code is 17, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.assets.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.csproj.AssemblyReference.cache, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.csproj.FileListAbsolute.txt, code is 17, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 7, comment is 0, blank is 0.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/ref/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/linux-x64/refint/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/ref/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/obj/Release/net7.0/refint/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/ThreeFish/alien/alien_ThreefishTransform.cs, code is 1624, comment is 47, blank is 61.
+src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated.cs, code is 2183, comment is 729, blank is 86.
+src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated2.cs, code is 2143, comment is 728, blank is 84.
+src/main/3 cryptoprime/ThreeFish/threefish_unsafe.cs, code is 46, comment is 13, blank is 15.
+src/main/4 utils/4 utils.csproj, code is 24, comment is 0, blank is 7.
+src/main/4 utils/Align.cs, code is 30, comment is 11, blank is 6.
+src/main/4 utils/bin/Release/net7.0/4 utils.deps.json, code is 36, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/4 utils.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/4 utils.deps.json, code is 37, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/4 utils/console/ConsoleColor.cs, code is 56, comment is 10, blank is 10.
+src/main/4 utils/languages/language.cs, code is 68, comment is 4, blank is 17.
+src/main/4 utils/languages/locales/en.loc, code is 134, comment is 0, blank is 0.
+src/main/4 utils/languages/locales/ru.loc, code is 151, comment is 0, blank is 0.
+src/main/4 utils/obj/4 utils.csproj.nuget.dgspec.json, code is 122, comment is 0, blank is 8.
+src/main/4 utils/obj/4 utils.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/4 utils/obj/4 utils.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/4 utils/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/4 utils/obj/Debug/net7.0/4 utils.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/4 utils/obj/Debug/net7.0/4 utils.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/4 utils/obj/Debug/net7.0/4 utils.assets.cache, it is a binary file.
+src/main/4 utils/obj/Debug/net7.0/4 utils.csproj.AssemblyReference.cache, it is a binary file.
+src/main/4 utils/obj/Debug/net7.0/4 utils.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/main/4 utils/obj/Debug/net7.0/4 utils.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/4 utils/obj/Debug/net7.0/4 utils.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/4 utils/obj/project.assets.json, code is 102, comment is 0, blank is 5.
+src/main/4 utils/obj/project.nuget.cache, code is 8, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/4 utils/obj/Release/net7.0/4 utils.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.assets.cache, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/4 utils.csproj.AssemblyReference.cache, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/4 utils.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.dll, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/4 utils.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/4 utils.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.assets.cache, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.csproj.AssemblyReference.cache, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/4 utils.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 6, comment is 0, blank is 0.
+src/main/4 utils/obj/Release/net7.0/linux-x64/ref/4 utils.dll, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/linux-x64/refint/4 utils.dll, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/ref/4 utils.dll, it is a binary file.
+src/main/4 utils/obj/Release/net7.0/refint/4 utils.dll, it is a binary file.
+src/main/4 utils/Options/Options-service-Input.cs, code is 607, comment is 51, blank is 133.
+src/main/4 utils/Options/Options-service-Options.cs, code is 24, comment is 2, blank is 4.
+src/main/4 utils/Options/Options-service-Output.cs, code is 125, comment is 6, blank is 28.
+src/main/4 utils/Options/Options-service-Path.cs, code is 45, comment is 3, blank is 12.
+src/main/4 utils/Options/Options-service.cs, code is 134, comment is 13, blank is 36.
+src/main/4 utils/Options/OptionsParser.cs, code is 199, comment is 11, blank is 46.
+src/main/4 utils/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/4 utils.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/maincrypto.deps.json, code is 64, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/maincrypto.deps.json, code is 63, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t.cs, code is 391, comment is 134, blank is 95.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_exception.cs, code is 13, comment is 1, blank is 3.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_input_output_reverce.cs, code is 135, comment is 49, blank is 37.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_prng.cs, code is 174, comment is 41, blank is 45.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_step.cs, code is 213, comment is 74, blank is 57.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_utils.cs, code is 29, comment is 7, blank is 6.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt.cs, code is 60, comment is 14, blank is 14.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt_step.cs, code is 76, comment is 54, blank is 23.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt_threads.cs, code is 173, comment is 23, blank is 39.
+src/main/5 main-crypto/exe/auto/AutoCrypt-CommandOption.cs, code is 318, comment is 46, blank is 66.
+src/main/5 main-crypto/exe/auto/AutoCrypt-ConnectAndInit.cs, code is 70, comment is 2, blank is 9.
+src/main/5 main-crypto/exe/auto/AutoCrypt-deccommand.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/auto/AutoCrypt-endcommand.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/auto/AutoCrypt-parsing.cs, code is 79, comment is 10, blank is 16.
+src/main/5 main-crypto/exe/auto/AutoCrypt.cs, code is 107, comment is 12, blank is 21.
+src/main/5 main-crypto/exe/auto/enc/-Main.4.pwd.2024.1.EncryptDataStream-enc.cs, code is 0, comment is 87, blank is 0.
+src/main/5 main-crypto/exe/auto/enc/-Main.4.pwd.2024.1.EncryptDataStream.cs, code is 0, comment is 128, blank is 0.
+src/main/5 main-crypto/exe/auto/enc/enc.cs, code is 45, comment is 4, blank is 6.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1-decryptParts.cs, code is 217, comment is 22, blank is 58.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1-encryptParts.cs, code is 194, comment is 22, blank is 56.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1.cs, code is 204, comment is 40, blank is 37.
+src/main/5 main-crypto/exe/auto/gen/key-main/key-create.cs, code is 240, comment is 80, blank is 60.
+src/main/5 main-crypto/exe/auto/gen/key-main/key.cs, code is 493, comment is 106, blank is 106.
+src/main/5 main-crypto/exe/auto/HelperClasses/FileParts-dispose.cs, code is 87, comment is 24, blank is 14.
+src/main/5 main-crypto/exe/auto/HelperClasses/FileParts.cs, code is 206, comment is 56, blank is 45.
+src/main/5 main-crypto/exe/auto/HelperClasses/GetDataFromSponge.cs, code is 199, comment is 23, blank is 40.
+src/main/5 main-crypto/exe/auto/HelperClasses/KeyDataGenerator+CryptoKeyPair.cs, code is 188, comment is 34, blank is 39.
+src/main/5 main-crypto/exe/auto/HelperClasses/PasswordEnter.cs, code is 204, comment is 17, blank is 41.
+src/main/5 main-crypto/exe/auto/pwd/pwd.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/ProgrammErrorCode.cs, code is 19, comment is 7, blank is 4.
+src/main/5 main-crypto/exe/README.md, code is 10, comment is 0, blank is 8.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-continuously.cs, code is 643, comment is 71, blank is 108.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-get.cs, code is 150, comment is 12, blank is 30.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-init.cs, code is 379, comment is 62, blank is 78.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-inputEntropyFromSources.cs, code is 179, comment is 27, blank is 35.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy.cs, code is 44, comment is 3, blank is 12.
+src/main/5 main-crypto/exe/service/entropy/RandomAtStart.cs, code is 54, comment is 4, blank is 10.
+src/main/5 main-crypto/exe/service/options_files/service.options, code is 319, comment is 192, blank is 26.
+src/main/5 main-crypto/exe/service/options_files/test.options, code is 56, comment is 0, blank is 7.
+src/main/5 main-crypto/exe/service/options_files/vkf.service, code is 65, comment is 3, blank is 19.
+src/main/5 main-crypto/exe/service/service.cs, code is 237, comment is 49, blank is 43.
+src/main/5 main-crypto/exe/service/Streams/cuse.cs, code is 371, comment is 157, blank is 76.
+src/main/5 main-crypto/exe/service/Streams/unixstream.cs, code is 174, comment is 49, blank is 37.
+src/main/5 main-crypto/keccak/keccak-20200918/Documentation/Keccak_PRNG_20201128.md, code is 133, comment is 0, blank is 38.
+src/main/5 main-crypto/keccak/keccak-20200918/keccak-20200918.cs, code is 19, comment is 3, blank is 7.
+src/main/5 main-crypto/keccak/keccak-20200918/keccak-base-20200918.cs, code is 259, comment is 61, blank is 43.
+src/main/5 main-crypto/keccak/keccak-20200918/Keccak_PRNG_20201128.cs, code is 341, comment is 119, blank is 92.
+src/main/5 main-crypto/keccak/keccak_abstract.cs, code is 108, comment is 31, blank is 23.
+src/main/5 main-crypto/maincrypto.csproj, code is 28, comment is 0, blank is 8.
+src/main/5 main-crypto/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.assets.cache, it is a binary file.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.csproj.AssemblyReference.cache, it is a binary file.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Debug/net7.0/maincrypto.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/maincrypto.csproj.nuget.dgspec.json, code is 246, comment is 0, blank is 16.
+src/main/5 main-crypto/obj/maincrypto.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/maincrypto.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/project.assets.json, code is 172, comment is 0, blank is 5.
+src/main/5 main-crypto/obj/project.nuget.cache, code is 8, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.assets.cache, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.csproj.AssemblyReference.cache, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.csproj.FileListAbsolute.txt, code is 18, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/maincrypto.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 9, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/ref/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/linux-x64/refint/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.assets.cache, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.csproj.AssemblyReference.cache, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.csproj.FileListAbsolute.txt, code is 18, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/maincrypto.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/5 main-crypto/obj/Release/net7.0/ref/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/obj/Release/net7.0/refint/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/README.md, code is 9, comment is 0, blank is 9.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/--VinKekFish_k1_base_20210419_keyGeneration.--cs, code is 225, comment is 78, blank is 61.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419.xml, code is 49, comment is 0, blank is 1.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration-ввод-вывод.md, code is 7, comment is 0, blank is 2.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration_конфи.md, code is 6, comment is 0, blank is 5.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration_состояния.md, code is 256, comment is 0, blank is 63.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_состояния.fmc, code is 21, comment is 0, blank is 1.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_состояния.md, code is 245, comment is 0, blank is 70.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/VinKekFish_k1_base_20210419.cs, code is 273, comment is 76, blank is 74.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525.cs, code is 303, comment is 98, blank is 65.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_get_pt.cs, code is 161, comment is 26, blank is 33.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_input_output.cs, code is 83, comment is 17, blank is 15.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_step_init.cs, code is 320, comment is 95, blank is 85.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_threads copy.-cs, code is 230, comment is 98, blank is 52.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_threads.cs, code is 166, comment is 57, blank is 40.
+src/main/5 main-crypto/VinKekFish/VinKekFish/descr.md, code is 7, comment is 0, blank is 4.
+src/main/5 main-crypto/VinKekFish/VinKekFish/VinKekFishBase_etalonK1.cs, code is 349, comment is 138, blank is 86.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.deps.json, code is 80, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/main/6 vkf/commands/auto.cs, code is 22, comment is 2, blank is 6.
+src/main/6 vkf/commands/check.cs, code is 36, comment is 1, blank is 6.
+src/main/6 vkf/commands/install.cs, code is 98, comment is 10, blank is 22.
+src/main/6 vkf/commands/manual.cs, code is 17, comment is 1, blank is 5.
+src/main/6 vkf/commands/service.cs, code is 61, comment is 4, blank is 11.
+src/main/6 vkf/install/install-p.sh, code is 101, comment is 7, blank is 28.
+src/main/6 vkf/install/install.sh, code is 1, comment is 8, blank is 4.
+src/main/6 vkf/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/6 vkf/obj/Debug/net7.0/vkf.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/6 vkf/obj/Debug/net7.0/vkf.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/6 vkf/obj/Debug/net7.0/vkf.assets.cache, it is a binary file.
+src/main/6 vkf/obj/Debug/net7.0/vkf.csproj.AssemblyReference.cache, it is a binary file.
+src/main/6 vkf/obj/Debug/net7.0/vkf.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/main/6 vkf/obj/Debug/net7.0/vkf.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/6 vkf/obj/project.assets.json, code is 217, comment is 0, blank is 5.
+src/main/6 vkf/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 5, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/ref/vkf.dll, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/refint/vkf.dll, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.assets.cache, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.csproj.AssemblyReference.cache, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.csproj.FileListAbsolute.txt, code is 22, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.dll, it is a binary file.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/main/6 vkf/obj/Release/net7.0/linux-x64/vkf.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/main/6 vkf/obj/vkf.csproj.nuget.dgspec.json, code is 320, comment is 0, blank is 20.
+src/main/6 vkf/obj/vkf.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/main/6 vkf/obj/vkf.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/main/6 vkf/Program-version.cs, code is 5, comment is 0, blank is 1.
+src/main/6 vkf/Program.cs, code is 159, comment is 9, blank is 26.
+src/main/6 vkf/vkf.csproj, code is 28, comment is 0, blank is 7.
+src/main/README.md, code is 15, comment is 0, blank is 12.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/CheckDate/build.dev/Console, it is a binary file.
+src/test-dev/CheckDate/build.dev/Console.pdb, it is a binary file.
+src/test-dev/CheckDate/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/CheckDate/obj/Console.csproj.nuget.dgspec.json, code is 68, comment is 0, blank is 4.
+src/test-dev/CheckDate/obj/Console.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Console.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.assets.cache, it is a binary file.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Debug/net7.0/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/CheckDate/obj/project.assets.json, code is 74, comment is 0, blank is 4.
+src/test-dev/CheckDate/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.assets.cache, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/PublishOutputs.51633e05e2.txt, code is 2, comment is 0, blank is 0.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/ref/Console.dll, it is a binary file.
+src/test-dev/CheckDate/obj/Release/net7.0/linux-x64/refint/Console.dll, it is a binary file.
+src/test-dev/CheckDate/Program.cs, code is 41, comment is 1, blank is 6.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Console/build.dev/Console, it is a binary file.
+src/test-dev/Console/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Console/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Console/obj/Console.csproj.nuget.dgspec.json, code is 68, comment is 0, blank is 4.
+src/test-dev/Console/obj/Console.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/Console/obj/Console.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/Console/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Console/obj/Debug/net7.0/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Console/obj/Debug/net7.0/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Console/obj/Debug/net7.0/Console.assets.cache, it is a binary file.
+src/test-dev/Console/obj/Debug/net7.0/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Console/obj/Debug/net7.0/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/Console/obj/Debug/net7.0/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Console/obj/project.assets.json, code is 74, comment is 0, blank is 4.
+src/test-dev/Console/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.assets.cache, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/PublishOutputs.892568653a.txt, code is 2, comment is 0, blank is 0.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/ref/Console.dll, it is a binary file.
+src/test-dev/Console/obj/Release/net7.0/linux-x64/refint/Console.dll, it is a binary file.
+src/test-dev/Console/Program.cs, code is 182, comment is 90, blank is 36.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Cuse/build.dev/Console, it is a binary file.
+src/test-dev/Cuse/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Cuse/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Cuse/fuse.code-workspace, code is 8, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Console.csproj.nuget.dgspec.json, code is 68, comment is 0, blank is 4.
+src/test-dev/Cuse/obj/Console.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Console.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.assets.cache, it is a binary file.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Debug/net7.0/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Cuse/obj/project.assets.json, code is 74, comment is 0, blank is 4.
+src/test-dev/Cuse/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.assets.cache, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/PublishOutputs.706831e1e2.txt, code is 2, comment is 0, blank is 0.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/ref/Console.dll, it is a binary file.
+src/test-dev/Cuse/obj/Release/net7.0/linux-x64/refint/Console.dll, it is a binary file.
+src/test-dev/Cuse/Program.cs, code is 397, comment is 72, blank is 79.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Fuse/build.dev/Console, it is a binary file.
+src/test-dev/Fuse/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Fuse/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Fuse/fuse.code-workspace, code is 8, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Console.csproj.nuget.dgspec.json, code is 68, comment is 0, blank is 4.
+src/test-dev/Fuse/obj/Console.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Console.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.assets.cache, it is a binary file.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Debug/net7.0/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Fuse/obj/project.assets.json, code is 74, comment is 0, blank is 4.
+src/test-dev/Fuse/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.assets.cache, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/PublishOutputs.5fb0822dc3.txt, code is 2, comment is 0, blank is 0.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/ref/Console.dll, it is a binary file.
+src/test-dev/Fuse/obj/Release/net7.0/linux-x64/refint/Console.dll, it is a binary file.
+src/test-dev/Fuse/Program.cs, code is 556, comment is 113, blank is 92.
+src/test-dev/README.md, code is 3, comment is 0, blank is 4.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.deps.json, code is 63, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.assets.cache, it is a binary file.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Debug/net7.0/SecureCompare.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/SecureCompare/obj/project.assets.json, code is 173, comment is 0, blank is 5.
+src/test-dev/SecureCompare/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 12, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/ref/SecureCompare.dll, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/refint/SecureCompare.dll, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.assets.cache, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.csproj.FileListAbsolute.txt, code is 23, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.dll, it is a binary file.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/SecureCompare/obj/Release/net7.0/linux-x64/SecureCompare.pdb, it is a binary file.
+src/test-dev/SecureCompare/obj/SecureCompare.csproj.nuget.dgspec.json, code is 248, comment is 0, blank is 16.
+src/test-dev/SecureCompare/obj/SecureCompare.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/SecureCompare/obj/SecureCompare.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/SecureCompare/SecureCompare.cs, code is 41, comment is 7, blank is 11.
+src/test-dev/SecureCompare/SecureCompare.csproj, code is 16, comment is 0, blank is 2.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/SimpleStat/build.dev/Console, it is a binary file.
+src/test-dev/SimpleStat/build.dev/Console.pdb, it is a binary file.
+src/test-dev/SimpleStat/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/SimpleStat/obj/Console.csproj.nuget.dgspec.json, code is 68, comment is 0, blank is 4.
+src/test-dev/SimpleStat/obj/Console.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Console.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.assets.cache, it is a binary file.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Debug/net7.0/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/SimpleStat/obj/project.assets.json, code is 74, comment is 0, blank is 4.
+src/test-dev/SimpleStat/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.assets.cache, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.csproj.FileListAbsolute.txt, code is 15, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/PublishOutputs.5c93d8c87c.txt, code is 2, comment is 0, blank is 0.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/ref/Console.dll, it is a binary file.
+src/test-dev/SimpleStat/obj/Release/net7.0/linux-x64/refint/Console.dll, it is a binary file.
+src/test-dev/SimpleStat/Program.cs, code is 70, comment is 6, blank is 9.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.deps.json, code is 101, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/bytesbuilder.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/cryptoprime.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/DriverForTestsLib.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/utils.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/VinKekFishDiffuseTest, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/VinKekFishDiffuseTest.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/log-State.log, code is 0, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.assets.cache, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Debug/net7.0/VinKekFishDiffuseTest.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/project.assets.json, code is 270, comment is 0, blank is 5.
+src/test-dev/VinKekFishDiffuseTest/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/PublishOutputs.c2a2847a81.txt, code is 9, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/ref/VinKekFishDiffuseTest.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/refint/VinKekFishDiffuseTest.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.assets.cache, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.csproj.AssemblyReference.cache, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.csproj.FileListAbsolute.txt, code is 29, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.GeneratedMSBuildEditorConfig.editorconfig, code is 15, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/Release/net7.0/linux-x64/VinKekFishDiffuseTest.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/obj/VinKekFishDiffuseTest.csproj.nuget.dgspec.json, code is 430, comment is 0, blank is 28.
+src/test-dev/VinKekFishDiffuseTest/obj/VinKekFishDiffuseTest.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/obj/VinKekFishDiffuseTest.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/Program.cs, code is 11, comment is 1, blank is 2.
+src/test-dev/VinKekFishDiffuseTest/VinKekFishDiffuseTest.csproj, code is 15, comment is 0, blank is 3.
+src/tests/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/tests, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/tests.deps.json, code is 101, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/tests.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/tests.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/tests/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/tests/obj/Debug/net7.0/tests.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/tests/obj/Debug/net7.0/tests.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/tests/obj/Debug/net7.0/tests.assets.cache, it is a binary file.
+src/tests/obj/Debug/net7.0/tests.csproj.AssemblyReference.cache, it is a binary file.
+src/tests/obj/Debug/net7.0/tests.csproj.FileListAbsolute.txt, code is 0, comment is 0, blank is 0.
+src/tests/obj/Debug/net7.0/tests.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/tests/obj/Debug/net7.0/tests.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/tests/obj/project.assets.json, code is 270, comment is 0, blank is 5.
+src/tests/obj/project.nuget.cache, code is 9, comment is 0, blank is 1.
+src/tests/obj/Release/net7.0/linux-x64/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs, code is 3, comment is 1, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/apphost, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/PublishOutputs.1032b13133.txt, code is 17, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/ref/tests.dll, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/refint/tests.dll, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/tests.AssemblyInfo.cs, code is 9, comment is 9, blank is 4.
+src/tests/obj/Release/net7.0/linux-x64/tests.AssemblyInfoInputs.cache, code is 1, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.assets.cache, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/tests.csproj.AssemblyReference.cache, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/tests.csproj.CopyComplete, code is 0, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.csproj.CoreCompileInputs.cache, code is 1, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.csproj.FileListAbsolute.txt, code is 27, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.dll, it is a binary file.
+src/tests/obj/Release/net7.0/linux-x64/tests.GeneratedMSBuildEditorConfig.editorconfig, code is 11, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.genruntimeconfig.cache, code is 1, comment is 0, blank is 0.
+src/tests/obj/Release/net7.0/linux-x64/tests.GlobalUsings.g.cs, code is 7, comment is 1, blank is 0.
+src/tests/obj/tests.csproj.nuget.dgspec.json, code is 430, comment is 0, blank is 28.
+src/tests/obj/tests.csproj.nuget.g.props, code is 15, comment is 0, blank is 0.
+src/tests/obj/tests.csproj.nuget.g.targets, code is 2, comment is 0, blank is 0.
+src/tests/Program.cs, code is 78, comment is 29, blank is 17.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BitToBytes_test1, code is 78, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test1, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test2, code is 48, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test3, code is 30, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test4, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test5, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_test, code is 94, comment is 0, blank is 11.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_Static_test1, code is 82, comment is 0, blank is 28.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_Static_test2, code is 82, comment is 0, blank is 28.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test1, code is 93, comment is 0, blank is 9.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test2, code is 8355, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test3, code is 270, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test4, code is 526, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test5_add, code is 44, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test5_add4, code is 7264, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.SecureCompare_test, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests.cs, code is 765, comment is 73, blank is 193.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forBBStatic.cs, code is 239, comment is 18, blank is 40.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forBitToBytes.cs, code is 67, comment is 8, blank is 14.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forPointers.cs, code is 599, comment is 59, blank is 136.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forSecureCompare.cs, code is 57, comment is 9, blank is 16.
+src/tests/src/main/cryptoprime/keccak/tests/autotests/cryptoprime_tests.Keccak_sha_3_512_test, code is 78, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/keccak/tests/tests.cs, code is 180, comment is 15, blank is 43.
+src/tests/src/main/cryptoprime/ThreeFish/tests/tests-performance.cs, code is 66, comment is 13, blank is 16.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishGenTestByBits-allBits.cs, code is 157, comment is 16, blank is 38.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishGenTestByBits.cs, code is 191, comment is 16, blank is 38.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishTestByBits.cs, code is 133, comment is 16, blank is 28.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_1t_20230905_simpleTest, code is 15, comment is 0, blank is 9.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_1t_20230905_simpleTest2, code is 15, comment is 0, blank is 9.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_mt_20230930_exampleTest, code is 27, comment is 0, blank is 21.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-mt-test.cs, code is 165, comment is 14, blank is 28.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-test-no-once.cs, code is 283, comment is 71, blank is 57.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-test-once.cs, code is 491, comment is 124, blank is 108.
+src/tests/src/main/main-crypto/exe/auto/HelperClasses/autotests/cryptoprime_tests.FilePartsTests, code is 30, comment is 0, blank is 14.
+src/tests/src/main/main-crypto/exe/auto/HelperClasses/FileParts.cs, code is 59, comment is 5, blank is 18.
+src/tests/src/main/main-crypto/exe/service/autotests/cryptoprime_tests.ServiceAutoTestFile, code is 23, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/exe/service/autotests/cryptoprime_tests.ServiceAutoTestFile_Input, code is 43, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/exe/service/Options-file-input.cs, code is 550, comment is 3, blank is 60.
+src/tests/src/main/main-crypto/exe/service/Options-file-path-and-output.cs, code is 208, comment is 4, blank is 21.
+src/tests/src/main/main-crypto/keccak/_example.cs, code is 32, comment is 0, blank is 6.
+src/tests/src/main/main-crypto/keccak/abstract_20200918.cs, code is 108, comment is 6, blank is 21.
+src/tests/src/main/main-crypto/keccak/autotests/cryptoprime_tests.Keccak_test_abstract_20200918, code is 56, comment is 0, blank is 17.
+src/tests/src/main/main-crypto/keccak/autotests/cryptoprime_tests.Keccak_test_example, code is 12, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/keccak/PRNG_20201128/1.cs, code is 173, comment is 9, blank is 22.
+src/tests/src/main/main-crypto/keccak/tests-keccak.cs, code is 105, comment is 28, blank is 23.
+src/tests/src/main/main-crypto/VinKekFish/Base-performance1.cs, code is 71, comment is 6, blank is 17.
+src/tests/src/main/main-crypto/VinKekFish/Base-performance11.cs, code is 68, comment is 4, blank is 16.
+src/tests/src/main/main-crypto/VinKekFish/Base-simple.cs, code is 319, comment is 31, blank is 82.
+src/tests/src/main/main-crypto/VinKekFish/Base.cs, code is 136, comment is 7, blank is 30.
+src/tests/src/main/README.md, code is 5, comment is 0, blank is 2.
+src/tests/tests.csproj, code is 21, comment is 0, blank is 4.
+VinKekFish.code-workspace, code is 8, comment is 0, blank is 0.
+===============================================================================
+===============================================================================
+EXTENSION NAME : linecounter
+EXTENSION VERSION : 0.2.7
+-------------------------------------------------------------------------------
+count time : 2024-08-21 12:51:41
+count workspace : /Arcs/Repos/Crypto/VinKekFish
+total files : 489
+total code lines : 77568
+total comment lines : 13232
+total blank lines : 7386
+
+    statistics
+   |      extension|     total code|  total comment|    total blank|percent|
+   -------------------------------------------------------------------------
+   |           .xml|          19335|              0|              1|     25|
+   |          .json|           1423|              0|              0|    1.8|
+   |            .cs|          31066|           7307|           4973|     40|
+   |            .md|           2423|             37|            976|    3.1|
+   |        .csproj|            259|              0|             63|   0.33|
+   |           .fmc|             21|              0|              1|  0.027|
+   |          .--cs|            225|             78|             61|   0.29|
+   |           .-cs|            230|             98|             52|   0.30|
+   |               |            150|             64|             27|   0.19|
+   |            .sh|            394|             58|            127|   0.51|
+   |       .options|           1186|            576|            103|    1.5|
+   |       .service|            195|              9|             57|   0.25|
+   |.Keccak_test_abstract_20200918|             56|              0|             17|  0.072|
+   |.Keccak_test_example|             12|              0|              8|  0.015|
+   |.CascadeSponge_mt_20230930_exampleTest|             27|              0|             21|  0.035|
+   |.CascadeSponge_1t_20230905_simpleTest2|             15|              0|              9|  0.019|
+   |.CascadeSponge_1t_20230905_simpleTest|             15|              0|              9|  0.019|
+   |.ServiceAutoTestFile|             23|              0|              8|  0.030|
+   |.ServiceAutoTestFile_Input|             43|              0|              8|  0.055|
+   |.FilePartsTests|             30|              0|             14|  0.039|
+   |.SecureCompare_test|             12|              0|              8|  0.015|
+   |.BytesBuilder_test1|             93|              0|              9|   0.12|
+   |.BytesBuilder_test3|            270|              0|              8|   0.35|
+   |.BytesBuilder_ForPointers_Record_test5|             12|              0|              8|  0.015|
+   |.BytesBuilder_Static_test2|             82|              0|             28|   0.11|
+   |.BytesBuilder_ForPointers_test|             94|              0|             11|   0.12|
+   |.BitToBytes_test1|             78|              0|              8|   0.10|
+   |.BytesBuilder_ForPointers_Record_test4|             12|              0|              8|  0.015|
+   |.BytesBuilder_ForPointers_Record_test3|             30|              0|              8|  0.039|
+   |.BytesBuilder_Static_test1|             82|              0|             28|   0.11|
+   |.BytesBuilder_test2|           8355|              0|              8|     11|
+   |.BytesBuilder_test5_add4|           7264|              0|              8|    9.4|
+   |.Keccak_sha_3_512_test|             78|              0|              8|   0.10|
+   |.BytesBuilder_test5_add|             44|              0|              8|  0.057|
+   |.BytesBuilder_ForPointers_Record_test2|             48|              0|              8|  0.062|
+   |.BytesBuilder_ForPointers_Record_test1|             12|              0|              8|  0.015|
+   |.BytesBuilder_test4|            526|              0|              8|   0.68|
+   |           .loc|            856|              0|              0|    1.1|
+   |           .txt|            727|             30|            221|   0.94|
+   |             .1|             73|              2|             30|  0.094|
+   |.1-ФорматПервичногоФайла|             43|              0|             18|  0.055|
+   |.code-workspace|             24|              0|              0|  0.031|
+   |           .log|            395|              0|            395|   0.51|
+   |           .pdf|           1230|           4973|              7|    1.6|
+   -------------------------------------------------------------------------
+VinKekFish.code-workspace, code is 8, comment is 0, blank is 0.
+src/tests/tests.csproj, code is 21, comment is 0, blank is 4.
+src/tests/src/main/README.md, code is 5, comment is 0, blank is 2.
+src/tests/src/main/main-crypto/VinKekFish/Base.cs, code is 136, comment is 7, blank is 30.
+src/tests/src/main/main-crypto/VinKekFish/Base-simple.cs, code is 319, comment is 31, blank is 82.
+src/tests/src/main/main-crypto/VinKekFish/Base-performance11.cs, code is 68, comment is 4, blank is 16.
+src/tests/src/main/main-crypto/VinKekFish/Base-performance1.cs, code is 71, comment is 6, blank is 17.
+src/tests/src/main/main-crypto/keccak/tests-keccak.cs, code is 105, comment is 28, blank is 23.
+src/tests/src/main/main-crypto/keccak/PRNG_20201128/1.cs, code is 173, comment is 9, blank is 22.
+src/tests/src/main/main-crypto/keccak/autotests/cryptoprime_tests.Keccak_test_example, code is 12, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/keccak/autotests/cryptoprime_tests.Keccak_test_abstract_20200918, code is 56, comment is 0, blank is 17.
+src/tests/src/main/main-crypto/keccak/abstract_20200918.cs, code is 108, comment is 6, blank is 21.
+src/tests/src/main/main-crypto/keccak/_example.cs, code is 32, comment is 0, blank is 6.
+src/tests/src/main/main-crypto/exe/service/Options-file-path-and-output.cs, code is 208, comment is 4, blank is 21.
+src/tests/src/main/main-crypto/exe/service/Options-file-input.cs, code is 550, comment is 3, blank is 60.
+src/tests/src/main/main-crypto/exe/service/autotests/cryptoprime_tests.ServiceAutoTestFile_Input, code is 43, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/exe/service/autotests/cryptoprime_tests.ServiceAutoTestFile, code is 23, comment is 0, blank is 8.
+src/tests/src/main/main-crypto/exe/auto/HelperClasses/FileParts.cs, code is 59, comment is 5, blank is 18.
+src/tests/src/main/main-crypto/exe/auto/HelperClasses/autotests/cryptoprime_tests.FilePartsTests, code is 30, comment is 0, blank is 14.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-test-once.cs, code is 491, comment is 124, blank is 108.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-test-no-once.cs, code is 283, comment is 71, blank is 57.
+src/tests/src/main/main-crypto/CascadeSponge/CascadeSponge-mt-test.cs, code is 165, comment is 14, blank is 28.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_mt_20230930_exampleTest, code is 27, comment is 0, blank is 21.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_1t_20230905_simpleTest2, code is 15, comment is 0, blank is 9.
+src/tests/src/main/main-crypto/CascadeSponge/autotests/cryptoprime_tests.CascadeSponge_1t_20230905_simpleTest, code is 15, comment is 0, blank is 9.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishTestByBits.cs, code is 133, comment is 16, blank is 28.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishGenTestByBits.cs, code is 191, comment is 16, blank is 38.
+src/tests/src/main/cryptoprime/ThreeFish/tests/ThreeFishGenTestByBits-allBits.cs, code is 157, comment is 16, blank is 38.
+src/tests/src/main/cryptoprime/ThreeFish/tests/tests-performance.cs, code is 66, comment is 13, blank is 16.
+src/tests/src/main/cryptoprime/keccak/tests/tests.cs, code is 180, comment is 15, blank is 43.
+src/tests/src/main/cryptoprime/keccak/tests/autotests/cryptoprime_tests.Keccak_sha_3_512_test, code is 78, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forSecureCompare.cs, code is 57, comment is 9, blank is 16.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forPointers.cs, code is 599, comment is 59, blank is 136.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forBitToBytes.cs, code is 67, comment is 8, blank is 14.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests_forBBStatic.cs, code is 239, comment is 18, blank is 40.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/tests.cs, code is 765, comment is 73, blank is 193.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.SecureCompare_test, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test5_add4, code is 7264, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test5_add, code is 44, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test4, code is 526, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test3, code is 270, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test2, code is 8355, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_test1, code is 93, comment is 0, blank is 9.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_Static_test2, code is 82, comment is 0, blank is 28.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_Static_test1, code is 82, comment is 0, blank is 28.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_test, code is 94, comment is 0, blank is 11.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test5, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test4, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test3, code is 30, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test2, code is 48, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BytesBuilder_ForPointers_Record_test1, code is 12, comment is 0, blank is 8.
+src/tests/src/main/cryptoprime/BytesBuilder/tests/autotests/cryptoprime_tests.BitToBytes_test1, code is 78, comment is 0, blank is 8.
+src/tests/Program.cs, code is 78, comment is 29, blank is 17.
+src/tests/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/tests.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/tests.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/tests.deps.json, code is 101, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/tests, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/tests/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/VinKekFishDiffuseTest.csproj, code is 15, comment is 0, blank is 3.
+src/test-dev/VinKekFishDiffuseTest/Program.cs, code is 11, comment is 1, blank is 2.
+src/test-dev/VinKekFishDiffuseTest/log-State.log, code is 20, comment is 0, blank is 20.
+src/test-dev/VinKekFishDiffuseTest/build.dev/VinKekFishDiffuseTest.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/VinKekFishDiffuseTest, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/utils.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/DriverForTestsLib.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/cryptoprime.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/build.dev/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/build.dev/bytesbuilder.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest.deps.json, code is 101, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/VinKekFishDiffuseTest, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/test-dev/VinKekFishDiffuseTest/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/test-dev/SimpleStat/Program.cs, code is 70, comment is 6, blank is 9.
+src/test-dev/SimpleStat/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/SimpleStat/build.dev/Console.pdb, it is a binary file.
+src/test-dev/SimpleStat/build.dev/Console, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/SimpleStat/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/SecureCompare/SecureCompare.csproj, code is 16, comment is 0, blank is 2.
+src/test-dev/SecureCompare/SecureCompare.cs, code is 41, comment is 7, blank is 11.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare.deps.json, code is 63, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/SecureCompare, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/test-dev/SecureCompare/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/test-dev/README.md, code is 3, comment is 0, blank is 4.
+src/test-dev/Fuse/Program.cs, code is 556, comment is 113, blank is 92.
+src/test-dev/Fuse/fuse.code-workspace, code is 8, comment is 0, blank is 0.
+src/test-dev/Fuse/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Fuse/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Fuse/build.dev/Console, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Fuse/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/Cuse/Program.cs, code is 397, comment is 72, blank is 79.
+src/test-dev/Cuse/fuse.code-workspace, code is 8, comment is 0, blank is 0.
+src/test-dev/Cuse/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Cuse/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Cuse/build.dev/Console, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Cuse/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/Console/Program.cs, code is 182, comment is 90, blank is 36.
+src/test-dev/Console/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/Console/build.dev/Console.pdb, it is a binary file.
+src/test-dev/Console/build.dev/Console, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/Console/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/test-dev/CheckDate/Program.cs, code is 41, comment is 1, blank is 6.
+src/test-dev/CheckDate/Console.csproj, code is 10, comment is 0, blank is 2.
+src/test-dev/CheckDate/build.dev/Console.pdb, it is a binary file.
+src/test-dev/CheckDate/build.dev/Console, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.pdb, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.dll, it is a binary file.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console.deps.json, code is 24, comment is 0, blank is 0.
+src/test-dev/CheckDate/bin/Release/net7.0/linux-x64/Console, it is a binary file.
+src/main/README.md, code is 15, comment is 0, blank is 12.
+src/main/6 vkf/vkf.csproj, code is 28, comment is 0, blank is 7.
+src/main/6 vkf/Program.cs, code is 159, comment is 9, blank is 26.
+src/main/6 vkf/Program-version.cs, code is 5, comment is 0, blank is 1.
+src/main/6 vkf/install/install.sh, code is 1, comment is 8, blank is 4.
+src/main/6 vkf/install/install-p.sh, code is 101, comment is 7, blank is 28.
+src/main/6 vkf/commands/service.cs, code is 61, comment is 4, blank is 11.
+src/main/6 vkf/commands/manual.cs, code is 17, comment is 1, blank is 5.
+src/main/6 vkf/commands/install.cs, code is 98, comment is 10, blank is 22.
+src/main/6 vkf/commands/check.cs, code is 36, comment is 1, blank is 6.
+src/main/6 vkf/commands/auto.cs, code is 22, comment is 2, blank is 6.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf.deps.json, code is 80, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/vkf, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/6 vkf/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/5 main-crypto/VinKekFish/VinKekFish/VinKekFishBase_etalonK1.cs, code is 349, comment is 138, blank is 86.
+src/main/5 main-crypto/VinKekFish/VinKekFish/descr.md, code is 7, comment is 0, blank is 4.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_threads.cs, code is 166, comment is 57, blank is 40.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_threads copy.-cs, code is 230, comment is 98, blank is 52.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_step_init.cs, code is 320, comment is 95, blank is 85.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_input_output.cs, code is 83, comment is 17, blank is 15.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525_get_pt.cs, code is 161, comment is 26, blank is 33.
+src/main/5 main-crypto/VinKekFish/VinKekFish-kn-20210525/VinKekFishBase_KN_20210525.cs, code is 303, comment is 98, blank is 65.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/VinKekFish_k1_base_20210419.cs, code is 273, comment is 76, blank is 74.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_состояния.md, code is 245, comment is 0, blank is 70.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_состояния.fmc, code is 21, comment is 0, blank is 1.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration_состояния.md, code is 256, comment is 0, blank is 63.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration_конфи.md, code is 6, comment is 0, blank is 5.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419_keyGeneration-ввод-вывод.md, code is 7, comment is 0, blank is 2.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/Documentation/VinKekFish_k1_base_20210419.xml, code is 49, comment is 0, blank is 1.
+src/main/5 main-crypto/VinKekFish/VinKekFish-k1-20210419/--VinKekFish_k1_base_20210419_keyGeneration.--cs, code is 225, comment is 78, blank is 61.
+src/main/5 main-crypto/README.md, code is 9, comment is 0, blank is 9.
+src/main/5 main-crypto/maincrypto.csproj, code is 28, comment is 0, blank is 8.
+src/main/5 main-crypto/keccak/keccak_abstract.cs, code is 108, comment is 31, blank is 23.
+src/main/5 main-crypto/keccak/keccak-20200918/Keccak_PRNG_20201128.cs, code is 341, comment is 119, blank is 92.
+src/main/5 main-crypto/keccak/keccak-20200918/keccak-base-20200918.cs, code is 259, comment is 61, blank is 43.
+src/main/5 main-crypto/keccak/keccak-20200918/keccak-20200918.cs, code is 19, comment is 3, blank is 7.
+src/main/5 main-crypto/keccak/keccak-20200918/Documentation/Keccak_PRNG_20201128.md, code is 133, comment is 0, blank is 38.
+src/main/5 main-crypto/exe/service/Streams/unixstream.cs, code is 174, comment is 49, blank is 37.
+src/main/5 main-crypto/exe/service/Streams/cuse.cs, code is 371, comment is 157, blank is 76.
+src/main/5 main-crypto/exe/service/service.cs, code is 237, comment is 49, blank is 43.
+src/main/5 main-crypto/exe/service/options_files/vkf.service, code is 65, comment is 3, blank is 19.
+src/main/5 main-crypto/exe/service/options_files/test.options, code is 56, comment is 0, blank is 7.
+src/main/5 main-crypto/exe/service/options_files/service.options, code is 319, comment is 192, blank is 26.
+src/main/5 main-crypto/exe/service/entropy/RandomAtStart.cs, code is 54, comment is 4, blank is 10.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy.cs, code is 44, comment is 3, blank is 12.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-inputEntropyFromSources.cs, code is 179, comment is 27, blank is 35.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-init.cs, code is 379, comment is 62, blank is 78.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-get.cs, code is 150, comment is 12, blank is 30.
+src/main/5 main-crypto/exe/service/entropy/ExecEntropy-continuously.cs, code is 643, comment is 71, blank is 108.
+src/main/5 main-crypto/exe/README.md, code is 10, comment is 0, blank is 8.
+src/main/5 main-crypto/exe/ProgrammErrorCode.cs, code is 19, comment is 7, blank is 4.
+src/main/5 main-crypto/exe/auto/pwd/pwd.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/auto/HelperClasses/PasswordEnter.cs, code is 204, comment is 17, blank is 41.
+src/main/5 main-crypto/exe/auto/HelperClasses/KeyDataGenerator+CryptoKeyPair.cs, code is 188, comment is 34, blank is 39.
+src/main/5 main-crypto/exe/auto/HelperClasses/GetDataFromSponge.cs, code is 199, comment is 23, blank is 40.
+src/main/5 main-crypto/exe/auto/HelperClasses/FileParts.cs, code is 206, comment is 56, blank is 45.
+src/main/5 main-crypto/exe/auto/HelperClasses/FileParts-dispose.cs, code is 87, comment is 24, blank is 14.
+src/main/5 main-crypto/exe/auto/gen/key-main/key.cs, code is 493, comment is 106, blank is 106.
+src/main/5 main-crypto/exe/auto/gen/key-main/key-create.cs, code is 240, comment is 80, blank is 60.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1.cs, code is 204, comment is 40, blank is 37.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1-encryptParts.cs, code is 194, comment is 22, blank is 56.
+src/main/5 main-crypto/exe/auto/enc/Main.1.pwd.2024.1-decryptParts.cs, code is 217, comment is 22, blank is 58.
+src/main/5 main-crypto/exe/auto/enc/enc.cs, code is 45, comment is 4, blank is 6.
+src/main/5 main-crypto/exe/auto/enc/-Main.4.pwd.2024.1.EncryptDataStream.cs, code is 0, comment is 128, blank is 0.
+src/main/5 main-crypto/exe/auto/enc/-Main.4.pwd.2024.1.EncryptDataStream-enc.cs, code is 0, comment is 87, blank is 0.
+src/main/5 main-crypto/exe/auto/AutoCrypt.cs, code is 107, comment is 12, blank is 21.
+src/main/5 main-crypto/exe/auto/AutoCrypt-parsing.cs, code is 79, comment is 10, blank is 16.
+src/main/5 main-crypto/exe/auto/AutoCrypt-endcommand.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/auto/AutoCrypt-deccommand.cs, code is 17, comment is 2, blank is 4.
+src/main/5 main-crypto/exe/auto/AutoCrypt-ConnectAndInit.cs, code is 70, comment is 2, blank is 9.
+src/main/5 main-crypto/exe/auto/AutoCrypt-CommandOption.cs, code is 318, comment is 46, blank is 66.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt_threads.cs, code is 173, comment is 23, blank is 39.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt_step.cs, code is 76, comment is 54, blank is 23.
+src/main/5 main-crypto/CascadeSponge/20230930mt/CascadeSponge-mt.cs, code is 60, comment is 14, blank is 14.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_utils.cs, code is 29, comment is 7, blank is 6.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_step.cs, code is 213, comment is 74, blank is 57.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_prng.cs, code is 174, comment is 41, blank is 45.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_input_output_reverce.cs, code is 135, comment is 49, blank is 37.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t_exception.cs, code is 13, comment is 1, blank is 3.
+src/main/5 main-crypto/CascadeSponge/20230905/CascadeSponge-1t.cs, code is 391, comment is 134, blank is 95.
+src/main/5 main-crypto/bin/Release/net7.0/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/maincrypto.deps.json, code is 63, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/maincrypto.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/maincrypto.deps.json, code is 64, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/cryptoprime.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/5 main-crypto/bin/Release/net7.0/4 utils.dll, it is a binary file.
+src/main/4 utils/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/4 utils/Options/OptionsParser.cs, code is 199, comment is 11, blank is 46.
+src/main/4 utils/Options/Options-service.cs, code is 134, comment is 13, blank is 36.
+src/main/4 utils/Options/Options-service-Path.cs, code is 45, comment is 3, blank is 12.
+src/main/4 utils/Options/Options-service-Output.cs, code is 125, comment is 6, blank is 28.
+src/main/4 utils/Options/Options-service-Options.cs, code is 24, comment is 2, blank is 4.
+src/main/4 utils/Options/Options-service-Input.cs, code is 607, comment is 51, blank is 133.
+src/main/4 utils/languages/locales/ru.loc, code is 151, comment is 0, blank is 0.
+src/main/4 utils/languages/locales/en.loc, code is 134, comment is 0, blank is 0.
+src/main/4 utils/languages/language.cs, code is 68, comment is 4, blank is 17.
+src/main/4 utils/console/ConsoleColor.cs, code is 56, comment is 10, blank is 10.
+src/main/4 utils/bin/Release/net7.0/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/4 utils.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/linux-x64/4 utils.deps.json, code is 37, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/4 utils.dll, it is a binary file.
+src/main/4 utils/bin/Release/net7.0/4 utils.deps.json, code is 36, comment is 0, blank is 0.
+src/main/4 utils/Align.cs, code is 30, comment is 11, blank is 6.
+src/main/4 utils/4 utils.csproj, code is 24, comment is 0, blank is 7.
+src/main/3 cryptoprime/ThreeFish/threefish_unsafe.cs, code is 46, comment is 13, blank is 15.
+src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated2.cs, code is 2143, comment is 728, blank is 84.
+src/main/3 cryptoprime/ThreeFish/Threefish_Static_Generated.cs, code is 2183, comment is 729, blank is 86.
+src/main/3 cryptoprime/ThreeFish/alien/alien_ThreefishTransform.cs, code is 1624, comment is 47, blank is 61.
+src/main/3 cryptoprime/keccak/KeccakPrime.cs, code is 384, comment is 179, blank is 87.
+src/main/3 cryptoprime/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/cryptoprime.csproj, code is 26, comment is 0, blank is 8.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/cryptoprime.deps.json, code is 37, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.dll, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/cryptoprime.deps.json, code is 36, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/3 cryptoprime/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/2 generator/ThreeFish_Gen2.cs, code is 145, comment is 36, blank is 40.
+src/main/2 generator/ThreeFish_Gen.cs, code is 157, comment is 15, blank is 41.
+src/main/2 generator/Program.cs, code is 14, comment is 1, blank is 2.
+src/main/2 generator/generator.csproj, code is 14, comment is 0, blank is 3.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.dll, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator.deps.json, code is 48, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/generator, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/2 generator/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/2 generator/BaseCodeGenerator.cs, code is 66, comment is 0, blank is 12.
+src/main/1 BytesBuilder/Utils-glob.cs, code is 44, comment is 12, blank is 15.
+src/main/1 BytesBuilder/Utils-debug.cs, code is 75, comment is 22, blank is 16.
+src/main/1 BytesBuilder/Utils-allocation.cs, code is 210, comment is 76, blank is 51.
+src/main/1 BytesBuilder/threefish_slowly.cs, code is 132, comment is 29, blank is 28.
+src/main/1 BytesBuilder/Memory/Utils-compare.cs, code is 55, comment is 26, blank is 15.
+src/main/1 BytesBuilder/Memory/Utils-alignment.cs, code is 22, comment is 8, blank is 5.
+src/main/1 BytesBuilder/BytesBuilder/Documentation/BytesBuilderForPointers.Record.md, code is 169, comment is 0, blank is 43.
+src/main/1 BytesBuilder/BytesBuilder/Documentation/BytesBuilderForPointers.md, code is 81, comment is 0, blank is 24.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderStatic.cs, code is 295, comment is 65, blank is 75.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderForPointers_record.cs, code is 666, comment is 153, blank is 155.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilderForPointers.cs, code is 208, comment is 73, blank is 63.
+src/main/1 BytesBuilder/BytesBuilder/BytesBuilder.cs, code is 703, comment is 247, blank is 183.
+src/main/1 BytesBuilder/BytesBuilder/BitToBytes.cs, code is 57, comment is 15, blank is 12.
+src/main/1 BytesBuilder/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bytesbuilder.csproj, code is 24, comment is 0, blank is 8.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/linux-x64/bytesbuilder.deps.json, code is 24, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.pdb, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.dll, it is a binary file.
+src/main/1 BytesBuilder/bin/Release/net7.0/bytesbuilder.deps.json, code is 23, comment is 0, blank is 0.
+src/main/1 BytesBuilder/.editorconfig, code is 2, comment is 0, blank is 0.
+src/builder/README.md, code is 4, comment is 1, blank is 4.
+src/builder/builder/Tester.cs, code is 22, comment is 4, blank is 7.
+src/builder/builder/Program.cs, code is 128, comment is 16, blank is 40.
+src/builder/builder/builder.csproj, code is 13, comment is 0, blank is 3.
+src/builder/builder/Builder.cs, code is 50, comment is 38, blank is 12.
+src/builder/builder/Build.cs, code is 97, comment is 17, blank is 28.
+src/builder/builder/Build-projects.cs, code is 131, comment is 11, blank is 37.
+src/builder/builder/bin/Release/net7.0/linux-x64/utils.pdb, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/utils.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.pdb, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/DriverForTestsLib.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.pdb, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.dll, it is a binary file.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder.deps.json, code is 48, comment is 0, blank is 0.
+src/builder/builder/bin/Release/net7.0/linux-x64/builder, it is a binary file.
+src/builder/builder/assembly.cs, code is 1, comment is 0, blank is 0.
+src/.editorconfig, code is 9, comment is 0, blank is 2.
+REDEFINE.loc, code is 1, comment is 0, blank is 0.
+README.md, code is 48, comment is 4, blank is 38.
+log-KNe.log, code is 375, comment is 0, blank is 375.
+Docs/External/SkeinFish-0.5.0.zip, it is a binary file.
+Docs/External/skein.pdf, it is a binary file.
+Docs/External/NIST.FIPS.202.pdf, code is 1230, comment is 4973, blank is 7.
+Docs/External/Keccak-reference-3.0.pdf, it is a binary file.
+Docs/Dev/README.md, code is 23, comment is 0, blank is 12.
+Docs/Dev/Crypto/Конфигурация/service.options, code is 61, comment is 0, blank is 4.
+Docs/Dev/Crypto/Использование/СценарииИспользование/Общее.md, code is 95, comment is 13, blank is 24.
+Docs/Dev/Crypto/Задачи/Записки.txt, code is 78, comment is 18, blank is 29.
+Docs/Dev/Crypto/Задачи/Задачи.txt, code is 31, comment is 5, blank is 18.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Общие размышления.txt, code is 7, comment is 0, blank is 5.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/МашинаМодель1.md, code is 114, comment is 0, blank is 50.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Каскадирование ключей.txt, code is 4, comment is 0, blank is 4.
+Docs/Dev/Crypto/VinKekFish/Description/ФилософскиеРазмышления/Какие должны быть шифры.txt, code is 82, comment is 0, blank is 26.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/2/РазмышленияПостроениеРасширенногоАлгоритма.txt, code is 113, comment is 1, blank is 39.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/2/Перемешивание.txt, code is 4, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/СравнениеМассиваКоличестваВстреч.txt, code is 1, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/ОтклонениеОтСлучайности.txt, code is 1, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/Старое-2021/1/МинимальноеКоличествоПредставленныхЧисел.txt, code is 73, comment is 0, blank is 26.
+Docs/Dev/Crypto/VinKekFish/Description/VinKekFish.md, code is 540, comment is 5, blank is 262.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-200_8.txt, code is 16, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-200.txt, code is 16, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/tables/transpose-128.txt, code is 25, comment is 0, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/simple.file.2024.1, code is 0, comment is 0, blank is 0.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.4.pwd.2024.1, code is 30, comment is 0, blank is 11.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.pwd.2024.1-ФорматПервичногоФайла, code is 43, comment is 0, blank is 18.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.pwd.2024.1, code is 39, comment is 1, blank is 18.
+Docs/Dev/Crypto/VinKekFish/Description/Regimes/main.1.key.2024.1, code is 4, comment is 1, blank is 1.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/VinKekFishBase_KN_20210525.md, code is 18, comment is 1, blank is 11.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/SingleThreadEtalon1K-2021.md, code is 176, comment is 10, blank is 86.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/GeneralOfDetails.md, code is 4, comment is 0, blank is 3.
+Docs/Dev/Crypto/VinKekFish/Description/GeneralOfDetails/CascadeSponge_1t.md, code is 6, comment is 0, blank is 5.
+Docs/Dev/Crypto/VinKekFish/Description/cascadeSponge.md, code is 215, comment is 0, blank is 78.
+Docs/Dev/Crypto/Threats/МодельУгроз.md, code is 166, comment is 0, blank is 83.
+Docs/Dev/Crypto/keys-templates.md, code is 25, comment is 0, blank is 10.
+Docs/Dev/CodeReview/КонтрольныйСписок/ЦиклыИУсловия.txt, code is 12, comment is 0, blank is 2.
+Docs/Dev/CodeReview/КонтрольныйСписок/Состояния_Проверка.txt, code is 74, comment is 0, blank is 12.
+Docs/Dev/CodeReview/КонтрольныйСписок/Состояния_Документация.txt, code is 35, comment is 0, blank is 4.
+Docs/Dev/CodeReview/КонтрольныйСписок/ПотокиДанных, code is 4, comment is 0, blank is 1.
+Docs/Dev/CodeReview/КонтрольныйСписок/Память_диапазоны.txt, code is 6, comment is 0, blank is 2.
+Docs/Dev/CodeReview/КонтрольныйСписок/Память.txt, code is 4, comment is 0, blank is 0.
+Docs/Dev/CodeReview/КонтрольныйСписок/Конфи.txt, code is 20, comment is 0, blank is 3.
+Docs/Dev/CodeReview/КонтрольныйСписок/Возможные_ошибки.txt, code is 10, comment is 0, blank is 6.
+Docs/Dev/CodeReview/КонтрольныйСписок/АлгоритмПроверки.txt, code is 57, comment is 1, blank is 24.
+Docs/Dev/CodeReview/КонтрольныйСписок/_Проверки.txt, code is 58, comment is 5, blank is 17.
+cmpe.sh, code is 9, comment is 0, blank is 2.
+cmp.sh, code is 9, comment is 0, blank is 2.
+build/vkf.service, code is 65, comment is 3, blank is 19.
+build/vkf, it is a binary file.
+build/VinKekFish_Utils.xml, code is 145, comment is 0, blank is 0.
+build/utils.pdb, it is a binary file.
+build/utils.dll, it is a binary file.
+build/Threefish_Static_Generated2.cs, code is 2143, comment is 728, blank is 84.
+build/Threefish_Static_Generated.cs, code is 2183, comment is 729, blank is 86.
+build/tests.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/tests.dll, it is a binary file.
+build/tests.deps.json, code is 101, comment is 0, blank is 0.
+build/tests, it is a binary file.
+build/test.options, code is 56, comment is 0, blank is 7.
+build/service.options, code is 319, comment is 192, blank is 26.
+build/SecureCompare.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/SecureCompare.pdb, it is a binary file.
+build/SecureCompare.dll, it is a binary file.
+build/SecureCompare.deps.json, code is 63, comment is 0, blank is 0.
+build/SecureCompare, it is a binary file.
+build/maincrypto.dll, it is a binary file.
+build/maincrypto.deps.json, code is 64, comment is 0, blank is 0.
+build/locales/ru.loc, code is 151, comment is 0, blank is 0.
+build/locales/en.loc, code is 134, comment is 0, blank is 0.
+build/install.sh, code is 1, comment is 8, blank is 4.
+build/install-p.sh, code is 101, comment is 7, blank is 28.
+build/generator.pdb, it is a binary file.
+build/generator, it is a binary file.
+build/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+build/DriverForTestsLib.pdb, it is a binary file.
+build/DriverForTestsLib.dll, it is a binary file.
+build/cryptoprime.xml, code is 124, comment is 0, blank is 0.
+build/cryptoprime.pdb, it is a binary file.
+build/cryptoprime.dll, it is a binary file.
+build/cryptoprime.deps.json, code is 37, comment is 0, blank is 0.
+build/bytesbuilder.xml, code is 908, comment is 0, blank is 0.
+build/bytesbuilder.pdb, it is a binary file.
+build/bytesbuilder.dll, it is a binary file.
+build/bytesbuilder.deps.json, code is 24, comment is 0, blank is 0.
+build/builder/utils.pdb, it is a binary file.
+build/builder/utils.dll, it is a binary file.
+build/builder/DriverForTestsLib.xml, code is 402, comment is 0, blank is 0.
+build/builder/DriverForTestsLib.pdb, it is a binary file.
+build/builder/DriverForTestsLib.dll, it is a binary file.
+build/builder/builder.runtimeconfig.json, code is 12, comment is 0, blank is 0.
+build/builder/builder.pdb, it is a binary file.
+build/builder/builder.dll, it is a binary file.
+build/builder/builder.deps.json, code is 48, comment is 0, blank is 0.
+build/builder/builder, it is a binary file.
+build/arcs/vkf-dotnet7.7z, it is a binary file.
+build/arcs/dotnet7/exe/vkf.service, code is 65, comment is 3, blank is 19.
+build/arcs/dotnet7/exe/vkf, it is a binary file.
+build/arcs/dotnet7/exe/test.options, code is 56, comment is 0, blank is 7.
+build/arcs/dotnet7/exe/service.options, code is 319, comment is 192, blank is 26.
+build/arcs/dotnet7/exe/locales/ru.loc, code is 151, comment is 0, blank is 0.
+build/arcs/dotnet7/exe/locales/en.loc, code is 134, comment is 0, blank is 0.
+build/arcs/dotnet7/exe/install.sh, code is 1, comment is 8, blank is 4.
+build/arcs/dotnet7/exe/install-p.sh, code is 101, comment is 7, blank is 28.
+build/4 utils.dll, it is a binary file.
+build/4 utils.deps.json, code is 37, comment is 0, blank is 0.
+build.md, code is 43, comment is 3, blank is 26.
+b/tbuild.sh, code is 11, comment is 3, blank is 3.
+b/rebuild.sh, code is 21, comment is 4, blank is 7.
+b/optsne, code is 9, comment is 0, blank is 0.
+b/opts, code is 12, comment is 0, blank is 0.
+b/fbuild.sh, code is 23, comment is 5, blank is 10.
+b/build.sh, code is 15, comment is 1, blank is 7.
+.gitignore, code is 114, comment is 64, blank is 24.
+===============================================================================
