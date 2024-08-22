@@ -43,9 +43,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (reverseConnectionData != null)
             CheckMagicNumber(reverseConnectionData, "CascadeSponge_1t_20230905.InputData: magic != MagicNumber_ReverseConnectionLink_forInput");
 
-if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
-    Console.WriteLine("rcd: " + ArrayToHex((byte *) reverseConnectionData, ReverseConnectionLen));
-
         if (dataLen > maxDataLen)
             throw new CascadeSpongeException($"dataLen > maxDataLen ({dataLen} > {maxDataLen})");
 
@@ -72,24 +69,23 @@ if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
                 if (dataLen - cur < Nn)
                     dataLenToInput = dataLen - cur;
             }
-            // Вводим данные из-вне в буфер
-            if (dataLenToInput > 0)
-            BytesBuilder.CopyTo(dataLenToInput, MaxInputForKeccak, data + cur, buffer);
-
             // Определяем, нужно ли вводить данные из обратной связи
-            nint rcd_len = 0;
             if (reverseConnectionData != null)
             {
-                // Данные из обратной связи берутся постольку, поскольку не введены внешние данные
-                // Их всё равно будет вводится где-то половина или более, т.к. Wn всегда меньше, чем MaxInputForKeccak (32 или менее против 64-х)
-                rcd_len = MaxInputForKeccak - dataLenToInput;
-                BytesBuilder.CopyTo(MaxInputForKeccak, rcd_len, reverseConnectionData, buffer + dataLenToInput);
+                // Данные из обратной связи вводятся в буфер и будут затем перезаписаны,
+                // если нужно, данными, впитываемыми губкой из-вне
+                BytesBuilder.CopyTo(MaxInputForKeccak, MaxInputForKeccak, reverseConnectionData, buffer);
                 reverseConnectionData += MaxInputForKeccak; // Здесь мы приращаем данные так, как будто ввели полный блок
             }
-if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
-    Console.WriteLine("rcd: " + ArrayToHex((byte *) reverseConnectionData, ReverseConnectionLen));
+            else
+                BytesBuilder.ToNull(MaxInputForKeccak, buffer);
+
+            // Вводим данные из-вне в буфер
+            if (dataLenToInput > 0)
+                BytesBuilder.CopyTo(dataLenToInput, MaxInputForKeccak, data + cur, buffer);
+
             // Console.WriteLine(ArrayToHex(buffer, (int) MaxInputForKeccak));
-            input(buffer, (byte) (dataLenToInput + rcd_len), GetInputLayerS(w), regime, (byte) dataLenToInput);
+            input(buffer, MaxInputForKeccak, GetInputLayerS(w), regime, (byte) dataLenToInput);
             cur += dataLenToInput;
         }
 
@@ -197,9 +193,6 @@ if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
 
             tweaks[0]  = tw;
             tweaks[2]  = tweaks[0] ^ tweaks[1];
-
-    if (StepTypeForAbsorption == TypeForShortStepForAbsorption.elevated)
-    Console.WriteLine("DoThreeFish: " + ArrayToHex((byte *) &(tweaks[0]), 8));
 
             keys   += Threefish_slowly.Nw*2;        // Шаг следования ключей - 256 байтов
             tweaks += Threefish_slowly.Nw*2;

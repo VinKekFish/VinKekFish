@@ -1,4 +1,4 @@
-#define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
+// #define CAN_CREATEFILE_FOR_CascadeSponge_1t_tests
 namespace cryptoprime_tests;
 
 using cryptoprime;
@@ -477,7 +477,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             BytesBuilder.CopyTo(20, 256, a + 63, revcon + 192);
 
             // Делаем первый шаг: это первая фаза двойного шага многократный ввод данных в губку)
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255, 21, 21, 21, 20);
 
             // Console.WriteLine("test: before ThreeFish step1a"); Console.WriteLine(ArrayToHex(revcon, cascade.maxDataLen));
 
@@ -496,6 +496,8 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Транспонируем вывод: по 128-мь байтов блок
             Transpose128_2(output, revcon);     // Обратная связь
             Transpose128_2(buff,   output);     // Выход
+
+            BytesBuilder.ToNull(256, output);
 
             TFl[00 + 24] += CascadeSponge_1t_20230905.CounterIncrement;
             TFl[00 + 25] += 0;
@@ -518,7 +520,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             // Console.WriteLine("test: out after ThreeFish step1a with transpose"); Console.WriteLine(ArrayToHex(output, cascade.ReverseConnectionLen));
 
             // Делаем из первого шага двойной (удваиваем первый шаг)
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 255, 0, 0, 0, 0);
 
             // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
 
@@ -557,7 +559,7 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
                 throw new Exception("CascadeSponge_20230905_BaseTest_once: results not equals (step 1d)");
 
             cascade.Step(data: null, dataLen: 0, regime: 34);
-            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34);
+            DoExpandedSmallStep(top0, top1, top2, top3, mid0, mid1, mid2, mid3, bot0, bot1, bot2, bot3, out0, out1, out2, out3, output, revcon, 34, 0, 0, 0, 0);
 
             // Console.WriteLine("test: before ThreeFish; step1d"); Console.WriteLine(ArrayToHex(revcon, cascade.ReverseConnectionLen));
 
@@ -605,12 +607,12 @@ public unsafe class CascadeSponge_20230905_BaseTest : TestTask
             revcon[i] = output[j];
     }
 
-    private static void DoExpandedSmallStep(Keccak_20200918 top0, Keccak_20200918 top1, Keccak_20200918 top2, Keccak_20200918 top3, Keccak_20200918 mid0, Keccak_20200918 mid1, Keccak_20200918 mid2, Keccak_20200918 mid3, Keccak_20200918 bot0, Keccak_20200918 bot1, Keccak_20200918 bot2, Keccak_20200918 bot3, Keccak_20200918 out0, Keccak_20200918 out1, Keccak_20200918 out2, Keccak_20200918 out3, byte* output, byte* revcon, byte regime)
+    private static void DoExpandedSmallStep(Keccak_20200918 top0, Keccak_20200918 top1, Keccak_20200918 top2, Keccak_20200918 top3, Keccak_20200918 mid0, Keccak_20200918 mid1, Keccak_20200918 mid2, Keccak_20200918 mid3, Keccak_20200918 bot0, Keccak_20200918 bot1, Keccak_20200918 bot2, Keccak_20200918 bot3, Keccak_20200918 out0, Keccak_20200918 out1, Keccak_20200918 out2, Keccak_20200918 out3, byte* output, byte* revcon, byte regime, byte inLen0, byte inLen1, byte inLen2, byte inLen3)
     {
-        Keccak_Input64_512(revcon +   0, 64, top0.S, regime);
-        Keccak_Input64_512(revcon +  64, 64, top1.S, regime);
-        Keccak_Input64_512(revcon + 128, 64, top2.S, regime);
-        Keccak_Input64_512(revcon + 192, 64, top3.S, regime);
+        Keccak_Input64_512(revcon +   0, 64, top0.S, regime, inLen0);
+        Keccak_Input64_512(revcon +  64, 64, top1.S, regime, inLen1);
+        Keccak_Input64_512(revcon + 128, 64, top2.S, regime, inLen2);
+        Keccak_Input64_512(revcon + 192, 64, top3.S, regime, inLen3);
         top0.CalcStep();
         top1.CalcStep();
         top2.CalcStep();
