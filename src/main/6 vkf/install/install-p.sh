@@ -36,7 +36,7 @@ then
     exit 3
 fi
 
-echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (ru: успешно создана папка программы)\033[0m"
+echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (ru: успешно создана или найдена существующая папка программы '$vkfDir')\033[0m"
 echo -e "The installation continue... (ru: установка продолжается...)"
 
 chmod a-rwx "$vkfDir"
@@ -65,6 +65,12 @@ mkdir -p data
 
 chmod -R o-rwx options
 chmod -R o-rwx data
+
+echo
+date
+echo "Wait for stop the VinKekFish service (vkf service), if executed. This may take 1 minute."
+echo "ru: Ждём остановки сервиса VinKekFish (сервис vkf), если запущено. Это может занять 1 минуту."
+echo
 
 systemctl disable vkf
 systemctl stop vkf
@@ -142,7 +148,7 @@ echo
 
 date
 echo "Wait for start the VinKekFish service (vkf service). This may take 5-7 minutes."
-echo "ru: Ждём запуска программы VinKekFish (сервис vkf). Это может занять 5-7 минут."
+echo "ru: Ждём запуска сервиса VinKekFish (сервис vkf). Это может занять 5-7 минут."
 nc -UN /dev/vkf/random > /dev/null
 echo; echo;
 # journalctl -e -u vkf --no-pager | tail -n 1
