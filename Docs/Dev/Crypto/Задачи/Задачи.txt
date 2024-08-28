@@ -1,5 +1,11 @@
 ﻿CascadeSponge_20230905_BaseTest_noonce
 
+При инициализации, похоже, зависает на выполнении
+ps -eo pid,times,rss,nlwp,args --sort time,rss,pid,args
+Поменять waitforexit на ожидание с таймаутом
+/Arcs/Repos/Crypto/VinKekFish/src/main/5 main-crypto/exe/service/entropy/ExecEntropy-init.cs:319
+
+
 
 Проверить, что при генерации файлов учтены все параметры настроек. Удалить лишние параметры настроек и пройтись по генерации.
 Разобраться, какие настройки, в итоге, будут использованы при генерации ключа, а какие при шифровании файла непосредственно.

@@ -263,7 +263,7 @@ unsafe class Program
     {
         var psi = new ProcessStartInfo("ls", "-ln " + path);
         psi.RedirectStandardOutput = true;
-        var pid = Process.Start(psi);
+        using var pid = Process.Start(psi);
         pid!.WaitForExit();
 
         // // srwxr-xr-x 1 1003 1004 0 авг 17 14:02 /inRamA/socket

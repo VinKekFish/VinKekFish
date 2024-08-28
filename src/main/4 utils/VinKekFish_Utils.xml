@@ -141,5 +141,8 @@
             <param name="block">Подблок из парсера</param>
             <param name="canonicalName">Каноническое имя блока: пробелы и табуляции удалены, регистр преобразован в нижний</param>
         </member>
+        <member name="T:VinKekFish_Utils.ParseUtils">
+            <summary>Класс для временного переопределения параметров консоли</summary>
+        </member>
     </members>
 </doc>

@@ -121,7 +121,7 @@ File not found or an another file system error occured
 outKeyFile is null
     The result file for the new key is not defined or exists (out:path/to/file)
 Bytes received from additional random files
-    Bytes received from additional random files
+    Bytes received from all of additional random files
 Simple key was writed to
     Simple key was writed to
 Password length is too small
@@ -148,4 +148,10 @@ Encryption ended. Wait to write the file.
     Encryption ended. Wait to write the file.
 Encryption ended. File ready to use.
     Encryption ended. File ready to use.
+Data could not be read from file
+    Data could not be read from file
+File not found
+    File not found
+Failed to connect to the socket
+    Failed to connect to the socket
 :

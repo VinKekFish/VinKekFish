@@ -51,7 +51,7 @@ public partial class AutoCrypt
                 var psi = new ProcessStartInfo("zenity", $"--file-selection {str}");
                 psi.RedirectStandardOutput = true;
 
-                var p = Process.Start(psi);
+                using var p = Process.Start(psi);
                 p!.WaitForExit();
                 PathToFile = p.StandardOutput.ReadLine()!;
 

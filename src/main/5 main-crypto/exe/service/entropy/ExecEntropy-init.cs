@@ -315,8 +315,16 @@ public partial class Regime_Service
                 psi.WorkingDirectory ??= Directory.GetCurrentDirectory();
             }
 
-            var ps = Process.Start(psi);
-            ps!.WaitForExit();
+            int timeout = 3*60_000;
+            if (cmdElement.timeout > 0)
+                timeout = cmdElement.timeout;
+
+            using var ps = Process.Start(psi);
+            if (!ps!.WaitForExit((int) timeout))
+            {
+                sb.AppendLine($"WARNING: Process is hung (with timeout ${timeout} ms): ${psi.FileName} + ${psi.Arguments}");
+                return 0;
+            }
 
             var readedLen = ps.StandardOutput.BaseStream.Read(bufferRec);
             var ignored   = false;

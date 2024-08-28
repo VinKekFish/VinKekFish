@@ -269,7 +269,7 @@ public unsafe partial class AutoCrypt
         {
             try
             {
-                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-w " + '"' + fullFileName + '"');
+                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-w " + '"' + fullFileName + '"').Dispose();
             }
             catch (Exception ex)
             {
@@ -281,7 +281,7 @@ public unsafe partial class AutoCrypt
         {
             try
             {
-                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-r " + '"' + fullFileName + '"');
+                System.Diagnostics.Process.Start("chmod", $"{deleteFrom}-r " + '"' + fullFileName + '"').Dispose();
             }
             catch (Exception ex)
             {

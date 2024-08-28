@@ -18,7 +18,7 @@ unsafe class Program
         var A = new string[] {"", "-f", "-d", "/inRamA/ttt"};
         Console.CancelKeyPress += (o, e) =>
         {
-            Process.Start("umount", "/inRamA/ttt");
+            Process.Start("umount", "/inRamA/ttt").Dispose();
         };
 
         var fuseOperations = new FuseOperations()

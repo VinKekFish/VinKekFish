@@ -106,7 +106,7 @@ public unsafe class CuseStream: IDisposable
             }
         }
 
-        Process.Start("chmod", $"a+r \"{fi.FullName}\"");
+        Process.Start("chmod", $"a+r \"{fi.FullName}\"").Dispose();
     }
 
     ~CuseStream()

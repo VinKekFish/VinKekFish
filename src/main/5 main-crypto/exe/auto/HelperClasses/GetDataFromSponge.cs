@@ -18,9 +18,9 @@ public unsafe partial class AutoCrypt
     /// <summary>Представляет некоторую абстрактную губку, из которой можно получать данные. Не препятствует тому, чтобы работать также и напрямую с губкой.</summary>
     public interface IGetDataFromSponge: IDisposable
     {
-        public void   GetBytes(byte * forData, nint len, byte regime, bool doCheckLastRegime = true);
-        public void   GetBytes(Record r, byte regime, bool doCheckLastRegime = true);
-        public Record GetBytes(nint len, byte regime, string RecordNameSuffix = "", bool doCheckLastRegime = true);
+        public void   GetBytes(byte * forData, nint len, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null);
+        public void   GetBytes(Record r, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null);
+        public Record GetBytes(nint len, byte regime, string RecordNameSuffix = "", bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null);
 
         /// <summary>Общее исключение для данного интерфейса</summary>
         public class GetDataFromSpongeException: Exception
@@ -64,9 +64,9 @@ public unsafe partial class AutoCrypt
         /// <param name="r">Запись, в которую будет записан результат. Результат получается длиной на всю запись.</param>
         /// <param name="regime">Логический режим шифрования. Не должен совпадать с предыдущим режимом.</param>
         /// <param name="doCheckLastRegime">Производить ли проверку совпадения режима с предыдущим или нет. true - производить (по умолчанию).</param>
-        public virtual void GetBytes(Record r, byte regime, bool doCheckLastRegime = true)
+        public virtual void GetBytes(Record r, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
-            GetBytes(r, r.len, regime, doCheckLastRegime);
+            GetBytes(r, r.len, regime, doCheckLastRegime, progress);
         }
 
         /// <summary>Получить байты из губки.</summary>
@@ -74,11 +74,11 @@ public unsafe partial class AutoCrypt
         /// <param name="regime">Логический режим губок, в котором генерируются байты. Не используйте при генерации одинаковый режим два раза подряд: это позволит логически отделить разные данные друг от друга (противодействие атакам типа Padding Oracle и т.п.).</param>
         /// <param name="RecordNameSuffix">Суффикс, добавляемый к отладочному имени выделяемой записи.</param>
         /// <returns>Запись, которая содержит результат (необходимо удалить через Dispose после использования).</returns>
-        public virtual Record GetBytes(nint len, byte regime, string RecordNameSuffix = "", bool doCheckLastRegime = true)
+        public virtual Record GetBytes(nint len, byte regime, string RecordNameSuffix = "", bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
             var r = Keccak_abstract.allocator.AllocMemory(len, RecordName: NameForRecord + ".getBytes" + RecordNameSuffix);
 
-            GetBytes(r, regime, doCheckLastRegime);
+            GetBytes(r, regime, doCheckLastRegime, progress);
             return r;
         }
 
@@ -86,7 +86,7 @@ public unsafe partial class AutoCrypt
         /// <param name="forData">Адрес массива для вывода результата.</param>
         /// <param name="len">Длина запрашиваемого результата.</param>
         /// <param name="regime">Длина запрашиваемого результата. Функция может, но не должна, проверять, что regime не одинаковый в вызовах поряд.</param>
-        public abstract void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true);
+        public abstract void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null);
 
         /// <summary>Функция проверяет, что последний режим не равен текущему и устанавливает последний режим в текущий.</summary>
         /// <param name="regime">Текущий режим</param>
@@ -156,22 +156,36 @@ public unsafe partial class AutoCrypt
         }
 
         public long ArmoringSteps = 0;
-        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true)
+        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
             if (doCheckLastRegime)
             ExceptionIfLastRegimeIsEqual(regime);
 
-            var reqLen  = len;
-            var current = forData;
+            var  current   = forData;
+            nint reqLen    = len;
+            nint generated = 0;
             do
             {
                 sponge!.Step(ArmoringSteps: (nint) ArmoringSteps, regime: regime);
                 BytesBuilder.CopyTo(BlockLen, reqLen, sponge.lastOutput, current);
 
-                reqLen  -= BlockLen;
-                current += BlockLen;
+                reqLen    -= BlockLen;
+                current   += BlockLen;
+                generated += BlockLen;
+
+                if (progress is not null)
+                {
+                    if (generated < progress.allSteps)
+                        progress.processedSteps = generated;
+                    else
+                        progress.processedSteps = progress.allSteps;
+                }
             }
             while (reqLen > 0);
+
+            if (progress is not null)
+            lock (progress)
+            Monitor.PulseAll(progress);
         }
 
         protected override void DoCorrectBlockLen()
@@ -212,7 +226,7 @@ public unsafe partial class AutoCrypt
         }
 
         public nint ArmoringSteps = 0;
-        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true)
+        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
             // Защита от того, что байты будут сгенерированы в одном и том же режиме два раза подряд
             if (doCheckLastRegime)
@@ -227,9 +241,9 @@ public unsafe partial class AutoCrypt
             }
 
             sponge.output!.Clear();
-            var reqLen  = len;
-            var current = forData;
-
+            var  current   = forData;
+            nint reqLen    = len;
+            nint generated = 0;
             do
             {
                 sponge.DoStepAndIO(ArmoringSteps, outputLen: (int) BlockLen, regime: 1);
@@ -237,10 +251,20 @@ public unsafe partial class AutoCrypt
                 var reqLenCurrent = Math.Min(reqLen, BlockLen);
                 sponge.output.GetBytesAndRemoveIt(current, reqLenCurrent);
 
-                reqLen  -= reqLenCurrent;
-                current += reqLenCurrent;
+                reqLen    -= reqLenCurrent;
+                current   += reqLenCurrent;
+                generated += reqLenCurrent;
+
+                if (progress is not null)
+                {
+                    progress.processedSteps = generated;
+                }
             }
             while (reqLen > 0);
+
+            if (progress is not null)
+            lock (progress)
+            Monitor.PulseAll(progress);
         }
 
         protected override void DoCorrectBlockLen()

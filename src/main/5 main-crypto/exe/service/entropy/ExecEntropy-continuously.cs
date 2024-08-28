@@ -745,7 +745,7 @@ public partial class Regime_Service
                 psi.WorkingDirectory ??= Directory.GetCurrentDirectory();
             }
 
-            var ps = Process.Start(psi);
+            using var ps = Process.Start(psi);
             while (!ps!.WaitForExit(1000) && !Terminated)
             {}
 

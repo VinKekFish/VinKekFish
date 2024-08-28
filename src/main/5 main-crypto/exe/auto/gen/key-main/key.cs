@@ -13,6 +13,8 @@ using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_EXE.AutoCrypt.Command;
 using static VinKekFish_Utils.Language;
 using static VinKekFish_Utils.Utils;
+using static VinKekFish_Utils.ParseUtils;
+using VinKekFish_Utils.console;
 
 public unsafe partial class AutoCrypt
 {
@@ -27,8 +29,8 @@ public unsafe partial class AutoCrypt
         public VinKekFishBase_KN_20210525? VinKekFish_Key;
         public CascadeSponge_mt_20230930?  Cascade_Key;
 
-        public IIsCorrectAvailable[] CryptoOptions;                                     /// <summary>Сгенерировать простой незашифрованный случайный файл</summary>
-        public bool                 isSimpleOutKey = false;                             /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
+        public IIsCorrectAvailable[] CryptoOptions;                                     /// <summary>Сгенерировать простой незашифрованный случайный файл. Если это значение больше нуля, то оно указывает, что нужно сгенерировать случайный файл, при этом значение размера этого файла равно значению этой переменной.</summary>
+        public nint                 isSimpleOutKey = 0;                                 /// <summary>Если true, то не спрашивать пароль (в таком случае, файл будет доступен без пароля, то есть им сможет воспользоваться кто угодно).</summary>
         public bool                 noPwd          = false;                             /// <summary>Если true, то есть скрытый пароль на скрытые данные.</summary>
         public bool                 havePwd2       = false;
                                                                                         /// <summary>Если true, то существует скрытый (второй) поток данных.</summary>
@@ -186,10 +188,7 @@ public unsafe partial class AutoCrypt
                     goto start;
                 case "issimple":
                 case "simple":
-                    if (value == "true" || value == "yes" || value == "1")
-                        isSimpleOutKey = true;
-                    else
-                        isSimpleOutKey = false;
+                    isSimpleOutKey = ParseSize(value);
 
                     if (isDebugMode)
                         Console.WriteLine("simple:" + isSimpleOutKey);
@@ -331,8 +330,8 @@ public unsafe partial class AutoCrypt
                 {
                     InitKeyGenerationSponges(ref status, countOfTasks, br, out br2, out br3);
 
-                    if (isSimpleOutKey)
-                        GenerateSimpleKey(ref status, countOfTasks);
+                    if (isSimpleOutKey > 0)
+                        GenerateSimpleKey(ref status, countOfTasks, isSimpleOutKey);
                     else
                         CreateKeyFiles(ref status, countOfTasks);
                 }
@@ -354,15 +353,31 @@ public unsafe partial class AutoCrypt
 
                 TryToDispose(br);
             }
-            // Конец функции
+            // Конец функции. Далее идут вложенные функции.
+            // ------------------------------------------------------------------------------------------------
 
             void InitKeyGenerationSponges(ref int status, int countOfTasks, Record br, out Record br2, out Record br3)
             {
-                // ------------------------------------------------
-                // Вводим данные из /dev/random и получаем в буфер bbp данные из сервиса vkf
-                // от br будет далее проинициализированы обе губки
-                using (var fs = new FileStream(autoCrypt.RandomNameFromOS, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    fs.Read(br);
+                try
+                {
+                    // ------------------------------------------------------------------------------------------------
+                    // Вводим данные из /dev/random и получаем в буфер bbp данные из сервиса vkf
+                    // от br будет далее проинициализированы обе губки
+                    using (var fs = new FileStream(autoCrypt.RandomNameFromOS, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        fs.Read(br);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is FileNotFoundException)
+                    {
+                        Console.WriteLine(L($"Data could not be read from file") + $": '{autoCrypt.RandomNameFromOS}'. " + L("File not found") + ".");
+                    }
+                    else
+                    {
+                        Console.WriteLine(L($"Data could not be read from file") + $": '{autoCrypt.RandomNameFromOS}'");
+                        DoFormatException(ex);
+                    }
+                }
 
                 status++;                   // 1
                 if (isDebugMode)
@@ -408,26 +423,44 @@ public unsafe partial class AutoCrypt
                     var inputted = 0L;
                     foreach (var rndFile in rnd)
                     {
-                        var fileLen = rndFile.Length;
-                        using (var content = rndFile.OpenRead())
+                        try
                         {
-                            do
+                            var fileLen = rndFile.Length;
+                            using (var content = rndFile.OpenRead())
                             {
-                                var readed = content.Read(rndBuff);
-
-                                // Отладочный вывод
-                                if (isDebugMode)
+                                do
                                 {
-                                    Console.WriteLine($"{readed} bytes from {rndFile.FullName}");
-                                    // using var ff = File.OpenWrite("/inRamA/tmp");
-                                    // ff.Write(new ReadOnlySpan<byte>(rndBuff, readed));
-                                }
+                                    var readed = content.Read(rndBuff);
 
-                                bbp.AddWithCopy(rndBuff, (nint) readed, Keccak_abstract.allocator);
-                                fileLen  -= readed;
-                                inputted += readed;
+                                    // Отладочный вывод
+                                    if (isDebugMode)
+                                    {
+                                        Console.WriteLine($"{readed} bytes from {rndFile.FullName}");
+                                        // using var ff = File.OpenWrite("/inRamA/tmp");
+                                        // ff.Write(new ReadOnlySpan<byte>(rndBuff, readed));
+                                    }
+
+                                    bbp.AddWithCopy(rndBuff, (nint) readed, Keccak_abstract.allocator);
+                                    fileLen  -= readed;
+                                    inputted += readed;
+                                }
+                                while (fileLen > 0);
                             }
-                            while (fileLen > 0);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is FileNotFoundException)
+                            {
+                                Console.WriteLine(L($"Data could not be read from file") + $": '{rndFile.FullName}'. " + L("File not found") + ".");
+                            }
+                            else
+                            {
+                                Console.WriteLine(L($"Data could not be read from file") + $": '{rndFile.FullName}'");
+                                DoFormatException(ex);
+                            }
+
+                            rndBuff.Dispose();
+                            throw;
                         }
 
                         rndBuff.Clear();
@@ -583,7 +616,7 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        protected void GenerateSimpleKey(ref int status, int countOfTasks)
+        protected void GenerateSimpleKey(ref int status, int countOfTasks, nint isSimpleOutKey)
         {
             // VinKekFish_Key
             // Cascade_Key
@@ -599,15 +632,50 @@ public unsafe partial class AutoCrypt
 
             main.NameForRecord = "GenKeyCommand.GenerateSimpleKey";
 
-            var keyVKF = main.GetBytes(newKeyLenMax, regime: 11);
+            var progress = isDebugMode ? new CascadeSponge_1t_20230905.StepProgress() { allSteps = isSimpleOutKey } : null;
 
+            Record? keyVKF = null;
             try
             {
+                Parallel.Invoke
+                (
+                    () =>
+                    {
+                        keyVKF = main.GetBytes(isSimpleOutKey, regime: 11, progress: progress);
+                    },
+                    () =>
+                    {
+                        if (progress is null)
+                            return;
+
+                        Console.WriteLine();
+                        using (var console = new GreenTextConsole())
+                        while (progress.allSteps > progress.processedSteps)
+                        {
+                            lock (progress)
+                            {
+                                Monitor.Wait(progress, 1000);
+                                var top  = Console.CursorTop;
+                                Console.Write($"{progress.processedSteps * 100.0 / progress.allSteps:F2}%     ");
+                                Console.SetCursorPosition(0, top);
+                            }
+                        }
+                    }
+                );
+
+                status += 1;   // 12+1=13
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
+
                 using (var fs = new FileStream(outKeyFile!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(keyVKF);
                     fs.Flush();
                 }
+
+                status += 2;   // 13+2=15
+                if (isDebugMode)
+                    Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
 
                 if (isDebugMode)
                     Console.WriteLine(L("Simple key was writed to") + " " + outKeyFile!.FullName);
@@ -618,13 +686,10 @@ public unsafe partial class AutoCrypt
                 vkf.Dispose();
                 csc.sponge = null;
                 csc.Dispose();
-                keyVKF.Dispose();
+                main.Dispose();
+                TryToDispose(main);
+                TryToDispose(keyVKF);
             }
-
-            status += 3;   // 12+3=15
-            if (isDebugMode)
-                Console.WriteLine($"{status,2}/{countOfTasks}. " + DateTime.Now.ToLongTimeString());
-
         }
 
         /// <summary>Функция вычисляет максимальный размер файла, но не учитывает файлы с размером более чем maxLen.</summary>

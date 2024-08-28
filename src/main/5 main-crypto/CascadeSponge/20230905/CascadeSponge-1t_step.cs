@@ -23,8 +23,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
     public class StepProgress
     {                                                     /// <summary>Сколько шагов нужно выполнить всего</summary>
-        public volatile nint allSteps   = 0;              /// <summary>Сколько шагов уже закончено</summary>
-        public volatile nint endedSteps = 0;
+        public volatile nint allSteps       = 0;          /// <summary>Сколько шагов уже закончено</summary>
+        public volatile nint processedSteps = 0;
     }
 
     /// <summary>Осуществить шаг алгоритма (полный шаг каскадной губки - все губки делают по одному шагу)</summary>
@@ -83,7 +83,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         if (progress is not null)
         {
             progress.allSteps   = countOfSteps;
-            progress.endedSteps = 0;
+            progress.processedSteps = 0;
         }
 
         nint curDataLen, dataUsedLen = 0;
@@ -110,7 +110,9 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
                 Step_once(null, 0, regime, inputRegime);
 
             if (progress is not null)
-                progress.endedSteps++;
+            {
+                progress.processedSteps++;
+            }
         }
 
         // Выполняем заключительное преобразование для отбивки обратной связи от выхода

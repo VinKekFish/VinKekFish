@@ -48,7 +48,7 @@ public class UnixSocketListener: IDisposable
 
         listenSocket.BeginAccept(AcceptConnection, null);
 
-        Process.Start("chmod", $"a+rw \"{path}\"");
+        Process.Start("chmod", $"a+rw \"{path}\"").Dispose();
     }
 
     ~UnixSocketListener()

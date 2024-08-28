@@ -85,8 +85,11 @@ public partial class Program
 
             var proc = Process.Start("systemctl", $"daemon-reload");
             proc.WaitForExit();
+            proc.Dispose();
+
                 proc = Process.Start("systemctl", $"enable {vkft.Name}");
             proc.WaitForExit();
+            proc.Dispose();
 
             Console.WriteLine(L("'daemon-reload' and 'systemctl enable vkf' executed"));
         }

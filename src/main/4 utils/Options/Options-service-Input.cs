@@ -269,12 +269,16 @@ public partial class Options_Service
                 public string  parameters = "";
                 public string? workingDir;
                 public string? userName;
+                public int     timeout = -1;
                 public InputCmdElement(Element? parent, List<Options.Block> blocks, Options.Block thisBlock) : base(parent, blocks, thisBlock)
                 {}
 
                 public override void Check()
                 {
                     base.Check();
+
+                    if (timeout == 0)
+                        throw new Options_Service_Exception($"In the '{GetFullElementName()}' element (at line {1+this.thisBlock.startLine}) of the service option 'timeout' element is incorrect. Correct string, for example, timeout:10000 (== timeout:10s)");
                 }
 
                 public override void AdditionalBlock(Options.Block block, string canonicalName)
@@ -288,6 +292,13 @@ public partial class Options_Service
                     if (canonicalName.StartsWith("user:"))
                     {
                         userName = block.Name.Substring("user:".Length).Trim();
+                        return;
+                    }
+
+                    if (canonicalName.StartsWith("timeout:"))
+                    {
+                        var timeoutStr = block.Name.Substring("timeout:".Length).Trim();
+                        timeout = (int) VinKekFish_Utils.ParseUtils.ParseMS(timeoutStr);
                         return;
                     }
 

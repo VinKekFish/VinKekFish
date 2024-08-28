@@ -121,7 +121,7 @@ File not found or an another file system error occured
 outKeyFile is null
     Файл результата для создаваемого ключа не указан или существует (out:path/to/file)
 Bytes received from additional random files
-    Байтов получено из дополнительных случайных файлов
+    Байтов получено из всех дополнительных случайных файлов
 Simple key was writed to
     Простой ключ записан в
 Password length is too small
@@ -148,4 +148,10 @@ Encryption ended. Wait to write the file.
     Шифрование закончено. Ждём записи в файл.
 Encryption ended. File ready to use.
     Шифрование закончено. Файл готов к использованию.
+Data could not be read from file
+    Не удалось прочитать данные из файла
+File not found
+    Файл не найден
+Failed to connect to the socket
+    Не удалось соединиться с сокетом
 :

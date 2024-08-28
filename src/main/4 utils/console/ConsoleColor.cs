@@ -73,3 +73,11 @@ public class YellowTextConsole : ConsoleOptions
         Console.ForegroundColor = ConsoleColor.Yellow;
     }
 }
+
+public class GreenTextConsole : ConsoleOptions
+{
+    public GreenTextConsole()
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+    }
+}

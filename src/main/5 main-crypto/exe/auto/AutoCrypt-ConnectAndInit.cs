@@ -34,8 +34,15 @@ public unsafe partial class AutoCrypt
                 lock (bbp)
                 bbp.AddWithCopy(b, Regime_Service.MinBlockSize, Keccak_abstract.allocator);
             }
+            catch (SocketException ex)
+            {
+                Console.WriteLine(L("Failed to connect to the socket") + $" {autoCrypt.RandomSocketPoint}");
+                Console.Error.WriteLine(ex.Message);
+                Terminated = true;
+            }
             catch (Exception ex)
             {
+                Console.WriteLine(L("Failed to connect to the socket") + $" {autoCrypt.RandomSocketPoint}");
                 DoFormatException(ex);
                 Terminated = true;
             }

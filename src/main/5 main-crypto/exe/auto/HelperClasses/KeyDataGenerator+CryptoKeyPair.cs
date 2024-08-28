@@ -4,6 +4,7 @@ using System.Runtime;
 namespace VinKekFish_EXE;
 
 using System.Reflection;
+using System.Runtime.Versioning;
 using cryptoprime;
 using maincrypto.keccak;
 using vinkekfish;
@@ -117,9 +118,9 @@ public unsafe partial class AutoCrypt
         /// <param name="len">Длина получаемых данных.</param>
         /// <param name="regime">Числовой режим генерации (вводится в губки)</param>
         /// <param name="RecordNameSuffix">Суффикс, добавляемый к отладочному имени выделяемой записи.</param>
-        public Record GetBytes(nint len, byte regime, string RecordNameSuffix = "")
+        public Record GetBytes(nint len, byte regime, string RecordNameSuffix = "", CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
-            return main.GetBytes(len: len, regime: regime, RecordNameSuffix);
+            return main.GetBytes(len: len, regime: regime, RecordNameSuffix, doCheckLastRegime: true, progress: progress);
         }
 
         /// <summary>Делает необратимое преобразование в обеих губках ("отбивает" предыдущие состояния от будущих). (InitThreeFishByCascade и doStepAndIO с Overwrite: true).</summary>
@@ -192,7 +193,7 @@ public unsafe partial class AutoCrypt
                 list.Add(sponge);
         }
 
-        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true)
+        public override void GetBytes(byte* forData, nint len, byte regime, bool doCheckLastRegime = true, CascadeSponge_1t_20230905.StepProgress? progress = null)
         {
             ExceptionIfLastRegimeIsEqual(regime);
 
@@ -206,26 +207,73 @@ public unsafe partial class AutoCrypt
             }
 
             BytesBuilder.ToNull(len, forData);
+            CascadeSponge_1t_20230905.StepProgress[]? prg = null;
 
-            Parallel.For
-            (
-                0, list.Count,
-                (int i) =>
+            if (progress is not null)
+            {
+                prg = new CascadeSponge_1t_20230905.StepProgress[list.Count];
+                for (int i = 0; i < prg.Length; i++)
                 {
-                    var sub = Keccak_abstract.allocator.AllocMemory(len, "GetDataByAdd.getBytes." + NameForRecord + "." + i);
-                    try
+                    prg[i] = new()
                     {
-                        list[i].GetBytes(sub, regime, doCheckLastRegime);
+                        processedSteps = 0, allSteps = progress.allSteps
+                    };
+                }
+            }
 
-                        lock (this)
-                        BytesBuilder.ArithmeticAddBytes(len, forData, sub);
-                    }
-                    finally
+            Parallel.Invoke
+            (
+                () =>
+                Parallel.For
+                (
+                    0, list.Count,
+                    (int i) =>
                     {
-                        sub.Dispose();
+                        var sub = Keccak_abstract.allocator.AllocMemory(len, "GetDataByAdd.getBytes." + NameForRecord + "." + i);
+                        try
+                        {
+                            list[i].GetBytes(sub, regime, doCheckLastRegime, progress: prg?[i]);
+
+                            lock (this)
+                            BytesBuilder.ArithmeticAddBytes(len, forData, sub);
+                        }
+                        finally
+                        {
+                            sub.Dispose();
+                        }
+                    }
+                ),
+                () =>
+                {
+                    if (progress is null || prg is null)
+                        return;
+
+                    while (progress.allSteps > progress.processedSteps)
+                    {
+                        lock (progress)
+                        {
+                            Monitor.Wait(progress, 1000);
+
+                            // Ищем минимальное значениеи и записываем его в прогресс
+                            var processedSteps = nint.MaxValue;
+                            foreach (var cur in prg)
+                            {
+                                if (cur.processedSteps < processedSteps)
+                                    processedSteps = cur.processedSteps;
+                            }
+
+                            progress.processedSteps = processedSteps;
+                        }
                     }
                 }
             );
+
+            if (progress is not null)
+            lock (progress)
+            {
+                progress.allSteps = progress.processedSteps;
+                Monitor.PulseAll(progress);
+            }
         }
 
         public void ClearList(bool doDispose = true)

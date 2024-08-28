@@ -43,7 +43,12 @@ public partial class AutoCrypt: IDisposable
 
     start:
 
-        var command = (CommandOption)CommandOption.ReadAndParseLine(fs, () => Console.WriteLine(L("Input 'name:value'") + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:"), isDebugMode: isDebugMode);
+        var command = (CommandOption)CommandOption.ReadAndParseLine
+        (
+            fs,
+            PrintHelpForMainLevelAutoCommand,
+            isDebugMode: isDebugMode
+        );
 
         switch (command.name)
         {
@@ -59,6 +64,8 @@ public partial class AutoCrypt: IDisposable
                 break;
             case "key-main":
             case "key-primary":
+            case "main-key":
+            case "primary-key":
             case "key_gen_main":
             case "key-gen-main":
                 CurrentCommand = new GenKeyCommand(this) { isDebugMode = isDebugMode };
@@ -73,8 +80,18 @@ public partial class AutoCrypt: IDisposable
             default:
                 if (!isDebugMode)
                     throw new CommandException(L("Command is unknown (enter 'debug:' at the vkf start for more bit information)"));
+
+                Console.WriteLine(L("Command is unknown"));
+                PrintHelpForMainLevelAutoCommand();
+
                 goto start;
         }
+    }
+
+    private static void PrintHelpForMainLevelAutoCommand()
+    {
+        Console.WriteLine(L("Input 'name:value'")
+                           + ":\r\nExamles: debug:, enc:, dec:, key-main:, pwd:, end:, start:");
     }
 
     /// <summary>Взять из конфигурации имя файла, через который сервис vkf даёт энтропию</summary>
