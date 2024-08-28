@@ -15,7 +15,8 @@ https://dotnet.microsoft.com/download
 ```
     Попробуйте закомментировать символом "#" строку `character device in /dev` и строку под ней в файле настроек
     Файл настроек располагается в `./Crypto/VinKekFish/src/main/5 main-crypto/exe/service/options_files/service.options`
-    После этого нужно сребилдить проект заново и запустить скрипт установки (или просто вручную заменить файл настроек в `/opt/VinKekFish/options/` и, без ребилда, перезапустить сервис vkf [`sudo systemctl restart vkf`])
+    После этого нужно сребилдить проект заново и запустить скрипт установки
+    или просто вручную заменить файл настроек в `/opt/VinKekFish/options/` и, без ребилда, перезапустить сервис vkf [`sudo systemctl restart vkf`]
 ```
 
 

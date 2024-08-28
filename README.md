@@ -12,11 +12,13 @@
 
 [Руководство по построению и инсталляции](./build.md)
 
+[Инструкции для пользователя](src/main/5%20main-crypto/exe/auto/top-commands.md) (пока не готово)
+
 [Общее описание проекта](https://github.com/VinKekFish)
 
 
 
-### Описание других шиблонов
+### Описание шаблонов поиска по проекту
 
 [VinKekFish/Docs/Dev/Crypto/keys-templates.md](./Docs/Dev/Crypto/keys-templates.md)
 
@@ -54,7 +56,7 @@ fbuild.sh
             https://www.schneier.com/academic/skein/threefish/
 
 
-    NIST.FIPS.202.pdf - описание алгоритма keccak в стандартной форме
+    NIST.FIPS.202.pdf - описание алгоритма keccak в форме стандарта NIST
 
     Keccak-reference-3.0.pdf - описание алгоритма keccak в авторской форме
 

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>VinKekFish</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="vinkekfish">VinKekFish</h1>
+<p>Программа требует установленной [.NET 7.0](<a href="https://dotnet.microsoft.com/download">https://dotnet.microsoft.com/download</a> или через apt install dotnet7).
+Программа работает только под Linux; работа под другими ОС, вероятнее всего, будет некорректной (сервис сбора энтропии точно не будет работать).
+(требуются пути &quot;/proc/meminfo&quot;, &quot;/dev/random&quot;, systemd для регистрации сервиса и т.п.)
+Поиск по шаблону ::warn:onlylinux:sOq1JvFKRxQyw7FQ: даст точки зависимости от Linux (<a href="./Docs/Dev/Crypto/keys-templates.html">описание шаблонов-ссылок</a>)</p>
+<p>Это - консольная программа для шифрования. Пока она совсем не готова и ничего не шифрует.
+Обеспечивает ключ симметричного шифрования 4096 битов и выше. Асимметричное шифрование отсутствует.
+Программа не проверена на стойкость независимыми экспертами, пользуйтесь на свой страх и риск.</p>
+<p><a href="./build.html">Руководство по построению и инсталляции</a></p>
+<p><a href="src/main/5%20main-crypto/exe/auto/top-commands.html">Инструкции для пользователя</a> (пока не готово)</p>
+<p><a href="https://github.com/VinKekFish">Общее описание проекта</a></p>
+<h3 id="описание-шаблонов-поиска-по-проекту">Описание шаблонов поиска по проекту</h3>
+<p><a href="./Docs/Dev/Crypto/keys-templates.html">VinKekFish/Docs/Dev/Crypto/keys-templates.md</a></p>
+<h1 id="каталоги">Каталоги</h1>
+<h2 id="b"><a href="/b">/b</a></h2>
+<p>Содержит скрипты для сборки (билда) проекта. Запускать с рабочей директорией / (корень проекта, не файловой системы).</p>
+<p><a href="http://rebuild.sh">rebuild.sh</a>
+полный ребилд проекта с запуском всех тестов
+<a href="http://build.sh">build.sh</a>
+ребилд проекта с ребилдом сборшика
+<a href="http://fbuild.sh">fbuild.sh</a>
+&quot;быстрый&quot; билд проекта без ребилда сборщика и с запуском только очень малого количества тестов</p>
+<h2 id="docs"><a href="Docs">/Docs</a></h2>
+<p>Каталог с документацией.</p>
+<h3 id="docsexternal"><a href="Docs/External">/Docs/External</a></h3>
+<p>Каталог с внешними документами, использованными в проекте, и сторонней реализацией ThreeFish.</p>
+<pre><code>SkeinFish-0.5.0.zip
+
+    сторонняя реализация ThreeFish https://github.com/nitrocaster/SkeinFish/
+
+
+skein.pdf
+
+    Описание Skein и TreeFish от Брюса Шнейера
+
+        https://www.schneier.com/academic/skein/threefish/
+
+
+NIST.FIPS.202.pdf - описание алгоритма keccak в форме стандарта NIST
+
+Keccak-reference-3.0.pdf - описание алгоритма keccak в авторской форме
+</code></pre>
+<h3 id="docsdev"><a href="Docs/Dev">/Docs/Dev</a></h3>
+<pre><code>Документы, касающиеся разработки (описание алгоритма VinKekFish, контрольные списки, планы, задачи)
+</code></pre>
+<p>Содержание: <a href="./Docs/Dev/README.html">README.md</a></p>
+<h2 id="src"><a href="src">/src/</a></h2>
+<p>Общие исходные файлы</p>
+<h3 id="srcbuilder"><a href="src/builder/">/src/builder/</a></h3>
+<pre><code>Построитель проекта: строит проект и запускает тесты автоматически
+</code></pre>
+<p><a href="src/builder/README.html">Описание директории</a></p>
+<h3 id="srcmain"><a href="src/main/README.html">/src/main/</a></h3>
+<p>Непосредственно файлы базовых примитивов криптографии (keccak и ThreeFish).
+Вспомогательные классы для работы с массивами байтов и битов: BytesBuider и прочие.</p>
+<h3 id="srctests"><a href="src/tests/">/src/tests/</a></h3>
+<p>Файлы тестов</p>
+<p>Тесты находятся в папке src примерно в таком же расположении, в котором находятся оригинальные тестируемые файлы</p>
+<h3 id="srctests-dev"><a href="src/tests-dev/">/src/tests-dev/</a></h3>
+<p>Файлы одноразовых тестов, которые запускаются вручную. Они нужны для проверки концепций и проб, но не для проверки реализации.</p>
+
+            
+            
+        </body>
+        </html>
