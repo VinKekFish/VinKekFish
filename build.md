@@ -5,18 +5,22 @@
 ## 0. Установить .NET 7.0
 
 Для Ubuntu Linux и Linux Mint необходимо выполнить в командной строке команду
+```
 sudo apt install dotnet7
+```
 для иных ОС необходимо смотреть
 https://dotnet.microsoft.com/download
 
-При возникновении проблем с libfuse (она используется только для создания символьного устройства /dev/vkf/crandom и больше ни для чего)
-    Попробуйте закомментировать символом "#" строку "character device in /dev" и строку под ней в файле настроек
-    Файл настроек располагается в ./Crypto/VinKekFish/src/main/5 main-crypto/exe/service/options_files/service.options
-    После этого нужно сребилдить проект заново и запустить скрипт установки (или просто вручную заменить файл настроек в /opt/VinKekFish/options/ и перезапустить сервис vkf [sudo systemctl restart vkf])
+При возникновении проблем с libfuse (она используется только для создания символьного устройства /dev/vkf/crandom и больше ни для чего):
+```
+    Попробуйте закомментировать символом "#" строку `character device in /dev` и строку под ней в файле настроек
+    Файл настроек располагается в `./Crypto/VinKekFish/src/main/5 main-crypto/exe/service/options_files/service.options`
+    После этого нужно сребилдить проект заново и запустить скрипт установки (или просто вручную заменить файл настроек в `/opt/VinKekFish/options/` и, без ребилда, перезапустить сервис vkf [`sudo systemctl restart vkf`])
+```
 
 
 ## 1. Извлечь вспомогательный репозиторий
-
+```
 mkdir Директория_где_вы_хотите_поместить_проекты
 cd Директория_где_вы_хотите_поместить_проекты
 
@@ -29,7 +33,7 @@ cd ..
 mkdir -p ./Crypto
 cd Crypto
 git clone https://github.com/VinKekFish/VinKekFish
-
+```
 
 ## 2. Вызвать один из сценариев билда
 Перейти в директорию VinKekFish
