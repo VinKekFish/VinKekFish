@@ -17,7 +17,7 @@ public partial class AutoCrypt
 
         public override ProgramErrorCode Exec(StreamReader? sr)
         {
-            return ProgramErrorCode.success;
+            return ProgramErrorCode.AbandonedByUser;
         }
     }
 }
