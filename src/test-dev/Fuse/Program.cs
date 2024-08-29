@@ -1,6 +1,6 @@
 ﻿#pragma warning disable
 
-// dotnet publish --output ./build.dev -c Release --self-contained false --use-current-runtime true /p:PublishSingleFile=true
+// dotnet publish --output ./build.dev -c Release --self-contained false /p:PublishSingleFile=true  -r linux-x64
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -8,35 +8,64 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 
-// Возникает ошибка сегментирования, ничего не работает
+// https://github.com/veracrypt/VeraCrypt/blob/b5c7f628d8133b9f10235f973af041ebd8efa948/src/Driver/Fuse/FuseService.cpp#L560
+
+// Почему-то из-под ограниченных аккаунтов может ничего не работать.
+
+// Определяем, где находится заголовочный файл
+// echo '#include <sys/stat.h>' | cc -E - | grep '^# '
 
 namespace ConsoleTest;
 unsafe class Program
 {
+    static StreamWriter sw;
     static void Main(string[] args)
     {
-        var A = new string[] {"", "-f", "-d", "/inRamA/ttt"};
+        /// -o default_permissions нужно для того, чтобы разрешениями управляла ОС. mkdir не способна нормально понять, кто запрашивает доступ (geteiud возвращает пользователя, из-под которого запущен этот процесс)
+        /// allow_other - если root, то можно, либо если включено 'user_allow_other' в /etc/fuse.conf . Это позволяет видеть примонтированный том другим пользователям.
+        var A = new string[] {"", "-o", "default_permissions", "-d", "-f", "/inRamA/ttt"};
         Console.CancelKeyPress += (o, e) =>
         {
             Process.Start("umount", "/inRamA/ttt").Dispose();
         };
 
-        var fuseOperations = new FuseOperations()
-        {
-            open     = &fuse_open,
-            read     = &fuse_read,
-            access   = &fuse_access,
-            getattr  = &fuse_getattr,
-            statfs   = &fuse_statfs,
-            opendir  = &fuse_openDir,
-            readdir  = &fuse_readDir,
-            init     = &fuse_init
-        };
+        var fi = new FileInfo("/inRamA/log");
+        fi.Delete();
+        var ow = fi.OpenWrite();
+            sw = new StreamWriter(ow);
+        WriteDebugLine("start");
 
-        // fuse_main_real(args.Length, args, fuseOperations, Marshal.SizeOf(fuseOperations), 0);
-        var r = fuse_main_real(A.Length, A, fuseOperations, Marshal.SizeOf(fuseOperations), 0);
+        FuseOperations* fuseOperations = stackalloc FuseOperations[1];
+        fuseOperations->open  = &fuse_open;
+        fuseOperations->read  = &fuse_read;
+        fuseOperations->chown = &fuse_chown;
+        fuseOperations->chmod = &fuse_chmod;
+            //access   = &fuse_access,
+        fuseOperations->mkdir   = &mkdir;
+        fuseOperations->getattr = &fuse_getattr;
+            //statfs   = &fuse_statfs,
+            //opendir  = &fuse_openDir,
+        fuseOperations->readdir = &fuse_readDir;
+        fuseOperations->release = &fuse_release;
+            //init     = &fuse_init,
+            //getxattr = &GetXAttr
 
-        Console.WriteLine("end with result: " + r);
+        // WriteDebugLine(sizeof(FuseOperations));  // 336
+        // WriteDebugLine(sizeof(fuse_config));         // 128
+        // WriteDebugLine(sizeof(FuseFileStat)); // 144
+        // WriteDebugLine("" + Marshal.SizeOf(fuseOperations[0]));  // 336
+
+
+        var r = fuse_main_real(A.Length, A, fuseOperations, Marshal.SizeOf(fuseOperations[0]), 0);
+
+        WriteDebugLine("end with result: " + r);
+    }
+
+    public static void WriteDebugLine(string Line)
+    {
+        Console.WriteLine(Line);
+        sw.WriteLine(Line);
+        sw.Flush();
     }
 
     // https://github.com/vzabavnov/dotnetcore.fuse/
@@ -51,7 +80,7 @@ unsafe class Program
     [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
     internal static extern PosixResult fuse_main_real(int argc,
         [In, MarshalAs(UnmanagedType.LPArray)] string[] argv,
-        [In] FuseOperations? operations, nint operationsSize, nint userData);
+        FuseOperations * operations, nint operationsSize, nint userData);
 
 
     // int fuse_reply_open(fuse_req_t req, const struct fuse_file_info *fi);
@@ -103,37 +132,72 @@ unsafe class Program
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_open(byte* path, FuseFileInfo * fileInfo)
     {
-        Console.WriteLine("fuse_open !!!!!!!!!!!!");
+        WriteDebugLine("fuse_open !!!!!!!!!!!!");
         return 0;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
     {
-        Console.WriteLine("fuse_read !!!!!!!!!!!!");
+        WriteDebugLine("fuse_read !!!!!!!!!!!!");
         return 0;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_access(nint path, PosixAccessMode mask)
     {
-        Console.WriteLine("fuse_access !!!!!!!!!!!!");
+        WriteDebugLine("fuse_access !!!!!!!!!!!!");
         return (int) PosixResult.Success;
     }
+
+    // /usr/include/x86_64-linux-gnu/bits/struct_stat.h
 
 //    public static int GetAttr(byte * fileNamePtr, [Out] out FuseFileStat stat, ref FuseFileInfo fileInfo)
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_getattr(byte * fileNamePtr, FuseFileStat* stat, FuseFileInfo * fileInfo)
     {
-        Console.WriteLine("GetAttr !!!!!!!!!!!! " + Utf8StringMarshaller.ConvertToManaged(fileNamePtr));
-// Console.WriteLine(sizeof(FuseFileStat));
+        var dirName = Utf8StringMarshaller.ConvertToManaged(fileNamePtr);
+
+        WriteDebugLine("GetAttr: " + dirName);
+// WriteDebugLine(sizeof(FuseFileStat));
+
         var st = (byte *) stat;
         for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
             *st = 0;
+stat->uid = 1003;
+stat->gid = 1004;
+        if (dirName == "/")
+        {
+            stat->nlink = 2 + dirs.Count + 1;    // Это минимум,
+            stat->size = 0;
+            stat->mode = PosixFileMode.Directory | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead | PosixFileMode.OwnerAll | PosixFileMode.OthersAll | PosixFileMode.GroupAll;
+WriteDebugLine("fuse_getattr success /");
+            return (int) PosixResult.Success;
+        }
 
-        stat->nlink = 2;
-        stat->size = 4;
-        stat->mode = PosixFileMode.Directory | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead;
+        if (!dirs.ContainsKey(dirName))
+        {/*
+            stat->nlink = 1;    // Это минимум,
+            stat->size = 0;
+            stat->mode = PosixFileMode.Regular | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead;
+*/
+            return - (int) PosixResult.ENOENT;
+        }
+
+        stat->nlink = 2;    // Это минимум,
+        stat->size = 0;
+        stat->mode = PosixFileMode.Directory | dirs[dirName];
+
+WriteDebugLine("fuse_getattr success " + dirName);
+        return (int) PosixResult.Success;
+    }
+
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static int fuse_release(byte* path, FuseFileInfo * fileInfo)
+    {
+        WriteDebugLine("fuse_release !!!!!!!!!!!! " + Utf8StringMarshaller.ConvertToManaged(path));
+// WriteDebugLine(sizeof(FuseFileStat));
 
         return (int) PosixResult.Success;
     }
@@ -141,7 +205,7 @@ unsafe class Program
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int GetXAttr(byte * fileName, byte * stat, byte * a, nint size)
     {
-        Console.WriteLine("GetXAttr !!!!!!!!!!!!");
+        WriteDebugLine("GetXAttr !!!!!!!!!!!!");
 
         return (int) PosixResult.Success;
     }
@@ -149,7 +213,7 @@ unsafe class Program
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static unsafe int fuse_statfs(nint a, void * b)
     {
-        Console.WriteLine("fuse_statfs !!!!!!!!!!!!");
+        WriteDebugLine("fuse_statfs !!!!!!!!!!!!");
 
         return (int) PosixResult.Success;
     }
@@ -157,33 +221,97 @@ unsafe class Program
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static unsafe int fuse_openDir(byte * fileName, FuseFileInfo * fi)
     {
-        Console.WriteLine("fuse_openDir !!!!!!!!!!!!");
+        WriteDebugLine("fuse_openDir !!!!!!!!!!!!");
 
         return (int) PosixResult.Success;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe int fuse_readDir(byte * dirName, void * buf, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int> filler, nint offset, FuseFileInfo * fi, FuseReadDirFlags flags)
+    public static unsafe int fuse_readDir(byte * pDirName, void * buf, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int> filler, nint offset, FuseFileInfo * fi, FuseReadDirFlags flags)
     {
-        Console.WriteLine("fuse_readDir !!!!!!!!!!!!");
+        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
+        WriteDebugLine("fuse_readDir !!!!!!!!!!!! " + dirName);
+
+        if (dirName == "/")
+        {
+            foreach (var (subDirName, subDirMode) in dirs)
+            {
+                // Нам здесь нужно убрать лидирующий "/", чтобы вывести верные имена
+                var a = Utf8StringMarshaller.ConvertToUnmanaged(subDirName.Substring(1));
+                filler(buf, a, null, 0, 0); // FUSE_FILL_DIR_DEFAULTS == 0 - это последний параметр; FUSE_READDIR_PLUS == 1
+                // Utf8StringMarshaller.Free(a);
+                WriteDebugLine("fuse_readDir filler " + subDirName);
+            }
+        }
+        else
+        if (!dirs.ContainsKey(dirName))
+        {
+            return - (int) PosixResult.ENOENT;
+        }
+WriteDebugLine("fuse_readDir success");
+        return (int) PosixResult.Success;
+    }
+
+    public static SortedList<string, PosixFileMode> dirs = new();
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int geteuid();
+
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int getegid();
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public  static unsafe int mkdir(byte * pDirName, PosixFileMode mode)
+    {
+        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
+        WriteDebugLine("fuse_mkdir !!!!!!!!!!!! " + dirName);
+
+        if (dirs.ContainsKey(dirName))
+            return - (int) PosixResult.EEXIST;
+
+        WriteDebugLine("" + geteuid());
+
+        dirs.Add(dirName, mode | PosixFileMode.Directory);
 
         return (int) PosixResult.Success;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static int fuse_init(void * connect, fuse_config * config)
+    public  static unsafe int fuse_chown(byte * pDirName, int uid, int gid, FuseFileInfo * fi)
     {
-        var st = (byte *) config;
+        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
+        WriteDebugLine("fuse_chown !!!!!!!!!!!! " + dirName);
+
+        WriteDebugLine($"{uid,4} {gid,4}");
+
+        return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public  static unsafe int fuse_chmod(byte * pDirName, PosixFileMode mode, FuseFileInfo * fi)
+    {
+        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
+        WriteDebugLine("fuse_chmod !!!!!!!!!!!! " + dirName);
+
+        return (int) PosixResult.Success;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static void * fuse_init(void * connect, fuse_config * config)
+    {
+/*        var st = (byte *) config;
         for (int i = 0; i < sizeof(fuse_config); i++, st++)
-            *st = 0;
-
+            *st = 0;*/
+WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");/*
         config->direct_io    = 1;
         config->hard_remove  = 1;
         config->kernel_cache = 0;
         config->nullpath_ok  = 0;
-        config->parallel_direct_writes = 0;
-
-        return 0;
+        // config->parallel_direct_writes = 0;
+        config->uid = 1003;
+        config->gid = 1004;
+*/
+        return null;
     }
 
     // https://github.com/libfuse/libfuse/blob/a466241b45d1dd0bf685513bdeefd6448b63beb6/include/fuse.h#L96
@@ -248,9 +376,7 @@ unsafe class Program
         public int ac_attr_timeout_set;
 	    public double ac_attr_timeout;
                                                 /// <summary>If this option is given the file-system handlers for the following operations will not receive path information: read, write, flush, release, fallocate, fsync, readdir, releasedir, fsyncdir, lock, ioctl and poll. For the truncate, getattr, chmod, chown and utimens operations the path will be provided only if the struct fuse_file_info argument is NULL.</summary>
-        public int nullpath_ok;                 /// <summary>Allow parallel direct-io writes to operate on the same file.  FUSE implementations which do not handle parallel writes on  same file/region should NOT enable this option at all as it  might lead to data inconsistencies.  For the FUSE implementations which have their own mechanism  of cache/data integrity are beneficiaries of this setting as  it now open doors to parallel writes on the same file (without  enabling this setting, all direct writes on the same file are  serialized, resulting in huge data bandwidth loss).</summary>
-        public int parallel_direct_writes;
-
+        public int nullpath_ok;
                                                 /// <summary>The remaining options are used by libfuse internally and should not be touched.</summary>
         public int show_help;
         public char *modules;
@@ -614,12 +740,12 @@ int main()
 
                                              /// <summary>Device</summary>
         public long dev;                     /// <summary>File serial number</summary>
-        public long ino;                     /// <summary>User ID of the file's owner</summary>
+        public long ino;                     /// <summary>Link count</summary>
         public long nlink;                   /// <summary>File mode</summary>
-        public PosixFileMode mode;           /// <summary>Link count</summary>
+        public PosixFileMode mode;           /// <summary>User ID of the file's owner</summary>
         public int  uid;                     /// <summary>Group ID of the file's group</summary>
-        public int  gid;
-        public int  pad0;                     /// <summary>Device number, if device.</summary>
+        public int  gid;                     /// <summary>Выравнивающее поле</summary>
+        public int  pad0;                    /// <summary>Device number, if device.</summary>
         public long rdev;                    /// <summary>Size of file, in bytes</summary>
         public long size;                    /// <summary>Optimal block size for I/O</summary>
         public long blksize;                 /// <summary>Number 512-byte blocks allocated</summary>
@@ -629,6 +755,7 @@ int main()
         public TimeSpec mtime;              /// <summary>Time of last status change</summary>
         public TimeSpec ctime;
 
+        // !!!! Здесь должен быть указатель
         public fixed long reserved[3];
 
     }
@@ -641,12 +768,12 @@ int main()
             // tv_sec = -1; tv_nsec = -1;
         }
 
-        public readonly long tv_sec   = -1;         /* seconds */
-        public readonly long tv_nsec  = -1;        /* and nanoseconds */
+        public readonly long tv_sec   = -1;         // seconds
+        public readonly long tv_nsec  = -1;        // and nanoseconds
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    internal sealed class FuseOperations
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    internal struct FuseOperations
     {
         public FuseOperations()
         {
@@ -697,21 +824,21 @@ int main()
         public delegate* unmanaged[Cdecl]<byte*, FuseFileStat*, FuseFileInfo*, int> getattr;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, int> readlink;
         public delegate* unmanaged[Cdecl]<nint, PosixFileMode, int, int> mknod;
-        public delegate* unmanaged[Cdecl]<nint, PosixFileMode, int> mkdir;
+        public delegate* unmanaged[Cdecl]<byte*, PosixFileMode, int> mkdir;
         public delegate* unmanaged[Cdecl]<nint, int> unlink;
         public delegate* unmanaged[Cdecl]<nint, int> rmdir;
         public delegate* unmanaged[Cdecl]<nint, nint, int> symlink;
         public delegate* unmanaged[Cdecl]<nint, nint, int> rename;
         public delegate* unmanaged[Cdecl]<nint, nint, int> link;
-        public delegate* unmanaged[Cdecl]<nint, PosixFileMode, int> chmod;
-        public delegate* unmanaged[Cdecl]<nint, int, int, int> chown;
+        public delegate* unmanaged[Cdecl]<byte*, PosixFileMode, FuseFileInfo*, int> chmod;
+        public delegate* unmanaged[Cdecl]<byte *, int, int, FuseFileInfo*, int> chown;
         public delegate* unmanaged[Cdecl]<nint, long, int> truncate;
         public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> open;
         public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, int> read;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, long, FuseFileInfo*, int> write;
         public delegate* unmanaged[Cdecl]<nint, void *, int> statfs;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> flush;
-        public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> release;
+        public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> release;
         public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsync;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, int> setxattr;
         public delegate* unmanaged[Cdecl]<byte*, byte*, byte*, nint, int> getxattr;
@@ -721,7 +848,7 @@ int main()
         public delegate* unmanaged[Cdecl]<byte*, void*, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int>, nint, FuseFileInfo*, FuseReadDirFlags, int> readdir;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> releasedir;
         public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsyncdir;
-        public delegate* unmanaged[Cdecl]<void*, fuse_config*, int> init;
+        public delegate* unmanaged[Cdecl]<void*, fuse_config*, void*> init;
         public delegate* unmanaged[Cdecl]<nint> destroy;
         public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, int> access;
         public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, FuseFileInfo*, int> create;
