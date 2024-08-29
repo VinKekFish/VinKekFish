@@ -1,7 +1,15 @@
 ﻿// TODO: tests
 
 // #define DEBUG_OUTPUT
-#define DEBUG_OUTPUT_PRETRANSFORMATION
+// #define DEBUG_OUTPUT_PRETRANSFORMATION
+
+#if DEBUG_OUTPUT
+#warning DEBUG_OUTPUT
+#endif
+
+#if DEBUG_OUTPUT_PRETRANSFORMATION
+#warning DEBUG_OUTPUT_PRETRANSFORMATION
+#endif
 
 using System;
 using System.Collections.Generic;
