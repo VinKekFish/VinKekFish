@@ -3,10 +3,15 @@
 // dotnet publish --output ./build.dev -c Release --self-contained false /p:PublishSingleFile=true  -r linux-x64
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net.Sockets;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Runtime.Serialization;
 using System.Text;
+
+// losetup -f --show /inRamA/loopfile
 
 // https://github.com/veracrypt/VeraCrypt/blob/b5c7f628d8133b9f10235f973af041ebd8efa948/src/Driver/Fuse/FuseService.cpp#L560
 
@@ -21,16 +26,41 @@ using System.Text;
 namespace ConsoleTest;
 unsafe class Program
 {
+    const  string mountPoint = "/inRamA/ttt";
+    static string loopDev    = "";
     static StreamWriter sw;
     static void Main(string[] args)
     {
-        /// -o default_permissions нужно для того, чтобы разрешениями управляла ОС. mkdir не способна нормально понять, кто запрашивает доступ (geteiud возвращает пользователя, из-под которого запущен этот процесс)
-        /// allow_other - если root, то можно, либо если включено 'user_allow_other' в /etc/fuse.conf . Это позволяет видеть примонтированный том другим пользователям.
-        var A = new string[] {"", "-o", "default_permissions", "-d", "-f", "/inRamA/ttt"};
+        // -o default_permissions нужно для того, чтобы разрешениями управляла ОС. mkdir не способна нормально понять, кто запрашивает доступ (geteiud возвращает пользователя, из-под которого запущен этот процесс)
+        // allow_other или allow_root - если root, то можно, либо если включено 'user_allow_other' в /etc/fuse.conf . Это позволяет видеть примонтированный том другим пользователям.
+        // -f - файловая система fuse
+        // Для успешного срабатывания losetup нужны привелегии cap_sys_admin
+        // setcap cap_sys_admin=ep build.dev/Console
+        // -d - отладочный вывод
+
+        // https://github.com/libfuse/libfuse/blob/d30247c36dadd386b994cd47ad84351ae68cc94c/doc/kernel.txt#L65
+        
+        var A = new string[] {"", "-o", "noexec,nodev,nosuid,auto_unmount,noatime,allow_other", "-f", mountPoint};
+        if (geteuid() != 0)
+            A = new string[] {"", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", "-f", mountPoint};
+
         Console.CancelKeyPress += (o, e) =>
         {
-            Process.Start("umount", "/inRamA/ttt").Dispose();
+            e.Cancel = true;
+            ProcessExit();
         };
+        AppDomain.CurrentDomain.UnhandledException += 
+        delegate
+        {
+            ProcessExit();  
+        };
+        PosixSignalRegistration.Create(PosixSignal.SIGINT,  ProcessExit);
+        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ProcessExit);
+        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ProcessExit);
+
+        Directory.CreateDirectory(Files, UnixFileMode.UserExecute | UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        Process.Start("chmod", $"ou-rwx {Files}");
+        Process.Start("chmod", $"u+rwx {Files}");
 
         var fi = new FileInfo("/inRamA/log");
         fi.Delete();
@@ -41,16 +71,19 @@ unsafe class Program
         FuseOperations* fuseOperations = stackalloc FuseOperations[1];
         fuseOperations->open  = &fuse_open;
         fuseOperations->read  = &fuse_read;
+        fuseOperations->write = &fuse_write;
+        /*
         fuseOperations->chown = &fuse_chown;
-        fuseOperations->chmod = &fuse_chmod;
+        fuseOperations->chmod = &fuse_chmod;*/
             //access   = &fuse_access,
-        fuseOperations->mkdir   = &mkdir;
+//        fuseOperations->mkdir   = &mkdir;
         fuseOperations->getattr = &fuse_getattr;
             //statfs   = &fuse_statfs,
             //opendir  = &fuse_openDir,
         fuseOperations->readdir = &fuse_readDir;
         fuseOperations->release = &fuse_release;
         fuseOperations->init    = &fuse_init;
+        // fuseOperations->ioctl   = &fuse_ioctl;
             //getxattr = &GetXAttr
 
         // WriteDebugLine(sizeof(FuseOperations));  // 336
@@ -58,17 +91,59 @@ unsafe class Program
         // WriteDebugLine(sizeof(FuseFileStat)); // 144
         // WriteDebugLine("" + Marshal.SizeOf(fuseOperations[0]));  // 336
 
+        uid = geteuid();
+        gid = getegid();
 
         var r = fuse_main_real(A.Length, A, fuseOperations, Marshal.SizeOf(fuseOperations[0]), 0);
 
         WriteDebugLine("end with result: " + r);
     }
 
+    public static uint uid = uint.MaxValue;
+    public static uint gid = uint.MaxValue;
+
+    private static void ProcessExit(PosixSignalContext context)
+    {
+        context.Cancel = true;
+        ProcessExit();
+    }
+
+    private static void ProcessExit()
+    {
+        ThreadPool.QueueUserWorkItem
+        (
+            delegate
+            {/*
+                var di   = new DirectoryInfo("/dev");
+                var dirs = di.GetFiles("*");
+                foreach (var dir in dirs)
+                {
+                    WriteDebugLine(dir.FullName);
+                }
+*/
+                var pus = Process.Start("umount", "/inRamA/tt2");
+                pus.WaitForExit();
+
+                if (!string.IsNullOrEmpty(loopDev))
+                {
+                    var args = $"-d {loopDev}";
+                    WriteDebugLine("losetup " + args);
+                    using var pi = Process.Start("losetup", args);
+                    pi.WaitForExit();
+                }
+
+                Process.Start("umount", mountPoint).Dispose();
+            }
+        );
+    }
+
     public static void WriteDebugLine(string Line)
     {
-        Console.WriteLine(Line);
+//        Console.WriteLine(Line);
+/*
         sw.WriteLine(Line);
         sw.Flush();
+        */
     }
 
     // https://github.com/vzabavnov/dotnetcore.fuse/
@@ -139,11 +214,106 @@ unsafe class Program
         return 0;
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static int fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
+    // 1_125_899_906_842_624L 1 петабайт 1_099_511_627_776L 1 терабайт  68_719_476_736L 64 гигабайта  64*1024*1024 64 мегабайта
+    const long FileSize = 68_719_476_736L;
+    const string Files = "/inRamA/pp/";
+    // const string Files = "/Arcs/pp/";
+
+    const int blockSizeShift = 16;
+    const int blockSize      = 1 << blockSizeShift;
+    const int blockSizeMask  = (1 << blockSizeShift) - 1;
+    public static (nint file, nint position, nint size) getPosition(nint position, nint size)
     {
-        WriteDebugLine("fuse_read !!!!!!!!!!!!");
-        return 0;
+        var positionInFile = position & blockSizeMask;
+        var file           = position >> blockSizeShift;
+        if (size > blockSize - positionInFile)
+            size = blockSize - positionInFile;
+
+        return (file, positionInFile, size);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
+    {
+        var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+        WriteDebugLine("fuse_read !!!!!!!!!!!! " + fileName);
+
+        if (position + size > FileSize)
+            size = (nint) (FileSize - position);
+
+        for (nint i = 0; i < size;)
+        {
+            var pos = getPosition(i + (nint) position, size - i);
+
+            var fn = Files + pos.file;
+            if (File.Exists(fn))
+            {
+                var bytes = File.ReadAllBytes(fn);
+                for (nint j = 0; j < pos.size; j++, i++)
+                {
+                    buffer[i] = bytes[pos.position + j];
+                }
+            }
+            else
+            {
+                for (nint j = 0; j < pos.size; j++, i++)
+                {
+                    buffer[i] = 0;
+                }
+            }
+        }
+
+        return size;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static nint fuse_write(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
+    {
+        var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+        WriteDebugLine("fuse_write !!!!!!!!!!!! " + fileName);
+
+        if (fileName != vinkekfish_file_path)
+        {
+            return - (nint) PosixResult.ENOENT;
+        }
+
+        if (position + size > FileSize)
+            size = (nint) (FileSize - position);
+
+        for (nint i = 0; i < size;)
+        {
+            var pos = getPosition(i + (nint) position, size - i);
+
+            var fn = Files + pos.file;
+            var bytes = new byte[blockSize];
+            if (File.Exists(fn))
+            {
+                bytes = File.ReadAllBytes(fn);
+            }
+
+            for (nint j = 0; j < pos.size; j++, i++)
+            {
+                bytes[pos.position + j] = buffer[i];
+            }
+
+            if (isNull(bytes))
+                File.Delete(fn);
+            else
+                File.WriteAllBytes(fn, bytes);
+        }
+
+        return size;
+    }
+
+    private static bool isNull(byte[] bytes)
+    {
+        foreach (var b in bytes)
+        {
+            if (b != 0)
+                return false;
+        }
+
+        return true;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -154,6 +324,8 @@ unsafe class Program
     }
 
     // /usr/include/x86_64-linux-gnu/bits/struct_stat.h
+    const string vinkekfish_file_name = "vinkekfish_file";
+    const string vinkekfish_file_path = "/" + vinkekfish_file_name;
 
 //    public static int GetAttr(byte * fileNamePtr, [Out] out FuseFileStat stat, ref FuseFileInfo fileInfo)
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -168,33 +340,55 @@ unsafe class Program
         for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
             *st = 0;
 
+        (*stat).blksize = blockSize;
 
         if (dirName == "/")
         {
-            stat->uid = geteuid();
-            stat->gid = getegid();
+            stat->uid = uid;
+            stat->gid = gid;
 
-            stat->nlink = 2 + dirs.Count + 1;    // Это минимум,
+            stat->nlink = 2;    // Это минимум,
             stat->size = 0;
-            stat->mode = PosixFileMode.Directory | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead | PosixFileMode.OwnerAll | PosixFileMode.OthersAll | PosixFileMode.GroupAll;
+            stat->mode = PosixFileMode.Directory | PosixFileMode.OwnerAll | PosixFileMode.GroupAll | PosixFileMode.OthersAll;
 WriteDebugLine("fuse_getattr success /");
+
+            return (int) PosixResult.Success;
+        }
+        else
+        if (dirName == vinkekfish_file_path)
+        {
+            stat->uid = uid;
+            stat->gid = gid;
+
+            stat->nlink = 1;    // Это минимум,
+            stat->size = FileSize;
+            stat->mode = PosixFileMode.Regular | PosixFileMode.OwnerRead | PosixFileMode.OwnerWrite;
+WriteDebugLine("fuse_getattr success /");
+
             return (int) PosixResult.Success;
         }
 
-        if (!dirs.ContainsKey(dirName))
-        {/*
-            stat->nlink = 1;    // Это минимум,
-            stat->size = 0;
-            stat->mode = PosixFileMode.Regular | PosixFileMode.OthersRead | PosixFileMode.GroupRead | PosixFileMode.OwnerRead;
-*/
+        return - (int) PosixResult.ENOENT;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static unsafe int fuse_readDir(byte * pDirName, void * buf, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int> filler, nint offset, FuseFileInfo * fi, FuseReadDirFlags flags)
+    {
+        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
+        WriteDebugLine("fuse_readDir !!!!!!!!!!!! " + dirName);
+
+        if (dirName == "/")
+        {
+            // Нам здесь нужно убрать лидирующий "/", чтобы вывести верные имена
+            var a = Utf8StringMarshaller.ConvertToUnmanaged(vinkekfish_file_name);
+            filler(buf, a, null, 0, 0); // FUSE_FILL_DIR_DEFAULTS == 0 - это последний параметр; FUSE_READDIR_PLUS == 1
+            Utf8StringMarshaller.Free(a);
+        }
+        else
+        {
             return - (int) PosixResult.ENOENT;
         }
 
-        stat->nlink = 2;    // Это минимум,
-        stat->size = 0;
-        stat->mode = PosixFileMode.Directory | dirs[dirName];
-
-WriteDebugLine("fuse_getattr success " + dirName);
         return (int) PosixResult.Success;
     }
 
@@ -232,75 +426,27 @@ WriteDebugLine("fuse_getattr success " + dirName);
         return (int) PosixResult.Success;
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe int fuse_readDir(byte * pDirName, void * buf, delegate*unmanaged[Cdecl]<void*, byte*, void*, nint, int, int> filler, nint offset, FuseFileInfo * fi, FuseReadDirFlags flags)
-    {
-        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
-        WriteDebugLine("fuse_readDir !!!!!!!!!!!! " + dirName);
-
-        if (dirName == "/")
-        {
-            foreach (var (subDirName, subDirMode) in dirs)
-            {
-                // Нам здесь нужно убрать лидирующий "/", чтобы вывести верные имена
-                var a = Utf8StringMarshaller.ConvertToUnmanaged(subDirName.Substring(1));
-                filler(buf, a, null, 0, 0); // FUSE_FILL_DIR_DEFAULTS == 0 - это последний параметр; FUSE_READDIR_PLUS == 1
-                // Utf8StringMarshaller.Free(a);
-                WriteDebugLine("fuse_readDir filler " + subDirName);
-            }
-        }
-        else
-        if (!dirs.ContainsKey(dirName))
-        {
-            return - (int) PosixResult.ENOENT;
-        }
-WriteDebugLine("fuse_readDir success");
-        return (int) PosixResult.Success;
-    }
-
-    public static SortedList<string, PosixFileMode> dirs = new();
-
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint geteuid();
 
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint getegid();
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public  static unsafe int mkdir(byte * pDirName, PosixFileMode mode)
+    [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
+    // echo '#include <sys/mount.h>' | cc -E - | grep '^# '
+    // /usr/include/x86_64-linux-gnu/sys/mount.h
+    public static extern int mount(byte * source, byte * target, byte * fsType, MountFlags flags, byte * data);
+
+    public static readonly byte * autofs = Utf8StringMarshaller.ConvertToUnmanaged("autofs");
+    public static int mount(string source, string target)
     {
-        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
-        WriteDebugLine("fuse_mkdir !!!!!!!!!!!! " + dirName);
+        var src = Utf8StringMarshaller.ConvertToUnmanaged(source);
+        var trg = Utf8StringMarshaller.ConvertToUnmanaged(target);
 
-        if (dirs.ContainsKey(dirName))
-            return - (int) PosixResult.EEXIST;
-
-        dirs.Add(dirName, mode | PosixFileMode.Directory);
-        // uid = geteuid();
-        // gid = getegid();
-
-        return (int) PosixResult.Success;
+        MountFlags flags = MountFlags.LAZYTIME | MountFlags.RELATIME;
+        return mount(src, trg, autofs, flags, null);
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public  static unsafe int fuse_chown(byte * pDirName, int uid, int gid, FuseFileInfo * fi)
-    {
-        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
-        WriteDebugLine("fuse_chown !!!!!!!!!!!! " + dirName);
-
-        WriteDebugLine($"{uid,4} {gid,4}");
-
-        return (int) PosixResult.Success;
-    }
-
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public  static unsafe int fuse_chmod(byte * pDirName, PosixFileMode mode, FuseFileInfo * fi)
-    {
-        var dirName = Utf8StringMarshaller.ConvertToManaged(pDirName);
-        WriteDebugLine("fuse_chmod !!!!!!!!!!!! " + dirName);
-
-        return (int) PosixResult.Success;
-    }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static void * fuse_init(void * connect, fuse_config * config)
@@ -309,17 +455,73 @@ WriteDebugLine("fuse_readDir success");
         for (int i = 0; i < sizeof(fuse_config); i++, st++)
             *st = 0;
 WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        config->direct_io    = 0;
-        config->hard_remove  = 1;
+
+/*        config->direct_io    = 0;
         config->kernel_cache = 1;
-        config->nullpath_ok  = 0;
+        config->nullpath_ok  = 0;*/
 /*
         config->set_uid = 1;
         config->set_gid = 1;
         config->uid = geteuid();
         config->gid = getegid();
 */
+
+        ThreadPool.QueueUserWorkItem
+        (
+            delegate
+            {
+                var psi = new ProcessStartInfo();
+                psi.UseShellExecute = false;
+                psi.RedirectStandardOutput = true;
+                psi.FileName  = "losetup";
+                psi.Arguments = $"-f --show -- {mountPoint}/{vinkekfish_file_name}";
+                /*psi.FileName  = "mount";
+                psi.Arguments = $"-o loop,noexec,nodev,nosuid {mountPoint}/{vinkekfish_file_name} /inRamA/tt2";*/
+                var pi = Process.Start(psi);
+                pi.WaitForExit(1_000);
+                loopDev = pi.StandardOutput.ReadToEnd().Trim();     // Может содержать перевод строки
+                var exists = true;
+                if (loopDev.Length < 2 || loopDev.Contains('\n'))
+                    exists = false;
+                else
+                {
+                    var fi = new FileInfo(loopDev);
+                    if (!fi.Exists)
+                        exists = false;
+                }
+Console.WriteLine(loopDev);
+                if (exists)
+                {
+                    var pif = Process.Start("mke2fs", "-t ext4 -b 4096 -N 1024 -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,^resize_inode,^dir_index,^dir_nlink,^metadata_csum,^flex_bg" + " " + loopDev);
+                    pif.WaitForExit();
+                    pif = Process.Start("chown", $"inet {loopDev}");
+                    pif.WaitForExit();
+                    pif = Process.Start("mount", $"-o noexec,nodev,nosuid {loopDev} /inRamA/tt2");
+                    pif.WaitForExit();
+                    /*pif = Process.Start("capsh", "--print");
+                    pif.WaitForExit();*/
+                    // Console.WriteLine(  mount(loopDev, "/inRamA/tt2")  );
+                    pif = Process.Start("chown", $"inet /inRamA/tt2");
+                    pif.WaitForExit();
+
+                    WriteDebugLine("loop: " + loopDev);
+                    Console.WriteLine($"Started with loop device " + loopDev);
+                }
+                else
+                    WriteDebugLine("ERROR: loop device not mounted: " + loopDev);
+            }
+        );
+
         return null;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static int fuse_ioctl(byte * b, int cmd, void * arg, FuseFileInfo * fi, uint flags, void * data)
+    {
+Console.WriteLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b));
+WriteDebugLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b));
+
+        return (int) PosixResult.ENOTSUP;
     }
 
     // https://github.com/libfuse/libfuse/blob/a466241b45d1dd0bf685513bdeefd6448b63beb6/include/fuse.h#L96
@@ -577,6 +779,17 @@ public enum PosixResult : int
     ENOTRECOVERABLE = 95,   /* State not recoverable */
     EOWNERDEAD = 96,   /* Previous owner died */
     EINTEGRITY = 97   /* Integrity check failed */
+}
+[Flags]
+public enum MountFlags: ulong
+{
+    RDONLY = 1,
+    NOSUID = 2,
+    NODEV  = 4,
+    NOEXEC = 8,
+    SYNCHRONOUS = 16,
+    RELATIME = 1 << 21,
+    LAZYTIME = 1 << 25
 }
 
 [Flags]
@@ -842,8 +1055,8 @@ int main()
         public delegate* unmanaged[Cdecl]<byte *, int, int, FuseFileInfo*, int> chown;
         public delegate* unmanaged[Cdecl]<nint, long, int> truncate;
         public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> open;
-        public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, int> read;
-        public delegate* unmanaged[Cdecl]<nint, nint, nint, long, FuseFileInfo*, int> write;
+        public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, nint> read;
+        public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, nint> write;
         public delegate* unmanaged[Cdecl]<nint, void *, int> statfs;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> flush;
         public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> release;
@@ -863,7 +1076,7 @@ int main()
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int, nint, int> @lock;
         public delegate* unmanaged[Cdecl]<nint, nint, FuseFileInfo*, int> utimens;
         public delegate* unmanaged[Cdecl]<nint, nint, ulong *, int> bmap;
-        public delegate* unmanaged[Cdecl]<byte*, int, void *, FuseFileInfo*, int, void *, int> ioctl;
+        public delegate* unmanaged[Cdecl]<byte *, int, void *, FuseFileInfo *, uint, void *, int> ioctl;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, nint, uint *, int> poll;
         public delegate* unmanaged[Cdecl]<nint, nint, long, FuseFileInfo *, int> write_buf;
         public delegate* unmanaged[Cdecl]<nint, nint, nint, long, FuseFileInfo *, int> read_buf;

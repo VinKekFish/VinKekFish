@@ -404,8 +404,6 @@ int main(int argc, char *argv[])
 
     // printf("Размер структуры: %s\n", buffer);
     printf("Размер структуры: %ld\n", sizeof(struct stat));
-    printf("Размер структуры: %ld\n", sizeof(size_t));
-    printf("Размер структуры: %ld\n", sizeof(int));
     
 
     ret = fuse_main(argc, argv, &vinny_fuse_operations, NULL);
