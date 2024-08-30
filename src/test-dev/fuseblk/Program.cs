@@ -1,4 +1,6 @@
-﻿#pragma warning disable
+﻿// ЗДЕСЬ НИЧЕГО НЕТ
+
+#pragma warning disable
 
 // dotnet publish --output ./build.dev -c Release --self-contained false /p:PublishSingleFile=true  -r linux-x64
 using System.ComponentModel;
@@ -38,12 +40,13 @@ unsafe class Program
         // setcap cap_sys_admin=ep build.dev/Console
         // -d - отладочный вывод
 
+        // -o blkdev - это не то. Это уже когда мы отображаем систему на существующее блочное устройство.
         // https://github.com/libfuse/libfuse/blob/d30247c36dadd386b994cd47ad84351ae68cc94c/doc/kernel.txt#L65
         // https://github.com/libfuse/libfuse/blob/d30247c36dadd386b994cd47ad84351ae68cc94c/lib/helper.c#L32
         
-        var A = new string[] {"", "-s", "-o", "noexec,nodev,nosuid,auto_unmount,noatime,allow_other", "-f", mountPoint};
+        var A = new string[] {"", "-o", "noexec,dev,nosuid,auto_unmount,noatime,blkdev,allow_other", "-f", mountPoint};
         if (geteuid() != 0)
-            A = new string[] {"", "-s", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", "-f", mountPoint};
+            A = new string[] {"", "-o", "noexec,dev,nosuid,auto_unmount,noatime,blkdev", "-f", mountPoint};
 
         Console.CancelKeyPress += (o, e) =>
         {
@@ -140,11 +143,11 @@ unsafe class Program
 
     public static void WriteDebugLine(string Line)
     {
-        // Console.WriteLine(Line);
+//        Console.WriteLine(Line);
 /*
         sw.WriteLine(Line);
-        sw.Flush();*/
-
+        sw.Flush();
+        */
     }
 
     // https://github.com/vzabavnov/dotnetcore.fuse/
@@ -476,8 +479,8 @@ WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 psi.RedirectStandardOutput = true;
                 psi.FileName  = "losetup";
                 psi.Arguments = $"-f --show -- {mountPoint}/{vinkekfish_file_name}";
-/*                psi.FileName  = "mount";
-                psi.Arguments = $"-o discard,loop,noexec,nodev,nosuid {mountPoint}/{vinkekfish_file_name} /inRamA/tt2";*/
+                /*psi.FileName  = "mount";
+                psi.Arguments = $"-o loop,noexec,nodev,nosuid {mountPoint}/{vinkekfish_file_name} /inRamA/tt2";*/
                 var pi = Process.Start(psi);
                 pi.WaitForExit(1_000);
                 loopDev = pi.StandardOutput.ReadToEnd().Trim();     // Может содержать перевод строки
@@ -497,7 +500,7 @@ Console.WriteLine(loopDev);
                     pif.WaitForExit();
                     pif = Process.Start("chown", $"inet {loopDev}");
                     pif.WaitForExit();
-                    pif = Process.Start("mount", $"-o discard,noexec,nodev,nosuid {loopDev} /inRamA/tt2");
+                    pif = Process.Start("mount", $"-o noexec,nodev,nosuid {loopDev} /inRamA/tt2");
                     pif.WaitForExit();
                     /*pif = Process.Start("capsh", "--print");
                     pif.WaitForExit();*/
@@ -516,7 +519,6 @@ Console.WriteLine(loopDev);
         return null;
     }
 
-    // Увы, blkdiscard здесь не ловит
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_ioctl(byte * b, int cmd, void * arg, FuseFileInfo * fi, uint flags, void * data)
     {
