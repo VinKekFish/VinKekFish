@@ -5,10 +5,14 @@ namespace VinKekFish_Utils;
 /// <summary>Класс для временного переопределения параметров консоли</summary>
 public static class ParseUtils
 {
-    public readonly static (string suffix, int k)[] SizeSuffixes = 
+    /// <summary>Множители файловых размеров</summary>
+    public const long km = 1024, mm = 1024*1024, gm = 1024*1024*1024, tm = 1024L*1024L*1024L*1024L;
+    public readonly static (string suffix, long k)[] SizeSuffixes = 
     {
-        ("k", 1024), ("kb", 1024), ("ki", 1024), ("kib", 1024), ("m", 1024*1024),
-        ("mb", 1024*1024), ("mi", 1024*1024), ("mib", 1024*1024)
+        ("k", km), ("kb", km), ("ki", km), ("kib", km),
+        ("m", mm), ("mb", mm), ("mi", mm), ("mib", mm),
+        ("g", gm), ("gb", gm), ("gi", gm), ("gib", gm),
+        ("t", tm), ("tb", tm), ("ti", tm), ("tib", tm)
     };
     public static nint ParseSize(string value, nint k = 1)
     {
@@ -22,7 +26,7 @@ public static class ParseUtils
             if (value.EndsWith(suffixDescriptor.suffix))
             {
                 var nval = value.Substring(0, value.Length - suffixDescriptor.suffix.Length);
-                return ParseSize(nval, k*suffixDescriptor.k);
+                return ParseSize(nval, (nint) (k*suffixDescriptor.k));
             }
         }
 

@@ -368,7 +368,7 @@ public partial class AutoCrypt
 
                         // Комментарии пропускаем
                         var trimmed = line.TrimStart();
-                        if (trimmed.StartsWith("#") || trimmed.StartsWith("//") || trimmed.StartsWith(";"))
+                        if (trimmed.StartsWith("#") || trimmed.StartsWith("//") || trimmed.StartsWith(";") || trimmed.Length <= 0)
                             continue;
 
                         var commandOption = CommandOption.ParseLine(line);

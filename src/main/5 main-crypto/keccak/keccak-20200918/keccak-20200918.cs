@@ -33,7 +33,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     {
         try
         {
-            for (int l = KeccakPrime.b_size; l >= 0;)
+            for (int l = KeccakPrime.b_size; l > 0;)
             {
                 var L = l > 64 ? 64 : l;
                 KeccakPrime.Keccak_InputOverwrite64_512(key, (byte) L, this.S, regime);

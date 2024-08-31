@@ -78,7 +78,7 @@ public partial class AutoCrypt: IDisposable
                 CurrentCommand = new EndCommand(this);
                 return;
             case "disk":
-                CurrentCommand = new DiskCommand(this);
+                CurrentCommand = DiskCommand.CreateDiskCommand(this, isDebugMode);
                 return;
             default:
                 if (!isDebugMode)
@@ -113,7 +113,7 @@ public partial class AutoCrypt: IDisposable
         catch
         {}
 
-        Console.WriteLine("The vkf random stream: " + RandomStreamName);
+        Console.WriteLine("The vkf random stream for use at " + RandomStreamName);
     }
 
     /// <summary>Запускает команду.</summary>

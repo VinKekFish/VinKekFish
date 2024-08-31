@@ -103,8 +103,8 @@
         </member>
         <member name="M:cryptoprime.Threefish1024.#ctor(System.Byte*,System.IntPtr,System.Byte*,System.IntPtr)">
             <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
-            <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
-            <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
+            <param name="Key">Ключ. Можно удалять после передачи в конструктор.</param><param name="kLen">Длина ключа (keyLen=128)</param>
+            <param name="Tweak">tweak. Можно удалять после передачи в конструктор.</param><param name="tLen">Длина твика (twLen=16)</param>
         </member>
         <member name="M:cryptoprime.Threefish1024.GenExpandedKey(System.UInt64*)">
             <summary>Сгенерировать расширение ключа</summary>
