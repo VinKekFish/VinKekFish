@@ -77,6 +77,9 @@ public partial class AutoCrypt: IDisposable
             case "end":
                 CurrentCommand = new EndCommand(this);
                 return;
+            case "disk":
+                CurrentCommand = new DiskCommand(this);
+                return;
             default:
                 if (!isDebugMode)
                     throw new CommandException(L("Command is unknown (enter 'debug:' at the vkf start for more bit information)"));

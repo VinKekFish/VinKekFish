@@ -134,7 +134,7 @@ public unsafe partial class AutoCrypt
                 case "random":
                 case "rnd":
                         // Парсим опцию и добавляем файл в список rnd. Если введно "rnd:", то вызывается визуальное окно выбора файла
-                        var rndFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.exists, rnd);
+                        var rndFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Exists, rnd);
                         if (rndFile == null)
                         {
                             if (!isDebugMode)
@@ -145,7 +145,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "out":
-                        outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists);
+                        outKeyFile = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.NotExists);
 
                         if (isDebugMode)
                         {
@@ -163,7 +163,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "out-part":
-                        var @out = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts);
+                        var @out = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.NotExists, outParts);
 
                         if (isDebugMode)
                         {
@@ -215,7 +215,7 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "out-part2":
-                    ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.notExists, outParts2);
+                    ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.NotExists, outParts2);
                     goto start;
                 case "start":
                     if (Terminated)

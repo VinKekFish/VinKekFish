@@ -11,6 +11,9 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Serialization;
 using System.Text;
 
+// TRIM (discard block) не поддерживает
+// https://github.com/storaged-project/libblockdev ???
+
 // losetup -f --show /inRamA/loopfile
 
 // https://github.com/veracrypt/VeraCrypt/blob/b5c7f628d8133b9f10235f973af041ebd8efa948/src/Driver/Fuse/FuseService.cpp#L560
@@ -92,11 +95,11 @@ unsafe class Program
             //access   = &fuse_access,
 //        fuseOperations->mkdir   = &mkdir;
         fuseOperations->getattr = &fuse_getattr;
-        fuseOperations->statfs  = &fuse_statfs;
+        fuseOperations->statfs  = &fuse_statfs;     // Не обзяательно
             //opendir  = &fuse_openDir,
         fuseOperations->readdir = &fuse_readDir;
         // fuseOperations->release = &fuse_release;
-        fuseOperations->init    = &fuse_init;
+        fuseOperations->init    = &fuse_init;     // Не обзяательно
         // fuseOperations->ioctl   = &fuse_ioctl;
             //getxattr = &GetXAttr
 
@@ -151,7 +154,7 @@ unsafe class Program
         );
     }
 
-    public static int minSeverity = 1;
+    public static int minSeverity = 2;
     public static void WriteDebugLine(string Line, int severity = 0)
     {
         if (severity < minSeverity)
@@ -255,7 +258,7 @@ unsafe class Program
     public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
     {
         var fileName = Utf8StringMarshaller.ConvertToManaged(path);
-        WriteDebugLine("fuse_read !!!!!!!!!!!! " + fileName, 1);
+        WriteDebugLine("fuse_read !!!!!!!!!!!! " + fileName, 0);
 
         if (position + size > FileSize)
             size = (nint) (FileSize - position);
@@ -483,7 +486,7 @@ WriteDebugLine("fuse_getattr success /");
             *st = 0;
 WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-        config->direct_io    = 1;
+        config->direct_io    = 0;
         config->kernel_cache = 1;
 //        config->nullpath_ok  = 0;
 /*
@@ -521,6 +524,7 @@ WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 Console.WriteLine(loopDev);
                 if (exists)
                 {
+                    // Это форматирование файловой системы пользователя. -N 1024 - это очень мало нодов. Тут надо изменять.
                     var pif = Process.Start("mke2fs", "-t ext4 -b 4096 -N 1024 -C 64k -m 0 -J size=4 -E discard -O extent,bigalloc,inline_data,^resize_inode,^dir_index,^dir_nlink,^metadata_csum,^flex_bg" + " " + loopDev);
                     pif.WaitForExit();
                     // На всякий случай, добавляем опцию возможного перезатирания секторов

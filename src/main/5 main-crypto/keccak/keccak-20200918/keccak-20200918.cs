@@ -26,4 +26,23 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         // Копировать всё состояние не обязательно. Но здесь, для надёжности, копируется всё
         BytesBuilder.CopyTo(StateLen, StateLen, State, result.State);
     }
+
+    /// <summary>Инициализирует губку keccak в режиме Keccak_InputOverwrite64_512 ключом переменной длины.</summary>
+    /// <param name="key">Ключ для инициализации. После использования удаляется в этом же методе.</param>
+    public void DoInitFromKey(BytesBuilderForPointers.Record key, byte regime)
+    {
+        try
+        {
+            for (int l = KeccakPrime.b_size; l >= 0;)
+            {
+                var L = l > 64 ? 64 : l;
+                KeccakPrime.Keccak_InputOverwrite64_512(key, (byte) L, this.S, regime);
+                l -= L;
+            }
+        }
+        finally
+        {
+            key.Dispose();
+        }
+    }
 }

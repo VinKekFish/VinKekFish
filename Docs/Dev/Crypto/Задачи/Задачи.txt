@@ -5,6 +5,7 @@ ps -eo pid,times,rss,nlwp,args --sort time,rss,pid,args
 Поменять waitforexit на ожидание с таймаутом
 /Arcs/Repos/Crypto/VinKekFish/src/main/5 main-crypto/exe/service/entropy/ExecEntropy-init.cs:319
 
+Где-то в генерации первичного ключевого файла не учнитожаются или не уничтожались губки (двойная губка main), однако не появлялось никакого сообщения.
 
 
 Подумать ещё раз насчёт того, если соединение с fuse или ещё с чем будет неверным.

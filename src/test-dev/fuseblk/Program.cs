@@ -1,5 +1,8 @@
 ﻿#pragma warning disable
 
+// ПРОГРАММА НЕ РАБОЧАЯ. Рабочая см. Fuse-Disk.
+
+
 // dotnet publish --output ./build.dev -c Release --self-contained false /p:PublishSingleFile=true  -r linux-x64
 using System.ComponentModel;
 using System.Diagnostics;
@@ -54,9 +57,9 @@ unsafe class Program
         // https://github.com/libfuse/libfuse/blob/d30247c36dadd386b994cd47ad84351ae68cc94c/doc/kernel.txt#L65
         // https://github.com/libfuse/libfuse/blob/d30247c36dadd386b994cd47ad84351ae68cc94c/lib/helper.c#L32
         
-        var A = new string[] {"", "-s", "-o", "noexec,nodev,nosuid,auto_unmount,noatime,allow_other", "-f", mountPoint};
+        var A = new string[] {"", "-s", "-o", "noexec,dev,nosuid,auto_unmount,noatime,allow_other", "-f", mountPoint};
         if (geteuid() != 0)
-            A = new string[] {"", "-s", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", "-f", mountPoint};
+            A = new string[] {"", "-s", "-o", "noexec,dev,nosuid,auto_unmount,noatime", "-f", mountPoint};
 
         Console.CancelKeyPress += (o, e) =>
         {
@@ -98,6 +101,7 @@ unsafe class Program
         fuseOperations->release = &fuse_release;
         fuseOperations->init    = &fuse_init;
         fuseOperations->ioctl   = &fuse_ioctl;
+        fuseOperations->bmap    = &fuse_bmap;
             //getxattr = &GetXAttr
 
         // WriteDebugLine(sizeof(FuseOperations));  // 336
@@ -352,7 +356,7 @@ unsafe class Program
     {
         var dirName = Utf8StringMarshaller.ConvertToManaged(fileNamePtr);
 
-        WriteDebugLine("GetAttr: " + dirName);
+        // WriteDebugLine("GetAttr: " + dirName);
 // WriteDebugLine(sizeof(FuseFileStat));
 
         var st = (byte *) stat;
@@ -375,18 +379,21 @@ WriteDebugLine("fuse_getattr success /");
         }
         else
         if (dirName == vinkekfish_file_path)
-        {
+        {WriteDebugLine("GetAttr: " + dirName, 1);
             stat->uid = uid;
             stat->gid = gid;
 
             stat->nlink = 1;    // Это минимум,
             stat->size = FileSize;
-            stat->mode = PosixFileMode.Block | PosixFileMode.OwnerRead | PosixFileMode.OwnerWrite;
-WriteDebugLine("fuse_getattr success /");
+            stat->mode = PosixFileMode.Block | PosixFileMode.OwnerAll;
+WriteDebugLine("fuse_getattr success");
+
+            (*stat).blksize = blockSize;
+            (*stat).blocks  = FileSize / blockSize;
 
             return (int) PosixResult.Success;
         }
-
+WriteDebugLine("GetAttr error: " + dirName, 1);
         return - (int) PosixResult.ENOENT;
     }
 
@@ -554,6 +561,15 @@ Console.WriteLine(loopDev);
 WriteDebugLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b), 1);
 
         return (int) PosixResult.ENOTSUP;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    public static int fuse_bmap(byte* file, nint blocksize, ulong * idx)
+    {
+        WriteDebugLine("fuse_bmap !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + Utf8StringMarshaller.ConvertToManaged(file), 1);
+        *idx = 0;
+
+        return 0;
     }
 
     // /usr/include/x86_64-linux-gnu/bits/statvfs.h
@@ -1126,7 +1142,7 @@ int main()
         public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, FuseFileInfo*, int> create;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int, nint, int> @lock;
         public delegate* unmanaged[Cdecl]<nint, nint, FuseFileInfo*, int> utimens;
-        public delegate* unmanaged[Cdecl]<nint, nint, ulong *, int> bmap;
+        public delegate* unmanaged[Cdecl]<byte*, nint, ulong *, int> bmap;
         public delegate* unmanaged[Cdecl]<byte *, int, void *, FuseFileInfo *, uint, void *, int> ioctl;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, nint, uint *, int> poll;
         public delegate* unmanaged[Cdecl]<nint, nint, long, FuseFileInfo *, int> write_buf;

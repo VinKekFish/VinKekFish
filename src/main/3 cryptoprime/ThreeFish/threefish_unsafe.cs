@@ -23,16 +23,16 @@ namespace cryptoprime
         public    readonly ulong * tweak;
         public    readonly ulong * key;
         /// <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
-        /// <param name="Key">Ключ</param><param name="kLen">Длина ключа (keyLen=128)</param>
-        /// <param name="Tweak">tweak</param><param name="tLen">Длина твика (twLen=16)</param>
+        /// <param name="Key">Ключ. Можно удалять после передачи в конструктор.</param><param name="kLen">Длина ключа (keyLen=128)</param>
+        /// <param name="Tweak">tweak. Можно удалять после передачи в конструктор.</param><param name="tLen">Длина твика (twLen=16)</param>
         public Threefish1024(byte* Key, nint kLen, byte* Tweak, nint tLen)
         {
             cryptoprime.BytesBuilderForPointers.Record.DoRegisterDestructor(this);
 
             if (Key == null || Tweak == null) throw new ArgumentNullException("cryptoprime.Threefish1024.Threefish1024: Key == null || Tweak == null");
 
-            tweak = (ulong*)memory.array;
-            key = (ulong*)(memory.array + 3 * sizeof(ulong));
+            tweak = (ulong*) memory.array;
+            key   = (ulong*)(memory.array + 3 * sizeof(ulong));
 
             if (kLen < keyLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: kLen < keyLen");
             if (tLen < twLen) throw new ArgumentException("cryptoprime.Threefish1024.Threefish1024: tLen <  twLen");
@@ -40,8 +40,8 @@ namespace cryptoprime
             ulong* tk = this.key, tt = this.tweak;
 
             // На случай, если передадут массивы большей длины, мы берём ровно столько, сколько надо
-            BytesBuilder.CopyTo(keyLen, keyLen, Key, (byte*)tk);
-            BytesBuilder.CopyTo(twLen, twLen, Tweak, (byte*)tt);
+            BytesBuilder.CopyTo(keyLen, keyLen,   Key, (byte*)tk);
+            BytesBuilder.CopyTo( twLen,  twLen, Tweak, (byte*)tt);
 
             // Вычисление расширения ключа и tweak; это 17-ый элемент ключа
             GenExpandedKey(tk);
