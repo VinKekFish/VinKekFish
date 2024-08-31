@@ -23,6 +23,19 @@ using System.Text;
 // Определяем, где находится заголовочный файл
 // echo '#include <sys/stat.h>' | cc -E - | grep '^# '
 
+
+// Проверка, что опция discard установлена (/dev/loop13 - это устройство, на котором проверка)
+// tune2fs -l /dev/loop13 | grep options
+// tune2fs -o discard /dev/loop13
+// Проверка discard:
+// lsblk --discard
+// В строке нужного устройства должны быть прописаны следующие характеристики:
+// DISC-GRAN DISC-MAX - они должны быть ненулевыми, но это ничего не значит.
+// Перезапись блока:
+// blkdiscard -fo 0 -l 65536 /dev/loop13
+// Перед этим нужно сделать umount смонтированной пользовательской файловой системы
+// После команды проверить, что блок действительно перезаписан.
+
 namespace ConsoleTest;
 unsafe class Program
 {
@@ -70,7 +83,7 @@ unsafe class Program
         WriteDebugLine("start");
 
         FuseOperations* fuseOperations = stackalloc FuseOperations[1];
-        fuseOperations->open  = &fuse_open;
+        // fuseOperations->open  = &fuse_open;
         fuseOperations->read  = &fuse_read;
         fuseOperations->write = &fuse_write;
         /*
@@ -79,10 +92,10 @@ unsafe class Program
             //access   = &fuse_access,
 //        fuseOperations->mkdir   = &mkdir;
         fuseOperations->getattr = &fuse_getattr;
-            //statfs   = &fuse_statfs,
+        fuseOperations->statfs  = &fuse_statfs;
             //opendir  = &fuse_openDir,
         fuseOperations->readdir = &fuse_readDir;
-        fuseOperations->release = &fuse_release;
+        // fuseOperations->release = &fuse_release;
         fuseOperations->init    = &fuse_init;
         // fuseOperations->ioctl   = &fuse_ioctl;
             //getxattr = &GetXAttr
@@ -138,12 +151,16 @@ unsafe class Program
         );
     }
 
-    public static void WriteDebugLine(string Line)
+    public static int minSeverity = 1;
+    public static void WriteDebugLine(string Line, int severity = 0)
     {
+        if (severity < minSeverity)
+            return;
+
         // Console.WriteLine(Line);
-/*
+
         sw.WriteLine(Line);
-        sw.Flush();*/
+        sw.Flush();
 
     }
 
@@ -211,7 +228,8 @@ unsafe class Program
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_open(byte* path, FuseFileInfo * fileInfo)
     {
-        WriteDebugLine("fuse_open !!!!!!!!!!!!");
+        var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+        WriteDebugLine("fuse_open !!!!!!!!!!!! " + fileName, 1);
         return 0;
     }
 
@@ -237,7 +255,7 @@ unsafe class Program
     public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
     {
         var fileName = Utf8StringMarshaller.ConvertToManaged(path);
-        WriteDebugLine("fuse_read !!!!!!!!!!!! " + fileName);
+        WriteDebugLine("fuse_read !!!!!!!!!!!! " + fileName, 1);
 
         if (position + size > FileSize)
             size = (nint) (FileSize - position);
@@ -412,9 +430,17 @@ WriteDebugLine("fuse_getattr success /");
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-    public static unsafe int fuse_statfs(nint a, void * b)
+    public static unsafe nint fuse_statfs(byte * path, StatVFS * stat)
     {
-        WriteDebugLine("fuse_statfs !!!!!!!!!!!!");
+        WriteDebugLine("fuse_statfs !!!!!!!!!!!!", 1);
+
+        var st = (byte *) stat;
+        for (int i = 0; i < sizeof(StatVFS); i++, st++)
+            *st = 0;
+
+        (*stat).blocks = FileSize / blockSize;
+        (*stat).frsize = blockSize;
+        (*stat).bsize  = blockSize;
 
         return (int) PosixResult.Success;
     }
@@ -457,9 +483,9 @@ WriteDebugLine("fuse_getattr success /");
             *st = 0;
 WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-/*        config->direct_io    = 0;
+        config->direct_io    = 1;
         config->kernel_cache = 1;
-        config->nullpath_ok  = 0;*/
+//        config->nullpath_ok  = 0;
 /*
         config->set_uid = 1;
         config->set_gid = 1;
@@ -475,7 +501,9 @@ WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 psi.UseShellExecute = false;
                 psi.RedirectStandardOutput = true;
                 psi.FileName  = "losetup";
+                // --sector-size 4096
                 psi.Arguments = $"-f --show -- {mountPoint}/{vinkekfish_file_name}";
+                // psi.Arguments = $"-f --show -- {mountPoint}/{vinkekfish_file_name}";
 /*                psi.FileName  = "mount";
                 psi.Arguments = $"-o discard,loop,noexec,nodev,nosuid {mountPoint}/{vinkekfish_file_name} /inRamA/tt2";*/
                 var pi = Process.Start(psi);
@@ -493,8 +521,11 @@ WriteDebugLine("fuse_init !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 Console.WriteLine(loopDev);
                 if (exists)
                 {
-                    var pif = Process.Start("mke2fs", "-t ext4 -b 4096 -N 1024 -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,^resize_inode,^dir_index,^dir_nlink,^metadata_csum,^flex_bg" + " " + loopDev);
+                    var pif = Process.Start("mke2fs", "-t ext4 -b 4096 -N 1024 -C 64k -m 0 -J size=4 -E discard -O extent,bigalloc,inline_data,^resize_inode,^dir_index,^dir_nlink,^metadata_csum,^flex_bg" + " " + loopDev);
                     pif.WaitForExit();
+                    // На всякий случай, добавляем опцию возможного перезатирания секторов
+/*                    pif = Process.Start("tune2fs", $"-o discard {loopDev}");
+                    pif.WaitForExit();*/
                     pif = Process.Start("chown", $"inet {loopDev}");
                     pif.WaitForExit();
                     pif = Process.Start("mount", $"-o discard,noexec,nodev,nosuid {loopDev} /inRamA/tt2");
@@ -520,10 +551,28 @@ Console.WriteLine(loopDev);
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public static int fuse_ioctl(byte * b, int cmd, void * arg, FuseFileInfo * fi, uint flags, void * data)
     {
-Console.WriteLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b));
-WriteDebugLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b));
+WriteDebugLine("fuse_ioctl !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " + cmd + Utf8StringMarshaller.ConvertToManaged(b), 1);
 
         return (int) PosixResult.ENOTSUP;
+    }
+
+    // /usr/include/x86_64-linux-gnu/bits/statvfs.h
+    // man statvfs
+    [StructLayout(LayoutKind.Sequential)]
+    public struct StatVFS
+    {
+                                       /// <summary>Filesystem block size</summary>
+        public ulong bsize;            /// <summary>Fragment size</summary>
+        public ulong frsize;           /// <summary>Size of fs in frsize units</summary>
+        public ulong blocks;           /// <summary>Number of free blocks</summary>
+        public ulong bfree;            /// <summary>Number of free blocks</summary>
+        public ulong bavail;           /// <summary>Number of inodes</summary>
+        public ulong files;            /// <summary>Number of free inodes</summary>
+        public ulong ffree;            /// <summary>Number of free inodes for unprivileged users</summary>
+        public ulong favail;           /// <summary>Filesystem ID</summary>
+        public ulong fsid;             /// <summary>Mount flags</summary>
+        public ulong flag;             /// <summary>Maximum filename length</summary>
+        public ulong namemax;
     }
 
     // https://github.com/libfuse/libfuse/blob/a466241b45d1dd0bf685513bdeefd6448b63beb6/include/fuse.h#L96
@@ -1059,7 +1108,7 @@ int main()
         public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> open;
         public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, nint> read;
         public delegate* unmanaged[Cdecl]<byte*, byte*, nint, long, FuseFileInfo*, nint> write;
-        public delegate* unmanaged[Cdecl]<nint, void *, int> statfs;
+        public delegate* unmanaged[Cdecl]<byte*, StatVFS *, nint> statfs;
         public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> flush;
         public delegate* unmanaged[Cdecl]<byte*, FuseFileInfo*, int> release;
         public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsync;

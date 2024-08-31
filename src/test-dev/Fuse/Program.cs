@@ -266,6 +266,12 @@ WriteDebugLine("fuse_readDir success");
     [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
     public static extern uint getegid();
 
+/*
+struct fuse_context *cxt = fuse_get_context();
+if (cxt)
+    uid = cxt->uid;
+    gid = cxt->gid;
+*/
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
     public  static unsafe int mkdir(byte * pDirName, PosixFileMode mode)
     {

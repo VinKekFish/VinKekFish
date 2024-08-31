@@ -18,7 +18,7 @@
  * can be tested with the poll_client.c program.
  *
  * Compile with:
- *
+ *      // apt install libfuse3-dev
  *     gcc -Wall poll.c `pkg-config fuse3 --cflags --libs` -o poll
  *
  * ## Source code ##
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
     // snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)sizeof(fuse_config_s));
 
     // printf("Размер структуры: %s\n", buffer);
-    printf("Размер структуры: %ld\n", sizeof(struct stat));
+    printf("Размер структуры: %ld\n", sizeof(fsblkcnt_t));
     
 
     ret = fuse_main(argc, argv, &vinny_fuse_operations, NULL);
