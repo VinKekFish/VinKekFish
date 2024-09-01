@@ -267,7 +267,7 @@ public unsafe partial class AutoCrypt
         public KeyDataGenerator? KeyGenerator;
         public static Keccak_20200918?  keccak1, keccak2, keccakOIV, keccakA;
         public static Threefish1024?    ThreeFish1s, ThreeFish2s, ThreeFish3s;  // Для синхропосылок
-        public static Threefish1024?    ThreeFish1b, ThreeFish2b, ThreeFish3b;  // Непосредственно для блоков с обратной связью
+        public static Threefish1024?    ThreeFish1b, ThreeFish2b, ThreeFish3b;  // Непосредственно для блоков с обратной связью. ThreeFish3b, кажется, нигде не используется
         public void InitSponges(Record key)
         {
             CascadeSponge_mt_20230930?  Cascade_Key    = null;
@@ -299,7 +299,6 @@ public unsafe partial class AutoCrypt
                 SynBackupPath = Path.Combine(DataDir!.FullName, SynBackupName);
 
                 var synFI = new FileInfo(syncPath);      synFI.Refresh();
-                var  bkFI = new FileInfo(SynBackupPath);  bkFI.Refresh();
                 if (!synFI.Exists)
                 {
                     isCreatedDir = true;
@@ -336,11 +335,6 @@ public unsafe partial class AutoCrypt
 
                     // Обновляем содержимое записи, так как файл мы только что создали
                     synFI.Refresh();
-                }
-
-                if (!bkFI.Exists)
-                {
-                    isCreatedDir = true;
                 }
 
                 Cascade_Key = new CascadeSponge_mt_20230930(512) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.elevated };

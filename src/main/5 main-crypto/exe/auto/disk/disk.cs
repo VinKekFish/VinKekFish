@@ -178,7 +178,10 @@ public unsafe partial class AutoCrypt
                     BytesBuilder.CopyTo(sync2, block);
                     keccakA!.DoXor(block, KeccakPrime.BlockLen);
                     if (IsNull(block))
+                    {
+                        Console.WriteLine("Hash is incorrect for block: " + fn);
                         return -(nint)PosixResult.EINTEGRITY;
+                    }
 
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
@@ -187,7 +190,7 @@ public unsafe partial class AutoCrypt
                 }
                 catch (FileNotFoundException)
                 {
-                    BytesBuilder.ToNull(pos.size, buffer);
+                    BytesBuilder.ToNull(pos.size, buffer + i);
                     i += pos.size;
                 }
             }
@@ -199,6 +202,7 @@ public unsafe partial class AutoCrypt
         {
             // Первый проход расшифрования (начинаем со второй губки и второго ключа)
             keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
             keccakA!.DoInitFromKey(sync2, 0);
             BytesBuilder.CopyTo(syncNumber2, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128);
@@ -261,6 +265,7 @@ public unsafe partial class AutoCrypt
 
             // Второй проход шифрования
             keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync3, 0);
             keccakA!.DoInitFromKey(sync4, 0);
             BytesBuilder.CopyTo(syncNumber2, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128);
@@ -363,8 +368,8 @@ public unsafe partial class AutoCrypt
                             file.Write(bytesFromFile);
 #warning Вставить тут не перезапись, а создание новых файлов с переименованием и удаление старых с перезаписью
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                            catFile.Read(sync3);
-                            catFile.Read(sync4);
+                            catFile.Write(sync3);
+                            catFile.Write(sync4);
                         }
                     }
                 }
@@ -394,8 +399,8 @@ public unsafe partial class AutoCrypt
 
                         file.Write(bytesFromFile);
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Read(sync3);
-                        catFile.Read(sync4);
+                        catFile.Write(sync3);
+                        catFile.Write(sync4);
                     }
                 }
 #warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
