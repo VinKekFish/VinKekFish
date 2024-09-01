@@ -25,6 +25,7 @@ using Approximation = FileParts.Approximation;
 
 using static AutoCrypt.Import;
 using System.Runtime.InteropServices.Marshalling;
+using CodeGenerated.Cryptoprimes;
 
 public unsafe partial class AutoCrypt
 {
@@ -33,6 +34,8 @@ public unsafe partial class AutoCrypt
     {
         public const  string SyncName = "sync";
         public static string syncPath = "";
+        public const  string SynBackupName  = "sync-backup";     // Файл для бэкапа текущих изменений синхропосылок блока
+        public static string SynBackupPath = "";
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
@@ -41,7 +44,7 @@ public unsafe partial class AutoCrypt
 
             Console.CancelKeyPress += (o, e) =>
             {
-                e.Cancel = true;
+                e.Cancel = !destroyed;
                 ProcessExit();
             };
             AppDomain.CurrentDomain.UnhandledException += 
@@ -72,16 +75,21 @@ public unsafe partial class AutoCrypt
             fuseOperations->readdir = &fuse_readDir;
             fuseOperations->statfs  = &fuse_statfs;
             fuseOperations->init    = &fuse_init;
+            fuseOperations->destroy = &fuse_destroy;
 
             uid = geteuid();
             gid = getegid();
 
+            FileNumberFormatString = "D" + (int) Math.Ceiling( Math.Log10(FileSize) );
+
             var r = fuse_main_real(A.Length, A, fuseOperations, Marshal.SizeOf(fuseOperations[0]), 0);
         }
 
+        public static string FileNumberFormatString = "";
+
         private static void ProcessExit(PosixSignalContext context)
         {
-            context.Cancel = true;
+            context.Cancel = !destroyed;
             ProcessExit();
         }
 
@@ -115,20 +123,24 @@ public unsafe partial class AutoCrypt
         const int blockSizeShift = 16;
         const int blockSize      =  1 << blockSizeShift;
         const int blockSizeMask  = (1 << blockSizeShift) - 1;
-        public static (nint file, nint position, nint size) getPosition(nint position, nint size)
+        public static (nint file, nint position, nint size, nint catFile, nint catPos) getPosition(nint position, nint size)
         {
             var positionInFile = position & blockSizeMask;
             var file           = position >> blockSizeShift;
+            var catFile        = file >> 9;                 // Это количество FullBlockSyncLen в blockSize
             if (size > blockSize - positionInFile)
                 size = blockSize - positionInFile;
 
-            return (file, positionInFile, size);
+            var catPos = file & 511;
+
+            return (file, positionInFile, size, catFile, catPos);
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+
             if (fileName != vinkekfish_file_path)
             {
                 if (fileName == "/")
@@ -145,31 +157,156 @@ public unsafe partial class AutoCrypt
                 var pos = getPosition(i + (nint) position, size - i);
 
                 var fn = GetFileNumberName(pos);
-                if (File.Exists(fn))
+                var cf = GetCatFileNumberName(pos);
+
+                try
                 {
-                    #warning !!!!!!!!!
-                    var bytes = File.ReadAllBytes(fn);
+                    using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
+                        {
+                            file.Read(bytesFromFile);
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Read(sync1);
+                            catFile.Read(sync2);
+                        }
+                    }
+
+                    // Расшифрование данных
+                    DoDecrypt(pos);
+
+                    BytesBuilder.CopyTo(sync2, block);
+                    keccakA!.DoXor(block, KeccakPrime.BlockLen);
+                    if (IsNull(block))
+                        return -(nint)PosixResult.EINTEGRITY;
+
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
-                        buffer[i] = bytes[pos.position + j];
+                        buffer[i] = bytesFromFile[pos.position + j];
                     }
                 }
-                else
+                catch (FileNotFoundException)
                 {
-                    for (nint j = 0; j < pos.size; j++, i++)
-                    {
-                        buffer[i] = 0;
-                    }
+                    BytesBuilder.ToNull(pos.size, buffer);
+                    i += pos.size;
                 }
             }
 
             return size;
         }
 
+        private static void DoDecrypt((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            // Первый проход расшифрования (начинаем со второй губки и второго ключа)
+            keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync2, 0);
+            BytesBuilder.CopyTo(syncNumber2, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
+            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
+            {
+                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                BytesBuilder.CopyTo(blockSync2, block128);
+                BytesBuilder.CopyTo(block, block128);
+                Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            }
+
+            BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
+
+            // Второй проход расшифрования
+            keccak1!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
+            BytesBuilder.CopyTo(syncNumber1, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
+            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
+            {
+                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                BytesBuilder.CopyTo(blockSync1, block128);
+                BytesBuilder.CopyTo(block, block128);
+                Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            }
+        }
+
+        private static void DoEncrypt((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            // Первый проход шифрования
+            keccak1!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync3, 0);
+            BytesBuilder.CopyTo(syncNumber1, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
+            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
+            {
+                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                BytesBuilder.CopyTo(blockSync1, block128);
+                BytesBuilder.CopyTo(block, block128);
+                Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            }
+
+            keccakA.DoOutput(sync4, KeccakPrime.BlockLen);
+            BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
+
+            // Второй проход шифрования
+            keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync4, 0);
+            BytesBuilder.CopyTo(syncNumber2, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
+            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
+            {
+                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                BytesBuilder.CopyTo(blockSync2, block128);
+                BytesBuilder.CopyTo(block, block128);
+                Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            }
+        }
+
+        private static void GenerateNewSyncs((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            keccakOIV!.CloneStateTo(keccakA!);
+            BytesBuilder.CopyTo(syncNumber3, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
+            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, block128, 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish3s!.key, ThreeFish3s.tweak, block128);
+            keccakA!.DoInitFromKey(block128, KeccakPrime.BlockLen, 0);
+
+            keccakA.DoInitFromKey(sync1, 1);
+            keccakA.DoInitFromKey(sync2, 2);
+            keccakA.DoOutput(sync3, KeccakPrime.BlockLen);
+        }
+
         private static Record bytesFromFile = Keccak_abstract.allocator.AllocMemory(blockSize);
+        private static Record sync1         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record sync2         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record sync3         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record sync4         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record block         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record syncNumber1   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record syncNumber2   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record syncNumber3   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record blockSync1    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record blockSync2    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-        public static nint fuse_write(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
+        public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
 
@@ -181,41 +318,85 @@ public unsafe partial class AutoCrypt
             if (position + size > (long) FileSize)
                 size = (nint) ((long) FileSize - position);
 
+            bool notExists = false;
             for (nint i = 0; i < size;)
             {
                 var pos = getPosition(i + (nint)position, size - i);
 
                 var fn     = GetFileNumberName(pos);
+                var cf     = GetCatFileNumberName(pos);
                 var isNull = false;
-                using (var file = File.Open(fn, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                {
-                    if (file.Length > 0)
-                    {
-                        file.Read(bytesFromFile);
-                    }
 
+                try
+                {
+                    using (var    file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                            file.Read(bytesFromFile);
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Read(sync1);
+                            catFile.Read(sync2);
+
+                        if (file.Length > 0)
+                        {
+                            file.Read(bytesFromFile);
+                        }
+
+                        for (nint j = 0; j < pos.size; j++, i++)
+                        {
+                            bytesFromFile[pos.position + j] = buffer[i];
+                        }
+
+                        isNull = IsNull(bytesFromFile);
+                        if (!notExists || !isNull)
+                        {
+                            GenerateNewSyncs(pos);
+                            DoEncrypt(pos);
+
+                            file.Seek(0, SeekOrigin.Begin);
+                            file.Write(bytesFromFile);
+#warning Вставить тут не перезапись, а создание новых файлов с переименованием и удаление старых с перезаписью
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Read(sync3);
+                            catFile.Read(sync4);
+                        }
+                    }
+                }
+                catch (FileNotFoundException)
+                {
+                    notExists = true;
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         bytesFromFile[pos.position + j] = buffer[i];
                     }
 #warning ВСТАВИТЬ ШИФРОВАНИЕ
                     isNull = IsNull(bytesFromFile);
-                    file.Write(bytesFromFile);
+
+                    if (!isNull)
+                    using (var file = File.Open(fn, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        file.Write(bytesFromFile);
+                    }
                 }
 
-                if (isNull)
+                if (isNull && !notExists)
                     File.Delete(fn);
             }
 
             return size;
         }
 
-        public static string GetFileNumberName((nint file, nint position, nint size) pos)
+        public static string GetFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
         {
-            return Path.Combine(DataDir!.FullName, pos.file.ToString("D16"));
+            return Path.Combine(DataDir!.FullName, pos.file.ToString(FileNumberFormatString));
         }
 
-        /// <summary>Безопасно узнаёт, не является ли блок состоящим из одних нулей.</summary>
+        public static string GetCatFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            return Path.Combine(DataDir!.FullName, "cat" + pos.catFile.ToString(FileNumberFormatString));
+        }
+
+        /// <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
         /// <param name="bytes">Блок для проверки. Размер должен быть кратен 8-ми байтам.</param>
         /// <returns>true, если блок состоит из одних нулей.</returns>
         private static bool IsNull(Record bytes)
@@ -298,9 +479,11 @@ public unsafe partial class AutoCrypt
             for (int i = 0; i < sizeof(StatVFS); i++, st++)
                 *st = 0;
 
-            (*stat).blocks = FileSize / blockSize;
-            (*stat).frsize = blockSize;
-            (*stat).bsize  = blockSize;
+            (*stat).blocks  = FileSize / blockSize;
+            (*stat).frsize  = blockSize;
+            (*stat).bsize   = blockSize;
+            (*stat).files   = 2;
+            (*stat).namemax = (ulong) vinkekfish_file_path.Length;
 
             return (int) PosixResult.Success;
         }
@@ -312,8 +495,9 @@ public unsafe partial class AutoCrypt
             for (int i = 0; i < sizeof(FuseConfig); i++, st++)
                 *st = 0;
 
-            config->direct_io    = 0;
-            config->kernel_cache = 1;
+            config->direct_io     = 0;
+            config->kernel_cache  = 1;
+            (*config).hard_remove = 1;
 
             // losetup отказывается работать в самом коллбэке
             // Возможно, он виснет из-за того, что init ещё не завершился, а он уже посылает сигналы файловой системе
@@ -331,7 +515,13 @@ public unsafe partial class AutoCrypt
                         psi.Arguments = $"-f --show -- \"{tmpFile}\"";
 
                         var pi = Process.Start(psi);
-                        pi!.WaitForExit(10_000);    // Здесь всё равно может подвиснуть на чтении незакрытого потока стандартного вывода
+                        if (!pi!.WaitForExit(10_000))
+                        {
+                            try{ pi.Kill(true); } catch{}
+                            Console.Error.WriteLine("ERROR: losetup is hung. This is an unexpected error.");
+                            return;
+                        }
+                        // Здесь всё равно может подвиснуть на чтении незакрытого потока стандартного вывода
                         loopDev = pi.StandardOutput.ReadToEnd().Trim();     // Может содержать перевод строки
 
                         var exists = true;
@@ -347,28 +537,30 @@ public unsafe partial class AutoCrypt
                         if (exists)
                         {
                             Process? pif = null;
-                            if (isCreatedDir)
+                            if (isCreatedDir || ForcedFormatFlag)
                             {
                                 Console.WriteLine(L("Program begin formatting the section..."));
-                                var iSize = 4096;
-                                if (FileSize > 1024*1024*1024)
-                                    iSize = 16384;
-                                else
-                                if (FileSize > 64*1024*1024)
-                                    iSize = 8192;
+
+                                File.WriteAllBytes(SynBackupPath, new byte[blockSize]);
 
                                 // Это форматирование файловой системы пользователя.
-                                pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -i {iSize} -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,^resize_inode,^dir_index,^dir_nlink,^metadata_csum" + " " + loopDev);
+                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -i 64k -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                var iN = FileSize >> 16;
+                                pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
                             pif = Process.Start("chown", $"{Rights} {loopDev}");
                             pif.WaitForExit();
-                            pif = Process.Start("mount", $"-o discard,noexec,nodev,nosuid {loopDev} \"{UserDir!.FullName}\"");
+                            // noexec, nosuid ???? Опции надо бы добавить???
+                            pif = Process.Start("mount", $"-o discard,relatime,lazytime {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
-                            pif = Process.Start("chown", $"{Rights} \"{UserDir!.FullName}\"");
-                            pif.WaitForExit();
+                            if (Rights.Length > 0)
+                            {
+                                pif = Process.Start("chown", $"{Rights} \"{UserDir!.FullName}\"");
+                                pif.WaitForExit();
+                            }
 
-                            Console.WriteLine($"Started with loop device " + loopDev);
+                            Console.WriteLine($"Started with loop device\r\n" + loopDev);
                         }
                         else
                             Console.WriteLine("ERROR: loop device not mounted: " + loopDev);
@@ -380,6 +572,25 @@ public unsafe partial class AutoCrypt
             );
 
             return null;
+        }
+
+        private static bool destroyed = false;
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        public static void fuse_destroy(void * data)
+        {
+            bytesFromFile.Clear();
+            bytesFromFile.Dispose();
+
+            sync1.Clear();
+            sync1.Dispose();
+
+            sync2.Clear();
+            sync2.Dispose();
+
+            Utf8StringMarshaller.Free(ptr_vinkekfish_file_name);
+
+            destroyed = true;
         }
     }
 }

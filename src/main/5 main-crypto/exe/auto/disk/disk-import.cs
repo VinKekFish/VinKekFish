@@ -114,7 +114,7 @@ public unsafe partial class AutoCrypt
             public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int> releasedir;
             public delegate* unmanaged[Cdecl]<nint, int, FuseFileInfo*, int> fsyncdir;
             public delegate* unmanaged[Cdecl]<void*, FuseConfig*, void*> init;
-            public delegate* unmanaged[Cdecl]<nint> destroy;
+            public delegate* unmanaged[Cdecl]<void *, void> destroy;
             public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, int> access;
             public delegate* unmanaged[Cdecl]<nint, PosixAccessMode, FuseFileInfo*, int> create;
             public delegate* unmanaged[Cdecl]<nint, FuseFileInfo*, int, nint, int> @lock;

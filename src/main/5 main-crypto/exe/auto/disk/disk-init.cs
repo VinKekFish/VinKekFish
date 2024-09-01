@@ -50,9 +50,9 @@ public unsafe partial class AutoCrypt
             TryToDispose(keccak1);      keccak1      = null;
             TryToDispose(keccak2);      keccak2      = null;
             TryToDispose(keccakOIV);    keccakOIV    = null;
-            TryToDispose(ThreeFish1);   ThreeFish1   = null;
-            TryToDispose(ThreeFish2);   ThreeFish2   = null;
-            TryToDispose(ThreeFish3);   ThreeFish3   = null;
+            TryToDispose(ThreeFish1s);   ThreeFish1s   = null;
+            TryToDispose(ThreeFish2s);   ThreeFish2s   = null;
+            TryToDispose(ThreeFish3s);   ThreeFish3s   = null;
 
             base.Dispose(fromDestructor);
 
@@ -74,10 +74,12 @@ public unsafe partial class AutoCrypt
         public static FileInfo? OpenKeyFileInfo = null;
 
         public static bool   isCreatedDir = false;
-        public static string Rights       = "0:0";
+        public static string Rights       = "#0:#0";
+        public static bool   ForcedFormatFlag = false;
 
         public override ProgramErrorCode Exec(StreamReader? sr)
         {
+            string val = "";
             start:
 
             var command = (CommandOption) CommandOption.ReadAndParseLine
@@ -112,6 +114,11 @@ public unsafe partial class AutoCrypt
 
             switch (command.name)
             {
+                case "forced-format":
+                        val = command.value.Trim().ToLowerInvariant();
+                        ForcedFormatFlag = val == "true" || val == "1" || val == "yes";
+
+                        goto start;
                 case "r":
                         Rights = command.value.Trim();
                         goto start;
@@ -252,13 +259,15 @@ public unsafe partial class AutoCrypt
             return ProgramErrorCode.success;
         }
 
-        /// <summary>Полная длина двойной синхропосылки на блок файловой системы.</summary>
+        /// <summary>Полная длина двойной синхропосылки на блок файловой системы. При изменении этого нужно также изменить расчёт номера файла категории (он завязан на эту константу, но эта константа там не используется).</summary>
         public const int FullBlockSyncLen = 128;
-        public const int SemiBlockSyncLen = 64;
+        public const int SemiBlockSyncLen = 64; // Это должно совпадать с блоком keccak.
+        // Много чего завязано на то, что блок синхропосылки совпадает с временным массивом block.
 
         public KeyDataGenerator? KeyGenerator;
-        public static Keccak_20200918?  keccak1, keccak2, keccakOIV;
-        public static Threefish1024?    ThreeFish1, ThreeFish2, ThreeFish3;
+        public static Keccak_20200918?  keccak1, keccak2, keccakOIV, keccakA;
+        public static Threefish1024?    ThreeFish1s, ThreeFish2s, ThreeFish3s;  // Для синхропосылок
+        public static Threefish1024?    ThreeFish1b, ThreeFish2b, ThreeFish3b;  // Непосредственно для блоков с обратной связью
         public void InitSponges(Record key)
         {
             CascadeSponge_mt_20230930?  Cascade_Key    = null;
@@ -272,11 +281,25 @@ public unsafe partial class AutoCrypt
                 {
                     isCreatedDir = true;
                     Directory.CreateDirectory(DataDir!.FullName, UnixFileMode.UserExecute | UnixFileMode.UserRead | UnixFileMode.UserWrite);
-                    Process.Start("chmod", $"a+rX {DataDir.FullName}");
+                    using (var pi = Process.Start("chmod", $"a+rX \"{DataDir.FullName}\""))
+                    {
+                        pi.WaitForExit();
+                    }
+                    using (var pi = Process.Start("chmod", $"a+t  \"{DataDir.FullName}\""))
+                    {
+                        pi.WaitForExit();
+                    }
+                    using (var pi = Process.Start("chattr", $"+D  \"{DataDir.FullName}\""))
+                    {
+                        pi.WaitForExit();
+                    }
                 }
 
-                syncPath  = Path.Combine(DataDir.FullName, SyncName);
-                var synFI = new FileInfo(syncPath); synFI.Refresh();
+                syncPath      = Path.Combine(DataDir!.FullName, SyncName);
+                SynBackupPath = Path.Combine(DataDir!.FullName, SynBackupName);
+
+                var synFI = new FileInfo(syncPath);      synFI.Refresh();
+                var  bkFI = new FileInfo(SynBackupPath);  bkFI.Refresh();
                 if (!synFI.Exists)
                 {
                     isCreatedDir = true;
@@ -284,9 +307,9 @@ public unsafe partial class AutoCrypt
                     {
                         this.Connect();
                     }
-                    while (bbp.Count < 128);        // Так как длина стандартного блока, возвращаемого /dev/vkf/random, равна 404-ём байтам, то, скорее всего, реальная длина синхропосылки будет 404 байта. Остальное будет дополнено нулями.
+                    while (bbp.Count < Threefish_slowly.keyLen);        // Так как длина стандартного блока, возвращаемого /dev/vkf/random, равна 404-ём байтам, то, скорее всего, реальная длина синхропосылки будет 404 байта. Остальное будет дополнено нулями.
 
-                    using (var syncBytes = Keccak_abstract.allocator.AllocMemory(blockSize))
+                    using (var syncBytes = Keccak_abstract.allocator.AllocMemory(bbp.Count))
                     {
                         syncBytes.Clear();
                         bbp.GetBytesAndRemoveIt(syncBytes, bbp.Count);
@@ -313,6 +336,11 @@ public unsafe partial class AutoCrypt
 
                     // Обновляем содержимое записи, так как файл мы только что создали
                     synFI.Refresh();
+                }
+
+                if (!bkFI.Exists)
+                {
+                    isCreatedDir = true;
                 }
 
                 Cascade_Key = new CascadeSponge_mt_20230930(512) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.elevated };
@@ -354,25 +382,72 @@ public unsafe partial class AutoCrypt
                 keccak1   = new Keccak_20200918();
                 keccak2   = new Keccak_20200918();
                 keccakOIV = new Keccak_20200918();
+                keccakA   = new Keccak_20200918();
 
-                keccak1  .DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 1, "keccak1"), 1);
-                keccak2  .DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 2, "keccak2"), 1);
-                keccakOIV.DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 3, "keccak3"), 1);
+                keccak1  .DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 1, "keccak1"), 1, true);
+                keccak2  .DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 2, "keccak2"), 1, true);
+                keccakOIV.DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 3, "keccak3"), 1, true);
 
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1"))
                 {
-                    ThreeFish1 = new Threefish1024
+                    ThreeFish1s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2"))
                 {
-                    ThreeFish2 = new Threefish1024
+                    ThreeFish2s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3"))
                 {
-                    ThreeFish3 = new Threefish1024
+                    ThreeFish3s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                }
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1"))
+                {
+                    ThreeFish1b = new Threefish1024
+                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                }
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2"))
+                {
+                    ThreeFish2b = new Threefish1024
+                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                }
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3"))
+                {
+                    ThreeFish3b = new Threefish1024
+                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                }
+
+                // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(syncNumber1.len, 0, "syncNumber.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, syncNumber1);
+                }
+                // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(blockSync1.len, 1, "blockSync.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, blockSync1);
+                }
+                // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(syncNumber2.len, 2, "syncNumber2.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, syncNumber2);
+                }
+                // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(syncNumber3.len, 3, "syncNumber3.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, syncNumber3);
+                }
+                // Заполняем значение blockSync неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(blockSync1.len, 4, "blockSync.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, blockSync1);
+                }
+                // Заполняем значение blockSync неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(blockSync2.len, 5, "blockSync2.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, blockSync2);
                 }
             }
             finally

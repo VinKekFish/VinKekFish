@@ -129,6 +129,16 @@
             <param name="count">Максимальное количество байт для копирования (если столько нет, копирует столько, сколько возможно) (-1 - все доступные)</param>
             <param name="index">Начальный индекс копирования из источника</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilder.CopyTo(cryptoprime.BytesBuilderForPointers.Record,cryptoprime.BytesBuilderForPointers.Record,System.IntPtr,System.IntPtr,System.IntPtr)">
+            <summary>
+            Копирует массив source в массив target. Если запрошенное количество байт скопировать невозможно, копирует те, что возможно
+            </summary>
+            <param name="source">Источник копирования</param>
+            <param name="target">Приёмник</param>
+            <param name="targetIndex">Начальный индекс копирования в приёмник</param>
+            <param name="count">Максимальное количество байт для копирования (если столько нет, копирует столько, сколько возможно) (-1 - все доступные)</param>
+            <param name="index">Начальный индекс копирования из источника</param>
+        </member>
         <member name="M:cryptoprime.BytesBuilder.CopyTo(System.IntPtr,System.IntPtr,System.Byte*,System.Byte*,System.IntPtr,System.IntPtr,System.IntPtr)">
             <summary>Копирует массивы по указателям из s в t</summary>
             <param name="sourceLength">Длина массива s</param><param name="targetLength">Длина массива t</param>
@@ -178,6 +188,12 @@
             <summary>Преобразует 8-хбайтовое целое в 8 байта в target по индексу start</summary>
             <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
             <param name="target">Массив для записи, может быть null</param>
+            <param name="start">Начальный индекс для записи числа</param>
+        </member>
+        <member name="M:cryptoprime.BytesBuilder.ULongToBytes(System.UInt64,cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Преобразует 8-хбайтовое целое в 8 байта в target по индексу start</summary>
+            <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
+            <param name="target">Массив для записи. Должен быть не менее 8-ми байтов в длину. Должен быть выделен заранее.</param>
             <param name="start">Начальный индекс для записи числа</param>
         </member>
         <member name="M:cryptoprime.BytesBuilder.ULongToBytes(System.UInt64,System.Byte*,System.IntPtr,System.IntPtr)">

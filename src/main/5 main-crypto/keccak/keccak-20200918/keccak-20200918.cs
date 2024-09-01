@@ -12,13 +12,13 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     public override Keccak_abstract Clone()
     {
         var result = new Keccak_20200918(true);
-        CloneState(result);
+        CloneStateTo(result);
 
         result.isInitiated = this.isInitiated;
         return result;
     }
 
-    public void CloneState(Keccak_20200918 result)
+    public void CloneStateTo(Keccak_20200918 result)
     {
         // Очищаем C и B, чтобы не копировать какие-то значения, которые не стоит копировать, да и хранить тоже
         ClearOnly_C_and_B();
@@ -28,21 +28,58 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     }
 
     /// <summary>Инициализирует губку keccak в режиме Keccak_InputOverwrite64_512 ключом переменной длины.</summary>
-    /// <param name="key">Ключ для инициализации. После использования удаляется в этом же методе.</param>
-    public void DoInitFromKey(BytesBuilderForPointers.Record key, byte regime)
+    /// <param name="key">Ключ для инициализации. После использования удаляется в этом же методе, если установлен doDelete.</param>
+    public void DoInitFromKey(BytesBuilderForPointers.Record key, byte regime, bool doDelete = false)
     {
         try
         {
-            for (int l = KeccakPrime.b_size; l > 0;)
-            {
-                var L = l > 64 ? 64 : l;
-                KeccakPrime.Keccak_InputOverwrite64_512(key, (byte) L, this.S, regime);
-                l -= L;
-            }
+            DoInitFromKey(key.array, key.len, regime);
         }
         finally
         {
-            key.Dispose();
+            if (doDelete)
+                key.Dispose();
         }
+    }
+
+    public void DoInitFromKey(byte* key, nint len, byte regime)
+    {
+        for (nint l = len; l > 0;)
+        {
+            var L = l > 64 ? 64 : l;
+            KeccakPrime.Keccak_InputOverwrite64_512(key, (byte) L, this.S, regime);
+            l   -= L;
+            key += L;
+        }
+    }
+
+    /// <summary>Наложить гамму.</summary>
+    /// <param name="bytesFromFile">Текст, на который надо наложить гамму.</param>
+    /// <param name="len">Длина текста, не более 64-х байтов.</param>
+    public void DoXor(BytesBuilderForPointers.Record bytesFromFile, byte len)
+    {
+        if (len > KeccakPrime.BlockLen)
+            throw new ArgumentOutOfRangeException("DoXor: len > KeccakPrime.BlockLen");
+        if (len > bytesFromFile.len)
+            throw new ArgumentOutOfRangeException("DoXor: len > bytesFromFile.len");
+
+        var st = stackalloc byte[len];
+        KeccakPrime.Keccak_Output_512(st, len, this.S);
+        BytesBuilder.Xor(len, bytesFromFile, st);
+
+        BytesBuilder.ToNull(len, st);
+    }
+
+    /// <summary>Вывести блок данных из губки (не более 64-х байтов)</summary>
+    /// <param name="forData">Приёмник данных. Должен быть выделен и быть надлежащего размера.</param>
+    /// <param name="len">Длина запрашиваемых данных. Не более 64.</param>
+    public void DoOutput(BytesBuilderForPointers.Record forData, byte len)
+    {
+        if (len > KeccakPrime.BlockLen)
+            throw new ArgumentOutOfRangeException("DoOutput: len > KeccakPrime.BlockLen");
+        if (len > forData.len)
+            throw new ArgumentOutOfRangeException("DoOutput: len > forData.len");
+
+        KeccakPrime.Keccak_Output_512(forData, len, this.S);
     }
 }

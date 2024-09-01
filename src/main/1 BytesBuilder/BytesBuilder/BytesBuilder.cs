@@ -462,13 +462,30 @@ namespace cryptoprime
         /// <param name="index">Начальный индекс копирования из источника</param>
         public unsafe static nint CopyTo(byte[] source, byte[] target, nint targetIndex = 0, nint count = -1, nint index = 0)
         {
-            nint sl = checked((int) source.LongLength );
+            nint sl = checked((nint) source.LongLength );
 
             fixed (byte * s = source, t = target)
             {
                 return CopyTo(sl, checked((nint) target.LongLength), s, t, targetIndex, count, index);
             }
         }
+
+        /// <summary>
+        /// Копирует массив source в массив target. Если запрошенное количество байт скопировать невозможно, копирует те, что возможно
+        /// </summary>
+        /// <param name="source">Источник копирования</param>
+        /// <param name="target">Приёмник</param>
+        /// <param name="targetIndex">Начальный индекс копирования в приёмник</param>
+        /// <param name="count">Максимальное количество байт для копирования (если столько нет, копирует столько, сколько возможно) (-1 - все доступные)</param>
+        /// <param name="index">Начальный индекс копирования из источника</param>
+        public unsafe static nint CopyTo(BytesBuilderForPointers.Record source, BytesBuilderForPointers.Record target, nint targetIndex = 0, nint count = -1, nint index = 0)
+        {
+            nint sl = checked((nint) source.len );
+
+            byte * s = source, t = target;
+            return CopyTo(sl, checked((nint) target.len), s, t, targetIndex, count, index);
+        }
+
 
         /// <summary>Копирует массивы по указателям из s в t</summary>
         /// <param name="sourceLength">Длина массива s</param><param name="targetLength">Длина массива t</param>
@@ -715,6 +732,23 @@ namespace cryptoprime
                     *(t + i) = (byte) data;
                     data >>= 8;
                 }
+            }
+        }
+
+        /// <summary>Преобразует 8-хбайтовое целое в 8 байта в target по индексу start</summary>
+        /// <param name="data">8-х байтовое беззнаковое целое для преобразования. Младший байт по младшему адресу</param>
+        /// <param name="target">Массив для записи. Должен быть не менее 8-ми байтов в длину. Должен быть выделен заранее.</param>
+        /// <param name="start">Начальный индекс для записи числа</param>
+        public unsafe static void ULongToBytes(ulong data, BytesBuilderForPointers.Record target, nint start = 0)
+        {
+            if (start < 0 || start + 8 > target.len)
+                throw new IndexOutOfRangeException();
+
+            byte * t = target;
+            for (nint i = start; i < start + 8; i++)
+            {
+                *(t + i) = (byte) data;
+                data >>= 8;
             }
         }
 
