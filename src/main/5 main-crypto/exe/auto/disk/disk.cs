@@ -129,6 +129,13 @@ public unsafe partial class AutoCrypt
         public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+            if (fileName != vinkekfish_file_path)
+            {
+                if (fileName == "/")
+                    return - (int) PosixResult.EOPNOTSUPP;
+
+                return - (int) PosixResult.ENOENT;
+            }
 
             if (position + size > (long) FileSize)
                 size = (nint) ((long) FileSize - position);
