@@ -295,10 +295,8 @@ public unsafe partial class AutoCrypt
                     }
                 }
 
-                syncPath      = Path.Combine(DataDir!.FullName, SyncName);
-                SyncBackupPath = Path.Combine(DataDir!.FullName, SyncBackupName);
-
-                var synFI = new FileInfo(syncPath);      synFI.Refresh();
+                syncPath  = Path.Combine(DataDir!.FullName, SyncName);
+                var synFI = new FileInfo(syncPath); synFI.Refresh();
                 if (!synFI.Exists)
                 {
                     isCreatedDir = true;
