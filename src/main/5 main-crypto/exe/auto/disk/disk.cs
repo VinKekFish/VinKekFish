@@ -278,7 +278,7 @@ public unsafe partial class AutoCrypt
             }
         }
 
-        private static void GenerateNewSyncs((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        private static void GenerateNewSync((nint file, nint position, nint size, nint catFile, nint catPos) pos)
         {
             keccakOIV!.CloneStateTo(keccakA!);
             BytesBuilder.CopyTo(syncNumber3, block128);
@@ -290,6 +290,12 @@ public unsafe partial class AutoCrypt
             keccakA.DoInitFromKey(sync1, 1);
             keccakA.DoInitFromKey(sync2, 2);
             keccakA.DoOutput(sync3, KeccakPrime.BlockLen);
+
+            // Очень маловероятное событие.
+            // Но нули являются служебными, поэтому допустить их появление нельзя.
+            if (IsNull(sync3))
+                sync3[0] = 1;
+
         }
 
         private static Record bytesFromFile = Keccak_abstract.allocator.AllocMemory(blockSize);
@@ -350,7 +356,7 @@ public unsafe partial class AutoCrypt
                         isNull = IsNull(bytesFromFile);
                         if (!notExists || !isNull)
                         {
-                            GenerateNewSyncs(pos);
+                            GenerateNewSync(pos);
                             DoEncrypt(pos);
 
                             file.Seek(0, SeekOrigin.Begin);
@@ -373,12 +379,26 @@ public unsafe partial class AutoCrypt
                     isNull = IsNull(bytesFromFile);
 
                     if (!isNull)
-                    using (var file = File.Open(fn, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                    using (var    file = File.Open(fn, FileMode.CreateNew,    FileAccess.ReadWrite, FileShare.None))
+                    using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
                     {
+                        if (catFile.Length == 0)
+                            catFile.Write(new byte[blockSize]);
+
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Read(sync1);
+                        catFile.Read(sync2);
+
+                        GenerateNewSync(pos);
+                        DoEncrypt(pos);
+
                         file.Write(bytesFromFile);
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Read(sync3);
+                        catFile.Read(sync4);
                     }
                 }
-
+#warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
                 if (isNull && !notExists)
                     File.Delete(fn);
             }
