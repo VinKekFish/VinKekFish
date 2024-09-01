@@ -34,8 +34,7 @@ public unsafe partial class AutoCrypt
     {
         public const  string SyncName = "sync";
         public static string syncPath = "";
-        public const  string SynBackupName  = "sync-backup";     // Файл для бэкапа текущих изменений синхропосылок блока
-        public static string SynBackupPath = "";
+        public const  string SyncBackupName  = "backup-";     // Файл для бэкапа текущих изменений синхропосылок блока
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
@@ -165,7 +164,7 @@ public unsafe partial class AutoCrypt
                     {
                         using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                            file.Read(bytesFromFile);
+                               file.Read(bytesFromFile);
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Read(sync1);
                             catFile.Read(sync2);
@@ -177,7 +176,7 @@ public unsafe partial class AutoCrypt
 
                     BytesBuilder.CopyTo(sync2, block);
                     keccakA!.DoXor(block, KeccakPrime.BlockLen);
-                    if (IsNull(block))
+                    if (!IsNull(block))
                     {
                         Console.WriteLine("Hash is incorrect for block: " + fn);
                         return -(nint)PosixResult.EINTEGRITY;
@@ -196,6 +195,142 @@ public unsafe partial class AutoCrypt
             }
 
             return size;
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+        public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
+        {
+            var fileName = Utf8StringMarshaller.ConvertToManaged(path);
+
+            if (fileName != vinkekfish_file_path)
+            {
+                return - (nint) PosixResult.ENOENT;
+            }
+
+            if (position + size > (long) FileSize)
+                size = (nint) ((long) FileSize - position);
+
+
+            for (nint i = 0; i < size;)
+            {
+                var pos = getPosition(i + (nint)position, size - i);
+
+                var fn        = GetFileNumberName(pos);
+                var cf        = GetCatFileNumberName(pos);
+                var isNull    = false;
+                var notExists = false;
+
+                try
+                {
+                    using (var    file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                           file.Read(bytesFromFile);
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Read(sync1);
+                        catFile.Read(sync2);
+
+                        // Расшифрование данных
+                        DoDecrypt(pos);
+
+                        BytesBuilder.CopyTo(sync2, block);
+                        keccakA!.DoXor(block, KeccakPrime.BlockLen);
+                        if (!IsNull(block))
+                        {
+                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+                            return -(nint)PosixResult.EINTEGRITY;
+                        }
+
+                        for (nint j = 0; j < pos.size; j++, i++)
+                        {
+                            bytesFromFile[pos.position + j] = buffer[i];
+                        }
+
+                        isNull = IsNull(bytesFromFile);
+                        if (!isNull)
+                        {
+                            GenerateNewSync(pos);
+                            DoEncrypt(pos);
+
+                            file.Seek(0, SeekOrigin.Begin);
+                            file.Write(bytesFromFile);
+#warning Вставить тут не перезапись, а создание новых файлов с переименованием и удаление старых с перезаписью
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Write(sync3);
+                            catFile.Write(sync4);
+                        }
+                        else
+                        {
+                            file.Seek(0, SeekOrigin.Begin);
+                            file.Write(nullBlock);
+                        }
+                    }
+                }
+                catch (FileNotFoundException)
+                {
+                    notExists = true;
+                    for (nint j = 0; j < pos.size; j++, i++)
+                    {
+                        bytesFromFile[pos.position + j] = buffer[i];
+                    }
+
+                    isNull = IsNull(bytesFromFile);
+
+                    if (!isNull)
+                    using (var    file = File.Open(fn, FileMode.CreateNew,    FileAccess.ReadWrite, FileShare.None))
+                    using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        if (catFile.Length == 0)
+                            catFile.Write(nullBlock);
+
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Read(sync1);
+                        catFile.Read(sync2);
+
+                        GenerateNewSync(pos);
+                        DoEncrypt(pos);
+
+                        file.Write(bytesFromFile);
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Write(sync3);
+                        catFile.Write(sync4);
+                    }
+                }
+#warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
+                if (isNull && !notExists)
+                    File.Delete(fn);
+            }
+
+            return size;
+        }
+
+        public static string GetFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            return Path.Combine(DataDir!.FullName, pos.file.ToString(FileNumberFormatString));
+        }
+
+        public static string GetCatFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            return Path.Combine(DataDir!.FullName, "cat" + pos.catFile.ToString(FileNumberFormatString));
+        }
+
+        /// <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
+        /// <param name="bytes">Блок для проверки. Размер должен быть кратен 8-ми байтам.</param>
+        /// <returns>true, если блок состоит из одних нулей.</returns>
+        private static bool IsNull(Record bytes)
+        {
+            if ((bytes.len & 7) > 0)
+                throw new ArgumentOutOfRangeException("IsNull: (bytes.len & 7) > 0");
+
+            var  a  = (long *) bytes.array;
+            var  ln = bytes.len >> 3;
+            long v  = 0;
+            for (int i = 0; i < ln; i++, a++)
+            {
+                v |= *a;
+            }
+
+            return v == 0;
         }
 
         private static void DoDecrypt((nint file, nint position, nint size, nint catFile, nint catPos) pos)
@@ -316,129 +451,7 @@ public unsafe partial class AutoCrypt
         private static Record blockSync2    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
 
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
-        public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
-        {
-            var fileName = Utf8StringMarshaller.ConvertToManaged(path);
-
-            if (fileName != vinkekfish_file_path)
-            {
-                return - (nint) PosixResult.ENOENT;
-            }
-
-            if (position + size > (long) FileSize)
-                size = (nint) ((long) FileSize - position);
-
-            bool notExists = false;
-            for (nint i = 0; i < size;)
-            {
-                var pos = getPosition(i + (nint)position, size - i);
-
-                var fn     = GetFileNumberName(pos);
-                var cf     = GetCatFileNumberName(pos);
-                var isNull = false;
-
-                try
-                {
-                    using (var    file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                    {
-                            file.Read(bytesFromFile);
-                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                            catFile.Read(sync1);
-                            catFile.Read(sync2);
-
-                        if (file.Length > 0)
-                        {
-                            file.Read(bytesFromFile);
-                        }
-
-                        for (nint j = 0; j < pos.size; j++, i++)
-                        {
-                            bytesFromFile[pos.position + j] = buffer[i];
-                        }
-
-                        isNull = IsNull(bytesFromFile);
-                        if (!notExists || !isNull)
-                        {
-                            GenerateNewSync(pos);
-                            DoEncrypt(pos);
-
-                            file.Seek(0, SeekOrigin.Begin);
-                            file.Write(bytesFromFile);
-#warning Вставить тут не перезапись, а создание новых файлов с переименованием и удаление старых с перезаписью
-                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                            catFile.Write(sync3);
-                            catFile.Write(sync4);
-                        }
-                    }
-                }
-                catch (FileNotFoundException)
-                {
-                    notExists = true;
-                    for (nint j = 0; j < pos.size; j++, i++)
-                    {
-                        bytesFromFile[pos.position + j] = buffer[i];
-                    }
-#warning ВСТАВИТЬ ШИФРОВАНИЕ
-                    isNull = IsNull(bytesFromFile);
-
-                    if (!isNull)
-                    using (var    file = File.Open(fn, FileMode.CreateNew,    FileAccess.ReadWrite, FileShare.None))
-                    using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                    {
-                        if (catFile.Length == 0)
-                            catFile.Write(new byte[blockSize]);
-
-                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Read(sync1);
-                        catFile.Read(sync2);
-
-                        GenerateNewSync(pos);
-                        DoEncrypt(pos);
-
-                        file.Write(bytesFromFile);
-                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Write(sync3);
-                        catFile.Write(sync4);
-                    }
-                }
-#warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
-                if (isNull && !notExists)
-                    File.Delete(fn);
-            }
-
-            return size;
-        }
-
-        public static string GetFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
-        {
-            return Path.Combine(DataDir!.FullName, pos.file.ToString(FileNumberFormatString));
-        }
-
-        public static string GetCatFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
-        {
-            return Path.Combine(DataDir!.FullName, "cat" + pos.catFile.ToString(FileNumberFormatString));
-        }
-
-        /// <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
-        /// <param name="bytes">Блок для проверки. Размер должен быть кратен 8-ми байтам.</param>
-        /// <returns>true, если блок состоит из одних нулей.</returns>
-        private static bool IsNull(Record bytes)
-        {
-            if ((bytes.len & 7) > 0)
-                throw new ArgumentOutOfRangeException("IsNull: (bytes.len & 7) > 0");
-
-            var  a  = (long *) bytes.array;
-            var  ln = bytes.len >> 3;
-            long v  = 0;
-            for (int i = 0; i < ln; i++, a++)
-            {
-                v |= *a;
-            }
-
-            return v == 0;
-        }
+        private static byte[] nullBlock = new byte[blockSize];
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static int fuse_getattr(byte * fileNamePtr, FuseFileStat* stat, FuseFileInfo * fileInfo)
@@ -565,8 +578,6 @@ public unsafe partial class AutoCrypt
                             if (isCreatedDir || ForcedFormatFlag)
                             {
                                 Console.WriteLine(L("Program begin formatting the section..."));
-
-                                File.WriteAllBytes(SynBackupPath, new byte[blockSize]);
 
                                 // Это форматирование файловой системы пользователя.
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -i 64k -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
