@@ -35,6 +35,7 @@ public unsafe partial class AutoCrypt
         public const  string SyncName = "sync";
         public static string syncPath = "";
         public const  string SyncBackupName  = "backup-";     // Файл для бэкапа текущих изменений синхропосылок блока
+        public const  string LockFile = "lock";
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
@@ -201,7 +202,6 @@ public unsafe partial class AutoCrypt
         public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
-
             if (fileName != vinkekfish_file_path)
             {
                 return - (nint) PosixResult.ENOENT;
@@ -209,7 +209,6 @@ public unsafe partial class AutoCrypt
 
             if (position + size > (long) FileSize)
                 size = (nint) ((long) FileSize - position);
-
 
             for (nint i = 0; i < size;)
             {
@@ -229,32 +228,42 @@ public unsafe partial class AutoCrypt
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
                         catFile.Read(sync1);
                         catFile.Read(sync2);
+                    }
 
-                        // Расшифрование данных
-                        DoDecrypt(pos);
+                    // Расшифрование данных
+                    DoDecrypt(pos);
 
-                        BytesBuilder.CopyTo(sync2, block);
-                        keccakA!.DoXor(block, KeccakPrime.BlockLen);
-                        if (!IsNull(block))
-                        {
-                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
-                            return -(nint)PosixResult.EINTEGRITY;
-                        }
+                    BytesBuilder.CopyTo(sync2, block);
+                    keccakA!.DoXor(block, KeccakPrime.BlockLen);
+                    if (!IsNull(block))
+                    {
+                        Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+                        return -(nint)PosixResult.EINTEGRITY;
+                    }
 
-                        for (nint j = 0; j < pos.size; j++, i++)
-                        {
-                            bytesFromFile[pos.position + j] = buffer[i];
-                        }
+                    for (nint j = 0; j < pos.size; j++, i++)
+                    {
+                        bytesFromFile[pos.position + j] = buffer[i];
+                    }
 
+                    // Копируем содержимое файла категорий
+                    var bcf = SyncBackupName + cf;
+                    if (File.Exists(cf))
+                        File.Copy(cf, bcf);
+                    else
+                        File.WriteAllBytes(bcf, nullBlock);
+
+                    using (var    file = File.Open(SyncBackupName + fn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
+                    {
                         isNull = IsNull(bytesFromFile);
                         if (!isNull)
                         {
                             GenerateNewSync(pos);
                             DoEncrypt(pos);
 
-                            file.Seek(0, SeekOrigin.Begin);
                             file.Write(bytesFromFile);
-#warning Вставить тут не перезапись, а создание новых файлов с переименованием и удаление старых с перезаписью
+
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
@@ -263,6 +272,9 @@ public unsafe partial class AutoCrypt
                         {
                             file.Seek(0, SeekOrigin.Begin);
                             file.Write(nullBlock);
+
+                            catFile.Seek (pos.catPos, SeekOrigin.Begin);
+                            catFile.Write(nullBlock, 0, FullBlockSyncLen);
                         }
                     }
                 }
@@ -296,6 +308,16 @@ public unsafe partial class AutoCrypt
                         catFile.Write(sync4);
                     }
                 }
+
+#warning Необходимо вставить восстановление после сбоя и проверки на наличие LockFile
+
+                File.WriteAllText(LockFile, "");
+
+                File.Delete(LockFile);
+                File.Delete(LockFile);
+
+                File.Delete(LockFile);
+
 #warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
                 if (isNull && !notExists)
                     File.Delete(fn);
