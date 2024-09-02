@@ -179,18 +179,18 @@ public unsafe partial class AutoCrypt
                         catFile.Read(sync1);
                         catFile.Read(sync2);
                     }
-/*
+
                     // Расшифрование данных
                     DoDecrypt(pos);
 
-                    BytesBuilder.CopyTo(sync2, block);
-                    keccakA!.DoXor(block, KeccakPrime.BlockLen);
-                    if (!IsNull(block))
+                    BytesBuilder.CopyTo(sync2, block64);
+                    keccakA!.DoXor(block64, KeccakPrime.BlockLen);
+                    if (!IsNull(block64))
                     {
                         Console.WriteLine("Hash is incorrect for block: " + fn);
                         return -(nint)PosixResult.EINTEGRITY;
                     }
-*/
+
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         buffer[i] = bytesFromFile[pos.position + j];
@@ -246,18 +246,18 @@ public unsafe partial class AutoCrypt
                         catFile.Read(sync1);
                         catFile.Read(sync2);
                     }
-                    /*
-                                        // Расшифрование данных
-                                        DoDecrypt(pos);
 
-                                        BytesBuilder.CopyTo(sync2, block);
-                                        keccakA!.DoXor(block, KeccakPrime.BlockLen);
-                                        if (!IsNull(block))
-                                        {
-                                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
-                                            return -(nint)PosixResult.EINTEGRITY;
-                                        }
-                    */
+                    // Расшифрование данных
+                    DoDecrypt(pos);
+
+                    BytesBuilder.CopyTo(sync2, block64);
+                    keccakA!.DoXor(block64, KeccakPrime.BlockLen);
+                    if (!IsNull(block64))
+                    {
+                        Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+                        return -(nint)PosixResult.EINTEGRITY;
+                    }
+
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         bytesFromFile[pos.position + j] = buffer[i];
@@ -269,6 +269,9 @@ public unsafe partial class AutoCrypt
                     isNull = IsNull(bytesFromFile);
                     if (!isNull)
                     {
+                        GenerateNewSync(pos);
+                        DoEncrypt(pos);
+
                         File.WriteAllText(LockFile, "");
                         // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -278,8 +281,6 @@ public unsafe partial class AutoCrypt
                         // Готовим новый файл категорий
                         using (var catFile = File.Open(bcf, FileMode.Open, FileAccess.Write, FileShare.None))
                         {
-                                // GenerateNewSync(pos);
-                                // DoEncrypt(pos);
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
