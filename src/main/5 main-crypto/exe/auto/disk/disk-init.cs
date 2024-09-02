@@ -314,6 +314,8 @@ public unsafe partial class AutoCrypt
 
                         using (var syncFileDescriptor = synFI.OpenWrite())
                         {
+                            syncFileDescriptor.Write(nullBlock);
+                            syncFileDescriptor.Seek(0, SeekOrigin.Begin);
                             syncFileDescriptor.Write(syncBytes);
                         }
 
@@ -336,7 +338,7 @@ public unsafe partial class AutoCrypt
                 }
 
                 Cascade_Key = new CascadeSponge_mt_20230930(512) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.elevated };
-                using (var syncBytes = Keccak_abstract.allocator.AllocMemory((nint) synFI.Length))
+                using (var syncBytes = Keccak_abstract.allocator.AllocMemory(SyncRandomLength))
                 {
                     using (var syncFileDescriptor = File.OpenRead(syncPath))
                     {

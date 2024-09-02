@@ -33,7 +33,7 @@ public unsafe partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public partial class DiskCommand : Command, IDisposable
     {
-        /// <summary>Задаёт длину главного файла синхропосылки (SyncName). 4096, чтобы быть кратным стандартному размеру блока файловой системы и современному размеру сектора.</summary>
+        /// <summary>Задаёт длину случайного вхождения в файле главой синхропосылки (SyncName).</summary>
         public const  int    SyncRandomLength = 4096;
         public const  string SyncName = "sync";
         public static string syncPath = "";
@@ -340,10 +340,8 @@ public unsafe partial class AutoCrypt
                     if (!isNull)
                     {
                         File.Move(bfn, fn);
-    Console.WriteLine(bfn + " -> " + fn);
                     }
-                    else
-    Console.WriteLine("Skipped " + bfn);
+                    //else
                     //File.Move(bcf, cf);
 
                     File.Delete(LockFile);
