@@ -156,4 +156,10 @@ Failed to connect to the socket
     Failed to connect to the socket
 Program begin formatting the section...
     Program begin formatting the partition. It may take some time: for the larger size of the disk this being created, the larger time is required.
+Lock file detected
+    Lock file detected
+An attempt is being made to restore the file system
+    An attempt is being made to restore the file system
+File resored
+    File resored
 :

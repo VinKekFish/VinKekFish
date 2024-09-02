@@ -304,12 +304,12 @@ public unsafe partial class AutoCrypt
                     {
                         this.Connect();
                     }
-                    while (bbp.Count < Threefish_slowly.keyLen);        // Так как длина стандартного блока, возвращаемого /dev/vkf/random, равна 404-ём байтам, то, скорее всего, реальная длина синхропосылки будет 404 байта. Остальное будет дополнено нулями.
+                    while (bbp.Count < SyncRandomLength);
 
-                    using (var syncBytes = Keccak_abstract.allocator.AllocMemory(bbp.Count))
+                    using (var syncBytes = Keccak_abstract.allocator.AllocMemory(SyncRandomLength))
                     {
                         syncBytes.Clear();
-                        bbp.GetBytesAndRemoveIt(syncBytes, bbp.Count);
+                        bbp.GetBytesAndRemoveIt(syncBytes);
                         bbp.Clear();
 
                         using (var syncFileDescriptor = synFI.OpenWrite())

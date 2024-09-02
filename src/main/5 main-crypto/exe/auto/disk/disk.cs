@@ -26,12 +26,15 @@ using Approximation = FileParts.Approximation;
 using static AutoCrypt.Import;
 using System.Runtime.InteropServices.Marshalling;
 using CodeGenerated.Cryptoprimes;
+using System.Runtime.Intrinsics.X86;
 
 public unsafe partial class AutoCrypt
 {
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public partial class DiskCommand : Command, IDisposable
     {
+        /// <summary>Задаёт длину главного файла синхропосылки (SyncName). 4096, чтобы быть кратным стандартному размеру блока файловой системы и современному размеру сектора.</summary>
+        public const  int    SyncRandomLength = 4096;
         public const  string SyncName = "sync";
         public static string syncPath = "";
         public const  string SyncBackupName  = "backup-";     // Файл для бэкапа текущих изменений синхропосылок блока
@@ -139,6 +142,9 @@ public unsafe partial class AutoCrypt
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static nint fuse_read(byte*  path, byte*  buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
+            if (destroyed)
+                throw new InvalidOperationException();
+
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
 
             if (fileName != vinkekfish_file_path)
@@ -152,24 +158,26 @@ public unsafe partial class AutoCrypt
             if (position + size > (long) FileSize)
                 size = (nint) ((long) FileSize - position);
 
+            CorrectLockFileIfExists();
+
             for (nint i = 0; i < size;)
             {
                 var pos = getPosition(i + (nint) position, size - i);
 
-                var fn = GetFileNumberName(pos);
-                var cf = GetCatFileNumberName(pos);
+                var (fn, bfn) = GetFileNumberName   (pos);
+                var (cf, bcf) = GetCatFileNumberName(pos);
 
                 try
                 {
                     using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {
+                    {/*
                         using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
                         {
                                file.Read(bytesFromFile);
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Read(sync1);
                             catFile.Read(sync2);
-                        }
+                        }*/
                     }
 /*
                     // Расшифрование данных
@@ -201,6 +209,9 @@ public unsafe partial class AutoCrypt
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
         {
+            if (destroyed)
+                throw new InvalidOperationException();
+
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
             if (fileName != vinkekfish_file_path)
             {
@@ -210,77 +221,78 @@ public unsafe partial class AutoCrypt
             if (position + size > (long) FileSize)
                 size = (nint) ((long) FileSize - position);
 
+            CorrectLockFileIfExists();
+
             for (nint i = 0; i < size;)
             {
                 var pos = getPosition(i + (nint)position, size - i);
 
-                var fn        = GetFileNumberName(pos);
-                var cf        = GetCatFileNumberName(pos);
-                var isNull    = false;
+                var (fn, bfn) = GetFileNumberName(pos);
+                var (cf, bcf) = GetCatFileNumberName(pos);
+                var isNull = false;
                 var notExists = false;
 
                 try
                 {
-                    using (var    file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    using (var file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    //using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                     {
-                           file.Read(bytesFromFile);
+                        file.Read(bytesFromFile);/*
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
                         catFile.Read(sync1);
-                        catFile.Read(sync2);
+                        catFile.Read(sync2);*/
                     }
-/*
-                    // Расшифрование данных
-                    DoDecrypt(pos);
+                    /*
+                                        // Расшифрование данных
+                                        DoDecrypt(pos);
 
-                    BytesBuilder.CopyTo(sync2, block);
-                    keccakA!.DoXor(block, KeccakPrime.BlockLen);
-                    if (!IsNull(block))
-                    {
-                        Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
-                        return -(nint)PosixResult.EINTEGRITY;
-                    }
-*/
+                                        BytesBuilder.CopyTo(sync2, block);
+                                        keccakA!.DoXor(block, KeccakPrime.BlockLen);
+                                        if (!IsNull(block))
+                                        {
+                                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+                                            return -(nint)PosixResult.EINTEGRITY;
+                                        }
+                    */
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         bytesFromFile[pos.position + j] = buffer[i];
                     }
 
                     // Копируем содержимое файла категорий
-                    var bcf = SyncBackupName + cf;
+                    /*
                     if (File.Exists(cf))
                         File.Copy(cf, bcf);
                     else
                         File.WriteAllBytes(bcf, nullBlock);
-
-                    using (var    file = File.Open(SyncBackupName + fn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                    using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
+*/
+                    using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    //using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
                     {
                         isNull = IsNull(bytesFromFile);
                         if (!isNull)
                         {
-                            GenerateNewSync(pos);
+                            // GenerateNewSync(pos);
                             // DoEncrypt(pos);
 
                             file.Write(bytesFromFile);
-
-                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                            catFile.Write(sync3);
-                            catFile.Write(sync4);
+                            /*
+                                                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                                                        catFile.Write(sync3);
+                                                        catFile.Write(sync4);*/
                         }
                         else
                         {
-                            file.Seek(0, SeekOrigin.Begin);
-                            file.Write(nullBlock);
-
-                            catFile.Seek (pos.catPos, SeekOrigin.Begin);
-                            catFile.Write(nullBlock, 0, FullBlockSyncLen);
+                            /*
+                                                        catFile.Seek (pos.catPos, SeekOrigin.Begin);
+                                                        catFile.Write(nullBlock, 0, FullBlockSyncLen);*/
                         }
                     }
                 }
                 catch (FileNotFoundException)
                 {
                     notExists = true;
+                    bytesFromFile.Clear();                      // Из несуществующего файла мы считали одни нули
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         bytesFromFile[pos.position + j] = buffer[i];
@@ -289,9 +301,10 @@ public unsafe partial class AutoCrypt
                     isNull = IsNull(bytesFromFile);
 
                     if (!isNull)
-                    using (var    file = File.Open(fn, FileMode.CreateNew,    FileAccess.ReadWrite, FileShare.None))
-                    using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
                     {
+                        using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                        //using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                        {/*
                         if (catFile.Length == 0)
                             catFile.Write(nullBlock);
 
@@ -301,39 +314,106 @@ public unsafe partial class AutoCrypt
 
                         GenerateNewSync(pos);
                         //DoEncrypt(pos);
-
-                        file.Write(bytesFromFile);
+*/
+                            file.Write(bytesFromFile);/*
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
                         catFile.Write(sync3);
-                        catFile.Write(sync4);
+                        catFile.Write(sync4);*/
+                        }
+                    }
+                    else
+                    {
+
                     }
                 }
 
-#warning Необходимо вставить восстановление после сбоя и проверки на наличие LockFile
+                if (!isNull || !notExists)
+                {
+                    if (destroyed)
+                        throw new InvalidOperationException();
 
-                File.WriteAllText(LockFile, "");
+                    File.WriteAllText(LockFile, "");
 
-                File.Delete(LockFile);
-                File.Delete(LockFile);
+                    SafelyDeleteBlockFile(fn);
+                    SafelyDeleteBlockFile(cf);
 
-                File.Delete(LockFile);
+                    if (!isNull)
+                    {
+                        File.Move(bfn, fn);
+    Console.WriteLine(bfn + " -> " + fn);
+                    }
+                    else
+    Console.WriteLine("Skipped " + bfn);
+                    //File.Move(bcf, cf);
+
+                    File.Delete(LockFile);
+                }
 
 #warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
-                if (isNull && !notExists)
-                    File.Delete(fn);
             }
 
             return size;
         }
 
-        public static string GetFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        public static void SafelyDeleteBlockFile(string fn)
         {
-            return Path.Combine(DataDir!.FullName, pos.file.ToString(FileNumberFormatString));
+            if (File.Exists(fn))
+            {
+                File.WriteAllBytes(fn, nullBlock);
+                File.Delete(fn);
+            }
         }
 
-        public static string GetCatFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        private static void CorrectLockFileIfExists()
         {
-            return Path.Combine(DataDir!.FullName, "cat" + pos.catFile.ToString(FileNumberFormatString));
+            if (!File.Exists(LockFile))
+                return;
+#warning русифицировать            
+            Console.WriteLine(L("Lock file detected") + ".");
+            Console.WriteLine(L("An attempt is being made to restore the file system") + ".");
+            var files = DataDir!.GetFiles(SyncBackupName + "*");
+            foreach (var file in files)
+            {
+                // Вычисляем имя основного файла, после чего удалим основной файл и заменим его файлом бэкапа
+                var fn = file.FullName.Substring(SyncBackupName.Length);
+                if (File.Exists(fn))
+                {
+                    File.WriteAllBytes(fn, nullBlock);
+                    File.Delete(fn);
+                }
+
+                file.MoveTo(fn, false);
+
+                Console.WriteLine(L("File resored") + ": " + fn);
+            }
+
+            File.Delete(LockFile);
+        }
+
+        /// <summary>Рассчитывает и возвращает имена файла и backup-файла</summary>
+        /// <param name="pos">Задаёт позицию на диске, для которой необходимо найти файл. Используется только pos.file.</param>
+        /// <returns>(Имя файла данных, имя backup-файла данных)</returns>
+        public static (string, string) GetFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            var baseFileName = pos.file.ToString(FileNumberFormatString);
+            return
+            (
+                Path.Combine(DataDir!.FullName,                  baseFileName),
+                Path.Combine(DataDir!.FullName, SyncBackupName + baseFileName)
+            );
+        }
+
+        /// <summary>Рассчитывает и возвращает имена файла и backup-файла</summary>
+        /// <param name="pos">Задаёт позицию на диске, для которой необходимо найти файл. Используется только pos.file.</param>
+        /// <returns>(имя файла категорий, имя backup-файла категорий)</returns>
+        public static (string, string) GetCatFileNumberName((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            var baseFileName = "cat" + pos.catFile.ToString(FileNumberFormatString);
+            return
+            (
+                Path.Combine(DataDir!.FullName,                  baseFileName),
+                Path.Combine(DataDir!.FullName, SyncBackupName + baseFileName)
+            );
         }
 
         /// <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
@@ -601,9 +681,9 @@ public unsafe partial class AutoCrypt
                             {
                                 Console.WriteLine(L("Program begin formatting the section..."));
 
-                                // Это форматирование файловой системы пользователя.
-                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -i 64k -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 var iN = FileSize >> 16;
+                                // Это форматирование файловой системы пользователя.
+                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
@@ -637,14 +717,18 @@ public unsafe partial class AutoCrypt
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static void fuse_destroy(void * data)
         {
-            bytesFromFile.Clear();
-            bytesFromFile.Dispose();
-
-            sync1.Clear();
-            sync1.Dispose();
-
-            sync2.Clear();
-            sync2.Dispose();
+            TryToDispose(bytesFromFile);
+            TryToDispose(sync1);
+            TryToDispose(sync2);
+            TryToDispose(sync3);
+            TryToDispose(sync4);
+            TryToDispose(block);
+            TryToDispose(syncNumber1);
+            TryToDispose(syncNumber2);
+            TryToDispose(syncNumber3);
+            TryToDispose(blockSync1);
+            TryToDispose(blockSync2);
+            TryToDispose(block128);
 
             Utf8StringMarshaller.Free(ptr_vinkekfish_file_name);
 
