@@ -171,7 +171,7 @@ public unsafe partial class AutoCrypt
                             catFile.Read(sync2);
                         }
                     }
-
+/*
                     // Расшифрование данных
                     DoDecrypt(pos);
 
@@ -182,7 +182,7 @@ public unsafe partial class AutoCrypt
                         Console.WriteLine("Hash is incorrect for block: " + fn);
                         return -(nint)PosixResult.EINTEGRITY;
                     }
-
+*/
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         buffer[i] = bytesFromFile[pos.position + j];
@@ -229,7 +229,7 @@ public unsafe partial class AutoCrypt
                         catFile.Read(sync1);
                         catFile.Read(sync2);
                     }
-
+/*
                     // Расшифрование данных
                     DoDecrypt(pos);
 
@@ -240,7 +240,7 @@ public unsafe partial class AutoCrypt
                         Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
                         return -(nint)PosixResult.EINTEGRITY;
                     }
-
+*/
                     for (nint j = 0; j < pos.size; j++, i++)
                     {
                         bytesFromFile[pos.position + j] = buffer[i];
@@ -260,7 +260,7 @@ public unsafe partial class AutoCrypt
                         if (!isNull)
                         {
                             GenerateNewSync(pos);
-                            DoEncrypt(pos);
+                            // DoEncrypt(pos);
 
                             file.Write(bytesFromFile);
 
@@ -300,7 +300,7 @@ public unsafe partial class AutoCrypt
                         catFile.Read(sync2);
 
                         GenerateNewSync(pos);
-                        DoEncrypt(pos);
+                        //DoEncrypt(pos);
 
                         file.Write(bytesFromFile);
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
