@@ -170,10 +170,11 @@ public unsafe partial class AutoCrypt
                 try
                 {
                     using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {/*
+                    {
+                        file.Read(bytesFromFile);
+                        /*
                         using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                               file.Read(bytesFromFile);
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Read(sync1);
                             catFile.Read(sync2);
@@ -203,6 +204,8 @@ public unsafe partial class AutoCrypt
                 }
             }
 
+            bytesFromFile.Clear();
+
             return size;
         }
 
@@ -227,7 +230,7 @@ public unsafe partial class AutoCrypt
             {
                 var pos = getPosition(i + (nint)position, size - i);
 
-                var (fn, bfn) = GetFileNumberName(pos);
+                var (fn, bfn) = GetFileNumberName   (pos);
                 var (cf, bcf) = GetCatFileNumberName(pos);
                 var isNull = false;
                 var notExists = false;
@@ -266,27 +269,29 @@ public unsafe partial class AutoCrypt
                     else
                         File.WriteAllBytes(bcf, nullBlock);
 */
-                    using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                    //using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
+                    isNull = IsNull(bytesFromFile);
+                    if (!isNull)
                     {
-                        isNull = IsNull(bytesFromFile);
-                        if (!isNull)
+                        File.WriteAllText(LockFile, "");
+                        using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                        //using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
                         {
-                            // GenerateNewSync(pos);
-                            // DoEncrypt(pos);
+                                // GenerateNewSync(pos);
+                                // DoEncrypt(pos);
 
-                            file.Write(bytesFromFile);
-                            /*
-                                                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                                                        catFile.Write(sync3);
-                                                        catFile.Write(sync4);*/
+                                file.Write(bytesFromFile);
+                                /*
+                                                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                                                            catFile.Write(sync3);
+                                                            catFile.Write(sync4);*/
+                            
                         }
-                        else
-                        {
-                            /*
-                                                        catFile.Seek (pos.catPos, SeekOrigin.Begin);
-                                                        catFile.Write(nullBlock, 0, FullBlockSyncLen);*/
-                        }
+                    }
+                    else
+                    {
+                        /*
+                                                    catFile.Seek (pos.catPos, SeekOrigin.Begin);
+                                                    catFile.Write(nullBlock, 0, FullBlockSyncLen);*/
                     }
                 }
                 catch (FileNotFoundException)
@@ -302,7 +307,8 @@ public unsafe partial class AutoCrypt
 
                     if (!isNull)
                     {
-                        using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                        File.WriteAllText(LockFile, "");
+                        using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         //using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
                         {/*
                         if (catFile.Length == 0)
@@ -332,7 +338,7 @@ public unsafe partial class AutoCrypt
                     if (destroyed)
                         throw new InvalidOperationException();
 
-                    File.WriteAllText(LockFile, "");
+                    File.WriteAllText(LockFile, "1");
 
                     SafelyDeleteBlockFile(fn);
                     SafelyDeleteBlockFile(cf);
@@ -350,6 +356,8 @@ public unsafe partial class AutoCrypt
 #warning Вставить проверку на то, что файл cat также является весь нулевым. И вставить обнуление ячеек файла cat при удалении этого файла.
             }
 
+            bytesFromFile.Clear();
+
             return size;
         }
 
@@ -357,7 +365,10 @@ public unsafe partial class AutoCrypt
         {
             if (File.Exists(fn))
             {
-                File.WriteAllBytes(fn, nullBlock);
+                using (var file = File.OpenWrite(fn))
+                {
+                    file.Write(nullBlock);
+                }
                 File.Delete(fn);
             }
         }
@@ -366,23 +377,37 @@ public unsafe partial class AutoCrypt
         {
             if (!File.Exists(LockFile))
                 return;
-#warning русифицировать            
+#warning русифицировать
+#warning Абослютно неверно сделано: нужно учесть, какой размер у файла lock
             Console.WriteLine(L("Lock file detected") + ".");
             Console.WriteLine(L("An attempt is being made to restore the file system") + ".");
+
+            var lf    = new FileInfo(LockFile); lf.Refresh();
             var files = DataDir!.GetFiles(SyncBackupName + "*");
-            foreach (var file in files)
+            if (lf.Length > 0)
             {
-                // Вычисляем имя основного файла, после чего удалим основной файл и заменим его файлом бэкапа
-                var fn = file.FullName.Substring(SyncBackupName.Length);
-                if (File.Exists(fn))
+                foreach (var file in files)
                 {
-                    File.WriteAllBytes(fn, nullBlock);
-                    File.Delete(fn);
+                    // Вычисляем имя основного файла, после чего удалим основной файл и заменим его файлом бэкапа
+                    var fn = Path.Combine(DataDir.FullName, file.Name.Substring(SyncBackupName.Length));
+                    if (File.Exists(fn))
+                    {
+                        File.WriteAllBytes(fn, nullBlock);
+                        File.Delete(fn);
+                    }
+
+                    file.MoveTo(fn, false);
+
+                    Console.WriteLine(L("File resored") + ": " + fn);
                 }
-
-                file.MoveTo(fn, false);
-
-                Console.WriteLine(L("File resored") + ": " + fn);
+            }
+            else
+            {
+                foreach (var file in files)
+                {
+                    file.Delete();
+                    Console.WriteLine(L("An uninitialized file has been deleted") + ": " + file.FullName);
+                }
             }
 
             File.Delete(LockFile);
@@ -446,10 +471,10 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
             {
-                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
                 BytesBuilder.CopyTo(blockSync2, block128);
-                BytesBuilder.CopyTo(block, block128);
+                BytesBuilder.CopyTo(block64, block128);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
                 keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
             }
@@ -466,10 +491,10 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
             {
-                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
                 BytesBuilder.CopyTo(blockSync1, block128);
-                BytesBuilder.CopyTo(block, block128);
+                BytesBuilder.CopyTo(block64, block128);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
                 keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
             }
@@ -487,10 +512,10 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
             {
-                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
                 BytesBuilder.CopyTo(blockSync1, block128);
-                BytesBuilder.CopyTo(block, block128);
+                BytesBuilder.CopyTo(block64, block128);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
                 keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
             }
@@ -509,10 +534,10 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen)
             {
-                BytesBuilder.CopyTo(bytesFromFile, block, index: j);
+                BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
                 BytesBuilder.CopyTo(blockSync2, block128);
-                BytesBuilder.CopyTo(block, block128);
+                BytesBuilder.CopyTo(block64, block128);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
                 keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
             }
@@ -543,7 +568,7 @@ public unsafe partial class AutoCrypt
         private static Record sync2         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
         private static Record sync3         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
         private static Record sync4         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record block         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
+        private static Record block64       = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
         private static Record syncNumber1   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record syncNumber2   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record syncNumber3   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
@@ -679,6 +704,8 @@ public unsafe partial class AutoCrypt
                             {
                                 Console.WriteLine(L("Program begin formatting the section..."));
 
+                                // Проверить верность форматирования можно с помощью команды file -s /dev/loop
+                                // В команде подставить верный номер loop устройства
                                 var iN = FileSize >> 16;
                                 // Это форматирование файловой системы пользователя.
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
@@ -720,7 +747,7 @@ public unsafe partial class AutoCrypt
             TryToDispose(sync2);
             TryToDispose(sync3);
             TryToDispose(sync4);
-            TryToDispose(block);
+            TryToDispose(block64);
             TryToDispose(syncNumber1);
             TryToDispose(syncNumber2);
             TryToDispose(syncNumber3);

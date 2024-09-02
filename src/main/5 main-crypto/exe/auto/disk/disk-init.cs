@@ -300,6 +300,7 @@ public unsafe partial class AutoCrypt
                 if (!synFI.Exists)
                 {
                     isCreatedDir = true;
+                    Console.WriteLine(L("Starting the generation of the main sync of the disk"));
                     do
                     {
                         this.Connect();
@@ -334,7 +335,9 @@ public unsafe partial class AutoCrypt
                     }
 
                     // Обновляем содержимое записи, так как файл мы только что создали
-                    synFI.Refresh();
+                    // synFI.Refresh();
+                    synFI = null;
+                    Console.WriteLine(L("Initialization continue"));
                 }
 
                 Cascade_Key = new CascadeSponge_mt_20230930(512) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.elevated };
@@ -342,7 +345,9 @@ public unsafe partial class AutoCrypt
                 {
                     using (var syncFileDescriptor = File.OpenRead(syncPath))
                     {
-                        syncFileDescriptor.Read(syncBytes);
+                        var readed = syncFileDescriptor.Read(syncBytes);
+                        if (readed != SyncRandomLength)
+                            throw new InvalidOperationException("readed != SyncRandomLength for " + syncPath);
                     }
 
                     Cascade_Key.InitKeyAndOIV(key, OIV: syncBytes);
