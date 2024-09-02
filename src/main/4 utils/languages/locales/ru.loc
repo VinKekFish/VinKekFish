@@ -159,9 +159,9 @@ Program begin formatting the section...
 Lock file detected
     Lock file detected
 An attempt is being made to restore the file system
-    An attempt is being made to restore the file system
+    Пытаемся восстановить файловую систему
 File resored
-    File resored
+    Файл восстановлен
 Starting the generation of the main sync of the disk
     Начинаем генерацию главной синхропосылки диска
 Initialization continue

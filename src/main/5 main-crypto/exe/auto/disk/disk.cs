@@ -172,13 +172,12 @@ public unsafe partial class AutoCrypt
                     using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
                         file.Read(bytesFromFile);
-                        /*
-                        using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
-                        {
-                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                            catFile.Read(sync1);
-                            catFile.Read(sync2);
-                        }*/
+                    }
+                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                        catFile.Read(sync1);
+                        catFile.Read(sync2);
                     }
 /*
                     // Расшифрование данных
@@ -237,13 +236,15 @@ public unsafe partial class AutoCrypt
 
                 try
                 {
-                    using (var file = File.Open(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                    //using (var catFile = File.Open(cf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
-                        file.Read(bytesFromFile);/*
+                        file.Read(bytesFromFile);
+                    }
+                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
                         catFile.Seek(pos.catPos, SeekOrigin.Begin);
                         catFile.Read(sync1);
-                        catFile.Read(sync2);*/
+                        catFile.Read(sync2);
                     }
                     /*
                                         // Расшифрование данных
@@ -263,35 +264,43 @@ public unsafe partial class AutoCrypt
                     }
 
                     // Копируем содержимое файла категорий
-                    /*
-                    if (File.Exists(cf))
-                        File.Copy(cf, bcf);
-                    else
-                        File.WriteAllBytes(bcf, nullBlock);
-*/
+                    File.Copy(cf, bcf);
+
                     isNull = IsNull(bytesFromFile);
                     if (!isNull)
                     {
                         File.WriteAllText(LockFile, "");
+                        // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                        //using (var catFile = File.Open(                bcf, FileMode.Open,      FileAccess.Write, FileShare.None))
+                        {
+                            file.Write(bytesFromFile);
+                        }
+                        // Готовим новый файл категорий
+                        using (var catFile = File.Open(bcf, FileMode.Open, FileAccess.Write, FileShare.None))
                         {
                                 // GenerateNewSync(pos);
                                 // DoEncrypt(pos);
-
-                                file.Write(bytesFromFile);
-                                /*
-                                                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                                                            catFile.Write(sync3);
-                                                            catFile.Write(sync4);*/
-                            
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Write(sync3);
+                            catFile.Write(sync4);
                         }
                     }
                     else
                     {
-                        /*
-                                                    catFile.Seek (pos.catPos, SeekOrigin.Begin);
-                                                    catFile.Write(nullBlock, 0, FullBlockSyncLen);*/
+                        using (var catFile = File.Open(bcf, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                        {
+                            catFile.Seek (pos.catPos, SeekOrigin.Begin);
+                            catFile.Write(nullBlock, 0, FullBlockSyncLen);
+
+                            catFile.Seek(0, SeekOrigin.Begin);
+                            catFile.Read(bytesFromFile);
+                        }
+
+                        if (IsNull(bytesFromFile))
+                        {
+                            File.Delete(bcf);
+Console.WriteLine("DELETED bcf: " + bcf);
+                        }
                     }
                 }
                 catch (FileNotFoundException)
@@ -308,23 +317,28 @@ public unsafe partial class AutoCrypt
                     if (!isNull)
                     {
                         File.WriteAllText(LockFile, "");
+                        if (File.Exists(cf))
+                            File.Copy(cf, bcf);
+
+                        using (var catFile = File.Open(bcf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                        {
+                            if (catFile.Length == 0)
+                                catFile.Write(nullBlock);
+
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Read(sync1);
+                            catFile.Read(sync2);
+
+                            GenerateNewSync(pos);
+                            //DoEncrypt(pos);
+                            catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                            catFile.Write(sync3);
+                            catFile.Write(sync4);
+                        }
+
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                        //using (var catFile = File.Open(cf, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                        {/*
-                        if (catFile.Length == 0)
-                            catFile.Write(nullBlock);
-
-                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Read(sync1);
-                        catFile.Read(sync2);
-
-                        GenerateNewSync(pos);
-                        //DoEncrypt(pos);
-*/
-                            file.Write(bytesFromFile);/*
-                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Write(sync3);
-                        catFile.Write(sync4);*/
+                        {
+                            file.Write(bytesFromFile);
                         }
                     }
                     else
@@ -347,8 +361,9 @@ public unsafe partial class AutoCrypt
                     {
                         File.Move(bfn, fn);
                     }
-                    //else
-                    //File.Move(bcf, cf);
+
+                    if (File.Exists(bcf))
+                        File.Move(bcf, cf);
 
                     File.Delete(LockFile);
                 }
@@ -377,8 +392,7 @@ public unsafe partial class AutoCrypt
         {
             if (!File.Exists(LockFile))
                 return;
-#warning русифицировать
-#warning Абослютно неверно сделано: нужно учесть, какой размер у файла lock
+
             Console.WriteLine(L("Lock file detected") + ".");
             Console.WriteLine(L("An attempt is being made to restore the file system") + ".");
 
