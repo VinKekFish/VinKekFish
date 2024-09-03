@@ -268,6 +268,7 @@ public unsafe partial class AutoCrypt
         public static Keccak_20200918?  keccak1, keccak2, keccakOIV, keccakA;
         public static Threefish1024?    ThreeFish1s, ThreeFish2s, ThreeFish3s;  // Для синхропосылок
         public static Threefish1024?    ThreeFish1b, ThreeFish2b, ThreeFish3b;  // Непосредственно для блоков с обратной связью. ThreeFish3b, кажется, нигде не используется
+        public static Threefish1024?    ThreeFishHash;
         public void InitSponges(Record key)
         {
             CascadeSponge_mt_20230930?  Cascade_Key    = null;
@@ -417,6 +418,11 @@ public unsafe partial class AutoCrypt
                     ThreeFish3b = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 4, "ThreeFishHash"))
+                {
+                    ThreeFishHash = new Threefish1024
+                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                }
 
                 // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
                 using (var tkey = KeyGenerator.GetBytes(syncNumber1.len, 0, "syncNumber.tkey"))
@@ -447,6 +453,11 @@ public unsafe partial class AutoCrypt
                 using (var tkey = KeyGenerator.GetBytes(blockSync2.len, 5, "blockSync2.tkey"))
                 {
                     BytesBuilder.CopyTo(tkey, blockSync2);
+                }
+                // Заполняем значение blockSync неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
+                using (var tkey = KeyGenerator.GetBytes(blockSyncH.len, 5, "blockSync3.tkey"))
+                {
+                    BytesBuilder.CopyTo(tkey, blockSyncH);
                 }
             }
             finally

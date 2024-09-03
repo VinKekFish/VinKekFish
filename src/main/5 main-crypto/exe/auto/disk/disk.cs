@@ -183,7 +183,7 @@ public unsafe partial class AutoCrypt
                     // Расшифрование данных
                     DoDecrypt(pos);
 
-                    keccakA!.DoOutput(block64, KeccakPrime.BlockLen);
+                    GetHash(block64, pos.file);
                     if (!SecureCompareFast(sync2, block64))
                     {
                         Console.WriteLine("Hash is incorrect for block: " + fn);
@@ -249,7 +249,7 @@ public unsafe partial class AutoCrypt
                     // Расшифрование данных
                     DoDecrypt(pos);
 
-                    keccakA!.DoOutput(block64, KeccakPrime.BlockLen);
+                    GetHash(block64, pos.file);
                     if (!SecureCompareFast(sync2, block64))
                     {
                         Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
@@ -527,14 +527,15 @@ Console.WriteLine("DELETED bcf: " + bcf);
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(blockSync1, block128);
                 BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte)k);
             }
 
-            keccakA.DoOutput(sync2, KeccakPrime.BlockLen);
+            GetHash(sync2, pos.file);
+
             BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
 
             // Второй проход шифрования
@@ -549,12 +550,24 @@ Console.WriteLine("DELETED bcf: " + bcf);
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
-                BytesBuilder.CopyTo(blockSync2, block128);
-                BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
+                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
+                BytesBuilder.CopyTo(blockSync2,    block128);
+                BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte)k);
             }
+        }
+
+        private static void GetHash(Record sync2, nint file)
+        {
+            keccakA!.DoOutput  (sync2,      KeccakPrime.BlockLen);          // Выдать первичный хеш
+            BytesBuilder.CopyTo(blockSyncH, block128);                      // Зашифровать первичный хещ
+            BytesBuilder.CopyTo(sync2,      block128, (file & 1) * 64);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFishHash!.key, ThreeFishHash.tweak, block128);
+            BytesBuilder.CopyTo(block128,   sync2);
+                                                                            // Получить от зашифрованного хеша главный хеш
+            keccakA.DoInitFromKey(sync2, KeccakPrime.BlockLen, 2);
+            keccakA.DoOutput     (sync2, KeccakPrime.BlockLen);
         }
 
         private static void GenerateNewSync((nint file, nint position, nint size, nint catFile, nint catPos) pos)
@@ -588,6 +601,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
         private static Record syncNumber3   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record blockSync1    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record blockSync2    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record blockSyncH    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
         private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
 
         private static byte[] nullBlock = new byte[blockSize];
