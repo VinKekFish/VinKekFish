@@ -56,7 +56,8 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     /// <summary>Наложить гамму.</summary>
     /// <param name="bytesFromFile">Текст, на который надо наложить гамму.</param>
     /// <param name="len">Длина текста, не более 64-х байтов.</param>
-    public void DoXor(BytesBuilderForPointers.Record bytesFromFile, byte len)
+    /// <param name="offest">Начальный индекс, с которого начинается xor.</param>
+    public void DoXor(BytesBuilderForPointers.Record bytesFromFile, byte len, nint offest = 0)
     {
         if (len > KeccakPrime.BlockLen)
             throw new ArgumentOutOfRangeException("DoXor: len > KeccakPrime.BlockLen");

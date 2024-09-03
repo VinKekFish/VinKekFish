@@ -485,7 +485,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 BytesBuilder.CopyTo(blockSync2,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
@@ -505,7 +505,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
                 BytesBuilder.CopyTo(blockSync1,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
@@ -527,7 +527,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(blockSync1, block128);
                 BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
@@ -549,7 +549,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(blockSync2, block128);
                 BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
