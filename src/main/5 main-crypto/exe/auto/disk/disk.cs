@@ -270,6 +270,7 @@ public unsafe partial class AutoCrypt
                         GenerateNewSync(pos);
                         DoEncrypt(pos, sync3, sync4);
 
+#warning !
                         File.WriteAllText(LockFile, "");
                         // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -328,6 +329,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                             catFile.Read(sync1);
                             catFile.Read(sync2);
 
+#warning убрать очистку
                             GenerateNewSync(pos);
                             DoEncrypt(pos, sync3, sync4);
 
@@ -570,6 +572,8 @@ Console.WriteLine("DELETED bcf: " + bcf);
             keccakA.DoOutput     (sync2, KeccakPrime.BlockLen);
         }
 
+        /// <summary>Генерирует новую случайную синхропосылку для блока pos. Результат выдаётся в статический массив sync3.</summary>
+        /// <param name="pos">Описатель позиции на диске, для которой генерируется новая синхропосылка</param>
         private static void GenerateNewSync((nint file, nint position, nint size, nint catFile, nint catPos) pos)
         {
             keccakOIV!.CloneStateTo(keccakA!);

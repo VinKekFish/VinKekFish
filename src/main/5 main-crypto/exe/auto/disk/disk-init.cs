@@ -301,12 +301,15 @@ public unsafe partial class AutoCrypt
                 if (!synFI.Exists)
                 {
                     isCreatedDir = true;
-                    Console.WriteLine(L("Starting the generation of the main sync of the disk"));
+                    Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
                         this.Connect();
+                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%");
+                        Console.SetCursorPosition(0, Console.CursorTop);
                     }
                     while (bbp.Count < SyncRandomLength);
+                    Console.WriteLine("     ");
 
                     using (var syncBytes = Keccak_abstract.allocator.AllocMemory(SyncRandomLength))
                     {
@@ -455,7 +458,7 @@ public unsafe partial class AutoCrypt
                     BytesBuilder.CopyTo(tkey, blockSync2);
                 }
                 // Заполняем значение blockSync неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
-                using (var tkey = KeyGenerator.GetBytes(blockSyncH.len, 5, "blockSync3.tkey"))
+                using (var tkey = KeyGenerator.GetBytes(blockSyncH.len, 6, "blockSync3.tkey"))
                 {
                     BytesBuilder.CopyTo(tkey, blockSyncH);
                 }

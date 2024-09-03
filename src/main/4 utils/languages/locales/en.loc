@@ -164,6 +164,8 @@ File resored
     File resored
 Starting the generation of the main sync of the disk
     Starting the generation of the main sync of the disk
+It may take a couple of tens of seconds
+    It may take a couple of tens of seconds
 Initialization continue
     Initialization continue
 An uninitialized file has been deleted

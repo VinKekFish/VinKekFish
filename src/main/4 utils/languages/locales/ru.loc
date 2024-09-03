@@ -164,6 +164,8 @@ File resored
     Файл восстановлен
 Starting the generation of the main sync of the disk
     Начинаем генерацию главной синхропосылки диска
+It may take a couple of tens of seconds
+    Это может занять пару десятков секунд
 Initialization continue
     Инициализация продолжается
 An uninitialized file has been deleted
