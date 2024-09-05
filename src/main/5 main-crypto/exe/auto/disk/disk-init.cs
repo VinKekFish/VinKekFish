@@ -50,7 +50,7 @@ public unsafe partial class AutoCrypt
             TryToDispose(keccak1);       keccak1       = null;
             TryToDispose(keccak2);       keccak2       = null;
             TryToDispose(keccakOIV);     keccakOIV     = null;
-            TryToDispose(keccakA);       keccak2       = null;
+            TryToDispose(keccakA);       keccakA       = null;
             TryToDispose(ThreeFish1s);   ThreeFish1s   = null;
             TryToDispose(ThreeFish2s);   ThreeFish2s   = null;
             TryToDispose(ThreeFish3s);   ThreeFish3s   = null;

@@ -70,19 +70,19 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     /// <summary>Наложить гамму после выполнения шага (сам шаг здесь не производится).</summary>
     /// <param name="bytesFromFile">Текст, на который надо наложить гамму.</param>
     /// <param name="len">Длина текста, не более 64-х байтов.</param>
-    /// <param name="offest">Начальный индекс, с которого начинается xor.</param>
+    /// <param name="offest">Начальный индекс, с которого начинается xor в bytesFromFile.</param>
     public void DoXor(BytesBuilderForPointers.Record bytesFromFile, byte len, nint offest = 0)
     {
         if (len > KeccakPrime.BlockLen)
             throw new ArgumentOutOfRangeException("DoXor: len > KeccakPrime.BlockLen");
-        if (len > bytesFromFile.len)
+        if (len > bytesFromFile.len - offest)
             throw new ArgumentOutOfRangeException("DoXor: len > bytesFromFile.len");
         if (spongeState != SpongeState.DataReadyForOutput)
             throw new InvalidOperationException("DoXor: spongeState != SpongeState.DataReadyForOutput");
 
         var st = stackalloc byte[len];
         KeccakPrime.Keccak_Output_512(st, len, this.S);
-        BytesBuilder.Xor(len, bytesFromFile, st);
+        BytesBuilder.Xor(len, bytesFromFile.array + offest, st);
 
         BytesBuilder.ToNull(len, st);
         spongeState = SpongeState.DataNotInputed;

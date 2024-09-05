@@ -112,7 +112,8 @@ public unsafe partial class AutoCrypt
                         pi.WaitForExit();
                     }
 
-                    Process.Start("umount", "\"" + tmpDir!.FullName + "\"").Dispose();
+                    // Process.Start("umount", "\"" + tmpDir!.FullName + "\"").Dispose();
+                    Process.Start("fusermount3", $"-u \"{tmpDir!.FullName}\"").Dispose();
                 }
             );
         }
