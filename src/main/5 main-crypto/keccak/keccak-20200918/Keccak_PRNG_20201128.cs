@@ -311,6 +311,7 @@ public unsafe class Keccak_PRNG_20201128 : Keccak_base_20200918
             InputBytesImmediately();
         }
 
+        spongeState = SpongeState.DataInputed;
         //Keccackf(a: Slong, c: Clong, b: Blong);
         base.CalcStep();
 

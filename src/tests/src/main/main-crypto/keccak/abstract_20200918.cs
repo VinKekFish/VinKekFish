@@ -60,6 +60,7 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             using var debugRecord = new Record() { array = k.S, len = KeccakPrime.b_size };
 
             IsNull(k, "1.1");
+            k.spongeState = Keccak_abstract.SpongeState.DataInputed;
             k.CalcStep();
             int deviation = Keccak_test_parent.GetDeviationOfBits(k.S, KeccakPrime.b_size << 3);
 
@@ -73,9 +74,11 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             using var k2 = k.Clone();
             if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
                 throw new Exception("1.3.1");
+            k2.spongeState = Keccak_abstract.SpongeState.DataInputed;
             k2.CalcStep();
             if (BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
                 throw new Exception("1.3.2");
+            k.spongeState = Keccak_abstract.SpongeState.DataInputed;
             k .CalcStep();
             if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
                 throw new Exception("1.3.3");
@@ -87,10 +90,12 @@ public class Keccak_test_abstract_20200918: Keccak_test_parent
             k2.ClearOnly_C_and_B();
             IsNullBC(k2, "k2.b || k2.c != null");
             k2.ClearStateWithoutStateField();
+            k2.spongeState = Keccak_abstract.SpongeState.DataInputed;
             k2.CalcStep();
             if (BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
                 throw new Exception("1.4.1");
-            k .CalcStep();
+            k.spongeState = Keccak_abstract.SpongeState.DataInputed;
+            k.CalcStep();
             if (!BytesBuilder.UnsecureCompare(KeccakPrime.b_size, KeccakPrime.b_size, k.S, k2.S))
                 throw new Exception("1.4.2");
 

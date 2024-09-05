@@ -243,6 +243,7 @@ public partial class Regime_Service
                                 curLen = KeccakPrime.BlockLen;
 
                             KeccakPrime.Keccak_Input64_512(input, (byte) curLen, keccak.S);
+                            keccak.spongeState = Keccak_abstract.SpongeState.DataInputed;
                             keccak.CalcStep();
                             len   -= curLen;
                             input += curLen;

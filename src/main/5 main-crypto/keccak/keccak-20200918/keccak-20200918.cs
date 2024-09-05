@@ -14,7 +14,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         var result = new Keccak_20200918(true);
         CloneStateTo(result);
 
-        result.isInitiated = this.isInitiated;
+        result.spongeState = this.spongeState;
         return result;
     }
 
@@ -25,6 +25,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
 
         // Копировать всё состояние не обязательно. Но здесь, для надёжности, копируется всё
         BytesBuilder.CopyTo(StateLen, StateLen, State, result.State);
+        result.spongeState = this.spongeState;
     }
 
     /// <summary>Инициализирует губку keccak в режиме Keccak_InputOverwrite64_512 ключом переменной длины.</summary>
@@ -48,12 +49,25 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         {
             var L = l > 64 ? 64 : l;
             KeccakPrime.Keccak_InputOverwrite64_512(key, (byte) L, this.S, regime);
+
+            spongeState = SpongeState.DataInputed;
+            CalcStep();
+
             l   -= L;
             key += L;
         }
     }
 
-    /// <summary>Наложить гамму.</summary>
+    /// <summary>Производит шаг губки с вводом пустых данных.</summary>
+    /// <param name="regime">Логический режим шифрования</param>
+    public void DoEmptyStep(byte regime)
+    {
+        KeccakPrime.Keccak_InputOverwrite64_512(null, 0, this.S, regime);
+        spongeState = SpongeState.DataInputed;
+        CalcStep();
+    }
+
+    /// <summary>Наложить гамму после выполнения шага (сам шаг здесь не производится).</summary>
     /// <param name="bytesFromFile">Текст, на который надо наложить гамму.</param>
     /// <param name="len">Длина текста, не более 64-х байтов.</param>
     /// <param name="offest">Начальный индекс, с которого начинается xor.</param>
@@ -69,6 +83,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         BytesBuilder.Xor(len, bytesFromFile, st);
 
         BytesBuilder.ToNull(len, st);
+        spongeState = SpongeState.DataNotInputed;
     }
 
     /// <summary>Вывести блок данных из губки (не более 64-х байтов)</summary>
@@ -82,5 +97,6 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
             throw new ArgumentOutOfRangeException("DoOutput: len > forData.len");
 
         KeccakPrime.Keccak_Output_512(forData, len, this.S);
+        spongeState = SpongeState.DataNotInputed;
     }
 }

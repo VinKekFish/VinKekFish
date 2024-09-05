@@ -61,12 +61,14 @@ public unsafe abstract class Keccak_abstract: IDisposable
     /// <param name="GCCollect">Если true, то override реализации должны дополнительно попытаться перезаписать всю память программы. <see langword="abstract"/> реализация ничего не делает</param>
     public virtual void Clear(bool GCCollect = false)
     {
+        spongeState = SpongeState.DataNotInputed;
         ClearState();
     }
 
     /// <summary>Очищает состояние объекта. После этого объект будет неинициализирован (инициализирован нулями), но пригоден к дальнейшему использованию с другой инициализацией</summary>
     public virtual void ClearState()
     {
+        spongeState = SpongeState.DataNotInputed;
         if (State != null)
         {
             BytesBuilder.ToNull(StateLen, State);
@@ -74,22 +76,31 @@ public unsafe abstract class Keccak_abstract: IDisposable
         }
     }
 
-    /// <summary>Очищает вспомогательные поля объекта, но оставляет объект проинициализированным. В том числе, очищает вспомогательные массивы B и C</summary>
+    /// <summary>Очищает вспомогательные поля объекта, но оставляет объект проинициализированным. В том числе, очищает вспомогательные массивы B и C. Эта функция ничего не меняет и её вызов не требуется,</summary>
     public virtual void ClearStateWithoutStateField()
     {
         ClearOnly_C_and_B();
     }
 
-    protected bool isInitiated = false;
+    /// <summary>Описывает состояние губки.</summary>
+    public enum SpongeState
+    {                                        /// <summary>Губка не проинициализирована (в том числе, нулями).</summary>
+        Uninitiated        = 0,              /// <summary>Данные не введены (в губку не введён режим шифрования и данные либо факт их отсутствия; необходимо ввести данные перед шагом).</summary>
+        DataNotInputed     = 1,              /// <summary>В губку введены данные и можно её шифровать.</summary>
+        DataInputed        = 2,              /// <summary>Сделан шаг губки, можно брать из неё данные.</summary>
+        DataReadyForOutput = 3
+    };
+
+    public SpongeState spongeState = SpongeState.Uninitiated;
 
     /// <summary>Инициализирует состояние нулями</summary>
     public virtual void Init()
     {
         BytesBuilder.ToNull(StateLen, State);
-        isInitiated = true;
+        spongeState = SpongeState.DataNotInputed;
     }
 
-    /// <summary>Эту функцию можно вызывать после keccak, если нужно состояние S, но хочется очистить B и C</summary>
+    /// <summary>Эту функцию можно вызывать после keccak, если нужно состояние S, но хочется очистить B и C. В целом, вызов этой функции не требуется и ничего не меняет.</summary>
     public void ClearOnly_C_and_B()
     {
         Clear5x5(Blong);
@@ -149,11 +160,13 @@ public unsafe abstract class Keccak_abstract: IDisposable
         }
     }
 
+    /// <summary>Производит шаг криптографического преобразования губки. Данные (или факт их отсутствия) и режим уже должны быть введены в губку.</summary>
     public void CalcStep()
     {
-        if (!isInitiated)
-            throw new Exception("Keccak_abstract.CalcStep: !isInitiated");
+        if (spongeState == SpongeState.Uninitiated || spongeState == SpongeState.DataNotInputed)
+            throw new Exception("Keccak_abstract.CalcStep: spongeState == SpongeState.Uninitiated || spongeState == SpongeState.DataNotInputed");
 
         Keccackf(a: Slong, c: Clong, b: Blong);
+        spongeState = SpongeState.DataReadyForOutput;
     }
 }
