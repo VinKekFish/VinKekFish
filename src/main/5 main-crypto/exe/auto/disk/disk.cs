@@ -482,7 +482,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.CopyTo(syncNumber2, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
             Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
-            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 2);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
@@ -491,7 +491,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync2,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte) k);
             }
 
             BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
@@ -502,7 +502,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.CopyTo(syncNumber1, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
             Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
-            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 1);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
@@ -511,7 +511,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync1,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte) k);
             }
         }
 
@@ -523,7 +523,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.CopyTo(syncNumber1, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
             Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
-            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 1);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 1);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
@@ -532,7 +532,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync1, block128);
                 BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte)k);
+                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte)k);
             }
 
             GetHash(sync2, pos.file);
@@ -546,7 +546,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.CopyTo(syncNumber2, block128);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
             Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
-            keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, 2);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 2);
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
@@ -555,21 +555,21 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync2,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInitFromKey(block128, KeccakPrime.BlockLen, (byte)k);
+                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte)k);
             }
         }
 
         private static void GetHash(Record sync2, nint file)
         {
             keccakA!.DoOutput  (sync2,      KeccakPrime.BlockLen);          // Выдать первичный хеш
-            BytesBuilder.CopyTo(blockSyncH, block128);                      // Зашифровать первичный хещ
+            BytesBuilder.CopyTo(blockSyncH, block128);                      // Зашифровать первичный хеш
             BytesBuilder.CopyTo(sync2,      block128, (file & 1) * 64);
             Threefish_Static_Generated.Threefish1024_step(ThreeFishHash!.key, ThreeFishHash.tweak, block128);
             BytesBuilder.CopyTo(block128,   sync2);
             keccakA.DoEmptyStep(255);                                       // Мы делаем пустой шаг для того, чтобы выполнить ограничения губки: не вводить данные, зависящие от выхода на том же шаге
                                                                             // Получить от зашифрованного хеша главный хеш
-            keccakA.DoInitFromKey(sync2, KeccakPrime.BlockLen, 2);
-            keccakA.DoOutput     (sync2, KeccakPrime.BlockLen);
+            keccakA.DoInputAndStep(sync2, KeccakPrime.BlockLen, 2);
+            keccakA.DoOutput      (sync2, KeccakPrime.BlockLen);
         }
 
         /// <summary>Генерирует новую случайную синхропосылку для блока pos. Результат выдаётся в статический массив sync3.</summary>
@@ -581,7 +581,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.ULongToBytes((ulong)pos.file, block128);
             BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, block128, 8);
             Threefish_Static_Generated.Threefish1024_step(ThreeFish3s!.key, ThreeFish3s.tweak, block128);
-            keccakA!.DoInitFromKey(block128, KeccakPrime.BlockLen, 0);
+            keccakA!.DoInputAndStep(block128, KeccakPrime.BlockLen, 0);
 
             keccakA.DoInitFromKey(sync1, 1);
             keccakA.DoInitFromKey(sync2, 2);

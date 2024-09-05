@@ -304,9 +304,9 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
-                        this.Connect();
                         Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%");
                         Console.SetCursorPosition(0, Console.CursorTop);
+                        this.Connect();
                     }
                     while (bbp.Count < SyncRandomLength);
                     Console.WriteLine("     ");

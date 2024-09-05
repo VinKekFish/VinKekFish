@@ -34,7 +34,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
     {
         try
         {
-            DoInitFromKey(key.array, key.len, regime);
+            DoInputAndStep(key.array, key.len, regime);
         }
         finally
         {
@@ -43,7 +43,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         }
     }
 
-    public void DoInitFromKey(byte* key, nint len, byte regime)
+    public void DoInputAndStep(byte* key, nint len, byte regime)
     {
         for (nint l = len; l > 0;)
         {
@@ -77,6 +77,8 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
             throw new ArgumentOutOfRangeException("DoXor: len > KeccakPrime.BlockLen");
         if (len > bytesFromFile.len)
             throw new ArgumentOutOfRangeException("DoXor: len > bytesFromFile.len");
+        if (spongeState != SpongeState.DataReadyForOutput)
+            throw new InvalidOperationException("DoXor: spongeState != SpongeState.DataReadyForOutput");
 
         var st = stackalloc byte[len];
         KeccakPrime.Keccak_Output_512(st, len, this.S);
@@ -95,6 +97,8 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
             throw new ArgumentOutOfRangeException("DoOutput: len > KeccakPrime.BlockLen");
         if (len > forData.len)
             throw new ArgumentOutOfRangeException("DoOutput: len > forData.len");
+        if (spongeState != SpongeState.DataReadyForOutput)
+            throw new InvalidOperationException("DoOutput: spongeState != SpongeState.DataReadyForOutput");
 
         KeccakPrime.Keccak_Output_512(forData, len, this.S);
         spongeState = SpongeState.DataNotInputed;
