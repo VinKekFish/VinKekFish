@@ -131,13 +131,13 @@ public unsafe partial class AutoCrypt
         {
             var positionInFile = position & blockSizeMask;
             var file           = position >> blockSizeShift;
-            var catFile        = file >> 9;                 // Это количество FullBlockSyncLen в blockSize
+            var catFile        = file >> 9;                 // Это количество пар синхропосылок (FullBlockSyncLen) в blockSize
             if (size > blockSize - positionInFile)
                 size = blockSize - positionInFile;
 
             var catPos = file & 511;
 
-            return (file, positionInFile, size, catFile, catPos);
+            return (file, positionInFile, size, catFile, catPos * FullBlockSyncLen);
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
@@ -204,6 +204,7 @@ public unsafe partial class AutoCrypt
             }
 
             bytesFromFile.Clear();
+            keccakA!     .Clear();
 
             return size;
         }
@@ -271,7 +272,6 @@ public unsafe partial class AutoCrypt
                         GenerateNewSync(pos);
                         DoEncrypt(pos, sync3, sync4);
 
-#warning !
                         File.WriteAllText(LockFile, "");
                         // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -374,6 +374,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             }
 
             bytesFromFile.Clear();
+            keccakA!     .Clear();
 
             return size;
         }
