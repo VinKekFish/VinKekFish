@@ -28,7 +28,7 @@ public unsafe class Keccak_20200918: Keccak_base_20200918
         result.spongeState = this.spongeState;
     }
 
-    /// <summary>Инициализирует губку keccak в режиме Keccak_InputOverwrite64_512 ключом переменной длины.</summary>
+    /// <summary>Инициализирует губку keccak в режиме Keccak_InputOverwrite64_512 ключом переменной длины. Эта инициализация может быть как вызвана на пустой губке, так и быть наложена на уже проинициализированное состояние. Состояние не перезатирается.</summary>
     /// <param name="key">Ключ для инициализации. После использования удаляется в этом же методе, если установлен doDelete.</param>
     public void DoInitFromKey(BytesBuilderForPointers.Record key, byte regime, bool doDelete = false)
     {

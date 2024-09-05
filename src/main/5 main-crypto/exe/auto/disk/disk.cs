@@ -576,19 +576,17 @@ Console.WriteLine("DELETED bcf: " + bcf);
         /// <param name="pos">Описатель позиции на диске, для которой генерируется новая синхропосылка</param>
         private static void GenerateNewSync((nint file, nint position, nint size, nint catFile, nint catPos) pos)
         {
-            keccakOIV!.CloneStateTo(keccakA!);
-            BytesBuilder.CopyTo(syncNumber3, block128);
-            BytesBuilder.ULongToBytes((ulong)pos.file, block128);
-            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, block128, 8);
-            Threefish_Static_Generated.Threefish1024_step(ThreeFish3s!.key, ThreeFish3s.tweak, block128);
-            keccakA!.DoInputAndStep(block128, KeccakPrime.BlockLen, 0);
+            BytesBuilder.ULongToBytes((ulong) pos.file,           syncNumber3, 0);
+            BytesBuilder.ULongToBytes((ulong) DateTime.Now.Ticks, syncNumber3, 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish3s!.key, ThreeFish3s.tweak, syncNumber3);
+            keccakOIV!.DoInitFromKey(syncNumber3, 0);
 
-            keccakA.DoInitFromKey(sync1, 1);
-            keccakA.DoInitFromKey(sync2, 2);
-            keccakA.DoOutput(sync3, KeccakPrime.BlockLen);
+            keccakOIV.DoInitFromKey(sync1, 1);
+            keccakOIV.DoInitFromKey(sync2, 2);
+            keccakOIV.DoOutput     (sync3, KeccakPrime.BlockLen);
 
             // Очень маловероятное событие.
-            // Но нули являются служебными, поэтому допустить их появление нельзя.
+            // Но нули являются служебными (подлежат удалению), поэтому допустить их появление нельзя.
             if (IsNull(sync3))
                 sync3[0] = 1;
 
