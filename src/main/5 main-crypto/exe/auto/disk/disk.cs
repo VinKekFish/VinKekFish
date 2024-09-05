@@ -329,7 +329,6 @@ Console.WriteLine("DELETED bcf: " + bcf);
                             catFile.Read(sync1);
                             catFile.Read(sync2);
 
-#warning убрать очистку
                             GenerateNewSync(pos);
                             DoEncrypt(pos, sync3, sync4);
 
