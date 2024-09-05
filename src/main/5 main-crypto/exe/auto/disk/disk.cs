@@ -566,11 +566,10 @@ Console.WriteLine("DELETED bcf: " + bcf);
             BytesBuilder.CopyTo(blockSyncH, block128);                      // Зашифровать первичный хеш
             BytesBuilder.CopyTo(sync2,      block128, (file & 1) * 64);
             Threefish_Static_Generated.Threefish1024_step(ThreeFishHash!.key, ThreeFishHash.tweak, block128);
-            BytesBuilder.CopyTo(block128,   sync2);
             keccakA.DoEmptyStep(255);                                       // Мы делаем пустой шаг для того, чтобы выполнить ограничения губки: не вводить данные, зависящие от выхода на том же шаге
                                                                             // Получить от зашифрованного хеша главный хеш
-            keccakA.DoInputAndStep(sync2, KeccakPrime.BlockLen, 2);
-            keccakA.DoOutput      (sync2, KeccakPrime.BlockLen);
+            keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, 2);
+            keccakA.DoOutput      (sync2,    KeccakPrime.BlockLen);
         }
 
         /// <summary>Генерирует новую случайную синхропосылку для блока pos. Результат выдаётся в статический массив sync3.</summary>
