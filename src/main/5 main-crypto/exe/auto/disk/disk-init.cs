@@ -46,13 +46,17 @@ public unsafe partial class AutoCrypt
 
         public override void Dispose(bool fromDestructor = false)
         {
-            TryToDispose(KeyGenerator); KeyGenerator = null;
-            TryToDispose(keccak1);      keccak1      = null;
-            TryToDispose(keccak2);      keccak2      = null;
-            TryToDispose(keccakOIV);    keccakOIV    = null;
+            TryToDispose(KeyGenerator);  KeyGenerator  = null;
+            TryToDispose(keccak1);       keccak1       = null;
+            TryToDispose(keccak2);       keccak2       = null;
+            TryToDispose(keccakOIV);     keccakOIV     = null;
             TryToDispose(ThreeFish1s);   ThreeFish1s   = null;
             TryToDispose(ThreeFish2s);   ThreeFish2s   = null;
             TryToDispose(ThreeFish3s);   ThreeFish3s   = null;
+            TryToDispose(ThreeFish1b);   ThreeFish1b   = null;
+            TryToDispose(ThreeFish2b);   ThreeFish2b   = null;
+            TryToDispose(ThreeFish3b);   ThreeFish3b   = null;
+            TryToDispose(ThreeFishHash); ThreeFishHash = null;
 
             base.Dispose(fromDestructor);
 
@@ -431,11 +435,6 @@ public unsafe partial class AutoCrypt
                 using (var tkey = KeyGenerator.GetBytes(syncNumber1.len, 0, "syncNumber.tkey"))
                 {
                     BytesBuilder.CopyTo(tkey, syncNumber1);
-                }
-                // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
-                using (var tkey = KeyGenerator.GetBytes(blockSync1.len, 1, "blockSync.tkey"))
-                {
-                    BytesBuilder.CopyTo(tkey, blockSync1);
                 }
                 // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
                 using (var tkey = KeyGenerator.GetBytes(syncNumber2.len, 2, "syncNumber2.tkey"))

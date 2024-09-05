@@ -785,6 +785,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
             TryToDispose(syncNumber3);
             TryToDispose(blockSync1);
             TryToDispose(blockSync2);
+            TryToDispose(blockSyncH);
             TryToDispose(block128);
 
             Utf8StringMarshaller.Free(ptr_vinkekfish_file_name);
