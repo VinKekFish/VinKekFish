@@ -492,7 +492,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync2,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte) k);
             }
 
             BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
@@ -512,7 +512,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync1,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte) k);
+                keccakA.DoInputAndStep(block128.array, Threefish_slowly.keyLen, (byte) k);      // Вводим на всякий случай весь 128-мибайтный блок
             }
         }
 
@@ -533,7 +533,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync1, block128);
                 BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte)k);
+                keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte)k);
             }
 
             GetHash(sync2, pos.file);
@@ -556,7 +556,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                 BytesBuilder.CopyTo(blockSync2,    block128);
                 BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, (byte)k);
+                keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte)k);
             }
         }
 
