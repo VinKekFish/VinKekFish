@@ -60,13 +60,15 @@ public unsafe partial class AutoCrypt
             PosixSignalRegistration.Create(PosixSignal.SIGTERM, ProcessExit);
 
             // DataDir создаётся при инициализации
-
-            if (!Directory.Exists(tmpDir!.FullName))
+            // Создаём остальные директории, если они ещё не созданы
+            var di = new DirectoryInfo(tmpDir!.FullName); di.Refresh();
+            if (!di.Exists)
             {
                 Directory.CreateDirectory(tmpDir!.FullName, UnixFileMode.None);
             }
 
-            if (!Directory.Exists(UserDir!.FullName))
+            di = new DirectoryInfo(UserDir!.FullName); di.Refresh();
+            if (!di.Exists)
             {
                 Directory.CreateDirectory(UserDir!.FullName, UnixFileMode.None);
             }
@@ -277,6 +279,7 @@ public unsafe partial class AutoCrypt
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
+                            file.Flush();
                         }
                         // Готовим новый файл категорий
                         using (var catFile = File.Open(bcf, FileMode.Open, FileAccess.Write, FileShare.None))
@@ -284,6 +287,7 @@ public unsafe partial class AutoCrypt
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
+                            catFile.Flush();
                         }
                     }
                     else
@@ -292,6 +296,7 @@ public unsafe partial class AutoCrypt
                         {
                             catFile.Seek (pos.catPos, SeekOrigin.Begin);
                             catFile.Write(nullBlock, 0, FullBlockSyncLen);
+                            catFile.Flush();
 
                             catFile.Seek(0, SeekOrigin.Begin);
                             catFile.Read(bytesFromFile);
@@ -336,11 +341,13 @@ Console.WriteLine("DELETED bcf: " + bcf);
                             catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
+                            catFile.Flush();
                         }
 
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
+                            file.Flush();
                         }
                     }
                     else
@@ -731,7 +738,7 @@ Console.WriteLine("DELETED bcf: " + bcf);
                         if (exists)
                         {
                             Process? pif = null;
-                            if (isCreatedDir || ForcedFormatFlag)
+                            if (isFirstTimeCreatedDir || ForcedFormatFlag)
                             {
                                 Console.WriteLine(L("Program begin formatting the section..."));
 
@@ -739,8 +746,8 @@ Console.WriteLine("DELETED bcf: " + bcf);
                                 // В команде подставить верный номер loop устройства
                                 var iN = FileSize >> 16;
                                 // Это форматирование файловой системы пользователя.
-                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -J size=4 -O extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
-                                pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -J size=4 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
                             pif = Process.Start("chown", $"{Rights} {loopDev}");
@@ -773,22 +780,6 @@ Console.WriteLine("DELETED bcf: " + bcf);
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static void fuse_destroy(void * data)
         {
-            TryToDispose(bytesFromFile);
-            TryToDispose(sync1);
-            TryToDispose(sync2);
-            TryToDispose(sync3);
-            TryToDispose(sync4);
-            TryToDispose(block64);
-            TryToDispose(syncNumber1);
-            TryToDispose(syncNumber2);
-            TryToDispose(syncNumber3);
-            TryToDispose(blockSync1);
-            TryToDispose(blockSync2);
-            TryToDispose(blockSyncH);
-            TryToDispose(block128);
-
-            Utf8StringMarshaller.Free(ptr_vinkekfish_file_name);
-
             destroyed = true;
         }
     }

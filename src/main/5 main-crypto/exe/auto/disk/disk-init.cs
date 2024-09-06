@@ -59,9 +59,31 @@ public unsafe partial class AutoCrypt
             TryToDispose(ThreeFish3b);   ThreeFish3b   = null;
             TryToDispose(ThreeFishHash); ThreeFishHash = null;
 
+            DisposeBuffers();
+
             base.Dispose(fromDestructor);
 
             dc = null;
+        }
+
+        private static void DisposeBuffers()
+        {
+            TryToDispose(bytesFromFile);
+            TryToDispose(sync1);
+            TryToDispose(sync2);
+            TryToDispose(sync3);
+            TryToDispose(sync4);
+            TryToDispose(block64);
+            TryToDispose(syncNumber1);
+            TryToDispose(syncNumber2);
+            TryToDispose(syncNumber3);
+            TryToDispose(blockSync1);
+            TryToDispose(blockSync2);
+            TryToDispose(blockSyncH);
+            TryToDispose(block128);
+
+            System.Runtime.InteropServices.Marshalling.Utf8StringMarshaller.Free
+                (ptr_vinkekfish_file_name);
         }
 
         #pragma warning disable CS0103
@@ -78,9 +100,10 @@ public unsafe partial class AutoCrypt
         public static DirectoryInfo? DataDir = null, tmpDir = null, UserDir = null;
         public static FileInfo? OpenKeyFileInfo = null;
 
-        public static bool   isCreatedDir = false;
-        public static string Rights       = "#0:#0";
-        public static bool   ForcedFormatFlag = false;
+        /// <summary>Если true, то директория с диском была создана программой в этом запуске, а не существовала ранее.</summary>
+        public static bool   isFirstTimeCreatedDir = false;
+        public static bool   ForcedFormatFlag      = false;
+        public static string Rights                = "#0:#0";
 
         public override ProgramErrorCode Exec(StreamReader? sr)
         {
@@ -283,18 +306,22 @@ public unsafe partial class AutoCrypt
                 if (KeyGenerator != null)
                     throw new InvalidOperationException();
 
-                if (!Directory.Exists(DataDir!.FullName))
+                var di = new DirectoryInfo(DataDir!.FullName); di.Refresh();
+                if (!di.Exists)
                 {
-                    isCreatedDir = true;
+                    isFirstTimeCreatedDir = true;
                     Directory.CreateDirectory(DataDir!.FullName, UnixFileMode.UserExecute | UnixFileMode.UserRead | UnixFileMode.UserWrite);
+                    // Читать директорию могут все. Это нужно, если директория синхронизируется другими программами.
                     using (var pi = Process.Start("chmod", $"a+rX \"{DataDir.FullName}\""))
                     {
                         pi.WaitForExit();
                     }
+                    // Ставим невозможность удалять из директории файлы кому-то, кроме владельцев этих файлов
                     using (var pi = Process.Start("chmod", $"a+t  \"{DataDir.FullName}\""))
                     {
                         pi.WaitForExit();
                     }
+                    // Делаем требования синхронности для обновлений директории, на всякий случай
                     using (var pi = Process.Start("chattr", $"+D  \"{DataDir.FullName}\""))
                     {
                         pi.WaitForExit();
@@ -305,7 +332,7 @@ public unsafe partial class AutoCrypt
                 var synFI = new FileInfo(syncPath); synFI.Refresh();
                 if (!synFI.Exists)
                 {
-                    isCreatedDir = true;
+                    isFirstTimeCreatedDir = true;
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
@@ -396,32 +423,32 @@ public unsafe partial class AutoCrypt
                 keccak2  .DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 2, "keccak2"), 1, true);
                 keccakOIV.DoInitFromKey(KeyGenerator.GetBytes(cryptoprime.KeccakPrime.b_size, 3, "keccak3"), 1, true);
 
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1s"))
                 {
                     ThreeFish1s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2s"))
                 {
                     ThreeFish2s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3s"))
                 {
                     ThreeFish3s = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1b"))
                 {
                     ThreeFish1b = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2b"))
                 {
                     ThreeFish2b = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
                 }
-                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3"))
+                using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3b"))
                 {
                     ThreeFish3b = new Threefish1024
                     (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
