@@ -336,8 +336,8 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
-                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%");
-                        Console.CursorLeft = 0;
+                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%\t");
+                        // К сожалению, если запускать vkf ... & , почему-то виснет на попытке переставить курсор
                         this.Connect();
                     }
                     while (bbp.Count < SyncRandomLength);
