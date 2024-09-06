@@ -337,7 +337,7 @@ public unsafe partial class AutoCrypt
                     do
                     {
                         Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%");
-                        Console.SetCursorPosition(0, Console.CursorTop);
+                        Console.CursorLeft = 0;
                         this.Connect();
                     }
                     while (bbp.Count < SyncRandomLength);

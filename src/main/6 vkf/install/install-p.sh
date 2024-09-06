@@ -76,12 +76,20 @@ systemctl disable vkf
 systemctl stop vkf
 
 pidof -q vkf
-if [[ $? -eq 0 ]]
-then
+while [[ $? -eq 0 ]]
+do
+    echo
+    echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов)'
+    pidvkf=`pidof vkf`
+    ps h -o pid,user,cmd --pid $pidvkf
     sleep 15
-fi
+    # killall -s SIGINT -wq vkf
+    killall -s SIGINT -q vkf
+done
 
-killall -s SIGINT -wq vkf
+echo
+echo "Stoppped (ru: Остановлено)"
+echo
 
 exe/vkf install
 
