@@ -17,7 +17,7 @@ public partial class AutoCrypt
     {
         public EncCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
-        public override ProgramErrorCode Exec(StreamReader? sr)
+        public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             ThreadPool.QueueUserWorkItem(   (x) => Connect()      );
 

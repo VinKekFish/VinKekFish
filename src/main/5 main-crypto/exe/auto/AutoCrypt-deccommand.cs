@@ -15,7 +15,7 @@ public partial class AutoCrypt
         public DecCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 
-        public override ProgramErrorCode Exec(StreamReader? sr)
+        public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             return ProgramErrorCode.success;
         }

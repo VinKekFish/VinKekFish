@@ -41,54 +41,55 @@ public partial class AutoCrypt: IDisposable
             fs = new StreamReader(new FileStream(FileName, FileMode.Open, FileAccess.Read));
         }
 
-    start:
+        // Лучше, если в Exec команда сама закроет fs (TryToDispose) и обнулит его.
+        start:
 
-        var command = (CommandOption)CommandOption.ReadAndParseLine
-        (
-            fs,
-            PrintHelpForMainLevelAutoCommand,
-            isDebugMode: isDebugMode
-        );
+            var command = (CommandOption)CommandOption.ReadAndParseLine
+            (
+                fs,
+                PrintHelpForMainLevelAutoCommand,
+                isDebugMode: isDebugMode
+            );
 
-        switch (command.name)
-        {
-            case "debug":
-                isDebugMode = true;
-                Console.WriteLine(L("Debug mode enabled"));
-                goto start;
-            case "enc":
-                CurrentCommand = new EncCommand(this) { isDebugMode = isDebugMode };
-                break;
-            case "dec":
-                CurrentCommand = new DecCommand(this) { isDebugMode = isDebugMode };
-                break;
-            case "key-main":
-            case "key-primary":
-            case "main-key":
-            case "primary-key":
-            case "key_gen_main":
-            case "key-gen-main":
-                CurrentCommand = new GenKeyCommand(this) { isDebugMode = isDebugMode };
-                break;
-            case "pwd":
-            case "pwd_gen":
-                CurrentCommand = new GenPwdCommand(this) { isDebugMode = isDebugMode };
-                break;
-            case "end":
-                CurrentCommand = new EndCommand(this);
-                return;
-            case "disk":
-                CurrentCommand = DiskCommand.CreateDiskCommand(this, isDebugMode);
-                return;
-            default:
-                if (!isDebugMode)
-                    throw new CommandException(L("Command is unknown (enter 'debug:' at the vkf start for more bit information)"));
+            switch (command.name)
+            {
+                case "debug":
+                    isDebugMode = true;
+                    Console.WriteLine(L("Debug mode enabled"));
+                    goto start;
+                case "enc":
+                    CurrentCommand = new EncCommand(this) { isDebugMode = isDebugMode };
+                    break;
+                case "dec":
+                    CurrentCommand = new DecCommand(this) { isDebugMode = isDebugMode };
+                    break;
+                case "key-main":
+                case "key-primary":
+                case "main-key":
+                case "primary-key":
+                case "key_gen_main":
+                case "key-gen-main":
+                    CurrentCommand = new GenKeyCommand(this) { isDebugMode = isDebugMode };
+                    break;
+                case "pwd":
+                case "pwd_gen":
+                    CurrentCommand = new GenPwdCommand(this) { isDebugMode = isDebugMode };
+                    break;
+                case "end":
+                    CurrentCommand = new EndCommand(this);
+                    return;
+                case "disk":
+                    CurrentCommand = DiskCommand.CreateDiskCommand(this, isDebugMode);
+                    return;
+                default:
+                    if (!isDebugMode)
+                        throw new CommandException(L("Command is unknown (enter 'debug:' at the vkf start for more bit information)"));
 
-                Console.WriteLine(L("Command is unknown"));
-                PrintHelpForMainLevelAutoCommand();
+                    Console.WriteLine(L("Command is unknown"));
+                    PrintHelpForMainLevelAutoCommand();
 
-                goto start;
-        }
+                    goto start;
+            }
     }
 
     private static void PrintHelpForMainLevelAutoCommand()
@@ -121,7 +122,14 @@ public partial class AutoCrypt: IDisposable
     /// <returns>Код ошибки</returns>
     public ProgramErrorCode Exec()
     {
-        return CurrentCommand!.Exec(fs);
+        try
+        {
+            return CurrentCommand!.Exec(ref fs);
+        }
+        finally
+        {
+            TryToDispose(fs);
+        }
     }
 
     private bool isDisposed = false;

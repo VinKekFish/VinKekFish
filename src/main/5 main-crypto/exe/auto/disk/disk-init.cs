@@ -105,7 +105,7 @@ public unsafe partial class AutoCrypt
         public static bool   ForcedFormatFlag      = false;
         public static string Rights                = "#0:#0";
 
-        public override ProgramErrorCode Exec(StreamReader? sr)
+        public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             string val = "";
             start:
@@ -268,6 +268,7 @@ public unsafe partial class AutoCrypt
                     if (isDebugMode)
                         Console.WriteLine(L("Try to mount volume"));
 
+                    TryToDispose(sr); sr = null;
                     MountVolume();
 
 

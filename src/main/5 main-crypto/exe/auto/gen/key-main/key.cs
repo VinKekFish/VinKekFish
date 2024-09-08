@@ -64,7 +64,7 @@ public unsafe partial class AutoCrypt
         /// <summary>Запускает команду на выполнение.</summary>
         /// <param name="sr">Поток StreamReader, из которого берутся настройки для шифрования. Если null, то команды берутся с консоли.</param>
         /// <returns>Возвращает код ошибки.</returns>
-        public override ProgramErrorCode Exec(StreamReader? sr)
+        public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             VinKekFish_KeyOpts   .Rounds = -1;
             VinKekFish_CipherOpts.Rounds = -1;

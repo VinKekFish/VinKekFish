@@ -48,7 +48,7 @@ public partial class AutoCrypt
         /// <summary>Запускает команду.</summary>
         /// <param name="sr">Поток, с которого будет считываться набор команд</param>
         /// <returns>Код ошибки</returns>
-        public abstract ProgramErrorCode Exec(StreamReader? sr);
+        public abstract ProgramErrorCode Exec(ref StreamReader? sr);
 
         public interface IIsCorrectAvailable
         {
