@@ -743,14 +743,15 @@ public unsafe partial class AutoCrypt
                                 // В команде подставить верный номер loop устройства
                                 var iN = FileSize >> 16;
                                 // Это форматирование файловой системы пользователя.
-                                pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
                             pif = Process.Start("chown", $"{Rights} {loopDev}");
                             pif.WaitForExit();
                             // noexec, nosuid ???? Опции надо бы добавить???
-                            pif = Process.Start("mount", $"-o discard,relatime,sync {loopDev} \"{UserDir!.FullName}\"");
+                            pif = Process.Start("mount", $"-o relatime,sync {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
                             if (Rights.Length > 0)
                             {
