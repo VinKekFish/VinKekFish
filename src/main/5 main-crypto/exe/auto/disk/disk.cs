@@ -387,6 +387,7 @@ public unsafe partial class AutoCrypt
         {
             if (File.Exists(fn))
             {
+                if (!FastDeleteFlag)
                 using (var file = File.OpenWrite(fn))
                 {
                     file.Write(nullBlock);
@@ -597,19 +598,19 @@ public unsafe partial class AutoCrypt
 
         }
 
-        private static Record bytesFromFile = Keccak_abstract.allocator.AllocMemory(blockSize);
-        private static Record sync1         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record sync2         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record sync3         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record sync4         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record block64       = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen);
-        private static Record syncNumber1   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record syncNumber2   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record syncNumber3   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record blockSync1    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record blockSync2    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record blockSyncH    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
-        private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen);
+        private static Record bytesFromFile = Keccak_abstract.allocator.AllocMemory(blockSize, "bytesFromFile");
+        private static Record sync1         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync1");
+        private static Record sync2         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync2");
+        private static Record sync3         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync3");
+        private static Record sync4         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync4");
+        private static Record block64       = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "block64");
+        private static Record syncNumber1   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "syncNumber1");
+        private static Record syncNumber2   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "syncNumber2");
+        private static Record syncNumber3   = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "syncNumber3");
+        private static Record blockSync1    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "blockSync1");
+        private static Record blockSync2    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "blockSync2");
+        private static Record blockSyncH    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "blockSyncH");
+        private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "block128");
 
         private static byte[] nullBlock = new byte[blockSize];
 
@@ -693,7 +694,8 @@ public unsafe partial class AutoCrypt
             for (int i = 0; i < sizeof(FuseConfig); i++, st++)
                 *st = 0;
 
-            config->direct_io     = 0;
+            // Это увеличивает скорость. Почему-то --direct-io=on позволяет устройству получать данные на запись большими блоками
+            config->direct_io     = 1;
             config->kernel_cache  = 1;
             (*config).hard_remove = 1;
 
@@ -710,7 +712,7 @@ public unsafe partial class AutoCrypt
                         psi.RedirectStandardOutput = true;
                         psi.FileName  = "losetup";
                         var tmpFile   = Path.Combine(tmpDir!.FullName, vinkekfish_file_name);
-                        psi.Arguments = $"-f --show -- \"{tmpFile}\"";
+                        psi.Arguments = $"-f -L --direct-io=on --show -- \"{tmpFile}\"";
 
                         var pi = Process.Start(psi);
                         if (!pi!.WaitForExit(10_000))
@@ -743,7 +745,7 @@ public unsafe partial class AutoCrypt
                                 // В команде подставить верный номер loop устройства
                                 var iN = FileSize >> 16;
                                 // Это форматирование файловой системы пользователя.
-                                pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index" + " " + loopDev);
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();

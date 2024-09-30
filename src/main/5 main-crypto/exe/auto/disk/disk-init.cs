@@ -68,6 +68,9 @@ public unsafe partial class AutoCrypt
 
         private static void DisposeBuffers()
         {
+            if (block128.array == null)
+                return;
+
             TryToDispose(bytesFromFile);
             TryToDispose(sync1);
             TryToDispose(sync2);
@@ -101,8 +104,9 @@ public unsafe partial class AutoCrypt
         public static FileInfo? OpenKeyFileInfo = null;
 
         /// <summary>Если true, то директория с диском была создана программой в этом запуске, а не существовала ранее.</summary>
-        public static bool   isFirstTimeCreatedDir = false;
-        public static bool   ForcedFormatFlag      = false;
+        public static bool   isFirstTimeCreatedDir = false;                     /// <summary>Отформатировать раздел, даже если он проинициализирован.</summary>
+        public static bool   ForcedFormatFlag      = false;                     /// <summary>Удаление без перезатирания.</summary>
+        public static bool   FastDeleteFlag        = false;
         public static string Rights                = "#0:#0";
 
         public override ProgramErrorCode Exec(ref StreamReader? sr)
@@ -126,6 +130,7 @@ public unsafe partial class AutoCrypt
                         unencrypted-key:key_file
                         size:number_size_in_bytes
                         r:user:group
+                        fast-delete:true
                         start:
 
                         Example:
@@ -142,9 +147,30 @@ public unsafe partial class AutoCrypt
 
             switch (command.name)
             {
+                case "fast-delete":
+                        val = command.value.Trim().ToLowerInvariant();
+                        FastDeleteFlag = val == "true" || val == "1" || val == "yes";
+
+                        if (isDebugMode)
+                        {
+                            if (FastDeleteFlag)
+                                Console.WriteLine("fast-delete: true");
+                            else
+                                Console.WriteLine("fast-delete: false");
+                        }
+
+                        goto start;
                 case "forced-format":
                         val = command.value.Trim().ToLowerInvariant();
                         ForcedFormatFlag = val == "true" || val == "1" || val == "yes";
+
+                        if (isDebugMode)
+                        {
+                            if (ForcedFormatFlag)
+                                Console.WriteLine("forced-format: true");
+                            else
+                                Console.WriteLine("forced-format: false");
+                        }
 
                         goto start;
                 case "r":
@@ -337,7 +363,7 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
-                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%\t");
+                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%  ");
                         // К сожалению, если запускать vkf ... & , почему-то виснет на попытке переставить курсор
                         this.Connect();
                     }
