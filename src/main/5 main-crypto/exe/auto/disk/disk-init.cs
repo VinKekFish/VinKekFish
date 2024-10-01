@@ -72,6 +72,7 @@ public unsafe partial class AutoCrypt
                 return;
 
             TryToDispose(bytesFromFile);
+            TryToDispose(catBytes);
             TryToDispose(sync1);
             TryToDispose(sync2);
             TryToDispose(sync3);
@@ -363,7 +364,7 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
-                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}%  ");
+                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}% ");
                         // К сожалению, если запускать vkf ... & , почему-то виснет на попытке переставить курсор
                         this.Connect();
                     }
