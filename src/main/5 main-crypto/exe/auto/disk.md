@@ -100,6 +100,9 @@ mount -o relatime,sync,noexec,nosuid,nodev /dev/loop14 user
 mount-o:noexec=recursive,nosuid=recursive,nodev=recursive
 ```
 Также пользователь может захотеть использовать опцию `nosymfollow=recursive` (добавляется через запятую).
+```
+mount-o:noexec=recursive,nosuid=recursive,nodev=recursive,nosymfollow=recursive
+```
 
 ```
 Обратите особое внимание на то, что перечень опций разделён запятыми без пробелов. Наличие пробелов вызовет ошибку при монтировании.
