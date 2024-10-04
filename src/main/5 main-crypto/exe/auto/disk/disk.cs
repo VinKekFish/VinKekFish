@@ -858,7 +858,9 @@ public unsafe partial class AutoCrypt
                             pif = Process.Start("chown", $"{Rights} {loopDev}");
                             pif.WaitForExit();
                             // noexec, nosuid ???? Опции надо бы добавить???
-                            pif = Process.Start("mount", $"-o relatime,sync {loopDev} \"{UserDir!.FullName}\"");
+                            if (MountOpts.Length > 0)
+                                MountOpts = "," + MountOpts;
+                            pif = Process.Start("mount", $"-o relatime,sync{MountOpts} {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
                             if (Rights.Length > 0)
                             {

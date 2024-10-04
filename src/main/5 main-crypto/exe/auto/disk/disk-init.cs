@@ -109,6 +109,7 @@ public unsafe partial class AutoCrypt
         public static bool   ForcedFormatFlag      = false;                     /// <summary>Удаление без перезатирания.</summary>
         public static bool   FastDeleteFlag        = false;
         public static string Rights                = "#0:#0";
+        public static string MountOpts             = "";
 
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
@@ -132,6 +133,7 @@ public unsafe partial class AutoCrypt
                         size:number_size_in_bytes
                         r:user:group
                         fast-delete:true
+                        mount-o:noexec,nosuid,nodev
                         start:
 
                         Example:
@@ -148,6 +150,10 @@ public unsafe partial class AutoCrypt
 
             switch (command.name)
             {
+                case "mount-o":
+                        MountOpts = command.value.Trim().ToLowerInvariant();
+
+                        goto start;
                 case "fast-delete":
                         val = command.value.Trim().ToLowerInvariant();
                         FastDeleteFlag = val == "true" || val == "1" || val == "yes";
