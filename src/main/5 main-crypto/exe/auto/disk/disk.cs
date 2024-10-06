@@ -656,8 +656,8 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen, j);
-                keccakA.DoInputAndStep(bytesFromFile, KeccakPrime.BlockLen, (byte)k);
+                keccakA.DoXor         (bytesFromFile          , KeccakPrime.BlockLen, j);
+                keccakA.DoInputAndStep(bytesFromFile.array + j, KeccakPrime.BlockLen, (byte)k);
             }
 
             BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
@@ -672,8 +672,8 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen, j);
-                keccakA.DoInputAndStep(bytesFromFile, KeccakPrime.BlockLen, (byte)k);      // Вводим на всякий случай весь 128-мибайтный блок
+                keccakA.DoXor         (bytesFromFile         , KeccakPrime.BlockLen,  j);
+                keccakA.DoInputAndStep(bytesFromFile.array + j, KeccakPrime.BlockLen, (byte)k);      // Вводим на всякий случай весь 128-мибайтный блок
             }
         }
 
