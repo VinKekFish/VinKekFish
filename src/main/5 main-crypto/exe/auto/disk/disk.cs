@@ -586,6 +586,23 @@ public unsafe partial class AutoCrypt
 
         private static void DoDecrypt((nint file, nint position, nint size, nint catFile, nint catPos) pos)
         {
+            switch (algType)
+            {
+                case AlgorithmType.Keccak:
+                        DoDecryptKeccak(pos);
+                        break;
+
+                case AlgorithmType.KeccakThreeFish:
+                        DoDecryptKeccakThreeFish(pos);
+                        break;
+
+                default:
+                        throw new NotImplementedException("DiskCommand.DoDecrypt");
+            }
+        }
+
+        private static void DoDecryptKeccakThreeFish((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
             // Первый проход расшифрования (начинаем со второй губки и второго ключа)
             keccak2!.CloneStateTo(keccakA!);
             keccakA!.DoInitFromKey(sync1, 0);
@@ -597,12 +614,12 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                BytesBuilder.CopyTo(blockSync2,    block128);
-                BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
+                BytesBuilder.CopyTo(blockSync2, block128);
+                BytesBuilder.CopyTo(block64, block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
-                keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte) k);
+                keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte)k);
             }
 
             BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
@@ -617,16 +634,67 @@ public unsafe partial class AutoCrypt
 
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
-                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                BytesBuilder.CopyTo(blockSync1,    block128);
-                BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
+                BytesBuilder.CopyTo(blockSync1, block128);
+                BytesBuilder.CopyTo(block64, block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
-                keccakA.DoInputAndStep(block128.array, Threefish_slowly.keyLen, (byte) k);      // Вводим на всякий случай весь 128-мибайтный блок
+                keccakA.DoInputAndStep(block128.array, Threefish_slowly.keyLen, (byte)k);      // Вводим на всякий случай весь 128-мибайтный блок
+            }
+        }
+
+        private static void DoDecryptKeccak((nint file, nint position, nint size, nint catFile, nint catPos) pos)
+        {
+            // Первый проход расшифрования (начинаем со второй губки и второго ключа)
+            keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
+            keccakA!.DoInitFromKey(sync2, 1);
+            BytesBuilder.CopyTo(syncNumber2, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 2);
+
+            for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
+            {
+                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoInputAndStep(bytesFromFile, KeccakPrime.BlockLen, (byte)k);
+            }
+
+            BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
+
+            // Второй проход расшифрования
+            keccak1!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
+            BytesBuilder.CopyTo(syncNumber1, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
+            {
+                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoInputAndStep(bytesFromFile, KeccakPrime.BlockLen, (byte)k);      // Вводим на всякий случай весь 128-мибайтный блок
             }
         }
 
         private static void DoEncrypt((nint file, nint position, nint size, nint catFile, nint catPos) pos, Record sync1, Record sync2)
+        {
+            switch (algType)
+            {
+                case AlgorithmType.Keccak:
+                        DoEncryptKeccak(pos, sync1, sync2);
+                        break;
+
+                case AlgorithmType.KeccakThreeFish:
+                        DoEncryptKeccakThreeFish(pos, sync1, sync2);
+                        break;
+
+                default:
+                        throw new NotImplementedException("DiskCommand.DoEncrypt");
+            }
+        }
+
+        private static void DoEncryptKeccakThreeFish((nint file, nint position, nint size, nint catFile, nint catPos) pos, Record sync1, Record sync2)
         {
             // Первый проход шифрования
             keccak1!.CloneStateTo(keccakA!);
@@ -639,9 +707,9 @@ public unsafe partial class AutoCrypt
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
                 BytesBuilder.CopyTo(blockSync1, block128);
-                BytesBuilder.CopyTo(block64,    block128, (k & 1) * 64);
+                BytesBuilder.CopyTo(block64, block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish1b!.key, ThreeFish1b.tweak, block128);
                 keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte)k);
             }
@@ -662,11 +730,49 @@ public unsafe partial class AutoCrypt
             for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
             {
                 BytesBuilder.CopyTo(bytesFromFile, block64, index: j);
-                keccakA.DoXor      (bytesFromFile, KeccakPrime.BlockLen, j);
-                BytesBuilder.CopyTo(blockSync2,    block128);
-                BytesBuilder.CopyTo(block64,       block128, (k & 1) * 64);
+                keccakA.DoXor(bytesFromFile, KeccakPrime.BlockLen, j);
+                BytesBuilder.CopyTo(blockSync2, block128);
+                BytesBuilder.CopyTo(block64, block128, (k & 1) * 64);
                 Threefish_Static_Generated.Threefish1024_step(ThreeFish2b!.key, ThreeFish2b.tweak, block128);
                 keccakA.DoInputAndStep(block128, Threefish_slowly.keyLen, (byte)k);
+            }
+        }
+
+        private static void DoEncryptKeccak((nint file, nint position, nint size, nint catFile, nint catPos) pos, Record sync1, Record sync2)
+        {
+            // Первый проход шифрования
+            keccak1!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
+            BytesBuilder.CopyTo(syncNumber1, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish1s!.key, ThreeFish1s.tweak, block128);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 1);
+
+            for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
+            {
+                BytesBuilder.CopyTo   (bytesFromFile, block64,              index: j);
+                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen,        j);
+                keccakA.DoInputAndStep(block64,       KeccakPrime.BlockLen, (byte) k);
+            }
+
+            GetHash(sync2, pos.file);
+
+            BytesBuilder.ReverseBytes(bytesFromFile.len, bytesFromFile);
+
+            // Второй проход шифрования
+            keccak2!.CloneStateTo(keccakA!);
+            keccakA!.DoInitFromKey(sync1, 0);
+            keccakA!.DoInitFromKey(sync2, 1);
+            BytesBuilder.CopyTo(syncNumber2, block128);
+            BytesBuilder.ULongToBytes((ulong)pos.file, block128, (pos.file & 1) * 8);
+            Threefish_Static_Generated.Threefish1024_step(ThreeFish2s!.key, ThreeFish2s.tweak, block128);
+            keccakA.DoInputAndStep(block128, KeccakPrime.BlockLen, 2);
+
+            for (int j = 0, k = 0; j < bytesFromFile.len; j += KeccakPrime.BlockLen, k++)
+            {
+                BytesBuilder.CopyTo   (bytesFromFile, block64,              index: j);
+                keccakA.DoXor         (bytesFromFile, KeccakPrime.BlockLen,        j);
+                keccakA.DoInputAndStep(block64,       KeccakPrime.BlockLen, (byte) k);
             }
         }
 

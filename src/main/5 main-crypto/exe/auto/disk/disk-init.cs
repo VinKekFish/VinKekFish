@@ -104,12 +104,21 @@ public unsafe partial class AutoCrypt
         public static DirectoryInfo? DataDir = null, tmpDir = null, UserDir = null;
         public static FileInfo? OpenKeyFileInfo = null;
 
+        /// <summary>Тип алгоритма шифрования</summary>
+        public enum AlgorithmType
+        {                                        /// <summary>keccak + ThreeFish в обратной связи</summary>
+            KeccakThreeFish = 0,                 /// <summary>Только keccak (ThreeFish при инициализации и вычислении хэша)</summary>
+            Keccak = 1
+        };
+
         /// <summary>Если true, то директория с диском была создана программой в этом запуске, а не существовала ранее.</summary>
         public static bool   isFirstTimeCreatedDir = false;                     /// <summary>Отформатировать раздел, даже если он проинициализирован.</summary>
         public static bool   ForcedFormatFlag      = false;                     /// <summary>Удаление без перезатирания.</summary>
         public static bool   FastDeleteFlag        = false;
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
+
+        public static AlgorithmType algType = AlgorithmType.KeccakThreeFish;
 
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
@@ -134,6 +143,7 @@ public unsafe partial class AutoCrypt
                         r:user:group
                         fast-delete:true
                         mount-o:noexec,nosuid,nodev
+                        alg:KeccakThreeFish
                         start:
 
                         Example:
@@ -150,6 +160,35 @@ public unsafe partial class AutoCrypt
 
             switch (command.name)
             {
+                case "alg":
+                        var alg_string = command.value.Trim().ToLowerInvariant();
+                        switch (alg_string)
+                        {
+                            case "keccak":
+                                    algType = AlgorithmType.Keccak;
+                                    if (isDebugMode)
+                                    {
+                                        Console.WriteLine("Set to AlgorithmType.Keccak [512 + 0]");
+                                    }
+                                break;
+
+                            case "keccakthreefish":
+                                    algType = AlgorithmType.KeccakThreeFish;
+                                    if (isDebugMode)
+                                    {
+                                        Console.WriteLine("Set to AlgorithmType.KeccakThreeFish [512 + 1024]");
+                                    }
+                                break;
+
+                            default:
+                                if (!isDebugMode)
+                                    throw new CommandException("alg_string is incorrect");
+                                else
+                                    Console.WriteLine("alg_string is incorrect");
+                                break;
+                        }
+
+                    goto start;
                 case "mount-o":
                         MountOpts = command.value.Trim().ToLowerInvariant();
 
