@@ -172,4 +172,6 @@ An uninitialized file has been deleted
     An uninitialized file has been deleted
 is exists. The volume already mounted? vkf exited.
     is exists. The volume already mounted? vkf will exit without mount.
+Lock file corrected
+    Lock file has been corrected
 :

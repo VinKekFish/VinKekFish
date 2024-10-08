@@ -172,4 +172,6 @@ An uninitialized file has been deleted
     Непроинициализиированный файл удалён
 is exists. The volume already mounted? vkf exited.
     существует. Логический диск уже подмонтирован? vkf будет завершён без монтирования.
+Lock file corrected
+    Lock-файл исправлен
 :

@@ -323,7 +323,22 @@ public unsafe partial class AutoCrypt
                         goto start;
                     }
 
-                    OpenKeyFileInfo.Refresh();
+                    ulong cnt = 0;
+                    do
+                    {
+                        if (cnt > 0)
+                        {
+                            if ((cnt & 7) == 1)
+                                Console.WriteLine("Wait for key " + OpenKeyFileInfo.FullName);
+
+                            Thread.Sleep(15_000);
+                        }
+
+                        OpenKeyFileInfo.Refresh();
+                        cnt++;
+                    }
+                    while (!OpenKeyFileInfo.Exists);
+
                     using (var key = Keccak_abstract.allocator.AllocMemory((nint) OpenKeyFileInfo.Length, "disk command: fileForOpenKey"))
                     {
                         using (var fileForOpenKey = File.OpenRead(OpenKeyFileInfo.FullName))

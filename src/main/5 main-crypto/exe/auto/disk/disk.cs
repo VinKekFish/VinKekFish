@@ -525,7 +525,7 @@ public unsafe partial class AutoCrypt
                     }
                 }
             }
-            // Просто удаляем файл, которые не были ещё заполнены нужными данными
+            // Просто удаляем файлы, которые не были ещё заполнены нужными данными
             else
             {
                 foreach (var file in files)
@@ -537,6 +537,7 @@ public unsafe partial class AutoCrypt
             }
 
             File.Delete(LockFile);
+            Console.WriteLine(L("Lock file corrected") + ".");
         }
 
         /// <summary>Рассчитывает и возвращает имена файла и backup-файла</summary>
@@ -961,13 +962,38 @@ public unsafe partial class AutoCrypt
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
-                            pif = Process.Start("chown", $"{Rights} {loopDev}");
-                            pif.WaitForExit();
+                            // pif = Process.Start("chown", $"{Rights} {loopDev}");
+                            // pif.WaitForExit();
                             // noexec, nosuid ???? Опции надо бы добавить???
                             if (MountOpts.Length > 0)
                                 MountOpts = "," + MountOpts;
-                            pif = Process.Start("mount", $"-o relatime,sync{MountOpts} {loopDev} \"{UserDir!.FullName}\"");
+
+                            string userName = "", groupName = "";
+                            if (Rights.Length > 0)
+                            {
+                                var ir = Rights.IndexOf(':');
+                                if (ir < 0)
+                                {
+                                    userName = Rights;
+                                }
+                                else
+                                {
+                                    userName = Rights.Substring(0, ir);
+
+                                    if (ir + 1 < Rights.Length)
+                                        groupName = Rights.Substring(ir+1);
+                                }
+                            }
+
+                            // X-mount.owner=
+                            if (userName.Length > 0)
+                                MountOpts += ",X-mount.owner=" + userName;
+                            if (groupName.Length > 0)
+                                MountOpts += ",X-mount.group=" + groupName;
+
+                            pif = Process.Start("mount", $"--onlyonce -o \"relatime,sync{MountOpts}\" {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
+                            // Перестраховка: повторно устанавливаем права, на случай, если mount их не установил
                             if (Rights.Length > 0)
                             {
                                 pif = Process.Start("chown", $"{Rights} \"{UserDir!.FullName}\"");
