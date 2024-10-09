@@ -105,27 +105,43 @@ public unsafe partial class AutoCrypt
             ProcessExit();
         }
 
+        public static readonly object syncForExit = new();
         private static void ProcessExit()
         {
             ThreadPool.QueueUserWorkItem
             (
                 delegate
                 {
-                    var pus = Process.Start("mount", $"-o remount,ro \"{UserDir!.FullName}\"");
-                    pus.WaitForExit();
-
-                    pus = Process.Start("umount", $"\"{UserDir!.FullName}\"");
-                    pus.WaitForExit();
-
-                    if (!string.IsNullOrEmpty(loopDev))
+                    if (destroyed)
                     {
-                        var args = $"-d {loopDev}";
-                        using var pi = Process.Start("losetup", args);
-                        pi.WaitForExit();
+                        Console.WriteLine(L("Already interrupted") + $" {UserDir!.FullName}");
+                        return;
                     }
 
-                    // Process.Start("umount", "\"" + tmpDir!.FullName + "\"").Dispose();
-                    Process.Start("fusermount3", $"-u \"{tmpDir!.FullName}\"").Dispose();
+                    lock (syncForExit)
+                    {
+                        Console.WriteLine(L("Try to unmount disk") + $" {UserDir!.FullName}");
+
+                        var pus = Process.Start("mount", $"-o remount,ro \"{UserDir!.FullName}\"");
+                        pus.WaitForExit();
+                        pus.Dispose();
+
+                        pus = Process.Start("umount", $"\"{UserDir!.FullName}\"");
+                        pus.WaitForExit();
+                        pus.Dispose();
+
+                        if (!string.IsNullOrEmpty(loopDev))
+                        {
+                            var args = $"-d {loopDev}";
+                            using var pi = Process.Start("losetup", args);
+                            pi.WaitForExit();
+                        }
+
+                        // Process.Start("umount", "\"" + tmpDir!.FullName + "\"").Dispose();
+                        pus = Process.Start("fusermount3", $"-u \"{tmpDir!.FullName}\"");
+                        pus.WaitForExit();
+                        pus.Dispose();
+                    }
                 }
             );
         }

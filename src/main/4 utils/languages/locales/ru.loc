@@ -174,4 +174,8 @@ is exists. The volume already mounted? vkf exited.
     существует. Логический диск уже подмонтирован? vkf будет завершён без монтирования.
 Lock file corrected
     Lock-файл исправлен
+Already interrupted
+    Уже прекращён
+Try to unmount disk
+    Пытаемся размонтировать диск
 :

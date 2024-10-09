@@ -79,12 +79,12 @@ pidof -q vkf
 while [[ $? -eq 0 ]]
 do
     echo
-    echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов)'
+    echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов) [see pidvkf=`pidof vkf`; kill $pidvkf]'
     pidvkf=`pidof vkf`
     ps h -o pid,user,cmd --pid $pidvkf
     sleep 8
-    # killall -s SIGINT -wq vkf
-    killall -s SIGINT -q vkf
+    # killall -s SIGINT -q vkf
+    killall -q vkf
 done
 
 echo
