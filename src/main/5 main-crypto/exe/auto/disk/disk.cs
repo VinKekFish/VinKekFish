@@ -111,7 +111,10 @@ public unsafe partial class AutoCrypt
             (
                 delegate
                 {
-                    var pus = Process.Start("umount", $"\"{UserDir!.FullName}\"");
+                    var pus = Process.Start("mount", $"-o remount,ro \"{UserDir!.FullName}\"");
+                    pus.WaitForExit();
+
+                    pus = Process.Start("umount", $"\"{UserDir!.FullName}\"");
                     pus.WaitForExit();
 
                     if (!string.IsNullOrEmpty(loopDev))
