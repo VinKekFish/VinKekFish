@@ -38,7 +38,9 @@ public unsafe partial class AutoCrypt
         public const  string SyncName = "sync";
         public static string syncPath = "";
         public const  string SyncBackupName  = "backup-";     // Файл для бэкапа текущих изменений синхропосылок блока
-        public const  string LockFile = "lock";
+
+        public static readonly FileInfo LockFile = new("lock");
+
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
@@ -298,7 +300,7 @@ public unsafe partial class AutoCrypt
                         GenerateNewSync(pos);
                         DoEncrypt(pos, sync3, sync4);
 
-                        File.WriteAllText(LockFile, "");
+                        File.WriteAllText(LockFile.FullName, "");
                         // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
@@ -362,7 +364,7 @@ public unsafe partial class AutoCrypt
 
                     if (!isNull)
                     {
-                        File.WriteAllText(LockFile, "");
+                        File.WriteAllText(LockFile.FullName, "");
 
                         if (!File.Exists(cf))
                         {
@@ -403,7 +405,7 @@ public unsafe partial class AutoCrypt
                     if (destroyed)
                         throw new InvalidOperationException();
 
-                    File.WriteAllText(LockFile, "1");
+                    File.WriteAllText(LockFile.FullName, "1");
 
                     SafelyDeleteBlockFile(fn);
 
@@ -415,7 +417,7 @@ public unsafe partial class AutoCrypt
                     if (File.Exists(bcf))
                         WriteNewSyncsInCatFile(cf, bcf, (ushort) (pos.catPos), sync3, sync4);
 
-                    File.Delete(LockFile);
+                    LockFile.Delete(); LockFile.Refresh();
                 }
             }
 
@@ -471,7 +473,8 @@ public unsafe partial class AutoCrypt
 
         private static void CorrectLockFileIfExists()
         {
-            if (!File.Exists(LockFile))
+            LockFile.Refresh();
+            if (!LockFile.Exists)
                 return;
 
             Console.WriteLine(L("Lock file detected") + ".");
@@ -480,7 +483,7 @@ public unsafe partial class AutoCrypt
             ushort *   st2 = stackalloc ushort[1];
             Span<byte> bt2 = new (st2, sizeof(ushort));
 
-            var lf    = new FileInfo(LockFile); lf.Refresh();
+            var lf    = LockFile; lf.Refresh();
             var files = DataDir!.GetFiles(SyncBackupName + "*");
             if (lf.Length > 0)
             {
@@ -555,7 +558,7 @@ public unsafe partial class AutoCrypt
                 }
             }
 
-            File.Delete(LockFile);
+            LockFile.Delete();
             Console.WriteLine(L("Lock file corrected") + ".");
         }
 

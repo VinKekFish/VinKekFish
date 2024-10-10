@@ -347,7 +347,10 @@ public unsafe partial class AutoCrypt
                         }
 
                         if (isDebugMode)
+                        {
                             Console.WriteLine(L("Initialization started"));
+                            Console.WriteLine($"len(key) = {key.len} bytes from '{OpenKeyFileInfo.FullName}'");
+                        }
 
                         InitSponges(key);
                     }
@@ -513,38 +516,31 @@ public unsafe partial class AutoCrypt
 
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1s"))
                 {
-                    ThreeFish1s = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish1s, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2s"))
                 {
-                    ThreeFish2s = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish2s, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3s"))
                 {
-                    ThreeFish3s = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish3s, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 1, "ThreeFish1b"))
                 {
-                    ThreeFish1b = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish1b, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 2, "ThreeFish2b"))
                 {
-                    ThreeFish2b = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish2b, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 3, "ThreeFish3b"))
                 {
-                    ThreeFish3b = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFish3b, tkey);
                 }
                 using (var tkey = KeyGenerator.GetBytes(Threefish_slowly.keyLen + Threefish_slowly.twLen, 4, "ThreeFishHash"))
                 {
-                    ThreeFishHash = new Threefish1024
-                    (tkey, Threefish_slowly.keyLen, tkey >> Threefish_slowly.keyLen, Threefish_slowly.twLen);
+                    CreateThreeFish(out ThreeFishHash, tkey);
                 }
 
                 // Заполняем значение syncNumber неизвестными по умолчанию числами, чтобы было сложнее проводить криптоанализ ThreeFish.
@@ -583,6 +579,15 @@ public unsafe partial class AutoCrypt
                 TryToDispose(Cascade_Key);
                 TryToDispose(VinKekFish_Key);
                 TryToDispose(KeyGenerator); KeyGenerator   = null;
+            }
+        }
+
+        public static void CreateThreeFish(out Threefish1024? threefish, Record tkey)
+        {
+            using (var tmpTweak = tkey >> Threefish_slowly.keyLen)
+            {
+                threefish = new Threefish1024
+                (tkey, Threefish_slowly.keyLen, tmpTweak, Threefish_slowly.twLen);
             }
         }
     }
