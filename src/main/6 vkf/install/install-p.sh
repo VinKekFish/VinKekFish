@@ -45,6 +45,36 @@ chmod a+rX  "$vkfDir"
 
 cd "$vkfDir"
 
+echo
+date
+echo "Wait for stop the VinKekFish service (vkf service), if executed. This may take 1 minute."
+echo "ru: Ждём остановки сервиса VinKekFish (сервис vkf), если запущено. Это может занять 1 минуту."
+echo
+
+systemctl disable vkf
+systemctl stop vkf
+
+echo "If vkf is used to mount disks, the disks will be unmounted (ru: Если vkf используется для монтирования дисков, диски будут размонтированы)"
+
+pidof -q vkf
+while [[ $? -eq 0 ]]
+do
+    echo
+    echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов) [see pidvkf=`pidof vkf`; kill $pidvkf]'
+    pidvkf=`pidof vkf`
+    ps h -o pid,user,cmd --pid $pidvkf
+    # killall -s SIGINT -q vkf
+    killall -q vkf
+    sleep 8
+    pidof -q vkf
+done
+
+echo
+echo "Stoppped (ru: Остановлено)"
+echo
+
+
+# Выполняем копирование
 setfacl -d -m u::rwX .
 setfacl -d -m g::rX  .
 setfacl -d -m o::--- .
@@ -66,31 +96,8 @@ mkdir -p data
 chmod -R o-rwx options
 chmod -R o-rwx data
 
-echo
-date
-echo "Wait for stop the VinKekFish service (vkf service), if executed. This may take 1 minute."
-echo "ru: Ждём остановки сервиса VinKekFish (сервис vkf), если запущено. Это может занять 1 минуту."
-echo
 
-systemctl disable vkf
-systemctl stop vkf
-
-pidof -q vkf
-while [[ $? -eq 0 ]]
-do
-    echo
-    echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов) [see pidvkf=`pidof vkf`; kill $pidvkf]'
-    pidvkf=`pidof vkf`
-    ps h -o pid,user,cmd --pid $pidvkf
-    sleep 8
-    # killall -s SIGINT -q vkf
-    killall -q vkf
-done
-
-echo
-echo "Stoppped (ru: Остановлено)"
-echo
-
+# Выполняем основную установку
 exe/vkf install
 
 if [[ $? -ne 0 ]]

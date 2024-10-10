@@ -6,7 +6,7 @@
 
 Для Ubuntu Linux и Linux Mint необходимо выполнить в командной строке команду
 ```
-sudo apt install dotnet7
+sudo apt install -y dotnet7
 ```
 для иных ОС необходимо смотреть
 https://dotnet.microsoft.com/download
