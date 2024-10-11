@@ -39,11 +39,15 @@ public unsafe partial class AutoCrypt
         public static string syncPath = "";
         public const  string SyncBackupName  = "backup-";     // Файл для бэкапа текущих изменений синхропосылок блока
 
-        public static readonly FileInfo LockFile = new("lock");
+        private static FileInfo? _LockFile =  null;
+        public  static FileInfo   LockFile => _LockFile!;
 
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
+            Directory.SetCurrentDirectory (DataDir!.FullName);
+            _LockFile = new ( Path.Combine(DataDir!.FullName, "lock") );
+
             // Параметр -s очень важен, т.к. bytesFromFile является статическим и не может быть разделён.
             var A = new string[] {"", "-s", "-f", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", tmpDir!.FullName};
 
