@@ -309,7 +309,7 @@ public unsafe partial class AutoCrypt
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
-                            file.Flush();
+                            file.Flush(true);
                         }
                         // Готовим новый файл категорий
                         using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -325,7 +325,7 @@ public unsafe partial class AutoCrypt
                             catFile.Write(bt2);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
-                            catFile.Flush();
+                            catFile.Flush(true);
                         }
                     }
                     else
@@ -341,7 +341,7 @@ public unsafe partial class AutoCrypt
                             st2[0] = (ushort)(pos.catPos);
                             catFile.Write(bt2);
                             catFile.Write(nullBlock, 0, FullBlockSyncLen);
-                            catFile.Flush();
+                            catFile.Flush(true);
 
                             sync3.Clear();
                             sync4.Clear();
@@ -389,13 +389,13 @@ public unsafe partial class AutoCrypt
                             catFile.Write(bt2);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
-                            catFile.Flush();
+                            catFile.Flush(true);
                         }
 
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
-                            file.Flush();
+                            file.Flush(true);
                         }
                     }
                     else
@@ -411,11 +411,19 @@ public unsafe partial class AutoCrypt
 
                     File.WriteAllText(LockFile.FullName, "1");
 
-                    SafelyDeleteBlockFile(fn);
+                    // SafelyDeleteBlockFile(fn);
 
                     if (!isNull)
                     {
-                        File.Move(bfn, fn);
+                        // Move, похоже, не всегда синхронно заканчивается
+                        // File.Move(bfn, fn);
+                        using (var file = File.Open(fn, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+                        {
+                            file.Write(bytesFromFile);
+                            file.Flush(true);
+                        }
+
+                        SafelyDeleteBlockFile(bfn);
                     }
 
                     if (File.Exists(bcf))
