@@ -356,7 +356,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
         ExpandThreeFish();
     }
 // TODO: tests здесь не протестирована функция InitThreeFishByKey
-    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом. Tweak не трогает. После вызова этой функции можно вызвать InitSubstitutionTable для инициализации таблицы перестановок отдельно, либо InitThreeFishByCascade для переинициализации как таблицы перестановок, так и ключей ThreeFish.</summary>
+    /// <summary>Инициализирует ThreeFish пустым (нулевым) ключом. Tweak не трогает. После вызова этой функции можно вызвать InitSubstitutionTable для инициализации таблицы перестановок отдельно, либо InitThreeFishByCascade для переинициализации как таблицы перестановок, так и ключей ThreeFish. Эта функция не делает шаг шифрования, только лишь заполняет значения.</summary>
     public void InitThreeFishByKey(Record key)
     {
         ObjectDisposedCheck("CascadeSponge_1t_20230905.InitThreeFishByKey");
