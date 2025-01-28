@@ -204,16 +204,8 @@ public unsafe partial class AutoCrypt
 
                 try
                 {
-                    using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {
-                        file.Read(bytesFromFile);
-                    }
-                    using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {
-                        catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                        catFile.Read(sync1);
-                        catFile.Read(sync2);
-                    }
+                    ReadFile(fn);
+                    ReadCats(pos, cf);
 
                     // Расшифрование данных
                     DoDecrypt(pos);
@@ -247,6 +239,24 @@ public unsafe partial class AutoCrypt
             return size;
         }
 
+        private static void ReadCats((nint file, nint position, nint size, nint catFile, nint catPos) pos, string cf)
+        {
+            using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                catFile.Seek(pos.catPos, SeekOrigin.Begin);
+                catFile.Read(sync1);
+                catFile.Read(sync2);
+            }
+        }
+
+        private static void ReadFile(string fn)
+        {
+            using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                file.Read(bytesFromFile);
+            }
+        }
+
         const int posAlignMask = 127;
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
@@ -273,16 +283,13 @@ public unsafe partial class AutoCrypt
 
                 var (fn, bfn) = GetFileNumberName   (pos);
                 var (cf, bcf) = GetCatFileNumberName(pos);
-                var isNull = false;
+                var isNull    = false;
                 var notExists = false;
 
                 try
                 {
-                    using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
-                    {
-                        file.Read(bytesFromFile);
-                    }
-                    ReadFullCatFile(pos, cf);
+                    ReadFileForWrite(fn);
+                    ReadFullCatFile (pos, cf);
 
                     // Расшифрование данных
                     DoDecrypt(pos);
@@ -446,6 +453,14 @@ public unsafe partial class AutoCrypt
             keccakA!     .Clear();
 
             return size;
+        }
+
+        private static void ReadFileForWrite(string fn)
+        {
+            using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                file.Read(bytesFromFile);
+            }
         }
 
         /// <summary>Записывает в файл категорий (синхропосылок) новые синхропосылки</summary>
