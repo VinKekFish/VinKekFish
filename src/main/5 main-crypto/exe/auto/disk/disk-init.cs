@@ -108,7 +108,8 @@ public unsafe partial class AutoCrypt
         public enum AlgorithmType
         {                                        /// <summary>keccak + ThreeFish в обратной связи</summary>
             KeccakThreeFish = 0,                 /// <summary>Только keccak (ThreeFish при инициализации и вычислении хэша)</summary>
-            Keccak = 1
+            Keccak = 1,                          /// <summary>keccak + ThreeFish в обратной связи, версия 1.1</summary>
+            KeccakThreeFish11 = 2
         };
 
         /// <summary>Если true, то директория с диском была создана программой в этом запуске, а не существовала ранее.</summary>
@@ -118,7 +119,7 @@ public unsafe partial class AutoCrypt
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
 
-        public static AlgorithmType algType = AlgorithmType.KeccakThreeFish;
+        public static AlgorithmType algType = AlgorithmType.KeccakThreeFish11;
 
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
@@ -177,6 +178,16 @@ public unsafe partial class AutoCrypt
                                     if (isDebugMode)
                                     {
                                         Console.WriteLine("Set to AlgorithmType.KeccakThreeFish [512 + 1024]");
+                                    }
+                                break;
+
+                            case "keccakthreefish-1.1":
+                            case "keccakthreefish1.1":
+                            case "keccakthreefish11":
+                                    algType = AlgorithmType.KeccakThreeFish11;
+                                    if (isDebugMode)
+                                    {
+                                        Console.WriteLine("Set to AlgorithmType.KeccakThreeFish-1.1 [512 + 1024]");
                                     }
                                 break;
 
