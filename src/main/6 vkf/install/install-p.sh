@@ -60,6 +60,7 @@ pidof -q vkf
 while [[ $? -eq 0 ]]
 do
     echo
+    date
     echo 'Waiting for the end of processes (ru: Ожидаем завершения процессов) [see pidvkf=`pidof vkf`; kill $pidvkf]'
     pidvkf=`pidof vkf`
     ps h -o pid,user,cmd --pid $pidvkf
