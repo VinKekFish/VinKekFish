@@ -446,6 +446,8 @@ public unsafe partial class AutoCrypt
                         WriteNewSyncsInCatFile(cf, bcf, (ushort) (pos.catPos), sync3, sync4);
 
                     LockFile.Delete(); LockFile.Refresh();
+                    while (LockFile.Exists)
+                        Thread.Sleep(200);
                 }
             }
 
@@ -504,6 +506,8 @@ public unsafe partial class AutoCrypt
                 }
 
                 File.Delete(fn);
+                while (File.Exists(fn))
+                    Thread.Sleep(200);
             }
         }
 
