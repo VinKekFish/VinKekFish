@@ -113,6 +113,10 @@ mount-o:noexec=recursive,nosuid=recursive,nodev=recursive
 ```
 mount-o:noexec=recursive,nosuid=recursive,nodev=recursive,nosymfollow=recursive
 ```
+Опция `ro` монтирует файловую систему как "readonly" (только для чтения), однако сам логический диск монтируется и на запись.
+```
+mount-o:noexec=recursive,nosuid=recursive,nodev=recursive,nosymfollow=recursive,ro
+```
 
 ```
 Обратите особое внимание на то, что перечень опций разделён запятыми без пробелов. Наличие пробелов вызовет ошибку при монтировании.

@@ -27,6 +27,7 @@ using static AutoCrypt.Import;
 using System.Runtime.InteropServices.Marshalling;
 using CodeGenerated.Cryptoprimes;
 using System.Runtime.Intrinsics.X86;
+using System.ComponentModel.Design;
 
 public unsafe partial class AutoCrypt
 {
@@ -85,6 +86,9 @@ public unsafe partial class AutoCrypt
             {
                 Directory.CreateDirectory(UserDir!.FullName, UnixFileMode.None);
             }
+
+            BytesBuilder.ToNull(nullBlock);
+            BytesBuilder.FillByBytes(0xFF, FFBlock);
 
             FuseOperations* fuseOperations = stackalloc FuseOperations[1];
             fuseOperations->read    = &fuse_read;
@@ -314,30 +318,35 @@ public unsafe partial class AutoCrypt
                     // Копируем содержимое файла категорий
                     // File.Copy(cf, bcf);
 
+                    if ((pos.catPos & posAlignMask) > 0)
+                    {
+                        Console.WriteLine($"Fatal error: (pos.catPos & {posAlignMask}) > 0");
+                        return -(nint)PosixResult.EDOOFUS;
+                    }
+
                     isNull = IsNull(bytesFromFile);
                     if (!isNull)
                     {
                         GenerateNewSync(pos);
                         DoEncrypt(pos, sync3, sync4);
 
-                        File.WriteAllText(LockFile.FullName, "");
+                        // File.WriteAllText(LockFile.FullName, "");
+                        using (var lockFile = File.Open(LockFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                        {
+                            lockFile.Flush(true);
+                        }
+
                         // Новый файл с новым содержимым файла
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
                             file.Flush(true);
                         }
-                        // Готовим новый файл категорий
+                        // Готовим временный файл с резервной записью в файл категорий
                         using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
-                            if ((pos.catPos & posAlignMask) > 0)
-                            {
-                                Console.WriteLine($"Fatal error: (pos.catPos & {posAlignMask}) > 0");
-                                return -(nint)PosixResult.EDOOFUS;
-                            }
 
                             st2[0] = (ushort)(pos.catPos);
-                            // catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(bt2);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
@@ -346,14 +355,9 @@ public unsafe partial class AutoCrypt
                     }
                     else
                     {
+                        // Готовим временный файл с резервной записью в файл категорий
                         using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
-                            if ((pos.catPos & posAlignMask) > 0)
-                            {
-                                Console.WriteLine($"Fatal error: (pos.catPos & {posAlignMask}) > 0");
-                                return -(nint)PosixResult.EDOOFUS;
-                            }
-
                             st2[0] = (ushort)(pos.catPos);
                             catFile.Write(bt2);
                             catFile.Write(nullBlock, 0, FullBlockSyncLen);
@@ -367,7 +371,7 @@ public unsafe partial class AutoCrypt
 
                         if (IsNull(catBytes))
                         {
-                            File.Delete(bcf);
+                            SafelyDeleteBlockFile(bcf);
                         }
                     }
                 }
@@ -384,24 +388,20 @@ public unsafe partial class AutoCrypt
 
                     if (!isNull)
                     {
-                        File.WriteAllText(LockFile.FullName, "");
-
-                        if (!File.Exists(cf))
+                        // File.WriteAllText(LockFile.FullName, "");
+                        using (var lockFile = File.Open(LockFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
-                            var nullFileName = Path.Combine(DataDir!.FullName, "null");
-                            File.WriteAllBytes(nullFileName, nullBlock);
-                            File.Move(nullFileName, cf);
+                            lockFile.Flush(true);
                         }
 
                         ReadFullCatFile(pos, cf);
 
-                        using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
-                        {
-                            GenerateNewSync(pos);
-                            DoEncrypt(pos, sync3, sync4);
+                        GenerateNewSync(pos);
+                        DoEncrypt(pos, sync3, sync4);
 
+                        using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                        {
                             st2[0] = (ushort)(pos.catPos);
-                            // catFile.Seek(pos.catPos, SeekOrigin.Begin);
                             catFile.Write(bt2);
                             catFile.Write(sync3);
                             catFile.Write(sync4);
@@ -425,7 +425,12 @@ public unsafe partial class AutoCrypt
                     if (destroyed)
                         throw new InvalidOperationException();
 
-                    File.WriteAllText(LockFile.FullName, "1");
+                    // File.WriteAllText(LockFile.FullName, "1");
+                    using (var lockFile = File.Open(LockFile.FullName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+                    {
+                        lockFile.SetLength(1);
+                        lockFile.Flush(true);
+                    }
 
                     // SafelyDeleteBlockFile(fn);
 
@@ -438,19 +443,25 @@ public unsafe partial class AutoCrypt
                             file.Write(bytesFromFile);
                             file.Flush(true);
                         }
-
-                        SafelyDeleteBlockFile(bfn);
                     }
+                    else
+                        SafelyDeleteBlockFile(fn);
 
+                    // Если bcf (backup-cf) существует, записываем нужные данные
                     if (File.Exists(bcf))
                         WriteNewSyncsInCatFile(cf, bcf, (ushort) (pos.catPos), sync3, sync4);
 
-                    LockFile.Delete(); LockFile.Refresh();
-                    while (LockFile.Exists)
+                    // File.WriteAllText(LockFile.FullName, "22");
+                    using (var lockFile = File.Open(LockFile.FullName, FileMode.Open, FileAccess.Write, FileShare.None))
                     {
-                        Thread.Sleep(200);
-                        LockFile.Refresh();
+                        lockFile.SetLength(2);
+                        lockFile.Flush(true);
                     }
+
+                    SafelyDeleteBlockFile(bfn);
+                    SafelyDeleteBlockFile(bcf, FullBlockSyncLen + sizeof(ushort));
+
+                    DoDeleteFile(LockFile.FullName);
                 }
             }
 
@@ -458,6 +469,17 @@ public unsafe partial class AutoCrypt
             keccakA!     .Clear();
 
             return size;
+        }
+
+        private static void CreateNewCatFile(string cf)
+        {
+            using (var file = File.Open(cf, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+            {
+                file.SetLength(blockSize);
+                file.Flush(true);
+                file.Write(nullBlock);
+                file.Flush(true);
+            }
         }
 
         private static void ReadFileForWrite(string fn)
@@ -481,14 +503,19 @@ public unsafe partial class AutoCrypt
                 catFile.Seek (catPos, SeekOrigin.Begin);
                 catFile.Write(sync3);
                 catFile.Write(sync4);
-                catFile.Flush();
+                catFile.Flush(true);
             }
-
-            SafelyDeleteBlockFile(bcf, FullBlockSyncLen + sizeof(ushort));
         }
 
+        /// <summary>Читает содержимое файла категорий в статический массив catBytes</summary>
         private static void ReadFullCatFile((nint file, nint position, nint size, nint catFile, nint catPos) pos, string cf)
         {
+            var fi = new FileInfo(cf); fi.Refresh();
+            if (!fi.Exists || fi.Length != blockSize)
+            {
+                CreateNewCatFile(cf);
+            }
+
             using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 catFile.Read(catBytes);
@@ -505,13 +532,43 @@ public unsafe partial class AutoCrypt
                 if (!FastDeleteFlag)
                 using (var file = File.OpenWrite(fn))
                 {
-                    file.Write(nullBlock, 0, len);
+                    // Записываем FFBlock, чтобы данные в bcf-файле не могли быть перезаписаны нулями и далее быть интерпретированы как верные
+                    file.Write(FFBlock, 0, len);
                 }
 
-                File.Delete(fn);
-                while (File.Exists(fn))
-                    Thread.Sleep(200);
+                DoDeleteFile(fn);
             }
+        }
+
+        /// <summary>Эта функция делает перемещение файла, но без переименования, копированием содержимого. Синхронная</summary>
+        /// <param name="source">Файл-источник.</param>
+        /// <param name="newFile">Файл-приёмник.</param>
+        public static void DoMoveFile(FileInfo source, FileInfo newFile)
+        {
+             source.Refresh();
+            newFile.Refresh();
+
+            Span<byte> sb = stackalloc byte[(int) source.Length];
+            using (var src  = File.Open( source.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                src.Read(sb);
+            }
+
+            using (var dest = File.Open(newFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                dest.Write(sb);
+                dest.Flush(true);
+            }
+        }
+
+        /// <summary>Синхронно удаляет файл (без перезаписи содержимого, см. SafelyDeleteBlockFile) и проверяет, что файл удалён. Никто другой не должен пытаться создать этот файл в это время.</summary>
+        /// <param name="fileToDelete">Файл к удалению</param>
+        public static void DoDeleteFile(string fileToDelete)
+        {
+            File.Delete(fileToDelete);
+
+            while (File.Exists(fileToDelete))
+                Thread.Sleep(200);
         }
 
         private static void CorrectLockFileIfExists()
@@ -533,6 +590,13 @@ public unsafe partial class AutoCrypt
                 // file - это backup-файл
                 foreach (var file in files)
                 {
+                    if (lf.Length == 2)
+                    {
+                        SafelyDeleteBlockFile(file.FullName, (int) file.Length);
+                        Console.WriteLine(L("Backup file in third phase of transaction deleted (it is normal)") + ": " + file.FullName);
+                        continue;
+                    }
+
                     // Вычисляем имя основного файла, после чего удалим основной файл и заменим его файлом бэкапа
                     var fn  = Path.Combine(DataDir.FullName, file.Name.Substring(SyncBackupName.Length));
                     var fin = new FileInfo(fn); fin.Refresh();
@@ -545,8 +609,9 @@ public unsafe partial class AutoCrypt
                             SafelyDeleteBlockFile(fn);
                         }
 
-                        file.MoveTo(fn, false);
-                        Console.WriteLine(L("Data file resored") + ": " + fn);
+                        DoMoveFile(file, fin);
+                        SafelyDeleteBlockFile(file.FullName);
+                        Console.WriteLine(L("Data file restored") + ": " + fn);
                     }
                     else
                     if (file.Length != FullBlockSyncLen + sizeof(ushort))
@@ -565,7 +630,7 @@ public unsafe partial class AutoCrypt
                         {
                             bFile.Read(bt2);
                             catPos = st2[0];
-                            if ((catPos & posAlignMask) > 0)
+                            if ((catPos & posAlignMask) > 0 && catPos != 0xFF)
                             {
                                 // SafelyDeleteBlockFile(file.FullName, (int) file.Length);
                                 Console.WriteLine(L("File damaged") + ": " + file.FullName);
@@ -595,13 +660,12 @@ public unsafe partial class AutoCrypt
             {
                 foreach (var file in files)
                 {
-                    // file.Delete();
                     SafelyDeleteBlockFile(file.FullName, (int) file.Length);
                     Console.WriteLine(L("An uninitialized file has been deleted") + ": " + file.FullName);
                 }
             }
 
-            LockFile.Delete();
+            DoDeleteFile(LockFile.FullName);
             Console.WriteLine(L("Lock file corrected") + ".");
         }
 
@@ -1009,6 +1073,7 @@ public unsafe partial class AutoCrypt
         private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "block128");
 
         private static byte[] nullBlock = new byte[blockSize];
+        private static byte[]   FFBlock = new byte[blockSize];
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static int fuse_getattr(byte * fileNamePtr, FuseFileStat* stat, FuseFileInfo * fileInfo)
@@ -1141,7 +1206,7 @@ public unsafe partial class AutoCrypt
                                 // В команде подставить верный номер loop устройства
                                 var iN = FileSize >> 16;
                                 // Это форматирование файловой системы пользователя.
-                                pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index" + " " + loopDev);
+                                pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink" + " " + loopDev);
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
