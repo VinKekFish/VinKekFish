@@ -114,7 +114,8 @@ public unsafe partial class AutoCrypt
 
         /// <summary>Если true, то директория с диском была создана программой в этом запуске, а не существовала ранее.</summary>
         public static bool   isFirstTimeCreatedDir = false;                     /// <summary>Отформатировать раздел, даже если он проинициализирован.</summary>
-        public static bool   ForcedFormatFlag      = false;                     /// <summary>Удаление без перезатирания.</summary>
+        public static bool   ForcedFormatFlag      = false;                     /// <summary>При форматировании не создавать журнал.</summary>
+        public static bool   NoJournalFlag         = false;                     /// <summary>Удаление без перезатирания.</summary>
         public static bool   FastDeleteFlag        = false;
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
@@ -146,6 +147,10 @@ public unsafe partial class AutoCrypt
                         mount-o:noexec,nosuid,nodev
                         alg:KeccakThreeFish
                         start:
+
+                        (helper commands)
+                        forced-format: true
+                        no-journal: true
 
                         Example:
                         data:/sync_folder/
@@ -227,6 +232,19 @@ public unsafe partial class AutoCrypt
                                 Console.WriteLine("forced-format: true");
                             else
                                 Console.WriteLine("forced-format: false");
+                        }
+
+                        goto start;
+                case "no-journal":
+                        val = command.value.Trim().ToLowerInvariant();
+                        NoJournalFlag = val == "true" || val == "1" || val == "yes";
+
+                        if (isDebugMode)
+                        {
+                            if (NoJournalFlag)
+                                Console.WriteLine("no-journal: true");
+                            else
+                                Console.WriteLine("no-journal: false");
                         }
 
                         goto start;
