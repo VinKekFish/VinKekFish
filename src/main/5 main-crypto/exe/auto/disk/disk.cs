@@ -346,7 +346,7 @@ public unsafe partial class AutoCrypt
                     }
                     else
                     {
-                        using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                        using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             if ((pos.catPos & posAlignMask) > 0)
                             {
@@ -447,7 +447,10 @@ public unsafe partial class AutoCrypt
 
                     LockFile.Delete(); LockFile.Refresh();
                     while (LockFile.Exists)
+                    {
                         Thread.Sleep(200);
+                        LockFile.Refresh();
+                    }
                 }
             }
 
