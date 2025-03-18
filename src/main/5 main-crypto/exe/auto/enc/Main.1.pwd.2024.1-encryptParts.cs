@@ -26,7 +26,7 @@ public unsafe partial class Main_1_PWD_2024_1
         protected void EncryptStage1()
         {
             // Инициализация первой губки для гаммирования с обратной связью.
-            using var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
+            using var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.log };
             sponge.InitThreeFishByKey(Key1Csc_init);
             sponge.InitKeyAndOIV(Key1Csc, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
             sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);
@@ -80,7 +80,7 @@ public unsafe partial class Main_1_PWD_2024_1
         {
             // При освобождении gen автоматически освободятся и губки, входящие в него
             using var gen    = new GetDataByAdd();
-                  var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
+                  var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.log };
                   var vkf    = new VinKekFishBase_KN_20210525(vkfOpt.Rounds, vkfOpt.K);
 
             sponge.InitThreeFishByKey(Key2Csc_init);
@@ -108,7 +108,7 @@ public unsafe partial class Main_1_PWD_2024_1
         protected void EncryptStage4()
         {
             // Инициализация второй губки для гаммирования с обратной связью.
-            using var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
+            using var sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.log };
             sponge.InitThreeFishByKey(Key4Csc_init);
             sponge.InitKeyAndOIV(Key4Csc, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
             sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);
@@ -150,7 +150,7 @@ public unsafe partial class Main_1_PWD_2024_1
         protected void EncryptStagePermutation(Record key, Record key_init, byte regime, out CascadeSponge_mt_20230930 sponge)
         {
             // Инициализация губки для вычисления перестановок.
-            sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
+            sponge = new CascadeSponge_mt_20230930(_wide: wide, _tall: tall) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.log };
             sponge.InitThreeFishByKey(key_init);
             sponge.InitKeyAndOIV(key, InitThreeFishByCascade_stepToKeyConst: 0);        // Не делаем встроенной инициализации ThreeFish, чтобы сделать её затем с другими параметрами
             sponge.InitThreeFishByCascade(stepToKeyConst: cscOpt.InitSteps, countOfSteps: cscOpt.ArmoringSteps, countOfStepsForSubstitutionTable: cscOpt.StepsForTable);

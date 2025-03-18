@@ -137,6 +137,7 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             TypeForShortStepForAbsorption.effective => countStepsForEffectiveAbsorption, // => 1
             TypeForShortStepForAbsorption.elevated  => 2,
             TypeForShortStepForAbsorption.full      => tall,
+            TypeForShortStepForAbsorption.log       => tall2log2 > 0 ? tall2log2 : throw new CascadeSpongeException("tall2log2 is not initialized"),
             _ => throw new InvalidDataException("CascadeSponge_1t_20230905.step: switch (StepTypeForAbsorption).default"),
         };
     }

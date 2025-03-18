@@ -61,11 +61,15 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     public    enum  TypeForShortStepForAbsorption
     {                                                /// <summary>Значение не установлено. Используется в функциях для использования значения по умолчанию.</summary>
         undefined = 0,                               /// <summary>Будет сделан только один шаг на впитывание. Это уменьшает стойкость к нахождению второго прообраза при атаке на хеш до 512-ти битов.</summary>
-        weak = 1,                                    /// <summary>Количество шагов на впитывание будет рассчитано исходя из того, что вероятность взникновения коллизионного блока при нахождении второго прообраза будет не более чем -(20+256) битов (это всегда один шаг). ::docs:blukp2nlAfFcIXUzG6Pd:</summary>
-        effective = 2,                               /// <summary>Количество шагов на впитывание равно 2. ::docs:blukp2nlAfFcIXUzG6Pd:</summary>
+        weak = 1,                                    /// <summary>Количество шагов на впитывание будет рассчитано исходя из того, что вероятность взникновения коллизионного блока при нахождении второго прообраза будет не более чем -(20+256) битов (это всегда дополнительно один шаг). ::docs:blukp2nlAfFcIXUzG6Pd:</summary>
+        effective = 2,                               /// <summary>Количество шагов на впитывание равно 2.</summary>
         elevated  = 3,                               /// <summary>Полное впитывание: будет сделано tall шагов на впитывание одного и того же блока данных.</summary>
-        full = 4
+        full = 4,                                    /// <summary>Рекомендуется. Количество шагов будет рассчитано как 2*log[2](tall)</summary>
+        log  = 5
     };
+
+    /// <summary>Значение 2 * log2(tall). Используется как количество шагов, при применении TypeForShortStepForAbsorption.log</summary>
+    public readonly nint tall2log2 = -1;
 
     /// <summary>Создаёт каскадную губку (каскад) по заданной целевой стойкости и длине блока.</summary>
     /// <param name="_strenghtInBytes">Стойкость в байтах (512 байтов = 4096 битов).</param>
@@ -183,6 +187,8 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905: wide < CalcMinWide ({wide} < {CalcMinWide(tall)})");
         if ((_wide & 1) > 0)
             throw new CascadeSpongeException($"CascadeSponge_1t_20230905: (_wide & 1) > 0 ({wide})");
+
+        tall2log2 = (nint) Math.Ceiling( 2 * Math.Log2(tall) );
 
         try
         {

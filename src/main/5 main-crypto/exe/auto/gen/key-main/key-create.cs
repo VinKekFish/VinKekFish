@@ -169,15 +169,16 @@ public unsafe partial class AutoCrypt
         /// <param name="obfRegimeName">Дополнительная рандомизирующая информация, полученная из функции AddStartPart.</param>
         /// <param name="OIV">Главная синхропосылка.</param>
         /// <param name="OIV_parts">Части синхропосылки из отдельных файлов.</param>
-        /// <param name="VinKekFish_KeyGenerator">Созданный генератор ключей на основе VinKekFish. Для сведения. Может не использоваться и не удаляться.</param>
-        /// <param name="Cascade_KeyGenerator">Созданный генератор ключей на основе каскадной губки. Для сведения. Может не использоваться и не удаляться.</param>
+        /// <param name="VinKekFish_KeyGenerator">Созданный генератор ключей на основе VinKekFish. Для сведения. Может не использоваться и не удаляться (удаляется автоматически при удалении генератора).</param>
+        /// <param name="Cascade_KeyGenerator">Созданный генератор ключей на основе каскадной губки. Для сведения. Может не использоваться и не удаляться (удаляется автоматически при удалении генератора).</param>
         /// <param name="noPwd"></param>
+        /// <param name="StepTypeForAbsorption">Флаг, указывающий на количество шагов на впитывание данных.</param>
         /// <returns>Генератор ключей для шифрования</returns>
-        public GetDataByAdd InitKeyGenerator(Record obfRegimeName, Record OIV, List<Record> OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, out CascadeSponge_mt_20230930? Cascade_KeyGenerator, bool noPwd)
+        public GetDataByAdd InitKeyGenerator(Record obfRegimeName, Record OIV, List<Record> OIV_parts, out VinKekFishBase_KN_20210525? VinKekFish_KeyGenerator, out CascadeSponge_mt_20230930? Cascade_KeyGenerator, bool noPwd, CascadeSponge_1t_20230905.TypeForShortStepForAbsorption StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.log)
         {
             // Инициализируем генераторы ключей синхропосылками
             var regime_KG = 3;
-            Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes) { StepTypeForAbsorption = CascadeSponge_1t_20230905.TypeForShortStepForAbsorption.effective };
+            Cascade_KeyGenerator = new CascadeSponge_mt_20230930(Cascade_KeyOpts.StrengthInBytes) { StepTypeForAbsorption = StepTypeForAbsorption };
             Cascade_KeyGenerator.Step(data: obfRegimeName, dataLen: obfRegimeName.len, regime: 1);
             Cascade_KeyGenerator.Step(data: OIV,           dataLen: OIV.len,           regime: 2);
 
