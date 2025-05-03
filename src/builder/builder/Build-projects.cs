@@ -118,6 +118,8 @@ partial class Program
                 bb.Add("5");
         }
 
+        // Строим билд, независимый от dotnet
+        
 
         // ----------------  vkf: главная консольная программа ----------------
         var vkf_folder = "src/main/6 vkf";
