@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>cryptoprime</name>
+    </assembly>
+    <members>
+        <member name="T:cryptoprime.KeccakPrime">
+            <summary>Статический класс, предоставляющий базовые функции и константы keccak. Пример использования см. в vinkekfish.Keccak_PRNG_20201128</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.S_len">
+            <summary>Длина строки матрицы в ulong: 5 элементов ulong. См. также c_size</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.S_len2">
+            <summary>Размер матрицы в значениях ulong: 5*5=25 элементов ulong. См. также b_size</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.r_512">
+            <summary>rate в битах - 576 (размер внешней части криптографического состояния - блок вводимых данных)</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.r_512b">
+            <summary>rate в байтах = 72, это размер блока ввода/вывода за один раз</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.r_512s">
+            <summary>rate в ulong = 9</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.b_size">
+            <summary>25*8=200. Размер основной матрицы S (или "a") и вспомогательной матрицы b в байтах - равен размеру криптографического состояния</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.c_size">
+            <summary>5*8=40. Размер вспомогательной матрицы c в байтах - равен размеру строки криптографического состояния. Используется для транспонирования</summary>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.RC">
+            <summary>Раундовые коэффициенты для шага ι</summary>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.RoundB(System.UInt64*,System.UInt64*,System.UInt64*)">
+            <summary>Реализация раундового преобразования</summary>
+            <param name="a">Матрица S (a) - внутреннее состояние. Размер b_size (25*8=200 байтов) либо S_len2 в ulong (25 ulong)</param>
+            <param name="c">Вспомогательная матрица размером c_size (5*8=40 байтов)</param>
+            <param name="b">Вспомогательная матрица размером b_size (25*8=200 байтов)</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccackf(System.UInt64*,System.UInt64*,System.UInt64*)">
+            <summary>Все раунды keccak (24 раунда). a == S, c= C, b = B</summary>
+            <param name="a">Зафиксированное внутреннее состояние S: 25 * ulong (константа b_size или S_len2*ulong)</param>
+            <param name="c">Массив  C (значения не важны):  5 * ulong (константа c_size=40)</param>
+            <param name="b">Матрица B (значения не важны): 25 * ulong (константа b_size=200)</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccack_i(System.UInt64*,System.UInt64*,System.UInt64*,System.Int32,System.Int32)">
+            <summary>Неполнораундовый keccack. Параметры аналогичны Keccackf</summary>
+            <param name="a">Внутреннее состояние S</param>
+            <param name="c">Массив C (состояние не важно)</param>
+            <param name="b">Матрица B (состояние не важно)</param>
+            <param name="start">Начальный раунд, считается от нуля</param>
+            <param name="count">Количество шагов (всего шагов столько, сколько констант в RC)</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccak_Input_512(System.Byte*,System.Byte,System.Byte*,System.Boolean)">
+            <summary>Ввод данных в состояние keccak. Предназначен только для версии 512 битов</summary>
+            <param name="message">Указатель на очередную порцию данных</param>
+            <param name="len">Количество байтов для записи (не более 72-х; константа r_512b)</param>
+            <param name="S">Внутреннее состояние S</param>
+            <param name="setPaddings">Если <see langword="true"/> - ввести padding в массив (при вычислении хеша делать на последнем блоке <![CDATA[<=]]> 71 байта)</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccak_Input_SHA512(System.Byte*,System.Byte,System.Byte*,System.Boolean)">
+            <summary>Ввод данных в состояние keccak для SHA-3 512</summary>
+            <param name="message">Указатель на очередную порцию данных</param>
+            <param name="len">Количество байтов для записи (не более 72-х; константа r_512b)</param>
+            <param name="S">Внутреннее состояние S</param>
+            <param name="setPaddings">Если <see langword="true"/> - ввести padding в массив (при вычислении хеша делать на последнем блоке <![CDATA[<=]]> 71 байта)</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccak_InputOverwrite64_512(System.Byte*,System.Byte,System.Byte*,System.Byte,System.Byte)">
+            <summary>
+            Эта конструкция разработана по мотивам keccak Overwrite, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием, а логический режим ввода, заменяющий framebit, вводится как xor с ещё одним байтом внутреннего состояния. Это рекомендуемая разработчиком VinKekFish функция.
+            </summary>
+            <param name="message">64 байта или менее для ввода с помощью перезаписи. Может быть null, если len == 0</param>
+            <param name="len">длина массива message, 64 или менее</param>
+            <param name="S">Внутреннее состояние keccak</param>
+            <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
+            <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину. Это поле можно использовать, если длина фактически вводимых данных строго известна заранее, а вот длина одной из частей этих данных имеет логическое значение и является переменной.</param>
+        </member>
+        <member name="F:cryptoprime.KeccakPrime.BlockLen">
+            <summary>Размер блока keccak в данной реализации (на ввод и на вывод)</summary>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccak_Input64_512(System.Byte*,System.Byte,System.Byte*,System.Byte,System.Byte)">
+            <summary>
+            Эта конструкция разработана по мотивам keccak Sponge, но немного от неё отличается. Здесь нет padding, нет framebit. Количество вводимых байтов вводится xor с внутренним состоянием, а логический режим ввода, заменяющий framebit, вводится как xor с ещё одним байтом внутреннего состояния. Это рекомендуемая разработчиком VinKekFish функция.
+            </summary>
+            <param name="message">64 байта или менее для ввода с помощью перезаписи. Может быть null, если len == 0</param>
+            <param name="len">длина массива message, 64 или менее</param>
+            <param name="S">Внутреннее состояние keccak</param>
+            <param name="regime">Режим ввода: аналог framebit, но в виде байта</param>
+            <param name="logicalLen">Логическая длина ввода. Эта записываемая в губку длина ввода. По умолчанию (==255) записывается фактическая длина ввода. Однако, в некоторых ситуациях необходимо записать другую длину. Это поле можно использовать, если длина фактически вводимых данных строго известна заранее, а вот длина одной из частей этих данных имеет логическое значение и является переменной.</param>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.Keccak_Output_512(System.Byte*,System.Byte,System.Byte*)">
+            <summary>Вывод данных из состояния keccak. Предназначен только для версии 512 битов</summary>
+            <param name="output">Указатель на массив, готовый принять данные :[0, 72]</param>
+            <param name="len">Количество байтов для записи (не более 72-х; константа r_512b). Обычно используется 64 - это стойкость данного криптографического преобразования. <para>При использовании Keccak_Input64_512 и Keccak_InputOverwrite64_512 вывод не более 64-х байтов</para></param>
+            <param name="S">Внутреннее состояние S :[200]</param>
+            <remarks>При вызове надо проверить, что output всегда нужной длины</remarks>
+        </member>
+        <member name="M:cryptoprime.KeccakPrime.GetSHA3_512(System.Byte[],System.Byte[])">
+            <summary>Вычисляет хеш SHA-3 с длиной 512 битов</summary>
+            <param name="message">Сообщение для хеширования</param>
+            <param name="forHash">Массив размером 64 байта (может быть null). После выполнения функции заполнен хешем SHA-3 512, размер 64 байта</param>
+            <returns>Хеш SHA-3 512, размер 64 байта (если forHash не был равен нулю, то это ссылка на массив forHash)</returns>
+        </member>
+        <member name="M:cryptoprime.Threefish1024.#ctor(System.Byte*,System.IntPtr,System.Byte*,System.IntPtr)">
+            <summary>Создаёт вспомогательные массивы с расширенным ключом и твик для использования в Threefish_Static_Generated</summary>
+            <param name="Key">Ключ. Можно удалять после передачи в конструктор.</param><param name="kLen">Длина ключа (keyLen=128)</param>
+            <param name="Tweak">tweak. Можно удалять после передачи в конструктор.</param><param name="tLen">Длина твика (twLen=16)</param>
+        </member>
+        <member name="M:cryptoprime.Threefish1024.GenExpandedKey(System.UInt64*)">
+            <summary>Сгенерировать расширение ключа</summary>
+            <param name="tk">Ключ с дополнительным 8-мибайтовым словом для расширения (слово расширения в конце)</param>
+        </member>
+        <member name="M:CodeGenerated.Cryptoprimes.Threefish_Static_Generated.Threefish1024_step(System.UInt64*,System.UInt64*,System.UInt64*)">
+            <summary>Step for Threefish1024. DANGER! Do not use directly. See Threefish1024 for prepare</summary>
+            <param name="key">Key for cipher (128 bytes)</param>
+            <param name="tweak">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>
+            <param name="text">Open text for cipher</param>
+        </member>
+        <member name="M:CodeGenerated.Cryptoprimes.Threefish_Static_Generated2.Threefish1024_step(System.Byte*,System.Byte*,System.Byte*)">
+            <summary>Step for Threefish1024. DANGER! Tweak contain 3 elements of ulong, not 2!!! (third value is a tweak[0] ^ tweak[1])</summary>
+            <param name="key">Key for cipher (128 bytes)</param>
+            <param name="tweak">Tweak for cipher. DANGER! Tweak is a 8*3 bytes, not 8*2!!! (third value is a tweak[0] ^ tweak[1])</param>
+            <param name="text">Open text for cipher</param>
+        </member>
+    </members>
+</doc>

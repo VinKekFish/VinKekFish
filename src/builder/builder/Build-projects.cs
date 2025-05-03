@@ -118,9 +118,6 @@ partial class Program
                 bb.Add("5");
         }
 
-        // Строим билд, независимый от dotnet
-        
-
         // ----------------  vkf: главная консольная программа ----------------
         var vkf_folder = "src/main/6 vkf";
         var ckf_vFile = "/Program-version.cs";
@@ -150,8 +147,13 @@ partial class Program
                 return result;
         }
 
-
-
+        // Строим билд, независимый от dotnet
+        if (BuildDotnetIndependenceVersionFlag)
+        {
+            CopyFiles("src/main/4 utils/languages/locales",  "*.loc", "build.run/locales");
+            ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: true, SelfContained: true, output: "./build.run");
+            End_build_for_project_event?.Invoke(result, dir);
+        }
 
         // ----------------  All tests executor. MUST BE LAST  ----------------
         // Кроме одноразовых тестов test-dev

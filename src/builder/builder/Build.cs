@@ -6,10 +6,10 @@ namespace builder;
 
 partial class Program
 {
-    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true, DateTime lastModified = default, bool SelfContained = false)
+    public static (ErrorCode, DirectoryInfo) ExecuteBuildForProject(string currentDirectoryPath, string projectRelativePath, bool inSingleFile = true, bool isActualCheck = true, DateTime lastModified = default, bool SelfContained = false, string? output = null)
     {
         var configurationForDotNet = Program.configuration;
-        var output                 = Program.output;
+            output               ??= Program.output;
             output                 = Path.Combine(currentDirectoryPath, output);
         var output_di              = new DirectoryInfo(output);
 
@@ -46,9 +46,14 @@ partial class Program
         if (Program.no_restore)
             no_restore_string = "--no-restore";
 
+        var runtimeString = "";
+        if (SelfContained)
+            runtimeString = "--runtime linux-x64";
+
+        // https://learn.microsoft.com/ru-ru/dotnet/core/tools/dotnet-build
         var buildVersion = GetDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
-        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained {SelfContained} --use-current-runtime false {inSingleFileString}";
+        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained {SelfContained} {runtimeString} --use-current-runtime false {inSingleFileString}";
 
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;

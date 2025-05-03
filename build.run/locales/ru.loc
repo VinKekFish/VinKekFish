@@ -1,0 +1,181 @@
+Current culture: 
+    Текущая культура: 
+AuthorPresentationString
+    Автор: Виноградов Сергей Васильевич, Мытищи, Московская область, Россия; @2020-2020+
+Full help see at the program url (above)
+    Полную справку смотрите по url программы (указан выше)
+for execute as service
+    для запуска в качестве службы
+for execute without human
+    для запуска из другой программы
+for execute for human friendly
+    для дружелюбного к человеку запуска
+Not have right memory allocator
+    Нет в наличии верного аллокатора неуправляемой памяти
+You must disable swap file, if you have
+    Необходимо отключить файл подкачки, если он у вас есть (swappoff -a)
+Usage:
+    Использование:
+See an example of a config file in the program packet
+    Смотрите пример конфигурационного файла в программном пакете (service.options)
+Not implemented
+    Пока не реализовано
+Error: leaked memory in mmap: 
+    Ошибка при завершении работы программы: обнаружена утечка памяти в mmap: 
+Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+    Ошибка при завершении работы программы: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+Unhandled Exception occured
+    Возникла необработанная исключительная ситуация
+Initialization got random from file
+    Подпрограмма инициализации получила случайные байты из файла
+Initialization got random values from file or command
+    Подпрограмма инициализации получила случайные байты из файла или от команды
+Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required
+    Проверьте в файле настроек элемент input.entropy.OS.file. Требуется элемент 'interval' с ключевыми словами 'once' или '--'
+service started at
+    сервис запущен в
+initialization started at
+    Инициализация запущена в
+for get version information
+    для получения информации о версии
+The option file
+    Файл опций
+is exists. Will not replaced. Check this is correct manually
+    существует. Файл не будет перезаписан. Проверьте его правильность вручную. Если необходимо, удалите файл и запустите установку заново
+The .service file
+    .service файл
+Try to create character device by path /dev/
+    Пробуем создать символьное устройство по пути /dev/
+Startup entropy absorption has begun: initialization continues
+    Начато предварительное поглощение энтропии при запуске: инициализация продолжается
+Deep initialization has begun: initialization continues
+    Начата основная инициализация: инициализация продолжается
+Deep initialization: VinKekFish.Init1 ended
+    Основная инициализация: VinKekFish.Init1 закончено
+Deep initialization: VinKekFish.Init2 ended
+    Основная инициализация: VinKekFish.Init2 закончено
+Deep initialization: CascadeSponge.InitThreeFishByCascade ended
+    Основная инициализация: CascadeSponge.InitThreeFishByCascade закончено
+Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted). Entered
+    Байты энтропии были введены в главную губку (установлена настройка "do log every input entropy to sponge" для создания данной записи в логе). Введено
+'daemon-reload' and 'systemctl enable vkf' executed
+    'daemon-reload' и 'systemctl enable vkf' запущены
+File not found. Wait for creation:
+    Файл не найден. Ждём создания:
+File found successfully:
+    Файл успешно найден:
+Continuously reading has been ended by repeated errors
+    Непрерывное чтение было закончено в результате повторяющихся ошибок (см. ошибки выше)
+Error for command
+    Ошибка для команды
+A signal for end has been received
+    Получен сигнал завершения работы программы
+for check service file
+    для проверки конфигурационного файла для сервиса
+Have no enough arguments
+    Недостаточно аргументов
+Wait for getter
+    Ждём обработчика энтропии
+Entropy saved for the file
+    Энтропия (хешированная) сохранена в служебный файл (не используйте его напрямую)
+character device
+    символьное устройство
+failed to create
+    создать не удалось
+Wait for threads has been terminated by timeout
+    Ожидание потоков было прервано по таймауту
+From the file got zero bytes
+    Из файла получено 0 байтов
+sended to the main sponges (for the entire time of work)
+    послано в очередь главных губок (за всё время работы программы)
+bytes got from
+    байтов получено из
+Command is unknown (enter 'debug:' at the vkf start for more bit information)
+    Неизвестная команда (введите "debug:" при старте программы для получения чуть большей информации)
+bytes from all sources
+    байтов из всех источников
+Awaiting processing in the queue
+    Ожидают обработки
+Incorrect line
+    Некорректная строка
+The command line must contain a colon
+    Команда должна содержать двоеточие
+The command name not found
+    Имя команды не найдено
+Command name not found for line
+    В строке не найдено имя команды
+Right
+    Правильно
+Input 'name:value'
+    Введите 'имя:значение'
+K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    K может быть только 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+Command is unknown
+    Неизвестная команда
+Debug mode enabled
+    Режим отладки включён
+The primary initialization has started. This may take a long time.
+    Первичная инициализация началась. Она может занять длительное время.
+File not found or an another file system error occured
+    Файл не найден или произошла другая ошибка файловой системы
+outKeyFile is null
+    Файл результата для создаваемого ключа не указан или существует (out:path/to/file)
+Bytes received from additional random files
+    Байтов получено из всех дополнительных случайных файлов
+Simple key was writed to
+    Простой ключ записан в
+Password length is too small
+    Длина пароля слишком мала
+The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+    Пароль не может быть сброшен. Введено слишком много символов. Сбросить введённые символы можно только если введено количество символов менее
+The entered password characters have been reset. Start entering the password again.
+    Введённые символы пароля сброшены. Начните ввод парольных символов сначала.
+HELP MESSAGE FOR PasswordEnter
+    Ввод этого символа не засчитан. Ввод символов идёт в следующем порядке: номер строки (один символ), номер столбца (один символ). Повторите ввод парольного символа. Ввод должен осуществляться на английской раскладке клавиатуры. "Enter" или "пробел" - закончить ввод пароля. Если вы допустили ошибку при вводе номера строки или забыли номер столбца, нажмите символ q. "Escape" - сбросить весь введённый пароль. Сбрасывание пароля через "Escape" работает только если введено символов не более
+Press Enter to continue
+    Нажмите "Enter" для продолжения
+File output error: may be file exists?
+    Ошибка вывода в файл: возможно, файл существует?
+File name added
+    Добавлено имя файла
+Regime name is undefined
+    Имя режима шифрования не указано
+NOT IMPLEMENTED
+    НЕ РЕАЛИЗОВАНО
+Encryption stage
+    Стадия шифрования
+Encryption ended. Wait to write the file.
+    Шифрование закончено. Ждём записи в файл.
+Encryption ended. File ready to use.
+    Шифрование закончено. Файл готов к использованию.
+Data could not be read from file
+    Не удалось прочитать данные из файла
+File not found
+    Файл не найден
+Failed to connect to the socket
+    Не удалось соединиться с сокетом
+Program begin formatting the section...
+    Программа начинает форматирование раздела. Это может занять какое-то время: тем больше, чем больше размер создаваемого диска.
+Lock file detected
+    Lock file detected
+An attempt is being made to restore the file system
+    Пытаемся восстановить файловую систему
+File resored
+    Файл восстановлен
+Starting the generation of the main sync of the disk
+    Начинаем генерацию главной синхропосылки диска
+It may take a couple of tens of seconds
+    Это может занять пару десятков секунд
+Initialization continue
+    Инициализация продолжается
+An uninitialized file has been deleted
+    Непроинициализиированный файл удалён
+is exists. The volume already mounted? vkf exited.
+    существует. Логический диск уже подмонтирован? vkf будет завершён без монтирования.
+Lock file corrected
+    Lock-файл исправлен
+Already interrupted
+    Уже прекращён
+Try to unmount disk
+    Пытаемся размонтировать диск
+:

@@ -1,0 +1,181 @@
+Current culture: 
+    Current culture: 
+AuthorPresentationString
+    Author: Vinogradov Sergey Vasilievich, Mitistchy, Moscow Region, Russia; @2020-2020+
+Full help see at the program url (above)
+    Full help see at the program url (above)
+for execute as service
+    for execute as service
+for execute without human
+    for execute from an another program
+for execute for human friendly
+    for execute for human friendly
+Not have right memory allocator
+    Not have the right memory allocator
+You must disable swap file, if you have
+    You must disable swap file, if you have (swappoff -a)
+Usage:
+    Usage:
+See an example of a config file in the program packet
+    See an example of a config file in the program packet (service.options)
+Not implemented
+    Not implemented
+Error: leaked memory in mmap: 
+    Error at the end of the program: leaked memory in mmap: 
+Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+    Error at the end of the program: cryptoprime.BytesBuilderForPointers.Record.errorsInDispose
+Unhandled Exception occured
+    Unhandled Exception occured
+Initialization got random from file
+    Initialization got random from file
+Initialization got random values from file or command
+    Initialization got random values from file or by command
+Check the options file for the input.entropy.OS.file element. Interval element with 'once' or '--' keywords required
+    Check the option file for the input.entropy.OS.file element. 'Interval' element with 'once' or '--' keywords required
+service started at
+    service started at
+initialization started at
+    Initialization started at
+for get version information
+    for get version information
+The option file
+    The option file
+is exists. Will not replaced. Check this is correct manually
+    is exists. Will not rewrited. Check this is correct manually. If need then delete the file and restart the installation again
+The .service file
+    The .service file
+Try to create character device by path /dev/
+    Try to create character device by path /dev/
+Startup entropy absorption has begun: initialization continues
+    The preliminary startup entropy absorption has begun: initialization continues
+Deep initialization has begun: initialization continues
+    The main initialization has begun: initialization continues
+Deep initialization: VinKekFish.Init1 ended
+    Deep initialization: VinKekFish.Init1 ended
+Deep initialization: VinKekFish.Init2 ended
+    Deep initialization: VinKekFish.Init2 ended
+Deep initialization: CascadeSponge.InitThreeFishByCascade ended
+    Deep initialization: CascadeSponge.InitThreeFishByCascade ended
+Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted). Entered
+    Entropy bytes entered to the main sponge ("do log every input entropy to sponge" option is setted for make this log record). Entered
+'daemon-reload' and 'systemctl enable vkf' executed
+    'daemon-reload' and 'systemctl enable vkf' executed
+File not found. Wait for creation:
+    File not found. Wait for creation:
+File found successfully:
+    File found successfully:
+Continuously reading has been ended by repeated errors
+    Continuously reading has been ended by repeated errors (see above)
+Error for command
+    Error for command
+A signal for end has been received
+    A signal for termination has been received
+for check service file
+    for check the option file for the service
+Have no enough arguments
+    Have no enough arguments
+Wait for getter
+    Wait for an entropy getter
+Entropy saved for the file
+    Entropy (hashed) saved for the service file (do not use directly)
+character device
+    character device
+failed to create
+    failed to create
+Wait for threads has been terminated by timeout
+    Wait for threads has been terminated by timeout
+From the file got zero bytes
+    From the file got zero bytes
+sended to the main sponges (for the entire time of work)
+    sended to the main sponge queue (for the entire time of work)
+bytes got from
+    bytes got from
+Command is unknown (enter 'debug:' at the vkf start for more bit information)
+    Command is unknown (enter 'debug:' at the vkf start for more bit information)
+bytes from all sources
+    bytes from all sources
+Awaiting processing in the queue
+    Awaiting processing in the queue
+Incorrect line
+    Incorrect line
+The command line must contain a colon
+    The command line must contain a colon
+The command name not found
+    The command name not found
+Command name not found for line
+    Command name not found for line
+Right
+    Right
+Input 'name:value'
+    Input 'name:value'
+K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    K may be only is 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+Command is unknown
+    Command is unknown
+Debug mode enabled
+    Debug mode is enabled
+The primary initialization has started. This may take a long time.
+    The primary initialization has started. This may take a long time.
+File not found or an another file system error occured
+    File not found or an another file system error occured
+outKeyFile is null
+    The result file for the new key is not defined or exists (out:path/to/file)
+Bytes received from additional random files
+    Bytes received from all of additional random files
+Simple key was writed to
+    Simple key was writed to
+Password length is too small
+    Password length is too small
+The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+    The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than
+The entered password characters have been reset. Start entering the password again.
+    The entered password characters have been reset. Start entering the password again.
+HELP MESSAGE FOR PasswordEnter
+    The input of this character is not counted. The characters are entered in the following order: row number (one character), column number (one character). Let's re-enter the password character. The input must be done on the English keyboard layout. "Enter" or "space" - complete the password entry. If you made a mistake when entering the row number or forgot the column number, press the q symbol. "Escape" - reset the entire entered password. Password reset via "Escape" works only if no more than characters are entered
+Press Enter to continue
+    Press "Enter" to continue
+File output error: may be file exists?
+    File output error: may be file exists?
+File name added
+    File name added
+Regime name is undefined
+    Regime name is undefined
+NOT IMPLEMENTED
+    NOT IMPLEMENTED
+Encryption stage
+    Encryption stage
+Encryption ended. Wait to write the file.
+    Encryption ended. Wait to write the file.
+Encryption ended. File ready to use.
+    Encryption ended. File ready to use.
+Data could not be read from file
+    Data could not be read from file
+File not found
+    File not found
+Failed to connect to the socket
+    Failed to connect to the socket
+Program begin formatting the section...
+    Program begin formatting the partition. It may take some time: for the larger size of the disk this being created, the larger time is required.
+Lock file detected
+    Lock file detected
+An attempt is being made to restore the file system
+    An attempt is being made to restore the file system
+File resored
+    File resored
+Starting the generation of the main sync of the disk
+    Starting the generation of the main sync of the disk
+It may take a couple of tens of seconds
+    It may take a couple of tens of seconds
+Initialization continue
+    Initialization continue
+An uninitialized file has been deleted
+    An uninitialized file has been deleted
+is exists. The volume already mounted? vkf exited.
+    is exists. The volume already mounted? vkf will exit without mount.
+Lock file corrected
+    Lock file has been corrected
+Already interrupted
+    Already interrupted
+Try to unmount disk
+    Try to unmount disk
+:
