@@ -30,6 +30,10 @@ Nice=19
 # Пакетный режим планировщика
 CPUSchedulingPolicy=batch
 
+# Запрещаем использование swap-файлов
+MemoryAccounting=1
+MemorySwapMax=0
+
 # Низкий приоритет ввода-вывода, но не совсем низкий (0-7; 7 - самый низкий)
 #IOSchedulingClass=idle
 IOSchedulingClass=best-effort
