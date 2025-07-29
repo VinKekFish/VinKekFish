@@ -22,6 +22,7 @@ using Approximation = FileParts.Approximation;
 using static AutoCrypt.Import;
 using System.Data;
 using System.Diagnostics;
+using VinKekFish_Utils.console;
 
 public unsafe partial class AutoCrypt
 {
@@ -456,8 +457,16 @@ public unsafe partial class AutoCrypt
                     Console.WriteLine(L("Starting the generation of the main sync of the disk") + ". " + L("It may take a couple of tens of seconds") + ".");
                     do
                     {
-                        Console.Write($"{bbp.Count*100/SyncRandomLength, 3}% ");
-                        // К сожалению, если запускать vkf ... & , почему-то виснет на попытке переставить курсор
+                        if (ConsoleState.IsHasTerminal())
+                        {
+                            var top  = Console.CursorTop;
+                            Console.Write($"{bbp.Count*100/SyncRandomLength, 3}% ");
+                            Console.SetCursorPosition(0, top);
+                        }
+                        else
+                        {
+                            Console.Write($"{bbp.Count*100/SyncRandomLength, 3}% ");
+                        }
                         this.Connect();
                     }
                     while (bbp.Count < SyncRandomLength);

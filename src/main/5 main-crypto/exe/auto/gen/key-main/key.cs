@@ -655,8 +655,9 @@ public unsafe partial class AutoCrypt
                             lock (progress)
                             {
                                 Monitor.Wait(progress, 1000);
-                                var top  = Console.CursorTop;
+                                var top  = ConsoleState.IsHasTerminal() ? Console.CursorTop : 0;
                                 Console.Write($"{progress.processedSteps * 100.0 / progress.allSteps:F2}%     ");
+                                if (ConsoleState.IsHasTerminal())
                                 Console.SetCursorPosition(0, top);
                             }
                         }

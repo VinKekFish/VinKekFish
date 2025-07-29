@@ -12,6 +12,7 @@ using maincrypto.keccak;
 using Microsoft.VisualBasic;
 using vinkekfish;
 using VinKekFish_Utils;
+using VinKekFish_Utils.console;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
 using static VinKekFish_EXE.AutoCrypt.Command;
@@ -129,8 +130,9 @@ public unsafe partial class AutoCrypt
                             lock (st)
                             while (st.Stage < st.maxStage)
                             {
-                                var (Left, Top) = Console.GetCursorPosition();
+                                var (Left, Top) = ConsoleState.IsHasTerminal() ? Console.GetCursorPosition() : (0, 0);
                                 Console.WriteLine(L("Encryption stage") + $": {st.Stage}/{st.maxStage}\t{DateTime.Now.ToLongTimeString()}\t\t\t");
+                                if (ConsoleState.IsHasTerminal())
                                 Console.SetCursorPosition(Left, Top);
                                 Monitor.Wait(st);
                             }
