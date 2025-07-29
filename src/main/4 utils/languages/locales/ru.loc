@@ -42,6 +42,8 @@ The option file
     Файл опций
 is exists. Will not replaced. Check this is correct manually
     существует. Файл не будет перезаписан. Проверьте его правильность вручную. Если необходимо, удалите файл и запустите установку заново
+is exists. Will be replaced. Check this is correct manually
+    существует. Файл будет перезаписан. Проверьте его правильность вручную.
 The .service file
     .service файл
 Try to create character device by path /dev/

@@ -105,6 +105,9 @@ public partial class Regime_Service
                     rndCount = rnd.len;
                 }
 
+                if (this.Terminated)
+                    return;
+
                 Console.WriteLine(L("Startup entropy absorption has begun: initialization continues"));
 
                 CascadeSponge.Step(regime: 1, data: rnd, dataLen: rnd.len);
@@ -174,6 +177,9 @@ public partial class Regime_Service
                 Console.WriteLine(L("Deep initialization: VinKekFish.Init1 ended"));
                 VinKekFish.Init2(key: rnd, TweakInit: rec);
                 Console.WriteLine(L("Deep initialization: VinKekFish.Init2 ended"));
+
+                if (this.Terminated)
+                    return;
 
                 // Вводим здесь только время и снова переопределяем ключи шифрования ThreeFish
                 CascadeSponge.Step(ArmoringSteps: CascadeSponge.countStepsForKeyGeneration, regime: 3, data: rec.array, dataLen: sizeof(long), inputRegime: CascadeSponge_1t_20230905.InputRegime.xor);

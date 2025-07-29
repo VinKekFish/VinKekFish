@@ -53,12 +53,15 @@ public partial class Program
             foreach (var file in files)
             {
                 var fi = new FileInfo(Path.Combine(dirOpts.FullName, file.Name)); fi.Refresh();
+                // Здесь мы закомментировали защиту от перезаписи: теперь файлы-описатели сервисов будут всегда перезаписаны
                 if (fi.Exists)
-                {
+                {/*
                     using (var console = new YellowTextConsole())
                         Console.Write($"{L("The .service file")} '{fi.FullName}' {L("is exists. Will not replaced. Check this is correct manually")}.");
 
-                    continue;
+                    continue;*/
+                    fi.Delete();
+                    Console.Write($"{L("The .service file")} '{fi.FullName}' {L("is exists. Will be replaced. Check this is correct manually")}.");
                 }
 
                 using (var fs = file.OpenText())

@@ -7,6 +7,7 @@ namespace VinKekFish_Utils.console;
 /// </remarks>
 public static class ConsoleState
 {
+    /// <summary>Функция не работает как ожидалось</summary>
     public static bool IsHasTerminal()
     {
         if (Console.IsOutputRedirected || Console.IsErrorRedirected)

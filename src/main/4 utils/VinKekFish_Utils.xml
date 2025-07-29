@@ -35,6 +35,15 @@
         <member name="F:VinKekFish_Utils.console.ConsoleOptions.InitialForegroundColor">
             <summary>Первоначальный цвет текста консоли</summary>
         </member>
+        <member name="T:VinKekFish_Utils.console.ConsoleState">
+            <summary>Класс для определения состояния консоли</summary>
+            <remarks>
+            <para></para>
+            </remarks>
+        </member>
+        <member name="M:VinKekFish_Utils.console.ConsoleState.IsHasTerminal">
+            <summary>Функция не работает как ожидалось</summary>
+        </member>
         <member name="T:VinKekFish_Utils.ProgramOptions.Options_Service.Input.Entropy.InputElement">
             <summary>Представляет элементы типа 'file' и 'cmd', содержащие настройки для получения энтропии</summary>
         </member>
