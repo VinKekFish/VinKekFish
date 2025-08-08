@@ -43,6 +43,9 @@ public unsafe partial class AutoCrypt
         private static FileInfo? _LockFile =  null;
         public  static FileInfo   LockFile => _LockFile!;
 
+        /// <summary>Если true, то запись всегда заканчиваетя провалом</summary>
+        public  static bool isReadOnly { get; protected set; } = false;
+
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
         {
@@ -217,6 +220,8 @@ public unsafe partial class AutoCrypt
                     GetHash(block64, pos.file);
                     if (!SecureCompareFast(sync2, block64))
                     {
+                        isReadOnly = true;
+
                         if (IsNull(sync2))
                             Console.WriteLine("Hash is incorrect (NULL) for block: " + fn);
                         else
@@ -268,6 +273,11 @@ public unsafe partial class AutoCrypt
             if (destroyed)
                 throw new InvalidOperationException();
 
+            if (isReadOnly)
+            {
+                return - (int) PosixResult.EROFS;
+            }
+
             var fileName = Utf8StringMarshaller.ConvertToManaged(path);
             if (fileName != vinkekfish_file_path)
             {
@@ -306,6 +316,9 @@ public unsafe partial class AutoCrypt
                             Console.WriteLine("Hash is incorrect (NULL; in write function) for block: " + fn);
                         else
                             Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+
+                        // Запрещаем запись, так как последующие записи могут портить другие блоки файловой системы
+                        isReadOnly = true;
 
                         return -(nint)PosixResult.EINTEGRITY;
                     }
