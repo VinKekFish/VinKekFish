@@ -409,7 +409,7 @@ public unsafe partial class AutoCrypt
         }
 
         /// <summary>Полная длина двойной синхропосылки на блок файловой системы. При изменении этого нужно также изменить расчёт номера файла категории (он завязан на эту константу, но эта константа там не используется).</summary>
-        public const int FullBlockSyncLen = 128;
+        public const int FullSyncBlockLen = 128;
         public const int SemiBlockSyncLen = 64; // Это должно совпадать с блоком keccak.
         // Много чего завязано на то, что блок синхропосылки совпадает с временным массивом block.
 
