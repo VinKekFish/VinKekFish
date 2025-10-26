@@ -120,6 +120,8 @@ public unsafe partial class AutoCrypt
         }
 
         public static readonly object syncForExit = new();
+        public static volatile int    ExitCallCount = 0;
+
         private static void ProcessExit()
         {
             ThreadPool.QueueUserWorkItem
@@ -132,29 +134,61 @@ public unsafe partial class AutoCrypt
                         return;
                     }
 
+                    ExitCallCount++;
                     lock (syncForExit)
                     {
+                        // Ждём на всякий случай, вдруг сейчас размонтирование уже произойдёт
+                        if (ExitCallCount > 1)
+                            Thread.Sleep(100);
+
+                        if (destroyed)
+                        {
+                            Console.WriteLine(L("Already interrupted") + $" {UserDir!.FullName}");
+                            return;
+                        }
+
                         Console.WriteLine(L("Try to unmount disk") + $" {UserDir!.FullName}");
 
                         var pus = Process.Start("mount", $"-o remount,ro \"{UserDir!.FullName}\"");
                         pus.WaitForExit();
                         pus.Dispose();
+                        Thread.Sleep(100);
 
-                        pus = Process.Start("umount", $"\"{UserDir!.FullName}\"");
-                        pus.WaitForExit();
-                        pus.Dispose();
+                        int maxAttempt = 7, attemptCount = 0;
+                        int ec = 0;
+                        do
+                        {
+                            if (attemptCount > 0)
+                            {
+                                Console.WriteLine(L("Waiting for an umount retry after sleep") + $" ({ec})");
+                                Thread.Sleep(1000*attemptCount);
+                            }
+                            attemptCount++;
+                            if (attemptCount > 5)   // Ждём не дольше 5-ти секунд
+                                attemptCount = 5;
 
-                        if (!string.IsNullOrEmpty(loopDev))
+                            pus = Process.Start("umount", $"-d \"{UserDir!.FullName}\"");
+                            pus.WaitForExit();
+                            ec = pus.ExitCode;
+                            pus.Dispose();
+                            maxAttempt--;
+                        }
+                        while (ec != 0 && maxAttempt > 0);
+
+                        // Вне зависимости ни от чего, блокируем запись на данную файловую систему
+                        isReadOnly = true;
+                        if (ec != 0 && !string.IsNullOrEmpty(loopDev))
                         {
                             var args = $"-d {loopDev}";
                             using var pi = Process.Start("losetup", args);
                             pi.WaitForExit();
                         }
 
-                        // Process.Start("umount", "\"" + tmpDir!.FullName + "\"").Dispose();
                         pus = Process.Start("fusermount3", $"-u \"{tmpDir!.FullName}\"");
                         pus.WaitForExit();
                         pus.Dispose();
+
+                        Console.WriteLine(L("Finished unmounting disk") + $" {UserDir!.FullName}");
                     }
                 }
             );
@@ -1205,6 +1239,7 @@ public unsafe partial class AutoCrypt
             (
                 delegate
                 {
+                    lock (syncForExit)
                     try
                     {
                         var psi = new ProcessStartInfo();
@@ -1234,6 +1269,12 @@ public unsafe partial class AutoCrypt
                                 exists = false;
                         }
 
+                        if (ExitCallCount > 0)
+                        {
+                            Console.WriteLine("Start has been stopped for " + loopDev);
+                            return;
+                        }
+
                         if (exists)
                         {
                             Process? pif = null;
@@ -1255,9 +1296,15 @@ public unsafe partial class AutoCrypt
                                 pif.WaitForExit();
                             }
 
+                            if (ExitCallCount > 0)
+                            {
+                                Console.WriteLine("Start has been stopped for " + loopDev);
+                                return;
+                            }
+
                             // Запускаем процесс проверки файловой системы
                             // и исправления ошибок (до монтирования)
-                            pif = Process.Start("fsck",  "-p -y " + loopDev);
+                            pif = Process.Start("fsck",  "-l -y " + loopDev);
                             pif.WaitForExit();
 
                             // pif = Process.Start("chown", $"{Rights} {loopDev}");
@@ -1289,6 +1336,12 @@ public unsafe partial class AutoCrypt
                             if (groupName.Length > 0)
                                 MountOpts += ",X-mount.group=" + groupName;
 
+                            if (ExitCallCount > 0)
+                            {
+                                Console.WriteLine("Start has been stopped for " + loopDev);
+                                return;
+                            }
+
                             pif = Process.Start("mount", $"--onlyonce -o \"relatime,sync{MountOpts}\" {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
                             // Перестраховка: повторно устанавливаем права, на случай, если mount их не установил
@@ -1312,7 +1365,7 @@ public unsafe partial class AutoCrypt
             return null;
         }
 
-        private static bool destroyed = false;
+        private static volatile bool destroyed = false;
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static void fuse_destroy(void * data)

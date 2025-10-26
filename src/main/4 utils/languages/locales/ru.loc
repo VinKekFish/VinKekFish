@@ -180,4 +180,8 @@ Already interrupted
     Уже прекращён
 Try to unmount disk
     Пытаемся размонтировать диск
+Finished unmounting disk
+    Закончили размонтирование диска
+Waiting for an umount retry after sleep
+    Ждём повторной попытки размонтирования диска после сна
 :

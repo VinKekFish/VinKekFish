@@ -178,4 +178,8 @@ Already interrupted
     Already interrupted
 Try to unmount disk
     Try to unmount disk
+Finished unmounting disk
+    Finished unmounting disk
+Waiting for an umount retry after sleep
+    Waiting for an umount retry after sleep
 :
