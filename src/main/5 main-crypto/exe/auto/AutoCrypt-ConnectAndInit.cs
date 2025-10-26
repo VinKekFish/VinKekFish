@@ -50,6 +50,8 @@ public unsafe partial class AutoCrypt
             {
                 TryToDispose(RandomSocket);
                 RandomSocket = null;
+
+                Monitor.PulseAll(this);
             }
         }
 

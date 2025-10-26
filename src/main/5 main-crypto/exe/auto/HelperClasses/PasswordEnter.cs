@@ -17,13 +17,13 @@ using static VinKekFish_Utils.Utils;
 
 public unsafe partial class PasswordEnter: IDisposable
 {
-    // [{( - скобки убираем, проще запоминать просто слово "скобка"
+    // [{( - скобки убираем, проще запоминать просто слово "скобка"; остаётся только квадратная скобка
     // < - меньше и больше легко перепутать, оставляем только один из них
     // ! слишком похож на черту и имеет сложное наименование
     // Ч - похоже на 4. ± - сложное наименование, к тому же, похожее на два занака "+-", идущие подряд
     // "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':(+-*/=|&^%$#@ΣΔΨλШЫЭЯ";
     /// <summary>Разрешённые символы для стандартного пароля</summary>
-    public static readonly string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@";
+    public static readonly string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@<";
 
     protected CascadeSponge_mt_20230930  sponge;
     protected VinKekFishBase_KN_20210525 vkf;

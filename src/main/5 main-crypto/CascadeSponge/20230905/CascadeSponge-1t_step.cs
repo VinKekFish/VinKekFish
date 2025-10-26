@@ -131,13 +131,18 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
     /// <summary>Возвращает количество шагов на впитывание одних и те же данных, которое вычисленно исходя из значения StepTypeForAbsorption. Эта функция вычисляет количество шагов по умолчанию для функции step.</summary>
     public nint GetCountOfStepsForAbsorption()
     {
+        return GetCountOfStepsForAbsorption(StepTypeForAbsorption);
+    }
+
+    public nint GetCountOfStepsForAbsorption(TypeForShortStepForAbsorption StepTypeForAbsorption)
+    {
         return StepTypeForAbsorption switch
         {
-            TypeForShortStepForAbsorption.weak      => 1,
+            TypeForShortStepForAbsorption.weak => 1,
             TypeForShortStepForAbsorption.effective => countStepsForEffectiveAbsorption, // => 1
-            TypeForShortStepForAbsorption.elevated  => 2,
-            TypeForShortStepForAbsorption.full      => tall,
-            TypeForShortStepForAbsorption.log       => tall2log2 > 0 ? tall2log2 : throw new CascadeSpongeException("tall2log2 is not initialized"),
+            TypeForShortStepForAbsorption.elevated => 2,
+            TypeForShortStepForAbsorption.full => tall,
+            TypeForShortStepForAbsorption.log => tall2log2 > 0 ? tall2log2 : throw new CascadeSpongeException("tall2log2 is not initialized"),
             _ => throw new InvalidDataException("CascadeSponge_1t_20230905.step: switch (StepTypeForAbsorption).default"),
         };
     }
