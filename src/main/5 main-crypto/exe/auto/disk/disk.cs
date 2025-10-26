@@ -627,10 +627,15 @@ public unsafe partial class AutoCrypt
                     var fn  = Path.Combine(DataDir.FullName, file.Name.Substring(SyncBackupName.Length));
                     var fin = new FileInfo(fn); fin.Refresh();
 
-                    // Если данные были перезатёрты нулями
+                    // Если данные были перезатёрты нулями (файл с данными - пустой)
                     if (file.Length == 0 && !fin.Name.StartsWith("cat"))
                     {
-                        SafelyDeleteBlockFile(fin.FullName);
+                        // Удаляем файл со старыми данными
+                        if (fin.Exists)
+                        {
+                            SafelyDeleteBlockFile(fin.FullName);
+                        }
+
                         file.Delete();
                         Console.WriteLine(L("Data file restored") + " (null): " + fn);
                     }
