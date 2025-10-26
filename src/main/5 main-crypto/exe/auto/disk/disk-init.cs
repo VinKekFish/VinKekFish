@@ -117,7 +117,8 @@ public unsafe partial class AutoCrypt
         public static bool   isFirstTimeCreatedDir = false;                     /// <summary>Отформатировать раздел, даже если он проинициализирован.</summary>
         public static bool   ForcedFormatFlag      = false;                     /// <summary>При форматировании не создавать журнал.</summary>
         public static bool   NoJournalFlag         = false;                     /// <summary>Удаление без перезатирания.</summary>
-        public static bool   FastDeleteFlag        = false;
+        public static bool   FastDeleteFlag        = false;                     /// <summary>Проверка файловой системы перед монтированием с помощью fsck -p -y.</summary>
+        public static bool   CheckFSFlag           = true;
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
 
@@ -146,7 +147,8 @@ public unsafe partial class AutoCrypt
                         r:user:group
                         fast-delete:true
                         mount-o:noexec,nosuid,nodev
-                        alg:KeccakThreeFish
+                        alg:keccakthreefish-1.1
+                        checkfs:true
                         start:
 
                         (helper commands)
@@ -167,6 +169,19 @@ public unsafe partial class AutoCrypt
 
             switch (command.name)
             {
+                case "checkfs":
+                        val = command.value.Trim().ToLowerInvariant();
+                        CheckFSFlag = val == "true" || val == "1" || val == "yes";
+
+                        if (isDebugMode)
+                        {
+                            if (ForcedFormatFlag)
+                                Console.WriteLine("checkfs: true");
+                            else
+                                Console.WriteLine("checkfs: false");
+                        }
+
+                        goto start;
                 case "alg":
                         var alg_string = command.value.Trim().ToLowerInvariant();
                         switch (alg_string)

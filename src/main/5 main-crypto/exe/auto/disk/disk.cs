@@ -53,7 +53,7 @@ public unsafe partial class AutoCrypt
             Directory.SetCurrentDirectory (DataDir!.FullName);
             _LockFile = new ( Path.Combine(DataDir!.FullName, "lock") );
 
-            // Параметр -s очень важен, т.к. bytesFromFile является статическим и не может быть разделён.
+            // Параметр -s (однопоточность) очень важен, т.к. bytesFromFile является статическим и не может быть разделён.
             var A = new string[] {"", "-s", "-f", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", tmpDir!.FullName};
 
             var pathToCheckFile = Path.Combine(tmpDir!.FullName, vinkekfish_file_name);
@@ -1254,6 +1254,12 @@ public unsafe partial class AutoCrypt
                                 // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
                                 pif.WaitForExit();
                             }
+
+                            // Запускаем процесс проверки файловой системы
+                            // и исправления ошибок (до монтирования)
+                            pif = Process.Start("fsck",  "-p -y " + loopDev);
+                            pif.WaitForExit();
+
                             // pif = Process.Start("chown", $"{Rights} {loopDev}");
                             // pif.WaitForExit();
                             // noexec, nosuid ???? Опции надо бы добавить???
