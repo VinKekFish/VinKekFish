@@ -333,7 +333,8 @@ public unsafe partial class AutoCrypt
                     if (isSimpleOutKey > 0)
                         GenerateSimpleKey(ref status, countOfTasks, isSimpleOutKey);
                     else
-                        CreateKeyFiles(ref status, countOfTasks);
+                        // CreateKeyFiles(ref status, countOfTasks);
+                        throw new NotImplementedException();
                 }
                 finally
                 {

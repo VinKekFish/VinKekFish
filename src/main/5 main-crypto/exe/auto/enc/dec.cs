@@ -16,18 +16,19 @@ using static vinkekfish.CascadeSponge_1t_20230905;
 using cryptoprime.VinKekFish;
 using System.ComponentModel;
 using static cryptoprime.BytesBuilderForPointers;
+using System.Text.RegularExpressions;
 
 public partial class AutoCrypt
 {
-    /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "зашифровать"</summary>
-    public unsafe class EncCommand: DecEncCommand
+    /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
+    public unsafe class DecCommand: DecEncCommand
     {
-        public EncCommand(AutoCrypt autoCrypt): base(autoCrypt)
+        public readonly Regex DateFileString = new(@"\.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$", RegexOptions.Compiled);
+
+        public DecCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
-            ThreadPool.QueueUserWorkItem(   (x) => Connect()      );
-
             if (isDebugMode)
                 Console.WriteLine(L("Enter options for the file encryption"));
 
@@ -53,7 +54,30 @@ public partial class AutoCrypt
 
 //                    goto start;
                 case "dec":
-                    DecryptedFileName = ParseFileOptions(command.value.TrimStart(), isDebugMode, mustExists: FileMustExists.Exists);
+                    var outval = command.value.TrimStart();
+                    // Убираем от файла расширение .vkf и расширение с датой файла
+                    if (outval.Length <= 0 && EncryptedFileName != null)
+                    {
+                        var encFullName = EncryptedFileName.FullName;
+                        if (encFullName.EndsWith(".vkf"))
+                        {
+                            encFullName = encFullName.Substring(0, encFullName.Length - ".vkf".Length);
+                        }
+
+                        var matchOfDateFileString = DateFileString.Match(encFullName);
+                        if (matchOfDateFileString.Success)
+                        {
+                            encFullName = encFullName.Substring(encFullName.Length - matchOfDateFileString.Value.Length, matchOfDateFileString.Value.Length);
+                        }
+
+                        outval = encFullName;
+                        if (File.Exists(outval))
+                        {
+                            outval = ".decrypted";
+                        }
+                    }
+
+                    DecryptedFileName = ParseFileOptions(outval, isDebugMode, mustExists: FileMustExists.NotExists);
 
                     if (isDebugMode)
                     {
@@ -65,22 +89,16 @@ public partial class AutoCrypt
 
                     goto start;
                 case "enc":
-                    var dateString  = DateTime.Now.ToString("yyyy-MM-dd-HHmm");
-                    var outval      = command.value.TrimStart();
-                    if (outval.Length <= 0 && DecryptedFileName != null)
-                    {
-                        outval = DecryptedFileName.FullName + "." + dateString + ".vkf";
-                    }
+                    outval = command.value.TrimStart();
 
-                    var OutFileName   = outval.Replace("$date$", dateString);
-                    EncryptedFileName = ParseFileOptions(OutFileName, isDebugMode, mustExists: FileMustExists.NotExists);
+                    EncryptedFileName = ParseFileOptions(outval, isDebugMode, mustExists: FileMustExists.Exists);
 
                     if (isDebugMode)
                     {
                         if (EncryptedFileName == null)
-                            Console.WriteLine($"File name for out is incorrect: {OutFileName}");
+                            Console.WriteLine($"File name for out is incorrect: {outval}");
                         else
-                            Console.WriteLine($"out: {EncryptedFileName?.FullName}");
+                            Console.WriteLine($"enc: {EncryptedFileName?.FullName}");
                     }
 
                     goto start;
@@ -131,7 +149,7 @@ public partial class AutoCrypt
 
                     return alg switch
                     {
-                        "std.1.202510" => Encrypt_std_1_202510(),
+                        "std.1.202510" => Decrypt_std_1_202510(),
                         _ => throw new CommandException(L("The algorithm is unknown") + ": " + alg),
                     };
 
@@ -146,8 +164,8 @@ public partial class AutoCrypt
             }
         }
 
-        /// <summary>Шифрует файл, пользуясь уже установленными параметрами. Все примитивы создаёт сам.</summary>
-        public ProgramErrorCode Encrypt_std_1_202510()
+        /// <summary>Расшифровывает файл, пользуясь уже установленными параметрами. Все примитивы создаёт сам.</summary>
+        public ProgramErrorCode Decrypt_std_1_202510()
         {
             var allocator = Keccak_abstract.allocator;
             var Offsets   = new Dictionary<string, Int64>();
