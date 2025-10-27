@@ -23,7 +23,7 @@ public partial class AutoCrypt
     /// <summary>Класс представляет команду (для парсинга), которая назначает режим работы "расшифровать"</summary>
     public unsafe class DecCommand: DecEncCommand
     {
-        public readonly Regex DateFileString = new(@"\.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$", RegexOptions.Compiled);
+        public readonly Regex DateFileString = new(@"\.[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$", RegexOptions.Compiled);
 
         public DecCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
@@ -38,21 +38,6 @@ public partial class AutoCrypt
             var command = (CommandOption) CommandOption.ReadAndParseLine(sr, () => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
             switch (command.name)
             {
-                case "novkfrandom":
-                    var val = command.value.Trim().ToLowerInvariant();
-                    noVKFRandom = val == "true" || val == "1" || val == "yes";
-                    
-                    if (isDebugMode)
-                    {
-                        if (noVKFRandom)
-                            Console.WriteLine("novkfrandom: true");
-                        else
-                            Console.WriteLine("novkfrandom: false");
-                    }
-// TODO:
-                    throw new NotImplementedException();
-
-//                    goto start;
                 case "dec":
                     var outval = command.value.TrimStart();
                     // Убираем от файла расширение .vkf и расширение с датой файла
@@ -67,13 +52,13 @@ public partial class AutoCrypt
                         var matchOfDateFileString = DateFileString.Match(encFullName);
                         if (matchOfDateFileString.Success)
                         {
-                            encFullName = encFullName.Substring(encFullName.Length - matchOfDateFileString.Value.Length, matchOfDateFileString.Value.Length);
+                            encFullName = encFullName.Substring(0, encFullName.Length - matchOfDateFileString.Value.Length);
                         }
 
                         outval = encFullName;
                         if (File.Exists(outval))
                         {
-                            outval = ".decrypted";
+                            outval += ".decrypted";
                         }
                     }
 
@@ -108,13 +93,13 @@ public partial class AutoCrypt
                     if (keyFile == null)
                     {
                         Console.WriteLine(L("Incorrect key file name for file") + ": " + command.value.TrimStart());
-                        return ProgramErrorCode.Abandoned;
+                        return ProgramErrorCode.wrongCryptoParams;
                     }
 
                     if (keyFile.Length <= 0)
                     {
                         Console.WriteLine(L("Incorrect key file length for file") + ": " + keyFile.FullName);
-                        return ProgramErrorCode.Abandoned;
+                        return ProgramErrorCode.wrongCryptoParams;
                     }
 
                     KeyFiles.Add(keyFile!);
@@ -133,12 +118,12 @@ public partial class AutoCrypt
 
                     if (EncryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'out' expected");
+                        Console.WriteLine("Command 'enc' expected");
                         goto start;
                     }
                     if (DecryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'file' expected");
+                        Console.WriteLine("Command 'dec' expected");
                         goto start;
                     }
                     if (KeyFiles.Count == 0 && !isHavePwd)
@@ -172,7 +157,7 @@ public partial class AutoCrypt
             if (isDebugMode)
             {
                 Console.WriteLine(DateTime.Now.ToLongTimeString());
-                Console.WriteLine(L("Encryption started. Wait random data from") + " " + autoCrypt.RandomSocketPoint.ToString());
+                Console.WriteLine(L("Decryption started. Wait random data from") + " " + autoCrypt.RandomSocketPoint.ToString());
             }
 
             // Определяем стойкость шифрования

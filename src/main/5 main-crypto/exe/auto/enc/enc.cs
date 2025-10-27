@@ -90,13 +90,13 @@ public partial class AutoCrypt
                     if (keyFile == null)
                     {
                         Console.WriteLine(L("Incorrect key file name for file") + ": " + command.value.TrimStart());
-                        return ProgramErrorCode.Abandoned;
+                        return ProgramErrorCode.wrongCryptoParams;
                     }
 
                     if (keyFile.Length <= 0)
                     {
                         Console.WriteLine(L("Incorrect key file length for file") + ": " + keyFile.FullName);
-                        return ProgramErrorCode.Abandoned;
+                        return ProgramErrorCode.wrongCryptoParams;
                     }
 
                     KeyFiles.Add(keyFile!);
@@ -115,12 +115,12 @@ public partial class AutoCrypt
 
                     if (EncryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'out' expected");
+                        Console.WriteLine("Command 'enc' expected");
                         goto start;
                     }
                     if (DecryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'file' expected");
+                        Console.WriteLine("Command 'dec' expected");
                         goto start;
                     }
                     if (KeyFiles.Count == 0 && !isHavePwd)

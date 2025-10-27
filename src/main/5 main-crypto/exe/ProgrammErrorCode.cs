@@ -24,4 +24,7 @@ public enum ProgramErrorCode
     noOptions_Service
         = 10_002,
 
+    // <summary>Работа программы прекращена в результате получения программой некорректных входных значений</summary>
+    wrongCryptoParams = 105
+
 };
