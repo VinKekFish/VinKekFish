@@ -24,6 +24,22 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
     public Record?                     decFile        = null;
     public Record?                     encFile        = null;
 
+    public CascadeSponge_mt_20230930?  Cascade_vkf    = null;
+    public CascadeSponge_mt_20230930?  Cascade_p      = null;
+    public CascadeSponge_mt_20230930?  Cascade_noise  = null;
+    public VinKekFishBase_KN_20210525? VinKekFish_n   = null;
+    public CascadeSponge_mt_20230930?  Cascade_1f     = null;
+    public CascadeSponge_mt_20230930?  Cascade_1r     = null;
+    public VinKekFishBase_KN_20210525? VinKekFish_1f  = null;
+    public VinKekFishBase_KN_20210525? VinKekFish_1r  = null;
+    public CascadeSponge_mt_20230930?  Cascade_2f     = null;
+    public CascadeSponge_mt_20230930?  Cascade_2r     = null;
+    public VinKekFishBase_KN_20210525? VinKekFish_2f  = null;
+    public VinKekFishBase_KN_20210525? VinKekFish_2r  = null;
+
+    public AutoCrypt.KeyDataGenerator? NoiseGenerator = null;
+
+
     public readonly AutoCrypt.DecEncCommand command;
     public Enc_std_1_202510(AutoCrypt.DecEncCommand enc_dec_command)
     {
@@ -32,21 +48,38 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
 
     public void Dispose()
     {
-        Cascade_Key?   .Dispose();
-        VinKekFish_Key?.Dispose();
-        decFile?       .Dispose();
-        encFile?       .Dispose();
+        TryToDispose(Cascade_Key);
+        TryToDispose(VinKekFish_Key);
+        TryToDispose(decFile);
+        TryToDispose(encFile);
 
         Cascade_Key    = null;
         VinKekFish_Key = null;
         decFile        = null;
         encFile        = null;
+
+        TryToDispose(Cascade_vkf);TryToDispose(Cascade_p);TryToDispose(Cascade_noise);
+        TryToDispose(Cascade_1f);TryToDispose(Cascade_1r);TryToDispose(Cascade_2f);TryToDispose(Cascade_2r);
+        Cascade_vkf = null;Cascade_p  = null;Cascade_noise = null;
+        Cascade_1f  = null;Cascade_1r = null;Cascade_2f    = null;Cascade_2r = null;
+
+        TryToDispose(VinKekFish_n);
+        TryToDispose(VinKekFish_1f);TryToDispose(VinKekFish_1r);
+        TryToDispose(VinKekFish_2f);TryToDispose(VinKekFish_2r);
+        VinKekFish_n = null;
+        VinKekFish_1f = null;VinKekFish_1r = null;VinKekFish_2f = null;VinKekFish_2r = null;
+
+        TryToDispose(NoiseGenerator);
+        NoiseGenerator = null;
     }
 
     public const nint OIV_Length = 64;
     // Определяем стойкость шифрования
-    public const byte VKF_K = 3;
-    public const int  KeyStrenght = VKF_K*VinKekFishBase_etalonK1.BLOCK_SIZE;
+    public const byte VKF_K = 3, VKF_KEY_K = 5;
+    public const int  KeyStrenght    = VKF_K    *VinKekFishBase_etalonK1.BLOCK_SIZE, 
+                      KeyKeyStrenght = VKF_KEY_K*VinKekFishBase_etalonK1.BLOCK_SIZE;
+    public const int  HashLength     = 192; // Длина первичного хеша в байтах
+    public const int  FileAlignment  = 1 << 16; // Выравнивание файла по длине
 
     public const string Position_END        = "END";
     public const string Position_IOV        = "OIV";
@@ -92,7 +125,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
                         return ProgramErrorCode.Abandoned;
                     }
 
-                    decFile = allocator.AllocMemory((nint)command.DecryptedFileName!.Length, "dec-file-1");
+                    decFile = allocator.AllocMemory((nint)command.DecryptedFileName!.Length + HashLength, "dec-file-1");
 
                     var readedBytes = decFileStream.Read(decFile);
                     if (readedBytes != DecFileLength)
@@ -111,9 +144,9 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
                 byte[]? DecFileLenData = null;
                 BytesBuilder.VariableULongToBytes((ulong)DecFileLength, ref DecFileLenData);
                 encF.Write(DecFileLenData);
-                Offsets.Add(Position_END, encF.Position);
+                Offsets[Position_END] = encF.Position;
 
-                InitSpongesFirst(allocator, Offsets, VKF_K, KeyStrenght, OIV);
+                InitSpongesFirst(allocator, OIV, DecFileLength);
 
                 Offsets.Add(Position_Hash, encF.Position);
                 encF.Write(decFile);
@@ -138,18 +171,5 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             }
 
         return ProgramErrorCode.success;
-    }
-
-    private void CreateKeyCascadeSponge()
-    {
-        // +BLOCK_SIZE - т.к. эта губка генерирует ключи, она должна быть чуть более стойкая, чем те ключи, что она генерирует
-        Cascade_Key = new
-        (
-            KeyStrenght + VinKekFishBase_etalonK1.BLOCK_SIZE * 2,
-            ThreadsCount: Environment.ProcessorCount - 1
-        )
-        {
-            StepTypeForAbsorption = TypeForShortStepForAbsorption.effective
-        };
     }
 }

@@ -58,7 +58,7 @@ public unsafe class VinKekFish_test_base_performance1 : TestTask
         st1.Dispose();
 
         var stm = new DriverForTestsLib.SimpleTimeMeter();
-        k1t4.DoStepAndIO(roundsCnt);
+        k1t4.DoStepAndIO(roundsCnt, outputLen: -1);
         stm.Dispose();
 
         k1e.OutputData(out1e , 0, out1e.len, VinKekFishBase_etalonK1.BLOCK_SIZE);

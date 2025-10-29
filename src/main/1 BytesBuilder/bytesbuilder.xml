@@ -712,7 +712,7 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Clear(System.Boolean)">
             <summary>Очищает циклический буфер</summary>
-            <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
+            <param name="fast">fast = <see langword="false"/> - если false, то обнуляет выделенный под регион массив памяти</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.IsEntireNull">
             <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
@@ -760,10 +760,16 @@
             <summary>Длина tweak в байтах</summary>
         </member>
         <member name="M:VinKekFish_Utils.Utils.CalcAlignment(System.IntPtr,System.Int32)">
-            <summary>Функция для расчёта выравнивания</summary>
+            <summary>Функция для расчёта выравнивания (даёт выравненное на alignment значение)</summary>
             <param name="size">Размер массива для выравнивания</param>
             <param name="alignment">Размер границ, на который выравнивается</param>
             <returns>Выравненное значение size</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.CalcFilePaddingsLen(System.IntPtr,System.Int32)">
+            <summary>Функция для расчёта длины заполнения, нужной для выравнивания на fileAlignment</summary>
+            <param name="size">Размер, который подлежит выравниванию.</param>
+            <param name="alignment">Число, на которое выравнивается размер size.</param>
+            <returns></returns>
         </member>
         <member name="M:VinKekFish_Utils.Utils.GetAlignment64(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Выравнивает массив Record по значению 64-ре байта. Массив должен быть выделен с запасом 64 байта. Проще использовать alignmentDegree в AllocHGlobal_AllocatorForUnsafeMemory</summary>

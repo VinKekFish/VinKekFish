@@ -39,7 +39,7 @@ namespace vinkekfish
         protected bool isDataInputed = false;                   /// <summary>Полное количество раундов, которое было выполнено губкой за всё время её существования после Init2.</summary>
         protected int  entireCountOfRoundHasBeen = 0;
 
-        /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
+        /// <summary>Осуществляет непосредственный шаг алгоритма без ввода данных и изменения tweak</summary><remarks>Вызывайте эту функцию, ТОЛЬКО если хотите переопределить поведение VinKekFish. В большинстве случаев стоит использовать doStepAndIO после Init2.</remarks>
         /// <param name="askedCountOfRounds">Количество раундов.</param>
         public void Step(nint askedCountOfRounds = -1)
         {

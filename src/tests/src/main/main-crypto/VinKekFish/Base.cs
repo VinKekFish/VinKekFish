@@ -108,9 +108,9 @@ public unsafe class VinKekFish_test_base_compareToEtalon : TestTask
 
         k1e  .InputData_Xor(null, 0, 0);
         k1e  .DoStep(roundsCnt);
-        k1t1 .DoStepAndIO(roundsCnt);
-        k1t4 .DoStepAndIO(roundsCnt);
-        k1t16.DoStepAndIO(roundsCnt);
+        k1t1 .DoStepAndIO(roundsCnt, outputLen: -1);
+        k1t4 .DoStepAndIO(roundsCnt, outputLen: -1);
+        k1t16.DoStepAndIO(roundsCnt, outputLen: -1);
 
         k1e .OutputData(out1e , 0, out1e .len, VinKekFishBase_etalonK1.BLOCK_SIZE);
         var sp = new ReadOnlySpan<byte>(out1e, (int) out1e.len);

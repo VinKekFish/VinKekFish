@@ -6,7 +6,7 @@ using Record = cryptoprime.BytesBuilderForPointers.Record;
 
 public unsafe static partial class Utils
 {
-    /// <summary>Функция для расчёта выравнивания</summary>
+    /// <summary>Функция для расчёта выравнивания (даёт выравненное на alignment значение)</summary>
     /// <param name="size">Размер массива для выравнивания</param>
     /// <param name="alignment">Размер границ, на который выравнивается</param>
     /// <returns>Выравненное значение size</returns>
@@ -17,6 +17,19 @@ public unsafe static partial class Utils
             return size;
 
         return size - bmod + alignment;
+    }
+
+    /// <summary>Функция для расчёта длины заполнения, нужной для выравнивания на fileAlignment</summary>
+    /// <param name="size">Размер, который подлежит выравниванию.</param>
+    /// <param name="alignment">Число, на которое выравнивается размер size.</param>
+    /// <returns></returns>
+    public static nint CalcFilePaddingsLen(nint size, int alignment)
+    {
+        var mod = size % alignment;
+        if (mod == 0)
+            return 0;
+
+        return alignment - mod;
     }
 
     /// <summary>Выравнивает массив Record по значению 64-ре байта. Массив должен быть выделен с запасом 64 байта. Проще использовать alignmentDegree в AllocHGlobal_AllocatorForUnsafeMemory</summary>

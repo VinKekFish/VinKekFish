@@ -58,7 +58,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <param name="StepsForAbsorption">Количество шагов, которые губка делает при выпитывании данных. 0 - количество будет рассчитано исходя из параметра StepTypeForAbsorption: если StepTypeForAbsorption == true, то 1, иначе tall. Если значение StepsForAbsorption установлено, то StepTypeForAbsorption игнорируется.</param>
     /// <param name="noResetEvent">Если true, то состояние синхронизации не будет сбрасываться. Это нужно, если после одного шага сразу следует другой. В таком случае, потоки будут находится в цикле ожидания, тратя процессорные ресурсы вхолостую, но готовые вновь быстро взять задачи.</param>
     /// <returns>Количество данных, введённых в губку</returns>
-    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = 0, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0, bool noResetEvent = false)
+    public virtual nint Step(nint countOfSteps = 0, nint ArmoringSteps = 0, byte * data = null, nint dataLen = -1, byte regime = 0, InputRegime inputRegime = xor, StepProgress? progress = null, nint StepsForAbsorption = 0, bool noResetEvent = false)
     {
         // ::cp:all:fN5Xg5JgHhihGjtK1i1F:20231005
         nint result = -1;
@@ -124,7 +124,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                 while (ThreadsExecuted > 0 && !ThreadsError)
                 {
                     // Monitor.Wait(ThreadsStop);
-                    Thread.Sleep(0);
+                    Thread.Yield();
                 }
 
                 // Event.Reset();  // Именно здесь, т.к. потоки могут не начаться до того, как будет ожидание ThreadsStop

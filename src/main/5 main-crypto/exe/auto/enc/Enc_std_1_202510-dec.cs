@@ -53,10 +53,11 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                     throw new Exception($"readedBytes != DecFileLength [{readedBytes} != {EncFileLength}]");
                 }
             }
+
             // Выделяем массив под синхропосылку
             // FileShare.Read не нужен, но, почему-то, иногда возникает исключение "file being used by another process".
             using var OIV  = command.bbp.GetBytesAndRemoveIt(allocator.AllocMemory(OIV_Length, "InitSpongesFirst.OIV"));
-            InitSpongesFirst(allocator, Offsets, VKF_K, KeyStrenght, OIV);
+            InitSpongesFirst(allocator, OIV);
 
             if (command.isDebugMode)
             {

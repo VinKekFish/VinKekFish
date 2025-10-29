@@ -265,7 +265,7 @@ namespace cryptoprime
         }
 
         /// <summary>Очищает циклический буфер</summary>
-        /// <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
+        /// <param name="fast">fast = <see langword="false"/> - если false, то обнуляет выделенный под регион массив памяти</param>
         public void Clear(bool fast = false)
         {
             if (region == null)

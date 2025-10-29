@@ -24,15 +24,54 @@ namespace vinkekfish
         protected byte lastRegime = 0;                          /// <summary>Последний режим, который был использован в функции Step.</summary>
         public    byte LastRegime => lastRegime;
 
+        /// <summary>Выполняет столько шагов VinKekFish, сколько нужно, чтобы ввести все данные из поля "input".</summary>
+        /// <param name="Overwrite">Если true - режим overwrite. Если false - режим xor</param>
+        /// <param name="regime">Номер режима работы схемы шифрования</param>
+        public void DoStepAndFullInput(bool Overwrite = false, byte regime = 0, bool nullPadding = true)
+        {
+            if (input is null || input.Count <= 0)
+                throw new ArgumentException("VinKekFishBase_KN_20210525.DoStepAndFullInput: input is null || input.Count <= 0");
+
+            while (input.Count > 0)
+                DoStepAndIO(Overwrite: Overwrite, regime: regime, nullPadding: nullPadding, outputLen: 0);
+            
+            input.Clear();
+        }
+
+        /// <summary>Выполняет столько шагов VinKekFish, сколько нужно, чтобы вывести в поле "output" DataLen байтов данных по ByLen за один шаг.</summary>
+        /// <param name="DataLen">Сколько всего байтов нужно получить.</param>
+        /// <param name="ByLen">Сколько байтов можно получить за один шаг VinKekFish.</param>
+        /// <param name="regime">Номер режима работы схемы шифрования.</param>
+        public void DoStepAndFullOutput(nint DataLen, int ByLen = -1, byte regime = 0)
+        {
+            if (output != null && output.Count > 0)
+                throw new ArgumentException("VinKekFishBase_KN_20210525.DoStepAndFullOutput: output != null && output.Count > 0");
+            
+            if (output == null || output.size < DataLen)
+            {
+                if (output is null)
+                {
+                    output = new BytesBuilderStatic(DataLen);
+                }
+                else
+                {
+                    output.Resize(DataLen);
+                }
+            }
+
+            while (output.Count < DataLen)
+                DoStepAndIO(outputLen: ByLen, regime: regime);
+        }
+
         /// <summary>Выполняет ввод и шаг VinKekFish и вывод результата. Данные для ввода в шаги берутся из переменной input. while (VinKekFish.input!.Count > 0) doStepAndIO();</summary>
         /// <param name="countOfRounds">Количество раундов шифрования, не менее MIN_ROUNDS_K. -1 - взять максимальное количество раундов, указанное при конструировании объекта.</param>
-        /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K</param>
+        /// <param name="outputLen">Количество байтов, которое нужно получить. Не более BLOCK_SIZE_K. -1 получит BLOCK_SIZE_K данных.</param>
         /// <param name="Overwrite">Если true - режим overwrite. Если false - режим xor</param>
         /// <param name="regime">Номер режима работы схемы шифрования</param>
         /// <param name="nullPadding">Если true - включён режим nullPadding (при overwrite будет перезаписано BLOCK_SIZE_K байтов вне зависимости от длины ввода)</param>
         /// <exception cref="Exception">Неверное состояние губки или другое</exception>
         /// <exception cref="ArgumentOutOfRangeException">Неверные аргументы</exception>
-        public void DoStepAndIO(nint countOfRounds = -1, int outputLen = -1, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
+        public void DoStepAndIO(nint countOfRounds = -1, int outputLen = 0, bool Overwrite = false, byte regime = 0, bool nullPadding = true)
         {
             if (!isInit1 || !isInit2)
                 throw new Exception("VinKekFishBase_KN_20210525.step: you must call Init1 and Init2 before doing this");
@@ -45,8 +84,11 @@ namespace vinkekfish
             else
             if (outputLen > BLOCK_SIZE_K)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: outputLen > BLOCK_SIZE_K");
+
             if (countOfRounds < MIN_ROUNDS_K)
                 throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: countOfRounds < MIN_ROUNDS_K");
+            if (countOfRounds > this.CountOfRounds)
+                throw new ArgumentOutOfRangeException("VinKekFishBase_KN_20210525.doStepAndIO: countOfRounds > this.CountOfRounds");
 
             if (input != null && input.Count > 0)
             {

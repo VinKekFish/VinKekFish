@@ -88,7 +88,7 @@ public unsafe class VinKekFish_test_simplebase : TestTask
 
         // Выполняем вычислительный шаг, например, для генерации гаммы
         k.output = new BytesBuilderStatic(512*3);
-        k.DoStepAndIO(k.MIN_ROUNDS_K, regime: 4);
+        k.DoStepAndIO(k.MIN_ROUNDS_K, regime: 4, outputLen: -1);
 
         state[0] ^= 0;
         state[1] ^= 0;
