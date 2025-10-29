@@ -15,7 +15,7 @@ public unsafe partial class AutoCrypt
     /// <summary>Класс представляет основную команду для парсинга, отдаваемую через auto-режим. Например, команды enc, dec.</summary>
     public abstract partial class Command: IDisposable
     {
-        protected BytesBuilderForPointers bbp = new() {debugNameForRecords = "AutoCrypt.Command.bbp"};
+        public readonly BytesBuilderForPointers bbp = new() {debugNameForRecords = "AutoCrypt.Command.bbp"};
         public void Connect()
         {
             lock (this)

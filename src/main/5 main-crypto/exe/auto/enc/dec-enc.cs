@@ -30,14 +30,11 @@ public partial class AutoCrypt
         public          bool            noVKFRandom = false;
         public          string          alg         = "std.1.202510";
 
-        public CascadeSponge_mt_20230930?  Cascade_Key    = null;
-        public VinKekFishBase_KN_20210525? VinKekFish_Key = null;
-
         public DecEncCommand(AutoCrypt autoCrypt): base(autoCrypt)
         {}
 
         public override void Dispose(bool fromDestructor = false)
-        {
+        {/*
             if (fromDestructor && Cascade_Key != null)
             {
                 var msg = "EncCommand.Dispose executed with a not disposed state.";
@@ -52,108 +49,8 @@ public partial class AutoCrypt
 
             Cascade_Key    = null;
             VinKekFish_Key = null;
-
+*/
             base.Dispose(fromDestructor);
-        }
-        
-        private void InitSpongesFirst(AllocHGlobal_AllocatorForUnsafeMemory allocator, Dictionary<string, long> Offsets, byte VKF_K, int KeyStrenght)
-        {
-            const nint OIV_Length = 64;
-            // Выделяем массив под синхропосылку
-            // FileShare.Read не нужен, но, почему-то, иногда возникает исключение "file being used by another process".
-            using var OIV  = bbp.GetBytesAndRemoveIt(allocator.AllocMemory(OIV_Length, "InitSpongesFirst.OIV"));
-            using var encF = File.Open(EncryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
-
-            encF.Write(OIV);
-            Offsets.Add("OIV", 0);
-
-            if (isDebugMode)
-                Console.WriteLine(L("Initialization started (Cascade sponge)") + ". " + DateTime.Now.ToLongTimeString());
-
-            // Инициализируем губку с помощью синхропосылки
-            Cascade_Key!.Step(0, 0, OIV, OIV.len, regime: 254);
-            Cascade_Key!.Step(Cascade_Key.countStepsForHardening, regime: 0);
-
-            nint maxInputLen = KeyStrenght * 4; // *4 - это просто запас
-
-            var KeyArrays = new List<Record>(KeyFiles.Count);
-
-            try
-            {
-                byte regime = 3;
-                // Вводим в каскадную губку ключи
-                // Аналогичный ввод ниже
-                foreach (var KeyFileName in KeyFiles)
-                {
-                    using (var KeyFile = File.Open(EncryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        var mem = allocator.AllocMemory((nint)KeyFileName.Length, "InitSpongesFirst.KeyFile");
-
-                        KeyFile.Read(mem);
-                        KeyArrays.Add(mem);
-
-                        Cascade_Key.Step(data: mem, dataLen: mem.len,
-                                            StepsForAbsorption: Cascade_Key.GetCountOfStepsForAbsorption(TypeForShortStepForAbsorption.log),
-                                            regime: regime++);
-
-                        // Вычисляем размер приёмника для VinKekFish
-                        if (maxInputLen < mem.len)
-                            maxInputLen = mem.len;
-                    }
-                }
-
-                // На всякий случай избегаем повторного режима 1
-                // Он первый в InitThreeFishByCascade
-                if (Cascade_Key.LastRegime == 1)
-                    Cascade_Key.Step();
-
-                // Завершаем инициализацию каскадной губки
-                Cascade_Key.InitThreeFishByCascade();
-
-                if (isDebugMode)
-                    Console.WriteLine(L("Initialization continued (VinKekFish)") + ". " + DateTime.Now.ToLongTimeString());
-
-                VinKekFish_Key = new VinKekFishBase_KN_20210525
-                (
-                    K: VKF_K,
-                    CountOfRounds: VinKekFishBase_KN_20210525.Calc_NORMAL_ROUNDS_K(VKF_K),
-                    ThreadCount: 1
-                );
-                VinKekFish_Key.Init1
-                (
-                    PreRoundsForTranspose: VinKekFish_Key.CountOfRounds - 4,
-                    prngToInit: Cascade_Key
-                );
-                VinKekFish_Key.Init2
-                (
-                    RoundsForFirstKeyBlock: VinKekFish_Key.CountOfRounds,
-                    RoundsForTailsBlock: VinKekFish_Key.CountOfRounds,
-                    noInputKey: true
-                );
-
-                VinKekFish_Key.input  = new BytesBuilderStatic(maxInputLen);
-                VinKekFish_Key.output = new BytesBuilderStatic(maxInputLen);
-
-                // Вводим в губку VinKekFish ключи
-                // Аналогичный ввод выше
-                regime = 3;
-                foreach (var KeyArray in KeyArrays)
-                {
-                    VinKekFish_Key.input.Add(KeyArray);
-
-                    while (VinKekFish_Key.input.Count > 0)
-                        VinKekFish_Key.DoStepAndIO(regime: regime++);
-                }
-            }
-            finally
-            {
-                // Удаляем все ключи, так как они больше не нужны
-                foreach (var KeyArray in KeyArrays)
-                {
-                    KeyArray.Dispose();
-                }
-                KeyArrays.Clear();
-            }
         }
     }
 }
