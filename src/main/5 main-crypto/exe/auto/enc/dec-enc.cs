@@ -52,5 +52,30 @@ public partial class AutoCrypt
 */
             base.Dispose(fromDestructor);
         }
+
+        public readonly List<string> algs = new()
+        {
+            "std.1.202510",
+            "fast.1.202510",
+            "short.1.202510",
+        };
+
+        public void SelectAlg(string v)
+        {
+            if (algs.Contains(v))
+            {
+                alg = v;
+
+                if (isDebugMode)
+                    Console.WriteLine($"alg: {alg}");
+            }
+            else
+            {
+                if (isDebugMode)
+                    Console.WriteLine($"Incorrect algorithm: " + v);
+                else
+                    throw new NotImplementedException();
+            }
+        }
     }
 }

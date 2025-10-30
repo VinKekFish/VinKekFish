@@ -105,9 +105,7 @@ public partial class AutoCrypt
                     isHavePwd = true;
                     goto start;
                 case "alg":
-                    // TODO: 
-                    if (isDebugMode)
-                        Console.WriteLine("Alg selection is not implemented");
+                    SelectAlg(command.value.Trim());
                     goto start;
                 case "start":
                     if (Terminated)

@@ -184,4 +184,8 @@ Finished unmounting disk
     Закончили размонтирование диска
 Waiting for an umount retry after sleep
     Ждём повторной попытки размонтирования диска после сна
+First, enter the vertical character number (row number), then enter the horizontal character number (column number)
+    Сначала введите номер символа по вертикали (номер строки), затем введите номер символа по горизонтали (номер столбца)
+Step of the initialization ended
+    Шаг инициализации закончен
 :

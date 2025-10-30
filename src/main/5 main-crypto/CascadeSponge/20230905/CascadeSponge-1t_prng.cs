@@ -106,7 +106,7 @@ public partial class CascadeSponge_1t_20230905
         return r;
     }
 
-    public unsafe void DoRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1)
+    public unsafe void DoRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1, CascadeSponge_1t_20230905.StepProgress? progressCsc = null)
     {
         byte a, err = 0;
         nint index;
@@ -150,6 +150,11 @@ public partial class CascadeSponge_1t_20230905
             a        = T[i];
             T[i]     = T[index];
             T[index] = a;
+
+            if (progressCsc is not null)
+            {
+                progressCsc.processedSteps++;
+            }
         }
 
         a = 0;

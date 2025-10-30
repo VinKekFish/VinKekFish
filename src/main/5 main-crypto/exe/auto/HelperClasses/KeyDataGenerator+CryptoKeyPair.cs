@@ -30,10 +30,11 @@ public unsafe partial class AutoCrypt
         /// <param name="keyLenCsc">Длина ключа для каскадной губки.</param>
         /// <param name="keyLenVkf">Длина ключа для губки VinKekFish.</param>
         /// <param name="regime">Режимы, которые будут использованы для генерации.</param>
-        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime, string RecordNameSuffix = "")
+        public CryptoKeyPair(KeyDataGenerator generator, nint keyLenCsc, nint keyLenVkf, (byte csc, byte vkf) regime, string RecordNameSuffix = "", CascadeSponge_1t_20230905.StepProgress? progressCsc = null, CascadeSponge_1t_20230905.StepProgress? progressVkf = null)
         {
-            csc = generator.GetBytes(keyLenCsc, regime: regime.csc, RecordNameSuffix);
-            vkf = generator.GetBytes(keyLenVkf, regime: regime.vkf, RecordNameSuffix);
+            csc = generator.GetBytes(keyLenCsc, regime: regime.csc, RecordNameSuffix, progressCsc);
+            if (keyLenVkf > 0)
+            vkf = generator.GetBytes(keyLenVkf, regime: regime.vkf, RecordNameSuffix, progressVkf);
         }
 
         /// <summary>Получает оба ключа, представленные в описателе файла. Сначала идёт секция "csc" (каскадный ключ), затем "vkf" (ключ VinKekFish).</summary>
@@ -105,11 +106,11 @@ public unsafe partial class AutoCrypt
         /// <summary>Сгенерировать пару ключей шифрования и записать и в data_key</summary>
         /// <param name="count">Количество пар ключей, которое нужно сгенерировать.</param>
         /// <param name="RecordNameSuffix">Суффикс, добавляемый к отладочному имени выделяемой записи.</param>
-        public void Generate(nint count = 1, string RecordNameSuffix = "")
+        public void Generate(nint count = 1, string RecordNameSuffix = "", CascadeSponge_1t_20230905.StepProgress? progressCsc = null, CascadeSponge_1t_20230905.StepProgress? progressVkf = null)
         {
             for (nint i = 0; i < count; i++)
             {
-                var keyPair = new CryptoKeyPair(this, KeyLenCsc, KeyLenVkf, (13, 15), RecordNameSuffix);
+                var keyPair = new CryptoKeyPair(this, KeyLenCsc, KeyLenVkf, (13, 15), RecordNameSuffix, progressCsc, progressVkf);
                 keys.Add(keyPair);
             }
         }

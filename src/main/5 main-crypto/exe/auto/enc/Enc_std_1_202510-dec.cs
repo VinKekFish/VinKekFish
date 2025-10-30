@@ -23,7 +23,6 @@ public unsafe partial class Enc_std_1_202510: IDisposable
     public ProgramErrorCode Decrypt()
     {
         var allocator = Keccak_abstract.allocator;
-        var Offsets   = new Dictionary<string, Int64>();
         if (command.isDebugMode)
         {
             Console.WriteLine(DateTime.Now.ToLongTimeString());
@@ -32,45 +31,52 @@ public unsafe partial class Enc_std_1_202510: IDisposable
 
         CreateKeyCascadeSponge();
 
-        lock (this)
+        lock (command)
         try
         {
             nint EncFileLength;
-            using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var encFileStream = File.Open(command.EncryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                EncFileLength = (nint)command.DecryptedFileName!.Length;
-                if (EncFileLength <= 256)
+                EncFileLength = (nint)command.EncryptedFileName!.Length;
+                if (EncFileLength <= OIV_Length + HashLength + 2)
                 {
                     Console.WriteLine(L("ERROR") + ": " + L("The file for decryption have zero length") + ".");
                     return ProgramErrorCode.Abandoned;
                 }
 
-                decFile = allocator.AllocMemory((nint)command.DecryptedFileName!.Length, "dec-file-1");
+                encFile = allocator.AllocMemory(EncFileLength, "enc-file-1");
 
-                var readedBytes = decFileStream.Read(decFile);
+                var readedBytes = encFileStream.Read(encFile);
                 if (readedBytes != EncFileLength)
                 {
-                    throw new Exception($"readedBytes != DecFileLength [{readedBytes} != {EncFileLength}]");
+                    throw new Exception($"readedBytes != EncFileLength [{readedBytes} != {EncFileLength}]");
                 }
             }
 
             // Выделяем массив под синхропосылку
             // FileShare.Read не нужен, но, почему-то, иногда возникает исключение "file being used by another process".
-            using var OIV  = command.bbp.GetBytesAndRemoveIt(allocator.AllocMemory(OIV_Length, "InitSpongesFirst.OIV"));
+            using var OIV = encFile << encFile.len - OIV_Length;
             InitSpongesFirst(allocator, OIV);
 
-            if (command.isDebugMode)
+            using var encFileData = encFile >> OIV_Length;
+
+            // Делаем второй-восьмой проходы
+            // DecStep0208(encFileData);
+            byte[]? DecFileLenData = encFileData.CloneToSafeBytes(0, 20);
+            var size = BytesBuilder.BytesToVariableULong(out ulong DecFileLenght, DecFileLenData, 0);
+
+            using var efd = encFileData >> size;
+            using var res = efd << efd.len - (nint) DecFileLenght - HashLength;
+
+            Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
+            DecStep01(res, (nint) DecFileLenght);
+            // TODO: Проверить хеш
+            using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
             {
-                Console.WriteLine(L("First step of the initialization ended") + ". " + DateTime.Now.ToLongTimeString());
+                decFileStream.Write(res << HashLength);
             }
 
-            if (command.isHavePwd)
-            {
-                Console.WriteLine(L("Enter password:"));
-                // _ = new PasswordEnter(Cascade_KeyGenerator!, VinKekFish_KeyGenerator!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: (nint) Cascade_KeyOpts.ArmoringSteps, ArmoringSteps: (nint) Cascade_KeyOpts.ArmoringSteps);
-            }
-
-            Console.WriteLine("Encrypted");
+            Console.WriteLine(L("Decrypted") + ". " + DateTime.Now.ToLongTimeString());
         }
         finally
         {
@@ -79,5 +85,47 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         }
 
         return ProgramErrorCode.success;
+    }
+
+    private void DecStep01(Record decFileAndData, nint len)
+    {
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "01. " + DateTime.Now.ToLongTimeString());
+
+        // Инициализация губки длиной произведена вне этой функции
+        DecApplyCSGamma(decFileAndData, len, Cascade_1f!, 0, HashLength);
+    }
+
+
+    private void DecStep0208(Record encFile)
+    {
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "08. " + DateTime.Now.ToLongTimeString());
+
+        DecApplyVKFGamma(encFile, encFile.len, VinKekFish_2r!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+        DecApplyVKFGamma(encFile, encFile.len, VinKekFish_2f!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "06. " + DateTime.Now.ToLongTimeString());
+
+        DecApplyCSGamma(encFile, encFile.len, Cascade_2r!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+        DecApplyCSGamma(encFile, encFile.len, Cascade_2f!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "04. " + DateTime.Now.ToLongTimeString());
+
+        DecApplyVKFGamma(encFile, encFile.len, VinKekFish_1r!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+        DecApplyVKFGamma(encFile, encFile.len, VinKekFish_1f!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
+
+        // Делаем шаг перемешивания - очень долгий
+        // DecStep02p(encFile); // TODO:
+
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "02. " + DateTime.Now.ToLongTimeString());
+
+        // Обращаем порядок байтов и накладываем гамму с обратной связью без хеша
+        // Начало данного массива в обращённом порядке байтов - это шум, который дополнительно инициализирует губку
+        DecApplyCSGamma(encFile, encFile.len, Cascade_1r!, 0);
+        BytesBuilder.ReverseBytes(encFile.len, encFile);
     }
 }

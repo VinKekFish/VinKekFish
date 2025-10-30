@@ -34,6 +34,11 @@ public unsafe partial class PasswordEnter: IDisposable
 
     public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false)
     {
+        /*
+        Console.WriteLine(L("Enter password") + ". " + L("First, enter the vertical character number (row number), then enter the horizontal character number (column number)") + ".\n" + L("Press 'Enter' to begin enter password") + ".");
+        Console.ReadLine();
+        */
+        
         // На всякий случай переоткрываем поток ввода, т.к. он может быть перенаправлен с помощью SetIn для получения конфигурации
         Console.SetIn(new StreamReader(Console.OpenStandardInput()));
         Console.Clear();
@@ -126,7 +131,7 @@ public unsafe partial class PasswordEnter: IDisposable
                     vkf.DoStepAndIO(regime: regime);
             }
 
-            // Console.WriteLine("\x1b[0m\x1b[0m");
+            Console.WriteLine("\x1b[0m\x1b[0m");
             Console.ResetColor();
             Clear();
             Console.Clear();

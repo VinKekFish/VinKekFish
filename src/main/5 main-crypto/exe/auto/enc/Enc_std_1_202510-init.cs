@@ -58,12 +58,13 @@ public unsafe partial class Enc_std_1_202510: IDisposable
     /// <param name="key">Ключ для инициализации</param>
     /// <param name="PermutationGenerator">Каскадная губка для инициализации таблиц перестановок</param>
     /// <returns></returns>
-    private VinKekFishBase_KN_20210525 CreateAndInitVkfSponge(Record key, CascadeSponge_mt_20230930 PermutationGenerator)
+    private VinKekFishBase_KN_20210525 CreateAndInitVkfSponge(Record key, CascadeSponge_mt_20230930 PermutationGenerator, int ThreadCount = 1)
     {
         var result = new VinKekFishBase_KN_20210525
         (
             CountOfRounds: VinKekFishBase_KN_20210525.Calc_NORMAL_ROUNDS_K(VKF_K),
-            K: VKF_K
+            K: VKF_K,
+            ThreadCount: ThreadCount
         );
 
         result.Init1
@@ -77,7 +78,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         return result;
     }
 
-    private void InitSpongesFirst(AllocHGlobal_AllocatorForUnsafeMemory allocator, Record OIV, nint decFileLength = 0)
+    private void InitSpongesFirst(AllocHGlobal_AllocatorForUnsafeMemory allocator, Record OIV, nint decFileLength = 0, int decFileLengthFieldLength = 0)
     {
         if (command.isDebugMode)
             Console.WriteLine(L("Initialization started (Cascade sponge)") + ". " + DateTime.Now.ToLongTimeString());
@@ -113,6 +114,10 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                         maxInputLen = mem.len;
                 }
             }
+
+            // Дополнительно перемешиваем ключевую информацию,
+            // чтобы распределить энтропию более равномерно
+            Cascade_Key.Step(regime: (byte) (regime - 127), countOfSteps: Cascade_Key.countStepsForKeyGeneration);
 
             // На всякий случай избегаем повторного режима 1
             // Он первый в InitThreeFishByCascade
@@ -157,6 +162,11 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             VinKekFish_Key.DoStepAndIO(regime: 3);
             VinKekFish_Key.DoStepAndIO(regime: 2);
 
+            if (command.isHavePwd)
+            {
+                _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
+            }
+
             // -------------------------------------------
             //  Обмен данными инициализации между губками
             // -------------------------------------------
@@ -176,9 +186,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             // (только половина вывода с каждого шага)
             while (VinKekFish_Key.input.Count < KeyKeyStrenght)
             {
-                Cascade_Key.Step(regime: 255);
+                Cascade_Key.Step(regime: 255, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 VinKekFish_Key.input.Add(Cascade_Key.lastOutput, Cascade_Key.lastOutput.len >> 1);
-                Cascade_Key.Step(regime: 1);
+                Cascade_Key.Step(regime: 1, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
                 VinKekFish_Key.input.Add(Cascade_Key.lastOutput, Cascade_Key.lastOutput.len >> 1);
             }
             Cascade_Key.Step(regime: 127);
@@ -216,9 +226,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
 
             Cascade_p     = CreateAndInitCascadeSponge(KeyGenerator.keys[0].csc!);
             Cascade_1f    = CreateAndInitCascadeSponge(KeyGenerator.keys[1].csc!);
-            Cascade_1r    = CreateAndInitCascadeSponge(KeyGenerator.keys[2].csc!);
+/*            Cascade_1r    = CreateAndInitCascadeSponge(KeyGenerator.keys[2].csc!);
             Cascade_2f    = CreateAndInitCascadeSponge(KeyGenerator.keys[3].csc!);
-            Cascade_2r    = CreateAndInitCascadeSponge(KeyGenerator.keys[4].csc!);
+            Cascade_2r    = CreateAndInitCascadeSponge(KeyGenerator.keys[4].csc!);*/
             Cascade_vkf   = CreateAndInitCascadeSponge(KeyGenerator.keys[5].csc!);
             if (decFileLength > 0)
             Cascade_noise = CreateAndInitCascadeSponge(KeyGenerator.keys[6].csc!);
@@ -226,24 +236,29 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             if (command.isDebugMode)
                 Console.WriteLine(L("Initialization continuing (vkf sponges creation)") + ". " + DateTime.Now.ToLongTimeString());
 
-            VinKekFish_1f = CreateAndInitVkfSponge    (KeyGenerator.keys[0].vkf!, Cascade_vkf);
-            VinKekFish_1r = CreateAndInitVkfSponge    (KeyGenerator.keys[1].vkf!, Cascade_vkf);
-            VinKekFish_2f = CreateAndInitVkfSponge    (KeyGenerator.keys[2].vkf!, Cascade_vkf);
-            VinKekFish_2r = CreateAndInitVkfSponge    (KeyGenerator.keys[3].vkf!, Cascade_vkf);
+            VinKekFish_1f = CreateAndInitVkfSponge(KeyGenerator.keys[0].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
+/*            VinKekFish_1r = CreateAndInitVkfSponge(KeyGenerator.keys[1].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
+            VinKekFish_2f = CreateAndInitVkfSponge(KeyGenerator.keys[2].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
+            VinKekFish_2r = CreateAndInitVkfSponge(KeyGenerator.keys[3].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);*/
             if (decFileLength > 0)
-            VinKekFish_n  = CreateAndInitVkfSponge    (KeyGenerator.keys[4].vkf!, Cascade_vkf);
+            VinKekFish_n  = CreateAndInitVkfSponge(KeyGenerator.keys[4].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
 
             if (decFileLength > 0)
             {
                 if (command.isDebugMode)
                     Console.WriteLine(L("Initialization continuing (noise generation)") + ". " + DateTime.Now.ToLongTimeString());
 
-                var FilePaddingsLen = CalcFilePaddingsLen(decFileLength, FileAlignment);
+                // Выравнивание идёт всего файла на нужную границу, а не только самого открытого текста
+                var FilePaddingsLen = CalcFilePaddingsLen
+                (
+                    decFileLength*2 +
+                    OIV_Length + HashLength + decFileLengthFieldLength, FileAlignment
+                );
 
                 NoiseGenerator = new KeyDataGenerator(VinKekFish_n!, Cascade_noise!, 0, "Enc_std_1_202510.InitSpongesFirst.NoiseGenerator")
                 {
-                    KeyLenCsc = decFileLength,
-                    KeyLenVkf = FilePaddingsLen == 0 ? FileAlignment*2 : FilePaddingsLen + FileAlignment,
+                    KeyLenCsc = decFileLength + FilePaddingsLen,
+                    KeyLenVkf = 0,
                     willDisposeSponges = false
                 };
 
@@ -251,7 +266,35 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                 NoiseGenerator.vkf.BlockLen = VinKekFish_n !.BLOCK_SIZE_K;
                 NoiseGenerator.csc.BlockLen = Cascade_noise!.lastOutput.len;
 
-                NoiseGenerator.Generate(1);
+                CascadeSponge_1t_20230905.StepProgress? progressCsc = new();
+                progressCsc.allSteps = NoiseGenerator.KeyLenCsc;
+                ThreadPool.QueueUserWorkItem
+                (
+                    delegate
+                    {
+                        NoiseGenerator.Generate(1, progressCsc: progressCsc);
+
+                        lock (progressCsc)
+                            Monitor.PulseAll(progressCsc);
+                    }
+                );
+
+                lock (progressCsc)
+                while (progressCsc.processedSteps < progressCsc.allSteps)
+                {
+                    if (Monitor.Wait(progressCsc, 30_000))
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+                    else
+                        Console.Write($"{progressCsc.processedSteps*100.0/progressCsc.allSteps:f1}% " + DateTime.Now.ToLongTimeString() + "\t");
+                }
+            }
+
+            if (command.isDebugMode)
+            {
+                Console.WriteLine(L("Step of the initialization ended") + ". " + DateTime.Now.ToLongTimeString());
             }
         }
         finally

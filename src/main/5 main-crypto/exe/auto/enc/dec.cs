@@ -30,7 +30,7 @@ public partial class AutoCrypt
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             if (isDebugMode)
-                Console.WriteLine(L("Enter options for the file encryption"));
+                Console.WriteLine(L("Enter options for the file decryption"));
 
 
             start:
@@ -67,7 +67,7 @@ public partial class AutoCrypt
                     if (isDebugMode)
                     {
                         if (DecryptedFileName == null)
-                            Console.WriteLine($"File name for input is incorrect: {command.value.TrimStart()}");
+                            Console.WriteLine($"File name for output is incorrect: {command.value.TrimStart()}");
                         else
                             Console.WriteLine($"dec: {DecryptedFileName?.FullName}");
                     }
@@ -81,7 +81,7 @@ public partial class AutoCrypt
                     if (isDebugMode)
                     {
                         if (EncryptedFileName == null)
-                            Console.WriteLine($"File name for out is incorrect: {outval}");
+                            Console.WriteLine($"File name for input is incorrect: {outval}");
                         else
                             Console.WriteLine($"enc: {EncryptedFileName?.FullName}");
                     }
@@ -108,9 +108,7 @@ public partial class AutoCrypt
                     isHavePwd = true;
                     goto start;
                 case "alg":
-                    // TODO: 
-                    if (isDebugMode)
-                        Console.WriteLine("Alg selection is not implemented");
+                    SelectAlg(command.value.Trim());
                     goto start;
                 case "start":
                     if (Terminated)
