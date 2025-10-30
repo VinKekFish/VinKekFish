@@ -247,7 +247,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                     willDisposeSponges = false
                 };
 
-                // Здесь мы не генерируем ключи, значи можно брать блоки целиком
+                // Здесь мы не генерируем ключи, значит можно брать блоки целиком
                 NoiseGenerator.vkf.BlockLen = VinKekFish_n !.BLOCK_SIZE_K;
                 NoiseGenerator.csc.BlockLen = Cascade_noise!.lastOutput.len;
 
