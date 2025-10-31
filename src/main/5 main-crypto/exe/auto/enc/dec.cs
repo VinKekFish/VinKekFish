@@ -38,7 +38,7 @@ public partial class AutoCrypt
             var command = (CommandOption) CommandOption.ReadAndParseLine(sr, () => Console.WriteLine("Commands (not all):\r\nfile:path_to_file\r\nkey:path_to_file"));
             switch (command.name)
             {
-                case "dec":
+                case "out":
                     var outval = command.value.TrimStart();
                     // Убираем от файла расширение .vkf и расширение с датой файла
                     if (outval.Length <= 0 && EncryptedFileName != null)
@@ -69,11 +69,11 @@ public partial class AutoCrypt
                         if (DecryptedFileName == null)
                             Console.WriteLine($"File name for output is incorrect: {command.value.TrimStart()}");
                         else
-                            Console.WriteLine($"dec: {DecryptedFileName?.FullName}");
+                            Console.WriteLine($"out: {DecryptedFileName?.FullName}");
                     }
 
                     goto start;
-                case "enc":
+                case "in":
                     outval = command.value.TrimStart();
 
                     EncryptedFileName = ParseFileOptions(outval, isDebugMode, mustExists: FileMustExists.Exists);
@@ -83,7 +83,7 @@ public partial class AutoCrypt
                         if (EncryptedFileName == null)
                             Console.WriteLine($"File name for input is incorrect: {outval}");
                         else
-                            Console.WriteLine($"enc: {EncryptedFileName?.FullName}");
+                            Console.WriteLine($"in: {EncryptedFileName?.FullName}");
                     }
 
                     goto start;
@@ -116,12 +116,12 @@ public partial class AutoCrypt
 
                     if (EncryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'enc' expected");
+                        Console.WriteLine("Command 'in' expected");
                         goto start;
                     }
                     if (DecryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'dec' expected");
+                        Console.WriteLine("Command 'out' expected");
                         goto start;
                     }
                     if (KeyFiles.Count == 0 && !isHavePwd)

@@ -52,7 +52,7 @@ public partial class AutoCrypt
                     throw new NotImplementedException();
 
 //                    goto start;
-                case "dec":
+                case "in":
                     DecryptedFileName = ParseFileOptions(command.value.TrimStart(), isDebugMode, mustExists: FileMustExists.Exists);
 
                     if (isDebugMode)
@@ -60,11 +60,11 @@ public partial class AutoCrypt
                         if (DecryptedFileName == null)
                             Console.WriteLine($"File name for input is incorrect: {command.value.TrimStart()}");
                         else
-                            Console.WriteLine($"dec: {DecryptedFileName?.FullName}");
+                            Console.WriteLine($"in: {DecryptedFileName?.FullName}");
                     }
 
                     goto start;
-                case "enc":
+                case "out":
                     var dateString  = DateTime.Now.ToString("yyyy-MM-dd-HHmm");
                     var outval      = command.value.TrimStart();
                     if (outval.Length <= 0 && DecryptedFileName != null)
@@ -113,12 +113,12 @@ public partial class AutoCrypt
 
                     if (EncryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'enc' expected");
+                        Console.WriteLine("Command 'out' expected");
                         goto start;
                     }
                     if (DecryptedFileName == null)
                     {
-                        Console.WriteLine("Command 'dec' expected");
+                        Console.WriteLine("Command 'in' expected");
                         goto start;
                     }
                     if (KeyFiles.Count == 0 && !isHavePwd)

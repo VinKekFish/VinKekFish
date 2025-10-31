@@ -3,7 +3,7 @@
     <!-- ProjectReference Include="../../../../../Compiler/tree-lang-main/libs/utils/utils.csproj" / -->
     <!-- ProjectReference Include="../../../../DriverForTests/DriverForTestsLib/DriverForTestsLib.csproj" / -->
     <ProjectReference Include="../../../../VinKekFish/src/main/3 cryptoprime/cryptoprime.csproj" />
-    <ProjectReference Include="../../../../VinKekFish/src/main/4 utils/4 utils.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/4 utils/utils.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

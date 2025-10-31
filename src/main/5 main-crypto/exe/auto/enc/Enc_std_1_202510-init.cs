@@ -87,7 +87,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         Cascade_Key!.Step(0, 0, OIV, OIV.len, regime: 254);
         Cascade_Key!.Step(Cascade_Key.countStepsForHardening, regime: 0);
 
-        nint maxInputLen = KeyStrenght * 4; // *4 - это просто запас
+        nint maxInputLen = KeyKeyStrenght * 4; // *4 - это просто запас
 
         var KeyArrays = new List<Record>(command.KeyFiles.Count);
 
@@ -96,14 +96,17 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             byte regime = 3;
             // Вводим в каскадную губку ключи
             // Аналогичный ввод ниже
-            foreach (var KeyFileName in command.KeyFiles)
+            foreach (var KeyFileFi in command.KeyFiles)
             {
-                using (var KeyFile = File.Open(command.EncryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var KeyFile = File.Open(KeyFileFi!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var mem = allocator.AllocMemory((nint)KeyFileName.Length, "InitSpongesFirst.KeyFile");
+                    var mem = allocator.AllocMemory((nint)KeyFileFi.Length, "InitSpongesFirst.KeyFile");
 
-                    KeyFile.Read(mem);
+                    var readed = KeyFile.Read(mem);
                     KeyArrays.Add(mem);
+
+                    if (readed != mem.len)
+                        throw new Exception($"Enc_std_1_202510.InitSpongesFirst: readed != mem.len in KeyFile ({readed} != {mem.len})");
 
                     Cascade_Key.Step(data: mem, dataLen: mem.len,
                                         StepsForAbsorption: Cascade_Key.GetCountOfStepsForAbsorption(TypeForShortStepForAbsorption.log),
@@ -226,9 +229,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
 
             Cascade_p     = CreateAndInitCascadeSponge(KeyGenerator.keys[0].csc!);
             Cascade_1f    = CreateAndInitCascadeSponge(KeyGenerator.keys[1].csc!);
-/*            Cascade_1r    = CreateAndInitCascadeSponge(KeyGenerator.keys[2].csc!);
+            Cascade_1r    = CreateAndInitCascadeSponge(KeyGenerator.keys[2].csc!);
             Cascade_2f    = CreateAndInitCascadeSponge(KeyGenerator.keys[3].csc!);
-            Cascade_2r    = CreateAndInitCascadeSponge(KeyGenerator.keys[4].csc!);*/
+            Cascade_2r    = CreateAndInitCascadeSponge(KeyGenerator.keys[4].csc!);
             Cascade_vkf   = CreateAndInitCascadeSponge(KeyGenerator.keys[5].csc!);
             if (decFileLength > 0)
             Cascade_noise = CreateAndInitCascadeSponge(KeyGenerator.keys[6].csc!);
@@ -237,9 +240,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                 Console.WriteLine(L("Initialization continuing (vkf sponges creation)") + ". " + DateTime.Now.ToLongTimeString());
 
             VinKekFish_1f = CreateAndInitVkfSponge(KeyGenerator.keys[0].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
-/*            VinKekFish_1r = CreateAndInitVkfSponge(KeyGenerator.keys[1].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
+            VinKekFish_1r = CreateAndInitVkfSponge(KeyGenerator.keys[1].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
             VinKekFish_2f = CreateAndInitVkfSponge(KeyGenerator.keys[2].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
-            VinKekFish_2r = CreateAndInitVkfSponge(KeyGenerator.keys[3].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);*/
+            VinKekFish_2r = CreateAndInitVkfSponge(KeyGenerator.keys[3].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
             if (decFileLength > 0)
             VinKekFish_n  = CreateAndInitVkfSponge(KeyGenerator.keys[4].vkf!, Cascade_vkf, Environment.ProcessorCount - 1);
 

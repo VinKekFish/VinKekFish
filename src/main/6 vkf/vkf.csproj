@@ -1,10 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+  <!-- 
     <ProjectReference Include="../../../../VinKekFish/src/main/1 BytesBuilder/bytesbuilder.csproj" />
     <ProjectReference Include="../../../../VinKekFish/src/main/3 cryptoprime/cryptoprime.csproj" />
     <ProjectReference Include="../../../../VinKekFish/src/main/4 utils/4 utils.csproj" />
-    <ProjectReference Include="../../../../VinKekFish/src/main/5 main-crypto/maincrypto.csproj" />
+    <ProjectReference Include="../../../../VinKekFish/src/main/5 main-crypto/maincrypto.csproj" />-->
     <!-- ProjectReference Include="..\..\..\..\DriverForTests\DriverForTestsLib\DriverForTestsLib.csproj" / -->
+
+    <Reference Include="bytesbuilder">
+      <HintPath>../../../../VinKekFish/build/bytesbuilder.dll</HintPath>
+      <Private>True</Private> <!-- или False, если не нужно копировать в выходную папку -->
+    </Reference>
+    <Reference Include="cryptoprime">
+      <HintPath>../../../../VinKekFish/build/cryptoprime.dll</HintPath>
+      <Private>True</Private> <!-- или False, если не нужно копировать в выходную папку -->
+    </Reference>
+    <Reference Include="utils">
+      <HintPath>../../../../VinKekFish/build/utils.dll</HintPath>
+      <Private>True</Private> <!-- или False, если не нужно копировать в выходную папку -->
+    </Reference>
+    <Reference Include="maincrypto">
+      <HintPath>../../../../VinKekFish/build/maincrypto.dll</HintPath>
+      <Private>True</Private> <!-- или False, если не нужно копировать в выходную папку -->
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>

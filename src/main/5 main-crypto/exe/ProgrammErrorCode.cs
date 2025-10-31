@@ -25,6 +25,8 @@ public enum ProgramErrorCode
         = 10_002,
 
     // <summary>Работа программы прекращена в результате получения программой некорректных входных значений</summary>
-    wrongCryptoParams = 105
+    wrongCryptoParams = 20_001,
+    // <summary>Работа программы прекращена из-за несовпадения хеша расшифрованных данных.</summary>
+    wrongCryptoHash = 20_002,
 
 };

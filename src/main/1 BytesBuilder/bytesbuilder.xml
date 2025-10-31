@@ -497,6 +497,10 @@
             <summary>Очищает массив и освобождает выделенную под него память</summary>
             <param name="disposing">true, если вызов происходит из-вне деструктора</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.IsNull">
+            <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
+            <returns>true, если блок состоит из одних нулей.</returns>
+        </member>
         <member name="F:cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor">
             <summary>Если true, то в деструкторе могут быть сгенерированны исключения, если объект не был освобождён ранее. В противном случае, будет только установлен флаг errorsInDispose</summary>
         </member>
@@ -529,6 +533,9 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_LeftShift(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Уменьшает длину записи на subtracted. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_ExclusiveOr(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Уменьшает длину записи до len</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_BitwiseAnd(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>

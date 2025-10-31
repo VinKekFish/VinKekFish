@@ -25,6 +25,7 @@ dotnet clean './src/main/2 generator/'
 dotnet clean './src/main/3 cryptoprime/'
 dotnet clean './src/main/4 utils/'
 dotnet clean './src/main/5 main-crypto/'
+dotnet clean './src/main/6 vkf/'
 dotnet clean ./src/tests/
 
 

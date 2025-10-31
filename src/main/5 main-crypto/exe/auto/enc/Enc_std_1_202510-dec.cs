@@ -35,8 +35,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         try
         {
             nint EncFileLength;
-            using (var encFileStream = File.Open(command.EncryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var encFileStream = File.Open(command.EncryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
             {
+                command.EncryptedFileName.Refresh();
                 EncFileLength = (nint)command.EncryptedFileName!.Length;
                 if (EncFileLength <= OIV_Length + HashLength + 2)
                 {
@@ -54,23 +55,33 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             }
 
             // Выделяем массив под синхропосылку
-            // FileShare.Read не нужен, но, почему-то, иногда возникает исключение "file being used by another process".
-            using var OIV = encFile << encFile.len - OIV_Length;
+            using var OIV = encFile ^ OIV_Length;
             InitSpongesFirst(allocator, OIV);
-
             using var encFileData = encFile >> OIV_Length;
 
             // Делаем второй-восьмой проходы
-            // DecStep0208(encFileData);
+            DecStep0208(encFileData);
             byte[]? DecFileLenData = encFileData.CloneToSafeBytes(0, 20);
             var size = BytesBuilder.BytesToVariableULong(out ulong DecFileLenght, DecFileLenData, 0);
 
             using var efd = encFileData >> size;
-            using var res = efd << efd.len - (nint) DecFileLenght - HashLength;
+            using var res = efd ^ ( (nint) DecFileLenght + HashLength );
 
             Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
+
             DecStep01(res, (nint) DecFileLenght);
-            // TODO: Проверить хеш
+            var hashMem = res >> (nint) DecFileLenght;
+            if (!hashMem.IsNull())
+            {
+                Console.WriteLine();
+
+                using (new VinKekFish_Utils.console.ErrorConsoleOptions())
+                {
+                    Console.Write(L("Incorrect hash of file: this is either a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+                }
+                Console.WriteLine();
+                return ProgramErrorCode.wrongCryptoHash;
+            }
             using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
             {
                 decFileStream.Write(res << HashLength);

@@ -379,6 +379,28 @@ namespace cryptoprime
                 }
             }
 
+            /// <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
+            /// <returns>true, если блок состоит из одних нулей.</returns>
+            public bool IsNull()
+            {
+                var  a  = (long *) array;
+                var  ln = len >> 3;
+                long v  = 0;
+                for (int i = 0; i < ln; i++, a++)
+                {
+                    v |= *a;
+                }
+
+                var b = (byte *) a;
+                var l = (len & 7);
+                for (int i = 0; i < l; i++, b++)
+                {
+                    v |= *b;
+                }
+
+                return v == 0;
+            }
+
                                                                                         /// <summary>Если true, то в деструкторе могут быть сгенерированны исключения, если объект не был освобождён ранее. В противном случае, будет только установлен флаг errorsInDispose</summary>
             public static bool doExceptionOnDisposeInDestructor = true;                 /// <summary>Если true, то может быть вызвано исключение при повторном вызове Dispose. В противном случае, будет только установлен флаг errorsInDispose</summary>
             public static bool doExceptionOnDisposeTwiced       = true;
@@ -468,6 +490,23 @@ namespace cryptoprime
                 {
                     array     = a.array,
                     len       = a.len - subtracted
+                };
+
+                r.allocator = new AllocHGlobal_NoCopy(a, r);
+                return r;
+            }
+                                                                                    /// <summary>Уменьшает длину записи до len</summary>
+            public static Record operator ^(Record a, nint len)
+            {
+                if (len < 0)
+                    throw new ArgumentOutOfRangeException(nameof(len), "len < 0");
+                if (a.len < len)
+                    throw new ArgumentOutOfRangeException(nameof(len), "a.len < len");
+
+                var r = new Record()
+                {
+                    array     = a.array,
+                    len       = len
                 };
 
                 r.allocator = new AllocHGlobal_NoCopy(a, r);

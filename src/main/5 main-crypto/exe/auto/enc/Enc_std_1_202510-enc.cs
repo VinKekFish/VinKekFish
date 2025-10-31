@@ -74,11 +74,11 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
     }
                                                                                             /// <summary>Длина синхропосылки (располагается в начале файла)</summary>
     public const nint OIV_Length = 64;                                                      /// <summary>Стойкость шифрования и стойкость генератора ключа (коэффициенты K в VinKekFish)</summary>
-    public const byte VKF_K = 3, VKF_KEY_K = 5;                                             /// <summary>Стойкость шифрования для каскадной губки в байтах</summary>
+    public const byte VKF_K = 1, VKF_KEY_K = 1;                                             /// <summary>Стойкость шифрования для каскадной губки в байтах</summary>
     public const int  KeyStrenght    = VKF_K    *VinKekFishBase_etalonK1.BLOCK_SIZE,        /// <summary>Стойкость генератора ключа для каскадной губки в байтах</summary>
                       KeyKeyStrenght = VKF_KEY_K*VinKekFishBase_etalonK1.BLOCK_SIZE;        /// <summary>Длина хеша в байтах</summary>
     public const int  HashLength     = KeyStrenght*2;                                         /// <summary>Выравнивание длины файла (граница в байтах)</summary>
-    public const int  FileAlignment  = 1 << 16;
+    public const int  FileAlignment  = 16;//1 << 16;
 
     public const string Position_END        = "END";
     public const string Position_IOV        = "OIV";
@@ -129,7 +129,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
                 BytesBuilder.VariableULongToBytes((ulong)DecFileLength, ref DecFileLenData);
                 DFLD = Record.GetRecordFromBytesArray(DecFileLenData!, allocator, "DecFileLenData");
 
-                decFileAndData = allocator.AllocMemory((nint)command.DecryptedFileName!.Length + HashLength + DecFileLenData!.Length, "dec-file-1");
+                decFileAndData = allocator.AllocMemory((nint)command.DecryptedFileName!.Length + HashLength + DFLD.len, "dec-file-1");
                 
                 BytesBuilder.CopyTo(DFLD, decFileAndData);
                 decFileRawData = decFileAndData >> DFLD.len;
@@ -146,7 +146,8 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             // Делаем первый проход, вычисляем хеш
             Cascade_1f!.Step(data: DFLD, dataLen: DFLD.len, regime: 3);
             DFLD.Dispose();
-            EncStep01(decFileAndData, DecFileLength, decFileRawData);
+
+            EncStep01(DecFileLength, decFileRawData);
             encFile = allocator.AllocMemory
             (
                 decFileAndData.len +
@@ -170,7 +171,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             }
 
             // Делаем второй-восьмой проходы
-            // EncStep0208(encFile);
+            EncStep0208(encFile);
             if (command.isDebugMode)
                 Console.WriteLine(L("Dumping encrypted data to the disk") + ". " + DateTime.Now.ToLongTimeString());
 
@@ -189,7 +190,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
         return ProgramErrorCode.success;
     }
 
-    private void EncStep01(Record decFileAndData, nint len, Record decFileRawData)
+    private void EncStep01(nint len, Record decFileRawData)
     {
         if (command.isDebugMode)
             Console.WriteLine(L("Step") + "01. " + DateTime.Now.ToLongTimeString());
@@ -267,8 +268,8 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             throw new ArgumentOutOfRangeException("Enc_std_1_202510.ApplyCSGamma: decFile.len < len + HashLenght");
 
         csc.Step(regime: regime);
-        var tmp  = stackalloc byte[(int) csc.lastOutput.len];
         var blen = csc.lastOutput.len;
+        var tmp  = stackalloc byte[(int) blen];
 
         byte * data = decFile.array;
         nint   ProcessedLen = 0;
@@ -309,8 +310,8 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             throw new ArgumentOutOfRangeException("Enc_std_1_202510.ApplyCSGamma: decFile.len < len + HashLenght");
 
         csc.Step(regime: regime);
-        var tmp  = stackalloc byte[(int) csc.lastOutput.len];
         var blen = csc.lastOutput.len;
+        var tmp  = stackalloc byte[(int) blen];
 
         byte * data = decFile.array;
         nint   ProcessedLen = 0;

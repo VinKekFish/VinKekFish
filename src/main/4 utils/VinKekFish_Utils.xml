@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>4 utils</name>
+        <name>utils</name>
     </assembly>
     <members>
         <member name="T:VinKekFish_Utils.AlignUtils">
