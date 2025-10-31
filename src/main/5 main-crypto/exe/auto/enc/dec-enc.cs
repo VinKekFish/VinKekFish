@@ -56,6 +56,7 @@ public partial class AutoCrypt
         public readonly List<string> algs = new()
         {
             "std.1.202510",
+            "std.3.202510",
             "fast.1.202510",
             "short.1.202510",
         };
@@ -72,7 +73,14 @@ public partial class AutoCrypt
             else
             {
                 if (isDebugMode)
+                {
                     Console.WriteLine($"Incorrect algorithm: " + v);
+                    Console.WriteLine("Correct algorithms:");
+                    foreach (var alg in algs)
+                    {
+                        Console.WriteLine(alg);
+                    }
+                }
                 else
                     throw new NotImplementedException();
             }

@@ -160,6 +160,79 @@ public partial class CascadeSponge_1t_20230905
         a = 0;
     }
 
+    public unsafe void DoDecryptRandomPermutationForBytes(nint len, byte* T, nint countOfSteps = 0, byte regime = 1, nint maxDataLen = -1, CascadeSponge_1t_20230905.StepProgress? progressCsc = null)
+    {
+        byte err = 0;
+        nint a;
+        nint index;
+
+        if (maxDataLen <= 0)
+            maxDataLen = lastOutput.len;
+
+        using var bb   = new BytesBuilderStatic(this.maxDataLen*4);
+        using var buff = Keccak_abstract.allocator.AllocMemory(len);
+        using var ttr  = Keccak_abstract.allocator.AllocMemory(len*sizeof(ulong));
+
+        var tt = (nint *) ttr;
+
+        BytesBuilder.CopyTo(len, len, T, buff);
+        for (nint i = 0; i < len; i++)
+            tt[i] = i;
+
+        // Алгоритм тасования Дурштенфельда
+        // Генерируем таблицу перестановок (отображение индексов в индексы)
+        // В таблице по индексу I будет указан индекс K для элемента buff[I],
+        // так что T[K] = buff[I]
+        for (nint i = 0; i < len - 1; i++)
+        {
+            // var cutoff = getCutoffForUnsignedInteger(0, (ulong)len - i - 1);ulong
+            // index = getUnsignedInteger(0, cutoff) + i;
+
+            // Берём сразу много байтов, чтобы getUnsignedInteger потом не вылетало с лишними исключениями: так байтов почти всегда будет хватать
+            if (bb.Count < bb.size - maxDataLen)
+            {
+                Step(countOfSteps: countOfSteps, regime: regime);
+                bb.Add(lastOutput, maxDataLen);
+                this.haveOutput = false;
+            }
+
+            // Исключение может случиться, если getUnsignedInteger отбросит слишком много значений
+            try
+            {
+                index = (nint) GetUnsignedInteger((nuint)(len - i - 1), bb) + i;
+                err = 0;
+            }
+            catch (NotEnoughtBytesException)
+            {
+                if (err > 64)
+                    throw;
+
+                err++;
+                i--;
+                continue;
+            }
+
+            a         = tt[i];
+            tt[i]     = tt[index];
+            tt[index] = a;
+
+            if (progressCsc is not null)
+            {
+                progressCsc.processedSteps++;
+            }
+        }
+
+        a = 0;
+        // Теперь из таблицы перестановок делаем обратное перемешивание массива T
+        // с использованием его копии в buff
+        nint K = 0;
+        for (nint i = 0; i < len; i++)
+        {
+            K    = tt[i];
+            T[K] = buff[i];
+        }
+    }
+
 
     // Ниже копия для Int32
     /// <summary>Получает числа для перестановок в массиве.</summary>

@@ -41,9 +41,19 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
 
 
     public readonly AutoCrypt.DecEncCommand command;
-    public Enc_std_1_202510(AutoCrypt.DecEncCommand enc_dec_command)
+    /// <param name="K">Коэффициент кратности алгоритма (чем больше, тем сильнее шифр). Нечётное число в диапазоне [1; 19].</param>
+    public Enc_std_1_202510(AutoCrypt.DecEncCommand enc_dec_command, byte K)
     {
         this.command = enc_dec_command;
+
+        if ((K & 1) != 1 || K < 1 ||  K > 19)
+            throw new ArgumentOutOfRangeException(nameof(K), "Enc_std_1_202510");
+
+        VKF_K          = K;
+        VKF_KEY_K      = (byte) (VKF_K + 2);
+        KeyStrenght    = VKF_K    *VinKekFishBase_etalonK1.BLOCK_SIZE;
+        KeyKeyStrenght = VKF_KEY_K*VinKekFishBase_etalonK1.BLOCK_SIZE;
+        HashLength     = KeyStrenght*2;
     }
 
     public void Dispose()
@@ -74,10 +84,10 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
     }
                                                                                             /// <summary>Длина синхропосылки (располагается в начале файла)</summary>
     public const nint OIV_Length = 64;                                                      /// <summary>Стойкость шифрования и стойкость генератора ключа (коэффициенты K в VinKekFish)</summary>
-    public const byte VKF_K = 1, VKF_KEY_K = 1;                                             /// <summary>Стойкость шифрования для каскадной губки в байтах</summary>
-    public const int  KeyStrenght    = VKF_K    *VinKekFishBase_etalonK1.BLOCK_SIZE,        /// <summary>Стойкость генератора ключа для каскадной губки в байтах</summary>
-                      KeyKeyStrenght = VKF_KEY_K*VinKekFishBase_etalonK1.BLOCK_SIZE;        /// <summary>Длина хеша в байтах</summary>
-    public const int  HashLength     = KeyStrenght*2;                                         /// <summary>Выравнивание длины файла (граница в байтах)</summary>
+    public readonly byte VKF_K = 1, VKF_KEY_K = 1;                                          /// <summary>Стойкость шифрования для каскадной губки в байтах</summary>
+    public readonly int  KeyStrenght,                                                       /// <summary>Стойкость генератора ключа для каскадной губки в байтах</summary>
+                         KeyKeyStrenght;                                                    /// <summary>Длина хеша в байтах</summary>
+    public readonly int  HashLength;                                                        /// <summary>Выравнивание длины файла (граница в байтах)</summary>
     public const int  FileAlignment  = 16;//1 << 16;
 
     public const string Position_END        = "END";
@@ -93,6 +103,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
         {
             Console.WriteLine(DateTime.Now.ToLongTimeString());
             Console.WriteLine(L("Encryption started. Wait random data from") + " " + command.autoCrypt.RandomSocketPoint.ToString());
+            Console.WriteLine($"K = {VKF_K}");
         }
 
         CreateKeyCascadeSponge();
@@ -209,7 +220,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
         EncApplyCSGamma(encFile, encFile.len, Cascade_1r!, 0);
 
         // Делаем шаг перемешивания - очень долгий
-        // EncStep02p(encFile);
+        EncStep02p(encFile);
 
         if (command.isDebugMode)
             Console.WriteLine(L("Step") + "03. " + DateTime.Now.ToLongTimeString());
@@ -243,6 +254,38 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             delegate
             {
                 Cascade_p!.DoRandomPermutationForBytes(encFile.len, encFile, progressCsc: progressCsc);
+
+                lock (progressCsc)
+                    Monitor.PulseAll(progressCsc);
+            }
+        );
+
+        lock (progressCsc)
+        while (progressCsc.processedSteps < progressCsc.allSteps)
+        {
+            if (Monitor.Wait(progressCsc, 30_000))
+            {
+                Console.WriteLine();
+                break;
+            }
+            else
+                Console.Write($"{progressCsc.processedSteps * 100.0 / progressCsc.allSteps:f1}%" + "\t");
+        }
+    }
+
+    private void DecStep02p(Record encFile)
+    {
+        // Перемешивание
+        if (command.isDebugMode)
+            Console.WriteLine(L("Step") + "02p. " + DateTime.Now.ToLongTimeString());
+
+        CascadeSponge_1t_20230905.StepProgress? progressCsc = new();
+        progressCsc.allSteps = encFile.len;
+        ThreadPool.QueueUserWorkItem
+        (
+            delegate
+            {
+                Cascade_p!.DoDecryptRandomPermutationForBytes(encFile.len, encFile, progressCsc: progressCsc);
 
                 lock (progressCsc)
                     Monitor.PulseAll(progressCsc);

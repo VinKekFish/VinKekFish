@@ -130,9 +130,13 @@ public partial class AutoCrypt
                         goto start;
                     }
 
+                    if (isDebugMode)
+                        Console.WriteLine(L("Try to start with algorithm") + $" {alg}");
+
                     return alg switch
                     {
-                        "std.1.202510" => new Enc_std_1_202510(this).Decrypt(),
+                        "std.1.202510" => new Enc_std_1_202510(this, 1).Decrypt(),
+                        "std.3.202510" => new Enc_std_1_202510(this, 3).Decrypt(),
                         _ => throw new CommandException(L("The algorithm is unknown") + ": " + alg),
                     };
 

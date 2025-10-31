@@ -129,7 +129,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         DecApplyVKFGamma(encFile, encFile.len, VinKekFish_1f!, 0); BytesBuilder.ReverseBytes(encFile.len, encFile);
 
         // Делаем шаг перемешивания - очень долгий
-        // DecStep02p(encFile); // TODO:
+        DecStep02p(encFile);
 
         if (command.isDebugMode)
             Console.WriteLine(L("Step") + "02. " + DateTime.Now.ToLongTimeString());
