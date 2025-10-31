@@ -115,7 +115,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
 
             nint DecFileLength;
             byte[]? DecFileLenData = null;
-            Record decFileRawData;
+            Record decFileRawData, DFLD;
             using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 DecFileLength = (nint)command.DecryptedFileName!.Length;
@@ -127,7 +127,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
 
                 // Вычисляем длину поля длины исходного файла
                 BytesBuilder.VariableULongToBytes((ulong)DecFileLength, ref DecFileLenData);
-                using var DFLD = Record.GetRecordFromBytesArray(DecFileLenData!, allocator, "DecFileLenData");
+                DFLD = Record.GetRecordFromBytesArray(DecFileLenData!, allocator, "DecFileLenData");
 
                 decFileAndData = allocator.AllocMemory((nint)command.DecryptedFileName!.Length + HashLength + DecFileLenData!.Length, "dec-file-1");
                 
@@ -144,6 +144,8 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
             InitSpongesFirst(allocator, OIV, DecFileLength, DecFileLenData!.Length);
 
             // Делаем первый проход, вычисляем хеш
+            Cascade_1f!.Step(data: DFLD, dataLen: DFLD.len, regime: 3);
+            DFLD.Dispose();
             EncStep01(decFileAndData, DecFileLength, decFileRawData);
             encFile = allocator.AllocMemory
             (
@@ -192,7 +194,6 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
         if (command.isDebugMode)
             Console.WriteLine(L("Step") + "01. " + DateTime.Now.ToLongTimeString());
 
-        Cascade_1f!.Step(data: decFileAndData, dataLen: decFileAndData.len - decFileRawData.len, regime: 3);
         EncApplyCSGamma(decFileRawData, len, Cascade_1f!, 0, HashLength);
     }
 
