@@ -188,4 +188,14 @@ First, enter the vertical character number (row number), then enter the horizont
     Сначала введите номер символа по вертикали (номер строки), затем введите номер символа по горизонтали (номер столбца)
 Step of the initialization ended
     Шаг инициализации закончен
+Encrypted
+    Зашифровано
+Decrypted
+    Расшифровано
+May be the incorrect file or a programm error. This may be when either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    Это может быть либо некорректный файл или программная ошибка. Причина: либо неверный файл, либо поддельный файл, либо неверный ключ, либо неверный порядок ключевых файлов, либо некорректное имя алгоритма
+Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    Неверный хеш файла. Причина: либо неверный файл, либо поддельный файл, либо неверный ключ, либо неверный порядок ключевых файлов, либо неверное имя алгоритма
+Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    Некорректный файл. Причина: либо неверный файл, либо поддельный файл, либо неверный ключ, либо неверный порядок ключевых файлов, либо неверное имя алгоритма
 :

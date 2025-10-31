@@ -64,30 +64,42 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             byte[]? DecFileLenData = encFileData.CloneToSafeBytes(0, 20);
             var size = BytesBuilder.BytesToVariableULong(out ulong DecFileLenght, DecFileLenData, 0);
 
-            using var efd = encFileData >> size;
-            using var res = efd ^ ( (nint) DecFileLenght + HashLength );
-
-            Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
-
-            DecStep01(res, (nint) DecFileLenght);
-            var hashMem = res >> (nint) DecFileLenght;
-            if (!hashMem.IsNull())
+            try
             {
-                Console.WriteLine();
-
-                using (new VinKekFish_Utils.console.ErrorConsoleOptions())
+                using var efd  = encFileData >> size;
+                nint DFLH_Size = (nint) DecFileLenght + HashLength;
+                if (DFLH_Size > efd.len || DFLH_Size <= HashLength)
                 {
-                    Console.Write(L("Incorrect hash of file: this is either a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+                    PrintIncorrectFileMsg();
+                    return ProgramErrorCode.wrongCryptoHash;
                 }
-                Console.WriteLine();
-                return ProgramErrorCode.wrongCryptoHash;
-            }
-            using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            {
-                decFileStream.Write(res << HashLength);
-            }
 
-            Console.WriteLine(L("Decrypted") + ". " + DateTime.Now.ToLongTimeString());
+                using var res = efd ^ DFLH_Size;
+
+                Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
+
+                DecStep01(res, (nint) DecFileLenght);
+                var hashMem = res >> (nint) DecFileLenght;
+                if (!hashMem.IsNull())
+                    {
+                        PrintIncorrectFileMsg(true);
+                        return ProgramErrorCode.wrongCryptoHash;
+                    }
+                    using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+                {
+                    decFileStream.Write(res << HashLength);
+                }
+
+                Console.WriteLine(L("Decrypted") + ". " + DateTime.Now.ToLongTimeString());
+            }
+            catch (Exception ex)
+            {
+                DoFormatException(ex);
+                Console.WriteLine();
+                using (new VinKekFish_Utils.console.ErrorConsoleOptions())
+                    Console.Write(L("May be the incorrect file or a programm error. This may be when either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+                Console.WriteLine();
+            }
         }
         finally
         {
@@ -96,6 +108,20 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         }
 
         return ProgramErrorCode.success;
+    }
+
+    private static void PrintIncorrectFileMsg(bool IncorrectHash = false)
+    {
+        Console.WriteLine();
+
+        using (new VinKekFish_Utils.console.ErrorConsoleOptions())
+        {
+            if (IncorrectHash)
+                Console.Write(L("Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+            else
+                Console.Write(L("Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+        }
+        Console.WriteLine();
     }
 
     private void DecStep01(Record decFileAndData, nint len)

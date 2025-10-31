@@ -75,18 +75,20 @@ public unsafe static partial class Utils
 
     /// <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
     /// <param name="ex">Исключение</param>
+    /// <param name="withStackTrace">Если false, то не будет выводится трассировка стека.</param>
     /// <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
-    public static string DoFormatException(Exception ex, bool toConsole = true)
+    public static string DoFormatException(Exception ex, bool toConsole = true, bool withStackTrace = true)
     {
         var sb = new System.Text.StringBuilder(16 + ex.Message.Length + ex.StackTrace?.Length ?? 0);
 
         sb.AppendLine("----------------------------------------------------------------");
         sb.AppendLine(ex.Message);
+        if (withStackTrace)
         sb.AppendLine(ex.StackTrace);
         if (ex.InnerException is not null)
         {
             sb.AppendLine("Inner exception");
-            sb.AppendLine(DoFormatException(ex.InnerException));
+            sb.AppendLine(DoFormatException(ex.InnerException, toConsole, withStackTrace));
         }
 
         sb.AppendLine("----------------------------------------------------------------");
