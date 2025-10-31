@@ -65,7 +65,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
 
         Cascade_Key    = null;
         VinKekFish_Key = null;
-        decFileAndData        = null;
+        decFileAndData = null;
         encFile        = null;
 
         TryToDispose(Cascade_vkf);TryToDispose(Cascade_p);TryToDispose(Cascade_noise);
@@ -88,7 +88,7 @@ public unsafe sealed partial class Enc_std_1_202510: IDisposable
     public readonly int  KeyStrenght,                                                       /// <summary>Стойкость генератора ключа для каскадной губки в байтах</summary>
                          KeyKeyStrenght;                                                    /// <summary>Длина хеша в байтах</summary>
     public readonly int  HashLength;                                                        /// <summary>Выравнивание длины файла (граница в байтах)</summary>
-    public const int  FileAlignment  = 16;//1 << 16;
+    public const int  FileAlignment  = 1 << 16;
 
     public const string Position_END        = "END";
     public const string Position_IOV        = "OIV";

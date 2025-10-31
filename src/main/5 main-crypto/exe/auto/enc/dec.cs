@@ -135,8 +135,9 @@ public partial class AutoCrypt
 
                     return alg switch
                     {
-                        "std.1.202510" => new Enc_std_1_202510(this, 1).Decrypt(),
-                        "std.3.202510" => new Enc_std_1_202510(this, 3).Decrypt(),
+                        "std.1.202510"   => new Enc_std_1_202510  (this, 1).Decrypt(),
+                        "std.3.202510"   => new Enc_std_1_202510  (this, 3).Decrypt(),
+                        "short.1.202510" => new Enc_short_1_202510(this)   .Decrypt(),
                         _ => throw new CommandException(L("The algorithm is unknown") + ": " + alg),
                     };
 

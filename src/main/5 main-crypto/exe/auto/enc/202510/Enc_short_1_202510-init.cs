@@ -19,7 +19,7 @@ using static cryptoprime.BytesBuilderForPointers;
 using System.IO.Compression;
 using static VinKekFish_EXE.AutoCrypt;
 
-public unsafe partial class Enc_std_1_202510: IDisposable
+public unsafe partial class Enc_short_1_202510: IDisposable
 {
     private void CreateKeyCascadeSponge()
     {
@@ -83,9 +83,15 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         if (command.isDebugMode)
             Console.WriteLine(L("Initialization started (Cascade sponge)") + ". " + DateTime.Now.ToLongTimeString());
 
+        if (command.isHavePwd)
+        {
+            // _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
+            throw new ArgumentException(L("Short algorithm is not have password option, only key files accepted"));
+        }
+
         // Инициализируем губку с помощью синхропосылки
         Cascade_Key!.Step(0, 0, OIV, OIV.len, regime: 254);
-        Cascade_Key!.Step(Cascade_Key.countStepsForHardening, regime: 0);
+        // Дополнительно синхропосылку не впитываем, чтобы было быстрее
 
         nint maxInputLen = KeyKeyStrenght * 4; // *4 - это просто запас
 
@@ -108,9 +114,9 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                     if (readed != mem.len)
                         throw new Exception($"Enc_std_1_202510.InitSpongesFirst: readed != mem.len in KeyFile ({readed} != {mem.len})");
 
-                    Cascade_Key.Step(data: mem, dataLen: mem.len,
-                                        StepsForAbsorption: Cascade_Key.GetCountOfStepsForAbsorption(TypeForShortStepForAbsorption.log),
-                                        regime: regime++);
+                    // Впитывание ключей происходит по-быстрому:
+                    // без увеличенного количества шагов на впитывание
+                    Cascade_Key.Step(data: mem, dataLen: mem.len, regime: regime++);
 
                     // Вычисляем размер приёмника для VinKekFish
                     if (maxInputLen < mem.len)
@@ -164,11 +170,6 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             }
             VinKekFish_Key.DoStepAndIO(regime: 3);
             VinKekFish_Key.DoStepAndIO(regime: 2);
-
-            if (command.isHavePwd)
-            {
-                _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
-            }
 
             // -------------------------------------------
             //  Обмен данными инициализации между губками
@@ -254,13 +255,13 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                 // Выравнивание идёт всего файла на нужную границу, а не только самого открытого текста
                 var FilePaddingsLen = CalcFilePaddingsLen
                 (
-                    decFileLength*2 +
+                    decFileLength +
                     OIV_Length + HashLength + decFileLengthFieldLength, FileAlignment
                 );
 
                 NoiseGenerator = new KeyDataGenerator(VinKekFish_n!, Cascade_noise!, 0, "Enc_std_1_202510.InitSpongesFirst.NoiseGenerator")
                 {
-                    KeyLenCsc = decFileLength + FilePaddingsLen,
+                    KeyLenCsc = FilePaddingsLen,
                     KeyLenVkf = 0,
                     willDisposeSponges = false
                 };
