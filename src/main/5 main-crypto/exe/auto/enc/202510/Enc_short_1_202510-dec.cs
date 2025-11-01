@@ -17,7 +17,7 @@ using cryptoprime.VinKekFish;
 using System.ComponentModel;
 using static cryptoprime.BytesBuilderForPointers;
 
-public unsafe partial class Enc_short_1_202510: IDisposable
+public unsafe partial class Enc_short_1_202510: Enc_parent_202510, IDisposable
 {
     /// <summary>Расшифровывает файл, пользуясь уже установленными параметрами. Все примитивы создаёт сам.</summary>
     public ProgramErrorCode Decrypt()
@@ -72,31 +72,38 @@ public unsafe partial class Enc_short_1_202510: IDisposable
             byte[]? DecFileLenData = encFileData.CloneToSafeBytes(0, 20);
             var size = BytesBuilder.BytesToVariableULong(out ulong DecFileLenght, DecFileLenData, 0);
 
-            using var efd = encFileData >> size;
-            using var res = efd ^ ( (nint) DecFileLenght + HashLength );
-
-            Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
-
-            DecStep01(res, (nint) DecFileLenght);
-            var hashMem = res >> (nint) DecFileLenght;
-            if (!hashMem.IsNull())
+            try
             {
-                Console.WriteLine();
-
-                using (new VinKekFish_Utils.console.ErrorConsoleOptions())
+                using var efd = encFileData >> size;
+                nint DFLH_Size = (nint) DecFileLenght + HashLength;
+                if (DFLH_Size > efd.len || DFLH_Size <= HashLength)
                 {
-                    Console.Write(L("Incorrect hash of file: this is either a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
+                    PrintIncorrectFileMsg();
+                    return ProgramErrorCode.wrongCryptoHash;
                 }
-                Console.WriteLine();
-                return ProgramErrorCode.wrongCryptoHash;
-            }
-            using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            {
-                decFileStream.Write(res << HashLength);
-            }
+                using var res = efd ^ DFLH_Size;
 
-            Console.WriteLine(L("Decrypted") + ". " + DateTime.Now.ToLongTimeString());
-        }
+                Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
+
+                DecStep01(res, (nint) DecFileLenght);
+                var hashMem = res >> (nint) DecFileLenght;
+                if (!hashMem.IsNull())
+                {
+                    PrintIncorrectFileMsg(true);
+                    return ProgramErrorCode.wrongCryptoHash;
+                }
+                using (var decFileStream = File.Open(command.DecryptedFileName!.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+                {
+                    decFileStream.Write(res << HashLength);
+                }
+
+                Console.WriteLine(L("Decrypted") + ". " + DateTime.Now.ToLongTimeString());
+            }
+            catch (Exception ex)
+            {
+                PrintErrorInCatchMsg(ex);
+            }
+            }
         finally
         {
             // Завершение работы программы

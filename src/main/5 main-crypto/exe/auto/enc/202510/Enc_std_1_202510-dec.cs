@@ -17,7 +17,7 @@ using cryptoprime.VinKekFish;
 using System.ComponentModel;
 using static cryptoprime.BytesBuilderForPointers;
 
-public unsafe partial class Enc_std_1_202510: IDisposable
+public unsafe partial class Enc_std_1_202510: Enc_parent_202510, IDisposable
 {
     /// <summary>Расшифровывает файл, пользуясь уже установленными параметрами. Все примитивы создаёт сам.</summary>
     public ProgramErrorCode Decrypt()
@@ -73,7 +73,6 @@ public unsafe partial class Enc_std_1_202510: IDisposable
                     PrintIncorrectFileMsg();
                     return ProgramErrorCode.wrongCryptoHash;
                 }
-
                 using var res = efd ^ DFLH_Size;
 
                 Cascade_1f!.Step(data: encFileData, dataLen: size, regime: 3);
@@ -94,11 +93,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
             }
             catch (Exception ex)
             {
-                DoFormatException(ex);
-                Console.WriteLine();
-                using (new VinKekFish_Utils.console.ErrorConsoleOptions())
-                    Console.Write(L("May be the incorrect file or a programm error. This may be when either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
-                Console.WriteLine();
+                PrintErrorInCatchMsg(ex);
             }
         }
         finally
@@ -108,20 +103,6 @@ public unsafe partial class Enc_std_1_202510: IDisposable
         }
 
         return ProgramErrorCode.success;
-    }
-
-    private static void PrintIncorrectFileMsg(bool IncorrectHash = false)
-    {
-        Console.WriteLine();
-
-        using (new VinKekFish_Utils.console.ErrorConsoleOptions())
-        {
-            if (IncorrectHash)
-                Console.Write(L("Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
-            else
-                Console.Write(L("Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name") + ".");
-        }
-        Console.WriteLine();
     }
 
     private void DecStep01(Record decFileAndData, nint len)
