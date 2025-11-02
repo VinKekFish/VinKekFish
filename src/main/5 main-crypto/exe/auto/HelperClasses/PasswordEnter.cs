@@ -3,6 +3,7 @@ using System.Runtime;
 
 namespace VinKekFish_EXE;
 
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -11,6 +12,7 @@ using maincrypto.keccak;
 using vinkekfish;
 using VinKekFish_Utils.ProgramOptions;
 using static cryptoprime.BytesBuilderForPointers;
+using static vinkekfish.CascadeSponge_1t_20230905;
 using static VinKekFish_EXE.AutoCrypt.Command;
 using static VinKekFish_Utils.Language;
 using static VinKekFish_Utils.Utils;
@@ -23,29 +25,35 @@ public unsafe partial class PasswordEnter: IDisposable
     // Ч - похоже на 4. ± - сложное наименование, к тому же, похожее на два занака "+-", идущие подряд
     // "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':(+-*/=|&^%$#@ΣΔΨλШЫЭЯ";
     /// <summary>Разрешённые символы для стандартного пароля</summary>
-    public static readonly string GrantedSymbols = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@<";
+    public static readonly string GrantedSymbols      = "qwertyuiopasdfghjkLzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890[+*/=&^%$#@<";
+    public static readonly string GrantedSymbolsLower = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@<";
 
     protected CascadeSponge_mt_20230930  sponge;
     protected VinKekFishBase_KN_20210525 vkf;
+    protected CascadeSponge_mt_20230930  spongeForTable;
+
     protected Record passwordArray;
     /// <summary>x - вертикальная координата, как при индексировании матриц.</summary>
-    public readonly int x = 16, y = 16;
+    public readonly int x = 0, y = 0;
     public readonly byte regime = 0;
 
-    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false)
+    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false, bool showNumber = true, bool SimpleKeyboard = true)
     {
+        x = numbersH.Length;
+        y = numbersV.Length;
         /*
         Console.WriteLine(L("Enter password") + ". " + L("First, enter the vertical character number (row number), then enter the horizontal character number (column number)") + ".\n" + L("Press 'Enter' to begin enter password") + ".");
         Console.ReadLine();
         */
-        
+
         // На всякий случай переоткрываем поток ввода, т.к. он может быть перенаправлен с помощью SetIn для получения конфигурации
         Console.SetIn(new StreamReader(Console.OpenStandardInput()));
         Console.Clear();
 
-        this.sponge   = sponge;
-        this.vkf      = vkf;
-        this.regime   = regime;
+        this.sponge = sponge;
+        this.vkf = vkf;
+        this.regime = regime;
+        InitSpongeForTable();
 
         if (this.vkf.input is null || this.vkf.input.size < this.sponge.maxDataLen)
             throw new ArgumentOutOfRangeException("PasswordEnter: this.vkf.input.size < this.sponge.maxDataLen");
@@ -58,87 +66,126 @@ public unsafe partial class PasswordEnter: IDisposable
 
         passwordArray = Keccak_abstract.allocator.AllocMemory(len);
         for (int i = 0; i < len; i++)
-            passwordArray[i] = (byte) GrantedSymbols[i % GrantedSymbols.Length];
+            passwordArray[i] = (byte)GrantedSymbols[i % GrantedSymbols.Length];
 
-        var  passwd = stackalloc byte[(int) sponge.maxDataLen];
-        nint cur    = 0;
+        const int maxPasswordLen = 512;
+        var  passwd = stackalloc byte[maxPasswordLen];
+        nint cur = 0;
         nint pwdLen = 0;
         try
         {
             do
             {
-                sponge.DoRandomPermutationForBytes(len, passwordArray, countOfStepsForPermitations, regime);
+                spongeForTable!.DoRandomPermutationForBytes(len, passwordArray, countOfStepsForPermitations, regime);
                 DoShowPasswordTable();
+                Console.SetCursorPosition(0, stepsV[y-1] + 2);
+                if (showNumber)
+                Console.WriteLine(cur);
 
-                var c1 = ReadKey();
+                var c1 = ReadKey(1);
+                if (c1 == -4)
+                    continue;
+
                 if (c1 == -1)
                     break;
 
                 if (c1 == -3)
                 {
-                    ClearPassword(sponge, ref cur, ref pwdLen);
+                    ClearPassword(spongeForTable, ref cur, ref pwdLen);
                     continue;
                 }
 
                 if (c1 < 0)
                 {
-                    DisplayErrorMessage(sponge, doErrorMessage);
+                    DisplayErrorMessage(spongeForTable, doErrorMessage);
                     continue;
                 }
 
                 Clear();
-                var c2 = ReadKey();
+                var c2 = ReadKey(2);
+                if (c2 == -4)
+                    continue;
+
                 if (c2 == -1)
                     break;
 
                 if (c2 == -3)
                 {
-                    ClearPassword(sponge, ref cur, ref pwdLen);
+                    ClearPassword(spongeForTable, ref cur, ref pwdLen);
                     continue;
                 }
 
                 if (c1 < 0 || c2 < 0)
                 {
-                    DisplayErrorMessage(sponge, doErrorMessage);
+                    DisplayErrorMessage(spongeForTable, doErrorMessage);
                     continue;
                 }
 
                 // Console.WriteLine(c1);
                 // Console.WriteLine(c2);
-                Console.WriteLine((char) passwordArray[c2 + c1*x]);
-                passwd[cur] = passwordArray[c2 + c1*x];
+                // Console.WriteLine((char)passwordArray[c2 + c1 * x]);
+                passwd[cur] = passwordArray[c2 + c1 * x];
                 cur++;
                 pwdLen++;
-                if (cur >= sponge.maxDataLen)
-                {
-                    sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
-
-                    vkf.input!.Add(passwd, cur);
-                    while (vkf.input.Count > 0)
-                        vkf.DoStepAndIO(regime: regime);
-
-                    cur = 0;
-                }
             }
-            while (true);
-
-            if (cur > 0)
-            {
-                sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
-
-                vkf.input!.Add(passwd, cur);
-                while (vkf.input.Count > 0)
-                    vkf.DoStepAndIO(regime: regime);
-            }
+            while (cur < maxPasswordLen);
 
             Console.WriteLine("\x1b[0m\x1b[0m");
             Console.ResetColor();
             Clear();
             Console.Clear();
 
-            if (pwdLen < 8)
+            if (cur > 0)
             {
-                Console.WriteLine(L("Password length is too small") + $": {pwdLen} < 8");
+                sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
+
+                vkf.input!.Add(passwd, cur);
+                vkf.DoStepAndFullInput(regime: regime);
+
+                cur = 0;
+                BytesBuilder.ToNull(maxPasswordLen, passwd);
+            }
+
+            if (SimpleKeyboard)
+            {
+                start:
+                Console.WriteLine(L("Enter password continuation (simple from keyboard)") + ":");
+                while (cur < maxPasswordLen)
+                {
+                    var key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
+                        break;
+                    if (key.Key == ConsoleKey.Escape)
+                    {
+                        ClearPassword(spongeForTable, ref cur, ref cur);
+                        BytesBuilder.ToNull(maxPasswordLen, passwd);
+                        goto start;
+                    }
+
+                    var ku      = (ushort) key.KeyChar;
+                    passwd[cur] = (byte) ku;
+                    cur++;
+                    pwdLen++;
+
+                    passwd[cur] = (byte) (ku >> 8);
+                    cur++;
+                    pwdLen++;
+                }
+            }
+
+            if (cur > 0)
+            {
+                sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime, data: passwd, dataLen: cur);
+
+                vkf.input!.Add(passwd, cur);
+                vkf.DoStepAndFullInput(regime: regime);
+
+                BytesBuilder.ToNull(maxPasswordLen, passwd);
+            }
+
+            if (pwdLen < 6)
+            {
+                Console.WriteLine(L("Password length is too small") + $": {pwdLen} < 6");
                 throw new Exception("PasswordEnter: " + L("Password length is too small") + $": {pwdLen} < 8");
             }
         }
@@ -150,13 +197,8 @@ public unsafe partial class PasswordEnter: IDisposable
         void ClearPassword(CascadeSponge_mt_20230930 sponge, ref nint cur, ref nint pwdLen)
         {
             Clear();
-            if (pwdLen > cur)
-            {
-                Console.Clear();
-                throw new Exception(L("The password cannot be reset. Too many characters have been entered. It is possible to reset the entered password only if the characters are less than") + $" {sponge.maxDataLen}");
-            }
 
-            cur    = 0;
+            cur = 0;
             pwdLen = 0;
 
             Console.SetCursorPosition(0, 0);
@@ -171,10 +213,36 @@ public unsafe partial class PasswordEnter: IDisposable
                 Console.BackgroundColor = ConsoleColor.Red;
                 Clear("!");
                 Console.SetCursorPosition(0, 0);
-                Console.WriteLine(L("HELP MESSAGE FOR PasswordEnter") + $" {sponge.maxDataLen}. " + L("Press Enter to continue"));
+                Console.WriteLine(L("HELP MESSAGE FOR PasswordEnter") + $" {maxPasswordLen/2}. " + L("Press Enter to continue"));
                 Console.ReadLine();
             }
         }
+    }
+
+    private void InitSpongeForTable()
+    {
+        spongeForTable = new CascadeSponge_mt_20230930(sponge.strenghtInBytes) { StepTypeForAbsorption = TypeForShortStepForAbsorption.weak };
+        spongeForTable.InitEmptyThreeFish((ulong) DateTime.Now.Ticks);
+
+        nint countBytesForInit = sponge.strenghtInBytes;
+        while (countBytesForInit > 0)
+        {
+            sponge.Step(regime: regime);
+            spongeForTable.Step(data: sponge.lastOutput, dataLen: sponge.lastOutput.len);
+            countBytesForInit -= sponge.lastOutput.len;
+        }
+        sponge.Step(regime: regime);
+        spongeForTable.InitThreeFishByCascade(stepToKeyConst: 1, doCheckSafty: false);
+
+        countBytesForInit = sponge.strenghtInBytes;
+        while (countBytesForInit > 0)
+        {
+            sponge.Step(regime: regime);
+            spongeForTable.Step(data: sponge.lastOutput, dataLen: sponge.lastOutput.len);
+            countBytesForInit -= sponge.lastOutput.len;
+        }
+        sponge.Step(regime: regime);
+        spongeForTable.InitThreeFishByCascade(stepToKeyConst: 1, doCheckSafty: false);
     }
 
     public static void Clear(string c = " ")
@@ -191,11 +259,18 @@ public unsafe partial class PasswordEnter: IDisposable
 
     /// <summary>Прочитать клавишу с клавиатуры (при вводе пароля)</summary>
     /// <returns></returns>
-    public static int ReadKey()
+    public int ReadKey(int step)
     {
+        if (step == 1)
+            step = numbersV.Length;
+        else
+            step = numbersH.Length;
+
         var key = Console.ReadKey(true);
-        if (key.Key == ConsoleKey.Enter || key.Key == ConsoleKey.Spacebar)
+        if (key.Key == ConsoleKey.Enter)
             return -1;
+        if (key.Key == ConsoleKey.Spacebar)
+            return -4;
 
         if (key.Key == ConsoleKey.Escape)
             return -3;
@@ -204,7 +279,7 @@ public unsafe partial class PasswordEnter: IDisposable
         if (c1 >= 48 && c1 <= 57)
             c1 -= 48;
         else
-        if (c1 >= 65 && c1 <= 70)
+        if (c1 >= 65 && c1 <= 65 - 11 + step)
             c1 += -65 + 10;
         else
             return -2;
@@ -213,24 +288,25 @@ public unsafe partial class PasswordEnter: IDisposable
     }
 
 
-    protected int[]    stepsH  = {4, 6, 8, 11, 13, 15, 18, 20, 22, 25, 27, 29, 32, 34, 36, 38};
-    protected int[]    stepsV  = {1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 20};
-    protected string[] numbers = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
+    protected int[]    stepsH   = {4, 6, 8, 11, 13, 15, 18, 20, 22, 25, 27, 29, 32, 34, 36, 38};
+    protected int[]    stepsV   = {1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23};
+    protected string[] numbersH = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
+    protected string[] numbersV = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H"};
     public void DoShowPasswordTable()
     {
         // \x1b[1m\x1b[48;2;255;0;0m\x1b[38;2;0;0;255mTRUECOLOR\x1b[0m\x1b[0m
         Console.WriteLine("\x1b[1m\x1b[48;2;0;0;255m\x1b[38;2;255;0;0m");
         Clear();
-        for (int i = 0; i < y; i++)
-        {
-            Console.SetCursorPosition(stepsH[i], 0);
-            Console.Write(numbers[i]);
-        }
-
         for (int i = 0; i < x; i++)
         {
+            Console.SetCursorPosition(stepsH[i], 0);
+            Console.Write(numbersH[i]);
+        }
+
+        for (int i = 0; i < y; i++)
+        {
             Console.SetCursorPosition(0, stepsV[i]);
-            Console.Write(numbers[i]);
+            Console.Write(numbersV[i]);
         }
 
         for (int i = 0; i < x; i++)
@@ -243,6 +319,7 @@ public unsafe partial class PasswordEnter: IDisposable
 
     void IDisposable.Dispose()
     {
+        TryToDispose(spongeForTable);
         Dispose();
         GC.SuppressFinalize(this);
     }

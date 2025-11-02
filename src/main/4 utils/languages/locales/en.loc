@@ -196,4 +196,6 @@ Incorrect hash of file: this is either a wrong file, a fake file, an incorrect k
     Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
 Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
     Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+Enter password continuation (simple from keyboard)
+    Enter password continuation (simple input from keyboard)
 :
