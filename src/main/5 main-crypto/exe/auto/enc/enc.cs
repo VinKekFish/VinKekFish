@@ -38,9 +38,8 @@ public partial class AutoCrypt
             switch (command.name)
             {
                 case "novkfrandom":
-                    var val = command.value.Trim().ToLowerInvariant();
-                    noVKFRandom = val == "true" || val == "1" || val == "yes";
-                    
+                    noVKFRandom = ParseBool(command);
+
                     if (isDebugMode)
                     {
                         if (noVKFRandom)
@@ -48,10 +47,10 @@ public partial class AutoCrypt
                         else
                             Console.WriteLine("novkfrandom: false");
                     }
-// TODO:
+                    // TODO:
                     throw new NotImplementedException();
 
-//                    goto start;
+                //                    goto start;
                 case "in":
                     DecryptedFileName = ParseFileOptions(command.value.TrimStart(), isDebugMode, mustExists: FileMustExists.Exists);
 
@@ -102,7 +101,10 @@ public partial class AutoCrypt
                     KeyFiles.Add(keyFile!);
                     goto start;
                 case "pwd":
-                    isHavePwd = true;
+                    isHavePwd = ParseBool(command);
+                    goto start;
+                case "pwd-simple":
+                    isSimplePwd = ParseBool(command);
                     goto start;
                 case "alg":
                     SelectAlg(command.value.Trim());

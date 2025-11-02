@@ -170,7 +170,7 @@ public unsafe partial class Enc_std_1_202510: IDisposable
 
             if (command.isHavePwd)
             {
-                _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
+                _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration, SimpleKeyboard: command.isSimplePwd);
             }
 
             // -------------------------------------------

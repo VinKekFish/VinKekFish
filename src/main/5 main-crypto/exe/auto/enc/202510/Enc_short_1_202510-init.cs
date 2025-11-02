@@ -85,8 +85,8 @@ public unsafe partial class Enc_short_1_202510: IDisposable
 
         if (command.isHavePwd)
         {
-            // _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key.countStepsForKeyGeneration);
-            throw new ArgumentException(L("Short algorithm is not have password option, only key files accepted"));
+             _ = new PasswordEnter(Cascade_Key!, VinKekFish_Key!, regime: 1, doErrorMessage: true, countOfStepsForPermitations: 0, ArmoringSteps: Cascade_Key!.countStepsForKeyGeneration, SimpleKeyboard: command.isSimplePwd);
+            // throw new ArgumentException(L("Short algorithm is not have password option, only key files accepted"));
         }
 
         // Инициализируем губку с помощью синхропосылки

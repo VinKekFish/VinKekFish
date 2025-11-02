@@ -27,7 +27,8 @@ public partial class AutoCrypt
         public          FileInfo?       EncryptedFileName;          /// <summary>Имя файлов ключей.</summary>
         public readonly List<FileInfo>  KeyFiles    = new();        /// <summary>Если true, то команда к шифрованию потребует ввода пароля.</summary>
         public          bool            isHavePwd   = false;        /// <summary>Если false, то команда запросит синхропосылку по пути /dev/vkf/random от сервиса vkf.</summary>
-        public          bool            noVKFRandom = false;
+        public          bool            noVKFRandom = false;        /// <summary>Если true, то разрешён необфусцированный ввод пароля.</summary>
+        public          bool            isSimplePwd = false;
         public          string          alg         = "std.1.202510";
 
         public DecEncCommand(AutoCrypt autoCrypt): base(autoCrypt)
@@ -51,6 +52,12 @@ public partial class AutoCrypt
             VinKekFish_Key = null;
 */
             base.Dispose(fromDestructor);
+        }
+
+        public static bool ParseBool(CommandOption command)
+        {
+            var val = command.value.Trim().ToLowerInvariant();
+            return val == "true" || val == "1" || val == "yes";
         }
 
         public readonly List<string> algs = new()

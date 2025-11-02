@@ -107,6 +107,9 @@ public partial class AutoCrypt
                 case "pwd":
                     isHavePwd = true;
                     goto start;
+                case "pwd-simple":
+                    isSimplePwd = ParseBool(command);
+                    goto start;
                 case "alg":
                     SelectAlg(command.value.Trim());
                     goto start;

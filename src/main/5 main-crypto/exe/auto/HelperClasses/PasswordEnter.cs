@@ -37,7 +37,16 @@ public unsafe partial class PasswordEnter: IDisposable
     public readonly int x = 0, y = 0;
     public readonly byte regime = 0;
 
-    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false, bool showNumber = true, bool SimpleKeyboard = true)
+    /// <summary>Конструктор создаёт необходимые объекты и сразу же просит пользователя ввести пароль. После завершения ввода также автоматически вызывается деструктор.</summary>
+    /// <param name="sponge">Губка, которая будет проинициализирована паролем (дополнительно к существующей инициализации). Она уже должна быть проинициализированна ранее ключём или криптостойкой синхропосылкой, так как используется для инициализации внутренней губки, генерирующей таблицы перестановок.</param>
+    /// <param name="vkf">Губка VinKekFish, которая будет проинициализирована паролем (дополнительно к существующей инициализации). Не используется для инициализации внутренней губки.</param>
+    /// <param name="regime">Режим шифрования переданных губок, который будет использован при криптографических преобразованиях.</param>
+    /// <param name="countOfStepsForPermitations"></param>
+    /// <param name="ArmoringSteps"></param>
+    /// <param name="doErrorMessage"></param>
+    /// <param name="showNumber"></param>
+    /// <param name="SimpleKeyboard"></param>
+    public PasswordEnter(CascadeSponge_mt_20230930 sponge, VinKekFishBase_KN_20210525 vkf, byte regime, nint countOfStepsForPermitations = 0, nint ArmoringSteps = 0, bool doErrorMessage = false, bool showNumber = true, bool SimpleKeyboard = false)
     {
         x = numbersH.Length;
         y = numbersV.Length;
@@ -145,6 +154,7 @@ public unsafe partial class PasswordEnter: IDisposable
                 cur = 0;
                 BytesBuilder.ToNull(maxPasswordLen, passwd);
             }
+            sponge.Step(ArmoringSteps: ArmoringSteps, regime: (byte) (regime+1));
 
             if (SimpleKeyboard)
             {
@@ -182,10 +192,11 @@ public unsafe partial class PasswordEnter: IDisposable
 
                 BytesBuilder.ToNull(maxPasswordLen, passwd);
             }
+            sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime);
 
-            if (pwdLen < 6)
+            if (pwdLen < 8)
             {
-                Console.WriteLine(L("Password length is too small") + $": {pwdLen} < 6");
+                Console.WriteLine(L("Password length is too small") + $": {pwdLen} < 8");
                 throw new Exception("PasswordEnter: " + L("Password length is too small") + $": {pwdLen} < 8");
             }
         }
@@ -319,7 +330,6 @@ public unsafe partial class PasswordEnter: IDisposable
 
     void IDisposable.Dispose()
     {
-        TryToDispose(spongeForTable);
         Dispose();
         GC.SuppressFinalize(this);
     }
@@ -335,6 +345,7 @@ public unsafe partial class PasswordEnter: IDisposable
         if (isDisposed)
             return;
 
+        TryToDispose(spongeForTable);
         TryToDispose(passwordArray);
         isDisposed = true;
 
