@@ -7,6 +7,7 @@ using maincrypto.keccak;
 using static cryptoprime.BytesBuilderForPointers;
 using static CascadeSponge_1t_20230905;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 // code::docs:rQN6ZzeeepyOpOnTPKAT:
 
@@ -22,6 +23,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
 
     public const nint   EndTask       = -7;
     public const nint   EmptyTaskSlot = -1;
+    public const nint   SpinLockTask  = -2;
     public       object ThreadsStop  = new();
 
     public readonly nint ThreadsCount = 0;
@@ -93,7 +95,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     protected ManualResetEvent Event = new(false);
 
 
-    protected bool ThreadSleep = true;
+    protected volatile bool ThreadSleep = true;
     /// <summary>Функция, выполняемая потоками</summary>
     protected virtual void ThreadsFunction(nint ThreadIndex)
     {
@@ -123,7 +125,8 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
                     break;
                 default:            // Пустая функция
                     if (ThreadSleep)
-                        Thread.Sleep(0);    // Если это не сделать, похоже, иногда потоки начинают крутиться вхолостую слишком сильно. Производительность падает в десятки раз относительно производительности однопоточной реализации.
+                        //Thread.Sleep(0);    // Если это не сделать, похоже, иногда потоки начинают крутиться вхолостую слишком сильно. Производительность падает в десятки раз относительно производительности однопоточной реализации.
+                        Thread.Yield();
                     break;
             }
         }
@@ -135,7 +138,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
     /// <summary>Функция преобразования keccak</summary>
     protected void Thread_keccak(nint ThreadIndex)
     {
-        ThreadsFunc[ThreadIndex*AlignmentMultipler] = EmptyTaskSlot;
+        ThreadsFunc[ThreadIndex*AlignmentMultipler] = SpinLockTask;
 
         nint index = ThreadIndex;
 

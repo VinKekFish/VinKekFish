@@ -73,10 +73,11 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest : TestTask
             var bytePerSecornd = cntPerSecond * cascademt.maxDataLen;
             this.Name += $" {(int)tm,3}% {cntPerSecond,4}, {$"{bytePerSecornd:#,0}",7}";
             // var min = 100; //cascademt.ThreadsCount * 100 / 2;
-            var max = Environment.ProcessorCount * 110;
+            // min = (int) (  cascademt.ThreadsCount * 100f * 0.9f  );
+            var max = Environment.ProcessorCount * 110;     // 110 - запас на то, что тесты немного по-разному проходят каждый новый раз
             if (tm < min)   // ??? Производительность плавает постоянно
             {
-                var te = new TestError() {Message = $"Low performance for {tall}/{wide}: {tm:F0}%"};
+                var te = new TestError() {Message = $"Low performance for {tall}/{wide}: {tm:F0}% < {min}"};
                 this.error.Add(te);
             }
             if (tm > max)
@@ -115,7 +116,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_4 : CascadeSponge_
 
     public override void Test()
     {
-        Test( 90, 4,  4, 192);
+        Test( 120, 4,  4, 192);
     }
 }
 
@@ -133,7 +134,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_9 : CascadeSponge_
 
     public override void Test()
     {
-        Test( 90, 9,  8, 128);
+        Test( 140, 9,  8, 128);
     }
 }
 
@@ -150,7 +151,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_16 : CascadeSponge
 
     public override void Test()
     {
-        Test(100, 16, 16, 96);
+        Test(160, 16, 16, 96);
     }
 }
 
@@ -167,7 +168,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_29 : CascadeSponge
 
     public override void Test()
     {
-        Test(100, 29, 28, 64);
+        Test(170, 29, 28, 64);
     }
 }
 
@@ -184,7 +185,7 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_88 : CascadeSponge
 
     public override void Test()
     {
-        Test(130, 88, 88, 15);
+        Test(190, 88, 88, 15);
     }
 }
 
@@ -201,6 +202,6 @@ public unsafe class CascadeSponge_mt_20230930_PerformanceTest_176 : CascadeSpong
 
     public override void Test()
     {
-        Test(180, 176, 176, 15);
+        Test(200, 176, 176, 15);
     }
 }

@@ -111,6 +111,7 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             if (ThreadsError)
                 throw new CascadeSpongeException("CascadeSponge_mt_20230930.step_once: ThreadsError is setted (in a start of tasks)");
 
+            // Thread.CurrentThread.Priority = ThreadPriority.Lowest;
             // После того, как подготовили данные для заданий, ставим задания потокам
             // Если поставим перед - потоки сразу начнут выполнение и сделают всё некорректно
             for (nint i = 0; i < ThreadsFunc.Length; i += AlignmentMultipler)
@@ -120,12 +121,12 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             {
                 Thread_keccak(ThreadsCount-1);
 
-                ThreadSleep = true;
                 while (ThreadsExecuted > 0 && !ThreadsError)
                 {
                     // Monitor.Wait(ThreadsStop);
-                    Thread.Yield();
+                    // Thread.Yield();
                 }
+                // Thread.CurrentThread.Priority = ThreadPriority.Normal;
 
                 // Event.Reset();  // Именно здесь, т.к. потоки могут не начаться до того, как будет ожидание ThreadsStop
                 curStepBuffer *= -1;
@@ -138,6 +139,10 @@ public unsafe partial class CascadeSponge_mt_20230930: IDisposable
             Clear_Debug_t();*/
         }
 
+        for (nint i = 0; i < ThreadsFunc.Length; i += AlignmentMultipler)
+            ThreadsFunc[i] = EmptyTaskSlot;
+
+        // ThreadSleep = true;
         // Последний уровень губки, включая преобразование обратной связи
         OutputAllData();
 

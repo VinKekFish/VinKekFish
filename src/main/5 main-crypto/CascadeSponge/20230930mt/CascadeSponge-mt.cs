@@ -51,6 +51,7 @@ public unsafe partial class CascadeSponge_mt_20230930: CascadeSponge_1t_20230905
             var _i = i;
             Threads[i] = new Thread(  () => ThreadsFunction(_i)  );
             Threads[i].IsBackground = true;
+            Threads[i].Priority     = ThreadPriority.Highest;
 
             ThreadsFunc[i*AlignmentMultipler] = EmptyTaskSlot;
         }

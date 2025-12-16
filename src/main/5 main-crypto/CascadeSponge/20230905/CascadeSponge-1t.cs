@@ -192,7 +192,6 @@ public unsafe partial class CascadeSponge_1t_20230905: IDisposable
 
         try
         {
-
             // Выделяем под губки память сразу для всех губок, иначе, с учётом защитный полей, получается очень много памяти выделяется
             keccakStateLen = (KeccakPrime.S_len2 + KeccakPrime.S_len + KeccakPrime.S_len2) << 3;
             keccakStateLen = VinKekFish_Utils.Utils.CalcAlignment(keccakStateLen, 128);  // На всякий случай, берём выравнивание 128-мь байтов, хотя 64-ре вполне достаточно (здесь достаточно выравнивания на границу линии кеша)
