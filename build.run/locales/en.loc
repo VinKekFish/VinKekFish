@@ -178,4 +178,24 @@ Already interrupted
     Already interrupted
 Try to unmount disk
     Try to unmount disk
+Finished unmounting disk
+    Finished unmounting disk
+Waiting for an umount retry after sleep
+    Waiting for an umount retry after sleep
+First, enter the vertical character number (row number), then enter the horizontal character number (column number)
+    First, enter the vertical character number (row number), then enter the horizontal character number (column number)
+Step of the initialization ended
+    Step of the initialization ended
+Encrypted
+    Encrypted
+Decrypted
+    Decrypted
+May be the incorrect file or a programm error. This may be when either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    May be the incorrect file or a programm error. Reason either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    Incorrect hash of file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+    Incorrect file: this is either a wrong file, a fake file, an incorrect key, an incorrect key file order, or an incorrect 'alg' name
+Enter password continuation (simple from keyboard)
+    Enter password continuation (simple input from keyboard)
 :

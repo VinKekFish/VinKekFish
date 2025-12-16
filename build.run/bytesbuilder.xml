@@ -497,6 +497,10 @@
             <summary>Очищает массив и освобождает выделенную под него память</summary>
             <param name="disposing">true, если вызов происходит из-вне деструктора</param>
         </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.IsNull">
+            <summary>Безопасно (с точки зрения тайминг-атак) узнаёт, не является ли блок состоящим из одних нулей.</summary>
+            <returns>true, если блок состоит из одних нулей.</returns>
+        </member>
         <member name="F:cryptoprime.BytesBuilderForPointers.Record.doExceptionOnDisposeInDestructor">
             <summary>Если true, то в деструкторе могут быть сгенерированны исключения, если объект не был освобождён ранее. В противном случае, будет только установлен флаг errorsInDispose</summary>
         </member>
@@ -529,6 +533,9 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_LeftShift(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Уменьшает длину записи на subtracted. Например, r &lt;&lt; 128 возвращает запись res: res.array=r.array, res.len=r.len-128</summary>
+        </member>
+        <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_ExclusiveOr(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
+            <summary>Уменьшает длину записи до len</summary>
         </member>
         <member name="M:cryptoprime.BytesBuilderForPointers.Record.op_BitwiseAnd(cryptoprime.BytesBuilderForPointers.Record,System.IntPtr)">
             <summary>Смещает запись за конец старой записи, новая запись длиной len. var r = a &amp; Len возвратит запись r, длиной Len, начинающуюся после конца записи a. То есть r.array = a.array + a.len, r.len = Len</summary>
@@ -712,7 +719,7 @@
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.Clear(System.Boolean)">
             <summary>Очищает циклический буфер</summary>
-            <param name="fast">fast = <see langword="false"/> - обнуляет выделенный под регион массив памяти</param>
+            <param name="fast">fast = <see langword="false"/> - если false, то обнуляет выделенный под регион массив памяти</param>
         </member>
         <member name="M:cryptoprime.BytesBuilderStatic.IsEntireNull">
             <summary>Этот метод для тестов: показывает, что все значения внутреннего буфера равны нулю; проверяет все байты вне зависимости от значения count</summary>
@@ -760,10 +767,16 @@
             <summary>Длина tweak в байтах</summary>
         </member>
         <member name="M:VinKekFish_Utils.Utils.CalcAlignment(System.IntPtr,System.Int32)">
-            <summary>Функция для расчёта выравнивания</summary>
+            <summary>Функция для расчёта выравнивания (даёт выравненное на alignment значение)</summary>
             <param name="size">Размер массива для выравнивания</param>
             <param name="alignment">Размер границ, на который выравнивается</param>
             <returns>Выравненное значение size</returns>
+        </member>
+        <member name="M:VinKekFish_Utils.Utils.CalcFilePaddingsLen(System.IntPtr,System.Int32)">
+            <summary>Функция для расчёта длины заполнения, нужной для выравнивания на fileAlignment</summary>
+            <param name="size">Размер, который подлежит выравниванию.</param>
+            <param name="alignment">Число, на которое выравнивается размер size.</param>
+            <returns></returns>
         </member>
         <member name="M:VinKekFish_Utils.Utils.GetAlignment64(cryptoprime.BytesBuilderForPointers.Record)">
             <summary>Выравнивает массив Record по значению 64-ре байта. Массив должен быть выделен с запасом 64 байта. Проще использовать alignmentDegree в AllocHGlobal_AllocatorForUnsafeMemory</summary>
@@ -826,9 +839,10 @@
             <param name="buffer">Массив для логирования</param>
             <param name="logName">Логическое имя лог-файла</param>
         </member>
-        <member name="M:VinKekFish_Utils.Utils.DoFormatException(System.Exception,System.Boolean)">
+        <member name="M:VinKekFish_Utils.Utils.DoFormatException(System.Exception,System.Boolean,System.Boolean)">
             <summary>Возвращает строковое представление исключения, вместе с вложенными исключениями.</summary>
             <param name="ex">Исключение</param>
+            <param name="withStackTrace">Если false, то не будет выводится трассировка стека.</param>
             <param name="toConsole">Если true, то форматированное исключение будет выдано на стандартный вывод ошибок</param>
         </member>
         <member name="T:VinKekFish_Utils.Memory">

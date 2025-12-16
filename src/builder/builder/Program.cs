@@ -10,7 +10,7 @@ public partial class Program
     static string   output        = "./build";
     static DateTime now           = DateTime.Now;
     static bool     no_restore    = true;
-    static bool     BuildDotnetIndependenceVersionFlag = false;
+    static bool     BuildDotnetIndependenceVersionFlag = true;
     static int Main(string[] args)
     {
         if (args.Length > 0)

@@ -21,3 +21,4 @@ mkdir -p ./build/builder
 dotnet publish src/builder/builder/ --output ./build/builder -c $configuration --self-contained false --use-current-runtime true /p:PublishSingleFile=false
 
 bash ./b/fbuild.sh "$testTags" "$configuration" "restore"
+
