@@ -24,9 +24,10 @@ public unsafe partial class PasswordEnter: IDisposable
     // ! слишком похож на черту и имеет сложное наименование
     // Ч - похоже на 4. ± - сложное наименование, к тому же, похожее на два занака "+-", идущие подряд
     // "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':(+-*/=|&^%$#@ΣΔΨλШЫЭЯ";
+    // Уникод не отображается в консоли, а "$" очень похож на букву "s".
     /// <summary>Разрешённые символы для стандартного пароля</summary>
-    public static readonly string GrantedSymbols      = "qwertyuiopasdfghjkLzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890[+*/=&^%$#@<";
-    public static readonly string GrantedSymbolsLower = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%$#@<";
+    public static readonly string GrantedSymbols      = "qwertyuiopasdfghjkLzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890[+*/=&^%#@<";
+    public static readonly string GrantedSymbolsLower = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%#@<";
 
     protected CascadeSponge_mt_20230930  sponge;
     protected VinKekFishBase_KN_20210525 vkf;

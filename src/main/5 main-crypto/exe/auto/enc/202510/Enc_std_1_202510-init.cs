@@ -21,6 +21,9 @@ using static VinKekFish_EXE.AutoCrypt;
 
 public unsafe partial class Enc_std_1_202510: IDisposable
 {
+    /// <summary>
+    /// Создаёт губку для выработки сессионных ключей.
+    /// </summary>
     private void CreateKeyCascadeSponge()
     {
         // +BLOCK_SIZE - т.к. эта губка генерирует ключи, она должна быть чуть более стойкая, чем те ключи, что она генерирует

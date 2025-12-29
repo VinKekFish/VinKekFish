@@ -1,11 +1,10 @@
-
-ПОКА НЕ РЕАЛИЗОВАНО
+Данная функция не проверена и находится в тестировании (если найду силы для этого).
 
 # enc. Команда зашифрования
 # Требования
 Работает только под Linux.
 
-В настоящий момент времени, требуется, чтобы сервис энтропии `vkf` работал (работают пути типа `/dev/vkf/crandom`). Если этого нет, то программа не сможет 
+В настоящий момент времени, требуется, чтобы сервис энтропии `vkf` работал (работают пути типа `/dev/vkf/crandom`). Сервис автоматически устанавливается при установке программы. Если этого нет, то программа не сможет нормально зашифровать файл.
 
 # Файл конфигурации
 ## in
@@ -34,7 +33,103 @@
 
 При указании пустого "enc:", имя файла будет сформировано из имени из опции "dec:" (уже должна быть указана) по шаблону `file.$date$.vkf`.
 
+# key
+
+
+# alg
+"std.1.202510"
+"std.3.202510"
+"short.1.202510"
+
+
 # pwd
 
 # pwd-simple
 
+# novkfrandom
+
+
+# Примеры
+Зашифрование 4096 бит симметричного шифрования.
+```
+# vkf auto /inRamA/enc.conf
+
+debug:
+enc:
+
+in:/inRamA/txt
+out:/inRamA/txt.vkf
+key:/inRamA/key
+start:
+```
+
+Расшифровать
+```
+# vkf auto /inRamA/dec.conf
+
+debug:
+dec:
+
+out:/inRamA/txt
+in:/inRamA/txt.vkf
+key:/inRamA/key
+start:
+```
+
+Зашифрование 12288 бит симметричного шифрования.
+```
+debug:
+enc:
+
+in:/inRamA/txt
+out:/inRamA/txt.vkf
+key:/inRamA/key
+alg:std.3.202510
+start:
+```
+
+Расшифровать
+```
+# vkf auto /inRamA/dec.conf
+
+debug:
+dec:
+
+out:/inRamA/txt
+in:/inRamA/txt.vkf
+key:/inRamA/key
+alg:std.3.202510
+start:
+```
+
+
+Зашифрование 12288 бит симметричного шифрования с паролем.
+Пароль вводится в два приёма: из таблицы и напрямую с клавиатуры.
+```
+debug:
+enc:
+
+in:/inRamA/txt
+out:/inRamA/txt.vkf
+key:/inRamA/key
+alg:std.3.202510
+pwd:true
+pwd-simple:true
+start:
+```
+
+Расшифровать
+```
+# vkf auto /inRamA/dec.conf
+
+debug:
+dec:
+
+out:/inRamA/txt
+in:/inRamA/txt.vkf
+key:/inRamA/key
+alg:std.3.202510
+pwd:true
+pwd-simple:true
+start:
+```
