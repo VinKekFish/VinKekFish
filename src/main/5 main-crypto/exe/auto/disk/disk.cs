@@ -27,8 +27,7 @@ using static AutoCrypt.Import;
 using System.Runtime.InteropServices.Marshalling;
 using CodeGenerated.Cryptoprimes;
 using System.Runtime.Intrinsics.X86;
-using System.ComponentModel.Design;
-using System.Data.SqlTypes;
+using System.Security.Cryptography;
 
 public unsafe partial class AutoCrypt
 {
@@ -45,7 +44,74 @@ public unsafe partial class AutoCrypt
         public  static FileInfo   LockFile => _LockFile!;
 
         /// <summary>Если true, то запись всегда заканчиваетя провалом</summary>
-        public  static bool isReadOnly { get; protected set; } = false;
+        public static bool isReadOnly { get; protected set; } = false;
+
+        public static BSize bsize = new();
+        public sealed class BSize
+        {
+            public static BSize Get12()
+            {
+                var result = new BSize();
+                result.blockSizeShift = 12;
+                result.InitBlockSize();
+
+                result.catFileShift = 5;
+                result.catFileMask  = 31;
+
+                return result;
+            }
+
+            public static BSize Get16()
+            {
+                var result = new BSize();
+                result.blockSizeShift = 16;
+                result.InitBlockSize();
+
+                result.catFileShift = 9;
+                result.catFileMask  = 511;
+
+                return result;
+            }
+
+            public static BSize Get19()
+            {
+                var result = new BSize();
+                result.blockSizeShift = 19;
+                result.InitBlockSize();
+
+                result.catFileShift = 12;
+                result.catFileMask  = 4095;
+
+                return result;
+            }
+
+            private void InitBlockSize()
+            {
+                blockSize      =  1 << blockSizeShift;
+                blockSizeMask  = (1 << blockSizeShift) - 1;
+            }
+
+            // Если это изменить, то старые диски перестанут корректно открываться (или надо проверять их размер блока)
+            // От этого также зависит форматирование диска (размер кластера), хотя открываться, при этом, будут любые размеры кластеров.
+            public int   blockSizeShift {get; private set;} = 61;
+            public int   blockSize      {get; private set;} = 0;
+            public int   blockSizeMask  {get; private set;} = 0;
+            public int  catFileShift    {get; private set;} = 61;
+            public int  catFileMask     {get; private set;} = 0;
+
+            /// <summary>Создаёт объект-описатель размера.</summary>
+            /// <param name="SizeShift">Показатель степени размера. 12 - 4096, 16 - 65536.</param>
+            public static BSize Get(int SizeShift)
+            {
+                return SizeShift switch
+                {
+                    12 => Get12(),
+                    16 => Get16(),
+                    19 => Get19(),
+                    _  => throw new ArgumentOutOfRangeException("size", "size must be 12 (4096) or 16 (65536)"),
+                };
+            }
+        }
 
         /// <summary>Метод вызывается автоматически из метода Exec. Осуществляет непосредственное монтирование и вход в цикл обработки сообщений файловой системы.</summary>
         public void MountVolume()
@@ -198,20 +264,15 @@ public unsafe partial class AutoCrypt
         const string vinkekfish_file_path = "/" + vinkekfish_file_name;
         readonly static byte * ptr_vinkekfish_file_name = Utf8StringMarshaller.ConvertToUnmanaged(vinkekfish_file_name);
 
-        // Если это изменить, то старые диски перестанут корректно открываться (или надо проверять их размер блока)
-        // От этого также зависит форматирование диска (размер кластера), хотя открываться, при этом, будут любые размеры кластеров.
-        const int blockSizeShift = 16;
-        const int blockSize      =  1 << blockSizeShift;
-        const int blockSizeMask  = (1 << blockSizeShift) - 1;
         public static (nint file, nint position, nint size, nint catFile, nint catPos) getPosition(nint position, nint size)
         {
-            var positionInFile = position & blockSizeMask;
-            var file           = position >> blockSizeShift;
-            var catFile        = file >> 9;                 // Это количество пар синхропосылок (FullBlockSyncLen) в blockSize
-            if (size > blockSize - positionInFile)
-                size = blockSize - positionInFile;
+            var positionInFile = position & bsize.blockSizeMask;
+            var file           = position >> bsize.blockSizeShift;
+            var catFile        = file >> bsize.catFileShift;                 // Это количество пар синхропосылок (FullBlockSyncLen) в blockSize
+            if (size > bsize.blockSize - positionInFile)
+                size = bsize.blockSize - positionInFile;
 
-            var catPos = file & 511;
+            var catPos = file & bsize.catFileMask;
 
             return (file, positionInFile, size, catFile, catPos * FullSyncBlockLen);
         }
@@ -445,6 +506,9 @@ public unsafe partial class AutoCrypt
                         bytesFromFile[pos.position + j] = buffer[i];
                     }
 
+                    isNull = IsNull(bytesFromFile);
+                    if (isNull)
+                        continue;
 
                     // File.WriteAllText(LockFile.FullName, "");
                     using (var lockFile = File.Open(LockFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -452,11 +516,9 @@ public unsafe partial class AutoCrypt
                         lockFile.Flush(true);
                     }
 
-                    isNull = IsNull(bytesFromFile);
                     if (!isNull)
                     {
                         ReadFullCatFile(pos, cf);
-
                         GenerateNewSync(pos);
                         DoEncrypt(pos, sync3, sync4);
 
@@ -505,7 +567,7 @@ public unsafe partial class AutoCrypt
                         }
                     }
                     else
-                        SafelyDeleteBlockFile(fn);
+                        SafelyDeleteBlockFile(fn, bsize.blockSize);
 
                     // Если bcf (backup-cf) существует, записываем нужные данные
                     if (File.Exists(bcf))
@@ -519,7 +581,7 @@ public unsafe partial class AutoCrypt
                     lockFile.Flush(true);
                 }
 
-                SafelyDeleteBlockFile(bfn);
+                SafelyDeleteBlockFile(bfn, bsize.blockSize);
                 SafelyDeleteBlockFile(bcf, FullSyncBlockLen + sizeof(ushort));
 
                 DoDeleteFile(LockFile.FullName);
@@ -535,7 +597,7 @@ public unsafe partial class AutoCrypt
         {
             using (var file = File.Open(cf, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
-                file.SetLength(blockSize);
+                file.SetLength(bsize.blockSize);
                 file.Flush(true);
                 file.Write(nullBlock);
                 file.Flush(true);
@@ -571,7 +633,7 @@ public unsafe partial class AutoCrypt
         private static void ReadFullCatFile((nint file, nint position, nint size, nint catFile, nint catPos) pos, string cf)
         {
             var fi = new FileInfo(cf); fi.Refresh();
-            if (!fi.Exists || fi.Length != blockSize)
+            if (!fi.Exists || fi.Length != bsize.blockSize)
             {
                 CreateNewCatFile(cf);
             }
@@ -585,7 +647,7 @@ public unsafe partial class AutoCrypt
             BytesBuilder.CopyTo(catBytes, sync2, index: pos.catPos + sync1.len);
         }
 
-        public static void SafelyDeleteBlockFile(string fn, int len = blockSize)
+        public static void SafelyDeleteBlockFile(string fn, int len)
         {
             if (File.Exists(fn))
             {
@@ -667,7 +729,7 @@ public unsafe partial class AutoCrypt
                         // Удаляем файл со старыми данными
                         if (fin.Exists)
                         {
-                            SafelyDeleteBlockFile(fin.FullName);
+                            SafelyDeleteBlockFile(fin.FullName, bsize.blockSize);
                         }
 
                         file.Delete();
@@ -675,15 +737,15 @@ public unsafe partial class AutoCrypt
                     }
                     else
                     // Если это файл с данными
-                    if (file.Length == blockSize)
+                    if (file.Length == bsize.blockSize)
                     {
                         if (fin.Exists)
                         {
-                            SafelyDeleteBlockFile(fn);
+                            SafelyDeleteBlockFile(fn, bsize.blockSize);
                         }
 
                         DoMoveFile(file, fin);
-                        SafelyDeleteBlockFile(file.FullName);
+                        SafelyDeleteBlockFile(file.FullName, bsize.blockSize);
                         Console.WriteLine(L("Data file restored") + ": " + fn);
                     }
                     else
@@ -1130,8 +1192,20 @@ public unsafe partial class AutoCrypt
 
         }
 
-        private static Record bytesFromFile = Keccak_abstract.allocator.AllocMemory(blockSize, "bytesFromFile");
-        private static Record catBytes      = Keccak_abstract.allocator.AllocMemory(blockSize, "catBytes");
+        /// <summary>Вызвать до MountVolume. Устанавливает размер блока.</summary>
+        /// <param name="SizeShift"></param>
+        public static void InitArrays(int SizeShift)
+        {
+            bsize         = BSize.Get(SizeShift);
+            bytesFromFile = Keccak_abstract.allocator.AllocMemory(bsize.blockSize, "bytesFromFile");
+            catBytes      = Keccak_abstract.allocator.AllocMemory(bsize.blockSize, "catBytes");
+
+            nullBlock = new byte[bsize.blockSize];
+            FFBlock   = new byte[bsize.blockSize];
+        }
+
+        private static Record bytesFromFile = new();
+        private static Record catBytes      = new();
         private static Record sync1         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync1");
         private static Record sync2         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync2");
         private static Record sync3         = Keccak_abstract.allocator.AllocMemory(KeccakPrime.BlockLen, "sync3");
@@ -1145,8 +1219,8 @@ public unsafe partial class AutoCrypt
         private static Record blockSyncH    = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "blockSyncH");
         private static Record block128      = Keccak_abstract.allocator.AllocMemory(Threefish_slowly.keyLen, "block128");
 
-        private static byte[] nullBlock = new byte[blockSize];
-        private static byte[]   FFBlock = new byte[blockSize];
+        private static byte[] nullBlock = Array.Empty<byte>();
+        private static byte[]   FFBlock = Array.Empty<byte>();
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static int fuse_getattr(byte * fileNamePtr, FuseFileStat* stat, FuseFileInfo * fileInfo)
@@ -1157,7 +1231,7 @@ public unsafe partial class AutoCrypt
             for (int i = 0; i < sizeof(FuseFileStat); i++, st++)
                 *st = 0;
 
-            (*stat).blksize = blockSize;
+            (*stat).blksize = bsize.blockSize;
 
             if (dirName == "/")
             {
@@ -1212,9 +1286,9 @@ public unsafe partial class AutoCrypt
             for (int i = 0; i < sizeof(StatVFS); i++, st++)
                 *st = 0;
 
-            (*stat).blocks  = FileSize / blockSize;
-            (*stat).frsize  = blockSize;
-            (*stat).bsize   = blockSize;
+            (*stat).blocks  = FileSize / (ulong) bsize.blockSize;
+            (*stat).frsize  = (ulong) bsize.blockSize;
+            (*stat).bsize   = (ulong) bsize.blockSize;
             (*stat).files   = 2;
             (*stat).namemax = (ulong) vinkekfish_file_path.Length;
 
@@ -1284,15 +1358,20 @@ public unsafe partial class AutoCrypt
 
                                 // Проверить верность форматирования можно с помощью команды file -s /dev/loop
                                 // В команде подставить верный номер loop устройства
-                                var iN = FileSize >> 16;
+                                var iN = FileSize >> bsize.blockSizeShift;
                                 // Это форматирование файловой системы пользователя.
                                 var has_journal = "has_journal";
                                 if (NoJournalFlag)
                                     has_journal = "^has_journal";
 
-                                pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O {has_journal},extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink" + " " + loopDev);
-                                // pif = Process.Start("mke2fs", $"-t ext4 -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O ^has_journal,extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
-                                // pif = Process.Start("mke2fs", $"-t ext4 -b 1024 -I 256 -N {iN} -m 0 -J size=1 -O ^has_journal,extent,flex_bg,resize_inode,sparse_super2,dir_nlink,^dir_index,^metadata_csum" + " " + loopDev);
+                                if (bsize.blockSizeShift == 16 || bsize.blockSizeShift == 19)
+                                    pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O {has_journal},extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink" + " " + loopDev);
+                                else
+                                if (bsize.blockSizeShift == 12)
+                                    pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -m 0 -O {has_journal},extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink" + " " + loopDev);
+                                else
+                                    throw new NotImplementedException("bsize.blockSizeShift mke2fs");
+
                                 pif.WaitForExit();
                             }
 
@@ -1310,6 +1389,7 @@ public unsafe partial class AutoCrypt
                             // pif = Process.Start("chown", $"{Rights} {loopDev}");
                             // pif.WaitForExit();
                             // noexec, nosuid ???? Опции надо бы добавить???
+
                             if (MountOpts.Length > 0)
                                 MountOpts = "," + MountOpts;
 
@@ -1344,12 +1424,6 @@ public unsafe partial class AutoCrypt
 
                             pif = Process.Start("mount", $"--onlyonce -o \"relatime,sync{MountOpts}\" {loopDev} \"{UserDir!.FullName}\"");
                             pif.WaitForExit();
-                            // Перестраховка: повторно устанавливаем права, на случай, если mount их не установил
-                            if (Rights.Length > 0)
-                            {
-                                pif = Process.Start("chown", $"{Rights} \"{UserDir!.FullName}\"");
-                                pif.WaitForExit();
-                            }
 
                             Console.WriteLine($"Started with loop device\r\n" + loopDev);
                         }

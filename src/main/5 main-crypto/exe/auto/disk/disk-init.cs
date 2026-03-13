@@ -121,6 +121,7 @@ public unsafe partial class AutoCrypt
         public static bool   CheckFSFlag           = true;
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
+        public static int    SizeShift             = 16;
 
         public static AlgorithmType algType = AlgorithmType.KeccakThreeFish11;
 
@@ -149,6 +150,7 @@ public unsafe partial class AutoCrypt
                         mount-o:noexec,nosuid,nodev
                         alg:keccakthreefish-1.1
                         checkfs:true
+                        blocksize:16
                         start:
 
                         (helper commands)
@@ -182,6 +184,30 @@ public unsafe partial class AutoCrypt
                         }
 
                         goto start;
+                case "blocksize":
+                    val = command.value.Trim().ToLowerInvariant();
+                    if (val == "12")
+                        SizeShift = 12;
+                    else
+                    if (val == "16")
+                        SizeShift = 16;
+                    else
+                    if (val == "19")
+                        SizeShift = 19;
+                    else
+                    if (isDebugMode)
+                    {
+                        Console.WriteLine("ERROR: blocksize value can be only 12 or 16");
+                    }
+                    else
+                        throw new CommandException("blocksize is incorrect");
+
+                    if (isDebugMode)
+                    {
+                        Console.WriteLine("blocksize: " + SizeShift);
+                    }
+
+                    goto start;
                 case "alg":
                         var alg_string = command.value.Trim().ToLowerInvariant();
                         switch (alg_string)
@@ -367,6 +393,8 @@ public unsafe partial class AutoCrypt
 
                         goto start;
                     }
+
+                    DiskCommand.InitArrays(SizeShift);
 
                     ulong cnt = 0;
                     do
