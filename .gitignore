@@ -5,6 +5,7 @@
 
 .vscode
 build/
+build.run/
 .debug.getMaxMemory
 src/test-dev/Console/build.dev/
 
