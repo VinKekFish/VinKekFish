@@ -74,7 +74,7 @@ bash ./b/fbuild.sh
 Исполняемые файлы проекта билдятся в директорию ./Crypto/VinKekFish/build
 (после выполнения пункта 2 мы уже находимся в ./Crypto/VinKekFish и оттуда запускаем билд). В том числе, ./Crypto/VinKekFish/build/arcs должен содержать архив с полным дистрибутивом программы.
 
-Если установлен флаг BuildDotnetIndependenceVersionFlag, то билд также будет собран в ./Crypto/VinKekFish/build.run/ (независимая от .NET версия для этого компьютера, может не запуститься на других компьютерах) или ./Crypto/VinKekFish/build.manual/ для независимой от .NET версии для Linux.
+Если установлен флаг BuildDotnetIndependenceVersionFlag (./Crypto/VinKekFish/src/builder/builder/Program.cs), то билд также будет собран в ./Crypto/VinKekFish/build.run/ (независимая от .NET версия для этого компьютера, может не запуститься на других компьютерах) или ./Crypto/VinKekFish/build.manual/ для независимой от .NET версии для Linux.
 
 
 ## 4. Установка программы
