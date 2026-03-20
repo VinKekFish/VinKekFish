@@ -149,9 +149,13 @@ partial class Program
 
         // Строим билд, независимый от dotnet
         if (BuildDotnetIndependenceVersionFlag)
-        {
+        {/*
             CopyFiles("src/main/4 utils/languages/locales",  "*.loc", "build.run/locales");
             ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: true, SelfContained: true, output: "./build.run");
+            End_build_for_project_event?.Invoke(result, dir);
+*/
+            CopyFiles("src/main/4 utils/languages/locales",  "*.loc", "build.manual/locales");
+            ExecuteBuildForProject(cd, vkf_folder, inSingleFile: true, isActualCheck: true, SelfContained: true, output: "./build.manual");
             End_build_for_project_event?.Invoke(result, dir);
         }
 

@@ -1,4 +1,4 @@
-# /bin/bash
+#!/bin/bash
 # sudo bash install.sh
 # Виноградов Сергей Васильевич
 # Поставки программы в стиле "как есть", без гарантий и ответственности. Используйте на свой страх и риск
@@ -6,10 +6,11 @@
 # Директория, в которую будет установлен VinKekFish (vkf)
 vkfDir=$1
 # Полный путь к архиву с VinKekFish
-arcDir=$2
+# arcDir=$2
 
 echo
 date
+echo "Install to $vkfDir (ru: Инсталляция в $vkfDir)"
 echo
 
 user=`whoami`
@@ -28,13 +29,13 @@ then
     exit 2
 fi
 
-ls "$arcDir" &>> /dev/null
-if [[ $? -ne 0 ]]
-then
-    pathToArc=`realpath $0`
-    echo -e "Archive '$arcDir' with VinKekFish was not found. Please, change '$pathToArc' file."
-    exit 3
-fi
+#ls "$arcDir" &>> /dev/null
+#if [[ $? -ne 0 ]]
+#then
+#    pathToArc=`realpath $0`
+#    echo -e "Archive '$arcDir' with VinKekFish was not found. Please, change '$pathToArc' file."
+#    exit 3
+#fi
 
 echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (ru: успешно создана или найдена существующая папка программы '$vkfDir')\033[0m"
 echo -e "The installation continue... (ru: установка продолжается...)"
@@ -81,7 +82,7 @@ setfacl -d -m g::rX  .
 setfacl -d -m o::--- .
 
 rm -rf exe
-7z x -y -bb0 "$arcDir" >> /dev/null
+#7z x -y -bb0 "$arcDir" >> /dev/null
 
 rm -f /usr/local/bin/vkf
 ln -s "$vkfDir/exe/vkf" /usr/local/bin/vkf
@@ -112,6 +113,20 @@ then
     exit 1
 fi
 
+
+echo 'Press Enter to make the installer wait for you to change service.options (see build.md)'
+echo 'ru: Нажмите Enter, чтобы установщик подождал, пока вы поменяете service.options (см. build.md).'
+if read -t 180 response; then
+
+    echo "Please change /opt/VinKekFish/options/service.options file and press Enter for continue the installation."
+    echo "ru: Пожалуйста, измените файл /opt/VinKekFish/options/service.options и нажмите Enter для продолжения установки."
+
+    read
+
+fi
+
+echo "Continue the installation"
+echo "ru: Продолжаем установку"
 
 # Дадим пользователю хоть краем глаза взглянуть на то, что было выведено до этого
 sleep 3
