@@ -32,10 +32,10 @@ function CopyBuild()
     cp -fvur $build/locales       $arcDir/locales
     cp -fvu  $build/vkf           $arcDir
     cp -fvu  $build/vkf           $arcDir
-    cp -fvu  $build/*.options     $arcDir
-    cp -fvu  $build/*.service     $arcDir
-    cp -fvu  $build/*.sh          $arcDir
-
+    cp -fvu  ./build/*.options     $arcDir
+    cp -fvu  ./build/*.service     $arcDir
+    cp -fvu  ./build/*.sh          $arcDir
+    chmod a+x $arcDir/*.sh
 }
 
 CopyBuild './build/arcs/dotnet7/exe' './build'
@@ -46,6 +46,6 @@ CopyBuild './build/arcs/linux/exe' './build.manual'
 rm -f ./build/arcs/vkf-linux.7z
 7z a -y -t7z -m0=lzma2 -mx=9 -bb0 -bd -ssc -ssw ./build/arcs/vkf-linux.7z './build/arcs/linux/exe'  > /dev/null
 
-makeself --zstd --complevel 19 './build/arcs/dotnet7/exe' ./build/arcs/vkf-dotnet7.sh 'vkf - VinKekFish for dotnet7' './install.sh'
-makeself --zstd --complevel 19 './build/arcs/linux/exe' ./build/arcs/vkf-linux.sh 'vkf - VinKekFish with dotnet for linux' './install.sh'
+makeself --zstd --complevel 19 './build/arcs/dotnet7' ./build/arcs/vkf-dotnet7.sh 'vkf - VinKekFish for dotnet7' './exe/install.sh'
+makeself --zstd --complevel 19 './build/arcs/linux' ./build/arcs/vkf-linux.sh 'vkf - VinKekFish with dotnet for linux' './exe/install.sh'
 

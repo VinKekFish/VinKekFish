@@ -6,7 +6,7 @@
 # Директория, в которую будет установлен VinKekFish (vkf)
 vkfDir=$1
 # Полный путь к архиву с VinKekFish
-# arcDir=$2
+arcDir=$2
 
 echo
 date
@@ -29,13 +29,13 @@ then
     exit 2
 fi
 
-#ls "$arcDir" &>> /dev/null
-#if [[ $? -ne 0 ]]
-#then
-#    pathToArc=`realpath $0`
-#    echo -e "Archive '$arcDir' with VinKekFish was not found. Please, change '$pathToArc' file."
-#    exit 3
-#fi
+ls "$arcDir" &>> /dev/null
+if [[ $? -ne 0 ]]
+then
+    pathToArc=`realpath $0`
+    echo -e "Archive '$arcDir' with VinKekFish was not found. Please, change '$pathToArc' file."
+    exit 3
+fi
 
 echo -e "\033[32mThe program directory '$vkfDir' created or has been exists. (ru: успешно создана или найдена существующая папка программы '$vkfDir')\033[0m"
 echo -e "The installation continue... (ru: установка продолжается...)"
@@ -83,6 +83,8 @@ setfacl -d -m o::--- .
 
 rm -rf exe
 #7z x -y -bb0 "$arcDir" >> /dev/null
+cp -Rf $arcDir/exe .
+
 
 rm -f /usr/local/bin/vkf
 ln -s "$vkfDir/exe/vkf" /usr/local/bin/vkf
@@ -114,16 +116,46 @@ then
 fi
 
 
+
+tput civis
+timeout=180  # Таймаут в секундах (180 с = 3 минуты)
+elapsed=0    # Прошедшее время
+interval=1   # Интервал проверки (1 секунда)
+el=""
+
+echo
+echo
+yes '-' | head -n ${COLUMNS:-$(tput cols)} | tr -d '\n'
 echo 'Press Enter to make the installer wait for you to change service.options (see build.md)'
 echo 'ru: Нажмите Enter, чтобы установщик подождал, пока вы поменяете service.options (см. build.md).'
-if read -t 180 response; then
+while [ $elapsed -lt $timeout ]
+do
+    ((elapsed += interval))
 
-    echo "Please change /opt/VinKekFish/options/service.options file and press Enter for continue the installation."
-    echo "ru: Пожалуйста, измените файл /opt/VinKekFish/options/service.options и нажмите Enter для продолжения установки."
+    if [[ "$el" == "" ]]
+    then
+        el="."
+        printf '\r\e[K'
+        echo -n ''
+    else
+        el=""
+        printf '\r\e[K'
+        echo -n '>'
+    fi
 
-    read
+    tput cr
+    
+    if read -t $interval response; then
 
-fi
+        echo "Please change /opt/VinKekFish/options/service.options file and press Enter for continue the installation."
+        echo "ru: Пожалуйста, измените файл /opt/VinKekFish/options/service.options и нажмите Enter для продолжения установки."
+
+        read
+        break
+
+    fi
+done
+tput cnorm
 
 echo "Continue the installation"
 echo "ru: Продолжаем установку"
