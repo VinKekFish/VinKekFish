@@ -407,11 +407,10 @@ public unsafe partial class AutoCrypt
                     GetHash(block64, pos.file);
                     if (!SecureCompareFast(sync2, block64))
                     {
-                        Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
                         if (IsNull(sync2))
-                            Console.WriteLine("Hash is incorrect (NULL; in write function) for block: " + fn);
+                            Console.WriteLine("Hash is incorrect (NULL; in write function) for block: " + fn + " with cat " + cf + " " + pos.catPos);
                         else
-                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn);
+                            Console.WriteLine("Hash is incorrect (in write function) for block: " + fn + " with cat " + cf + " " + pos.catPos);
 
                         // Запрещаем запись, так как последующие записи могут портить другие блоки файловой системы
                         isReadOnly = true;
@@ -1364,6 +1363,16 @@ public unsafe partial class AutoCrypt
                                 if (NoJournalFlag)
                                     has_journal = "^has_journal";
 
+                                if (FormatCmd.Length > 0)
+                                {
+                                    FormatCmd = FormatCmd.Replace("$$$dev$$$", loopDev, StringComparison.InvariantCulture);
+                                    var cmd   = FormatCmd.Split(' ', 2, StringSplitOptions.TrimEntries);
+                                    if (cmd.Length <= 1)
+                                        throw new NotImplementedException("The 'format-cmd' option is incorrect. The option must include the command name and $$$dev$$$ as minimum.");
+
+                                    pif = Process.Start(cmd[0],  cmd[1]);
+                                }
+                                else
                                 if (bsize.blockSizeShift == 16 || bsize.blockSizeShift == 19)
                                     pif = Process.Start("mke2fs", $"-t ext4 -v -b 4096 -I 1024 -N {iN} -C 64k -m 0 -O {has_journal},extent,bigalloc,inline_data,flex_bg,resize_inode,sparse_super2,dir_nlink" + " " + loopDev);
                                 else

@@ -122,6 +122,7 @@ public unsafe partial class AutoCrypt
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
         public static int    SizeShift             = 16;
+        public static string FormatCmd             = "";
 
         public static AlgorithmType algType = AlgorithmType.KeccakThreeFish11;
 
@@ -155,6 +156,7 @@ public unsafe partial class AutoCrypt
 
                         (helper commands)
                         forced-format: true
+                        format-cmd:mkfs.btrfs -M -m single -n 65536 -L "vol. label"  $$$dev$$$
                         no-journal: true
 
                         Example:
@@ -246,6 +248,9 @@ public unsafe partial class AutoCrypt
                                 break;
                         }
 
+                    goto start;
+                case "format-cmd":
+                        FormatCmd = command.value.Trim();
                     goto start;
                 case "mount-o":
                         MountOpts = command.value.Trim().ToLowerInvariant();
