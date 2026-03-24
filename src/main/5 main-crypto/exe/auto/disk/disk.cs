@@ -215,7 +215,10 @@ public unsafe partial class AutoCrypt
 
                         Console.WriteLine(L("Try to unmount disk") + $" {UserDir!.FullName}");
 
-                        var pus = Process.Start("mount", $"-o remount,ro \"{UserDir!.FullName}\"");
+                        // На всякий случай монтируем систему как только для чтения и синхронную.
+                        // Это заставит систему прекратить новые операции записи и сбросить кеш старых,
+                        // даже если система была смонтирована как async.
+                        var pus = Process.Start("mount", $"-o remount,ro,sync \"{UserDir!.FullName}\"");
                         pus.WaitForExit();
                         pus.Dispose();
                         Thread.Sleep(100);
@@ -363,6 +366,8 @@ public unsafe partial class AutoCrypt
             }
         }
 
+        public static DateTime lastReadonlyWarning = default;
+
         const int posAlignMask = 127;
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
         public static nint fuse_write(byte* path, byte* buffer, nint size, long position, FuseFileInfo * fileInfo)
@@ -372,6 +377,12 @@ public unsafe partial class AutoCrypt
 
             if (isReadOnly)
             {
+                if ((DateTime.Now - lastReadonlyWarning).TotalSeconds > 1d)
+                {
+                    lastReadonlyWarning = DateTime.Now;
+                    Console.WriteLine("WARNING: An attempt was made to write to disk, but full-readonly:yes. At " + lastReadonlyWarning.ToLongTimeString());
+                }
+
                 return - (int) PosixResult.EROFS;
             }
 
@@ -448,12 +459,14 @@ public unsafe partial class AutoCrypt
                         }
 
                         // Новый файл с новым содержимым файла
+                        if (isSafe)
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Write(bytesFromFile);
                             file.Flush(true);
                         }
                         // Готовим временный файл с резервной записью в файл категорий
+                        if (isSafe)
                         using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             st2[0] = pos.catPos;
@@ -475,12 +488,14 @@ public unsafe partial class AutoCrypt
                         }
 
                         // Новый файл - пустой ради оптимизации
+                        if (isSafe)
                         using (var file = File.Open(bfn, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             file.Flush(true);
                         }
 
                         // Готовим временный файл с резервной записью в файл категорий
+                        if (isSafe)
                         using (var catFile = File.Open(bcf, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                         {
                             st2[0] = pos.catPos;
@@ -707,6 +722,11 @@ public unsafe partial class AutoCrypt
 
         private static void CorrectLockFileIfExists()
         {
+            if (!isSafe)
+            {
+                Console.WriteLine(L("WARNING") + ": " + "unsafe:yes");
+            }
+
             LockFile.Refresh();
             if (!LockFile.Exists)
                 return;
