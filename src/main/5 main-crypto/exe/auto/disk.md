@@ -297,7 +297,7 @@ mount -o remount,rw /inRamS/mounts/tmp/
 ```format-cmd:mkfs.btrfs -m single -n 65536 -L "vol. label" $$$dev$$$```
 Где $$$dev$$$ - это шаблон, вместо которого программа подставит имя loop-устройства.
 Ещё один пример
-```format-cmd:mkfs.btrfs -М -m single -L "vol. label" $$$dev$$$```
+```format-cmd:mkfs.btrfs -М $$$dev$$$```
 
 
 В случае использования этой опции, программой игнорируются другие опции форматирования (например, "no-journal"). То есть все опции форматирования должны быть заданы в командной строке после `format-cmd`.
