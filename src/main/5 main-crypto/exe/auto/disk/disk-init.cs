@@ -119,19 +119,21 @@ public unsafe partial class AutoCrypt
         public static bool   NoJournalFlag         = false;                     /// <summary>Удаление без перезатирания.</summary>
         public static bool   FastDeleteFlag        = false;                     /// <summary>Проверка файловой системы перед монтированием с помощью fsck -p -y.</summary>
         public static bool   CheckFSFlag           = true;
+        public static bool   isSafe                = true;
         public static string Rights                = "#0:#0";
         public static string MountOpts             = "";
         public static int    SizeShift             = 16;
         public static string FormatCmd             = "";
+
 
         public static AlgorithmType algType = AlgorithmType.KeccakThreeFish11;
 
         public override ProgramErrorCode Exec(ref StreamReader? sr)
         {
             string val = "";
-            start:
+        start:
 
-            var command = (CommandOption) CommandOption.ReadAndParseLine
+            var command = (CommandOption)CommandOption.ReadAndParseLine
             (
                 sr,
                 () => Console.WriteLine
@@ -174,18 +176,18 @@ public unsafe partial class AutoCrypt
             switch (command.name)
             {
                 case "checkfs":
-                        val = command.value.Trim().ToLowerInvariant();
-                        CheckFSFlag = val == "true" || val == "1" || val == "yes";
+                    val = command.value.Trim().ToLowerInvariant();
+                    CheckFSFlag = ParseTrue(val);
 
-                        if (isDebugMode)
-                        {
-                            if (ForcedFormatFlag)
-                                Console.WriteLine("checkfs: true");
-                            else
-                                Console.WriteLine("checkfs: false");
-                        }
+                    if (isDebugMode)
+                    {
+                        if (ForcedFormatFlag)
+                            Console.WriteLine("checkfs: true");
+                        else
+                            Console.WriteLine("checkfs: false");
+                    }
 
-                        goto start;
+                    goto start;
                 case "blocksize":
                     val = command.value.Trim().ToLowerInvariant();
                     if (val == "12")
@@ -211,112 +213,138 @@ public unsafe partial class AutoCrypt
 
                     goto start;
                 case "alg":
-                        var alg_string = command.value.Trim().ToLowerInvariant();
-                        switch (alg_string)
-                        {
-                            case "keccak":
-                                    algType = AlgorithmType.Keccak;
-                                    if (isDebugMode)
-                                    {
-                                        Console.WriteLine("Set to AlgorithmType.Keccak [512 + 0]");
-                                    }
-                                break;
+                    var alg_string = command.value.Trim().ToLowerInvariant();
+                    switch (alg_string)
+                    {
+                        case "keccak":
+                            algType = AlgorithmType.Keccak;
+                            if (isDebugMode)
+                            {
+                                Console.WriteLine("Set to AlgorithmType.Keccak [512 + 0]");
+                            }
+                            break;
 
-                            case "keccakthreefish":
-                                    algType = AlgorithmType.KeccakThreeFish;
-                                    if (isDebugMode)
-                                    {
-                                        Console.WriteLine("Set to AlgorithmType.KeccakThreeFish [512 + 1024]");
-                                    }
-                                break;
+                        case "keccakthreefish":
+                            algType = AlgorithmType.KeccakThreeFish;
+                            if (isDebugMode)
+                            {
+                                Console.WriteLine("Set to AlgorithmType.KeccakThreeFish [512 + 1024]");
+                            }
+                            break;
 
-                            case "keccakthreefish-1.1":
-                            case "keccakthreefish1.1":
-                            case "keccakthreefish11":
-                                    algType = AlgorithmType.KeccakThreeFish11;
-                                    if (isDebugMode)
-                                    {
-                                        Console.WriteLine("Set to AlgorithmType.KeccakThreeFish-1.1 [512 + 1024]");
-                                    }
-                                break;
+                        case "keccakthreefish-1.1":
+                        case "keccakthreefish1.1":
+                        case "keccakthreefish11":
+                            algType = AlgorithmType.KeccakThreeFish11;
+                            if (isDebugMode)
+                            {
+                                Console.WriteLine("Set to AlgorithmType.KeccakThreeFish-1.1 [512 + 1024]");
+                            }
+                            break;
 
-                            default:
-                                if (!isDebugMode)
-                                    throw new CommandException("alg_string is incorrect");
-                                else
-                                    Console.WriteLine("alg_string is incorrect");
-                                break;
-                        }
+                        default:
+                            if (!isDebugMode)
+                                throw new CommandException("alg_string is incorrect");
+                            else
+                                Console.WriteLine("alg_string is incorrect");
+                            break;
+                    }
 
                     goto start;
                 case "format-cmd":
-                        FormatCmd = command.value.Trim();
+                    FormatCmd = command.value.Trim();
                     goto start;
                 case "mount-o":
-                        MountOpts = command.value.Trim().ToLowerInvariant();
+                    MountOpts = command.value.Trim().ToLowerInvariant();
 
-                        goto start;
+                    goto start;
                 case "fast-delete":
-                        val = command.value.Trim().ToLowerInvariant();
-                        FastDeleteFlag = val == "true" || val == "1" || val == "yes";
+                    val = command.value.Trim().ToLowerInvariant();
+                    FastDeleteFlag = ParseTrue(val);
 
-                        if (isDebugMode)
-                        {
-                            if (FastDeleteFlag)
-                                Console.WriteLine("fast-delete: true");
-                            else
-                                Console.WriteLine("fast-delete: false");
-                        }
-
-                        goto start;
-                case "forced-format":
-                        val = command.value.Trim().ToLowerInvariant();
-                        ForcedFormatFlag = val == "true" || val == "1" || val == "yes";
-
-                        if (isDebugMode)
-                        {
-                            if (ForcedFormatFlag)
-                                Console.WriteLine("forced-format: true");
-                            else
-                                Console.WriteLine("forced-format: false");
-                        }
-
-                        goto start;
-                case "no-journal":
-                        val = command.value.Trim().ToLowerInvariant();
-                        NoJournalFlag = val == "true" || val == "1" || val == "yes";
-
-                        if (isDebugMode)
-                        {
-                            if (NoJournalFlag)
-                                Console.WriteLine("no-journal: true");
-                            else
-                                Console.WriteLine("no-journal: false");
-                        }
-
-                        goto start;
-                case "r":
-                        Rights = command.value.Trim();
-                        goto start;
-                case "size":
-                        FileSize = (ulong) ParseUtils.ParseSize(command.value);
-                        goto start;
-                case "data":
-                        DataDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
-
-                        if (isDebugMode)
-                        {
-                            if (DataDir is not null)
-                                Console.WriteLine("data: " + DataDir.FullName);
-                            else
-                                Console.WriteLine(L("File error"));
-                        }
+                    if (isDebugMode)
+                    {
+                        if (FastDeleteFlag)
+                            Console.WriteLine("fast-delete: true");
                         else
-                        if (DataDir is null)
-                        {
-                            Console.Error.WriteLine("service: ERROR");
-                            return ProgramErrorCode.Abandoned;
-                        }
+                            Console.WriteLine("fast-delete: false");
+                    }
+
+                    goto start;
+                case "forced-format":
+                    val = command.value.Trim().ToLowerInvariant();
+                    ForcedFormatFlag = ParseTrue(val);
+
+                    if (isDebugMode)
+                    {
+                        if (ForcedFormatFlag)
+                            Console.WriteLine("forced-format: true");
+                        else
+                            Console.WriteLine("forced-format: false");
+                    }
+
+                    goto start;
+                case "full-readonly":
+                    val = command.value.Trim().ToLowerInvariant();
+                    isReadOnly = ParseTrue(val);
+
+                    if (isDebugMode)
+                    {
+                        if (isReadOnly)
+                            Console.WriteLine("full-readonly: true");
+                        else
+                            Console.WriteLine("full-readonly: false");
+                    }
+
+                    goto start;
+                case "unsafe":
+                    val = command.value.Trim().ToLowerInvariant();
+                    isSafe = !ParseTrue(val);
+
+                    if (isDebugMode)
+                    {
+                        if (!isSafe)
+                            Console.WriteLine("unsafe: true");
+                        else
+                            Console.WriteLine("unsafe: false");
+                    }
+
+                    goto start;
+                case "no-journal":
+                    val = command.value.Trim().ToLowerInvariant();
+                    NoJournalFlag = ParseTrue(val);
+
+                    if (isDebugMode)
+                    {
+                        if (NoJournalFlag)
+                            Console.WriteLine("no-journal: true");
+                        else
+                            Console.WriteLine("no-journal: false");
+                    }
+
+                    goto start;
+                case "r":
+                    Rights = command.value.Trim();
+                    goto start;
+                case "size":
+                    FileSize = (ulong)ParseUtils.ParseSize(command.value);
+                    goto start;
+                case "data":
+                    DataDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
+
+                    if (isDebugMode)
+                    {
+                        if (DataDir is not null)
+                            Console.WriteLine("data: " + DataDir.FullName);
+                        else
+                            Console.WriteLine(L("File error"));
+                    }
+                    else
+                    if (DataDir is null)
+                    {
+                        Console.Error.WriteLine("service: ERROR");
+                        return ProgramErrorCode.Abandoned;
+                    }
 
                     goto start;
                 case "unencrypted-key":
@@ -324,39 +352,39 @@ public unsafe partial class AutoCrypt
                     OpenKeyFileInfo = ParseFileOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Exists);
                     goto start;
                 case "tmp":
-                        tmpDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
+                    tmpDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
 
-                        if (isDebugMode)
-                        {
-                            if (tmpDir is not null)
-                                Console.WriteLine("tmp: " + tmpDir.FullName);
-                            else
-                                Console.WriteLine("File error");
-                        }
+                    if (isDebugMode)
+                    {
+                        if (tmpDir is not null)
+                            Console.WriteLine("tmp: " + tmpDir.FullName);
                         else
-                        if (tmpDir is null)
-                        {
-                            Console.Error.WriteLine("tmp: ERROR");
-                            return ProgramErrorCode.Abandoned;
-                        }
+                            Console.WriteLine("File error");
+                    }
+                    else
+                    if (tmpDir is null)
+                    {
+                        Console.Error.WriteLine("tmp: ERROR");
+                        return ProgramErrorCode.Abandoned;
+                    }
 
                     goto start;
                 case "user":
-                        UserDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
+                    UserDir = ParseDirOptions(command.value.TrimStart(), isDebugMode, FileMustExists.Indifferent);
 
-                        if (isDebugMode)
-                        {
-                            if (UserDir is not null)
-                                Console.WriteLine("user: " + UserDir.FullName);
-                            else
-                                Console.WriteLine(L("File error"));
-                        }
+                    if (isDebugMode)
+                    {
+                        if (UserDir is not null)
+                            Console.WriteLine("user: " + UserDir.FullName);
                         else
-                        if (UserDir is null)
-                        {
-                            Console.Error.WriteLine("user: ERROR");
-                            return ProgramErrorCode.Abandoned;
-                        }
+                            Console.WriteLine(L("File error"));
+                    }
+                    else
+                    if (UserDir is null)
+                    {
+                        Console.Error.WriteLine("user: ERROR");
+                        return ProgramErrorCode.Abandoned;
+                    }
 
                     goto start;
                 case "start":
@@ -417,7 +445,7 @@ public unsafe partial class AutoCrypt
                     }
                     while (!OpenKeyFileInfo.Exists);
 
-                    using (var key = Keccak_abstract.allocator.AllocMemory((nint) OpenKeyFileInfo.Length, "disk command: fileForOpenKey"))
+                    using (var key = Keccak_abstract.allocator.AllocMemory((nint)OpenKeyFileInfo.Length, "disk command: fileForOpenKey"))
                     {
                         using (var fileForOpenKey = File.OpenRead(OpenKeyFileInfo.FullName))
                         {
@@ -454,6 +482,14 @@ public unsafe partial class AutoCrypt
             }
 
             return ProgramErrorCode.success;
+        }
+
+        /// <summary>По lowercase trimmed строке устанавливает, определено ли значение true в этой строке.</summary>
+        /// <param name="val">Строка для парсинга.</param>
+        /// <returns>true, если val определяет значение "да".</returns>
+        public static bool ParseTrue(string val)
+        {
+            return val == "true" || val == "1" || val == "yes" || val == "on" || val == "up";
         }
 
         /// <summary>Полная длина двойной синхропосылки на блок файловой системы. При изменении этого нужно также изменить расчёт номера файла категории (он завязан на эту константу, но эта константа там не используется).</summary>

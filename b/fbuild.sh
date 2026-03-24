@@ -20,6 +20,12 @@ fi
 
 ./build/builder/builder "$configuration" "$testTags" "$flags"
 
+if [ $? -ne 0 ]
+then
+    echo "Ошибка: команда завершилась с кодом $?"
+    exit 1
+fi
+
 # dotnet ./build/SecureCompare.dll
 
 function CopyBuild()
