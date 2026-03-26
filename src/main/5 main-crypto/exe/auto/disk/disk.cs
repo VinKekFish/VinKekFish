@@ -248,6 +248,7 @@ public unsafe partial class AutoCrypt
                         isReadOnly = true;
                         if (ec != 0 && !string.IsNullOrEmpty(loopDev))
                         {
+                            // Размонтируем loopback устройство принудительно.
                             var args = $"-d {loopDev}";
                             using var pi = Process.Start("losetup", args);
                             pi.WaitForExit();
@@ -398,8 +399,8 @@ public unsafe partial class AutoCrypt
             if (isSafe)
                 CorrectLockFileIfExists();
 
-            nint *     st2 = stackalloc nint[1];
-            Span<byte> bt2 = new (st2, sizeof(nint));
+            long *     st2 = stackalloc long[1];
+            Span<byte> bt2 = new (st2, sizeof(long));
             for (nint i = 0; i < size;)
             {
                 var pos = getPosition(i + (nint)position, size - i);
@@ -608,7 +609,7 @@ public unsafe partial class AutoCrypt
                 if (isSafe)
                 {
                     SafelyDeleteBlockFile(bfn, bsize.blockSize);
-                    SafelyDeleteBlockFile(bcf, FullSyncBlockLen + sizeof(nint));
+                    SafelyDeleteBlockFile(bcf, FullSyncBlockLen + sizeof(long));
 
                     DoDeleteFile(LockFile.FullName);
                 }
@@ -722,6 +723,13 @@ public unsafe partial class AutoCrypt
 
         private static void CorrectLockFileIfExists()
         {
+            // Кажется, здесь может быть параллельность при вызове из init, если вызов будет при isSafe и при чтении, и в конце монтирования.
+            // lock (FFBlock)
+            CorrectLockFileIfExists_nolock();
+        }
+
+        private static void CorrectLockFileIfExists_nolock()
+        {
             if (!isSafe)
             {
                 Console.WriteLine(L("WARNING") + ": " + "unsafe:yes");
@@ -734,8 +742,8 @@ public unsafe partial class AutoCrypt
             Console.WriteLine(L("Lock file detected") + ".");
             Console.WriteLine(L("An attempt is being made to restore the file system") + ".");
 
-            nint   *   st2 = stackalloc nint[1];
-            Span<byte> bt2 = new (st2, sizeof(nint));
+            long   *   st2 = stackalloc long[1];
+            Span<byte> bt2 = new (st2, sizeof(long));
 
             var lf    = LockFile; lf.Refresh();
             var files = DataDir!.GetFiles(SyncBackupName + "*");
@@ -773,7 +781,7 @@ public unsafe partial class AutoCrypt
                     {
                         if (fin.Exists)
                         {
-                            SafelyDeleteBlockFile(fn, bsize.blockSize);
+                            SafelyDeleteBlockFile(fin.FullName, bsize.blockSize);
                         }
 
                         DoMoveFile(file, fin);
@@ -781,7 +789,7 @@ public unsafe partial class AutoCrypt
                         Console.WriteLine(L("Data file restored") + ": " + fn);
                     }
                     else
-                    if (file.Length != FullSyncBlockLen + sizeof(nint))
+                    if (file.Length != FullSyncBlockLen + sizeof(long))
                     {
                         // SafelyDeleteBlockFile(file.FullName, (int) file.Length);
                         Console.WriteLine(L("File damaged") + ": " + file.FullName);
@@ -796,7 +804,7 @@ public unsafe partial class AutoCrypt
                         using (var bFile = File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
                         {
                             bFile.Read(bt2);
-                            catPos = st2[0];
+                            catPos = (nint) st2[0];
                             if ((catPos & posAlignMask) > 0 && catPos != 0xFF)
                             {
                                 // SafelyDeleteBlockFile(file.FullName, (int) file.Length);
@@ -1348,6 +1356,13 @@ public unsafe partial class AutoCrypt
                     lock (syncForExit)
                     try
                     {
+                        // Выполняем здесь до выполнения любых операций чтения-записи
+                        // После монтирования уже сразу идут какие-то операции чтения,
+                        // Так что необходимо провести коррекцию незавершённой транзакции
+                        // до монтирования блочного устройства
+                        if (!isSafe)
+                            CorrectLockFileIfExists();
+
                         var psi = new ProcessStartInfo();
                         psi.UseShellExecute = false;
                         psi.RedirectStandardOutput = true;
@@ -1468,7 +1483,6 @@ public unsafe partial class AutoCrypt
                             pif.WaitForExit();
 
                             Console.WriteLine($"Started with loop device\r\n" + loopDev);
-                            CorrectLockFileIfExists();
                         }
                         else
                             Console.WriteLine("ERROR: loop device not mounted: " + loopDev);
