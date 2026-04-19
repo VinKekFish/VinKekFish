@@ -25,9 +25,9 @@ public unsafe partial class PasswordEnter: IDisposable
     // Ч - похоже на 4. ± - сложное наименование, к тому же, похожее на два занака "+-", идущие подряд
     // "qwertyuiopasdfghjkLzxcvbnm1234567890,.<?;':(+-*/=|&^%$#@ΣΔΨλШЫЭЯ";
     // Уникод не отображается в консоли, а "$" очень похож на букву "s".
-    /// <summary>Разрешённые символы для стандартного пароля</summary>
-    public static readonly string GrantedSymbols      = "qwertyuiopasdfghjkLzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890[+*/=&^%#@<";
-    public static readonly string GrantedSymbolsLower = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%#@<";
+    /// <summary>Разрешённые символы для стандартного пароля. Буквы только в одном регистре</summary>
+    public static readonly string GrantedSymbols      = "qWERTYUioPASdFgHJKLZXCVBNM1234567890[+*/=&^%#@<_";
+    public static readonly string GrantedSymbolsLower = "qwertyuiopasdfghjkLzxcvbnm1234567890[+*/=&^%#@<_";
 
     protected CascadeSponge_mt_20230930  sponge;
     protected VinKekFishBase_KN_20210525 vkf;
@@ -193,7 +193,7 @@ public unsafe partial class PasswordEnter: IDisposable
 
                 BytesBuilder.ToNull(maxPasswordLen, passwd);
             }
-            sponge.Step(ArmoringSteps: ArmoringSteps, regime: regime);
+            sponge.Step(ArmoringSteps: ArmoringSteps, regime: (byte) (regime+2));
 
             if (pwdLen < 8)
             {

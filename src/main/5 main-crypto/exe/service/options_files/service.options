@@ -270,6 +270,8 @@ input
                             difference
                                 yes
 
+            # apt -y install jitterentropy-rngd
+            # Напишите в min число 1, чтобы все байты из /dev/random заходили в основную губку без сжатия (больше вычислений)
             file
                 /dev/random
                     min
@@ -283,11 +285,11 @@ input
                     interval
                         once
                             length
-                                32
+                                16384
                             flags
                         15923ms
                             length
-                                8
+                                64
                             flags
                                 watch counter in log
                             difference

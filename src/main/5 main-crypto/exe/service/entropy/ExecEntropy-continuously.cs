@@ -326,7 +326,7 @@ public partial class Regime_Service
                     int dateLen = interval.flags!.date == Flags.FlagValue.no ? 0 : sizeof(long);    // Длина массива, выделенная для данных
                     if (fileElement.FileInfo!.Length > len)
                     {
-                        len = (int) fileElement.FileInfo!.Length;
+                        len = (int) (fileElement.FileInfo!.Length + dateLen);
                         if (len*2 > ilen)
                             ilen = len * 2; // ilen не должен быть меньше 127-ми байтов
                     }
@@ -545,6 +545,7 @@ public partial class Regime_Service
                 // Вводим данные в промежуточную губку, если их накопилось на блок
                 if (pos >= KeccakPrime.BlockLen)
                 {
+                    // Это отладочная запись энтропии. Включается в настроечном файле
                     if (doLog)
                     {
                         using (var tmpRecord = new Record())
@@ -553,7 +554,7 @@ public partial class Regime_Service
                             tmpRecord.len   = pos;
                             WriteToLog(tmpRecord, pos);
 
-                            // Иначе будет обнуление буфера
+                            // Иначе будет обнуление буфера в деструкторе
                             tmpRecord.array = null;
                         }
                     }

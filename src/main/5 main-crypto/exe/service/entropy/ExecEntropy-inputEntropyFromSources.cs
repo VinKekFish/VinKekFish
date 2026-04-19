@@ -173,6 +173,9 @@ public partial class Regime_Service
                     bufferRec_current += readed;
                     result            += readed;
 
+                    if (bufferRec_current > bufferRec.len)
+                        throw new Exception("FATAL ERROR: InputEntropyFromSources: bufferRec_current > bufferRec.len (send information for developer)");
+
                     countOfBytesCounterTotal_h.AddNumberToBytes(readed, getter);
                     countOfBytesCounterCorr_h .AddNumberToBytes(readed, getter);
                 }
