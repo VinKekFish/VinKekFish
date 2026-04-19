@@ -1371,11 +1371,17 @@ public unsafe partial class AutoCrypt
                         psi.Arguments = $"-f -L --direct-io=on --show -- \"{tmpFile}\"";
 
                         var pi = Process.Start(psi);
-                        if (!pi!.WaitForExit(10_000))
+                        var tl = 10_000;                    // Таймаут ожидания
+                        while (!pi!.WaitForExit(tl))
                         {
-                            try{ pi.Kill(true); } catch{}
-                            Console.Error.WriteLine("ERROR: losetup is hung. This is an unexpected error.");
-                            return;
+                            //try{ pi.Kill(true); } catch{}
+                            Console.Error.WriteLine("WARNING: losetup is hung. This is an unexpected error.");
+                            //return;
+
+                            if (tl < 120_000)
+                                tl = (int) (tl * 1.18921f);
+                            else
+                                tl = 120_000;
                         }
                         // Здесь всё равно может подвиснуть на чтении незакрытого потока стандартного вывода
                         loopDev = pi.StandardOutput.ReadToEnd().Trim();     // Может содержать перевод строки
