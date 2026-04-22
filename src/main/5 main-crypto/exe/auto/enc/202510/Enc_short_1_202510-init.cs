@@ -43,7 +43,7 @@ public unsafe partial class Enc_short_1_202510: IDisposable
         var result = new CascadeSponge_mt_20230930
         (
             KeyStrenght,
-            ThreadsCount: Environment.ProcessorCount - 1
+            ThreadsCount: 1 //Environment.ProcessorCount - 1
         )
         {
             StepTypeForAbsorption = steps
