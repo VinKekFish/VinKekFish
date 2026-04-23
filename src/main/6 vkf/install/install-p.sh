@@ -52,8 +52,18 @@ echo "Wait for stop the VinKekFish service (vkf service), if executed. This may 
 echo "ru: Ждём остановки сервиса VinKekFish (сервис vkf), если запущено. Это может занять 1 минуту."
 echo
 
-systemctl disable vkf
-systemctl stop vkf
+if systemctl is-enabled --quiet vkf; then
+    systemctl disable vkf
+else
+    systemctl disable vkf 2>/dev/null
+fi
+
+if systemctl is-active --quiet vkf; then
+    systemctl stop vkf
+else
+    systemctl stop vkf 2>/dev/null
+fi
+
 
 echo "If vkf is used to mount disks, the disks will be unmounted (ru: Если vkf используется для монтирования дисков, диски будут размонтированы)"
 
