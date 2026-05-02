@@ -150,7 +150,7 @@ do
     else
         el=""
         printf '\r\e[K'
-        echo -n '>'
+        echo -n '>>> PRESS ENTER ONE OR TWO TIME <<<'
     fi
 
     tput cr
@@ -159,6 +159,7 @@ do
 
         echo "Please change /opt/VinKekFish/options/service.options file and press Enter for continue the installation."
         echo "ru: Пожалуйста, измените файл /opt/VinKekFish/options/service.options и нажмите Enter для продолжения установки."
+        echo ">>> Installation is waiting <<<"
 
         read
         break
