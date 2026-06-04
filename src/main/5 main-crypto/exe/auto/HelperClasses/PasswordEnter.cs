@@ -208,6 +208,8 @@ public unsafe partial class PasswordEnter: IDisposable
 
         void ClearPassword(CascadeSponge_mt_20230930 sponge, ref nint cur, ref nint pwdLen)
         {
+            var cc = Console.BackgroundColor;
+            Console.BackgroundColor = ConsoleColor.DarkYellow;
             Clear();
 
             cur = 0;
@@ -216,6 +218,7 @@ public unsafe partial class PasswordEnter: IDisposable
             Console.SetCursorPosition(0, 0);
             Console.WriteLine(L("The entered password characters have been reset. Start entering the password again.") + " " + L("Press Enter to continue"));
             Console.ReadLine();
+            Console.BackgroundColor = cc;
         }
 
         void DisplayErrorMessage(CascadeSponge_mt_20230930 sponge, bool doErrorMessage)
