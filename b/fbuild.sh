@@ -2,6 +2,9 @@
 # Можно запускать без параметров
 # Пример запуска с параметрами:
 # ./b/fbuild.sh Release 'inWork'
+
+set -xe
+
 configuration=$2
 testTags=$1
 flags=$3

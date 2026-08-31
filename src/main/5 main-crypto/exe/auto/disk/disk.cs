@@ -354,8 +354,8 @@ public unsafe partial class AutoCrypt
             using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 catFile.Seek(pos.catPos, SeekOrigin.Begin);
-                catFile.Read(sync1);
-                catFile.Read(sync2);
+                catFile.ReadExactly(sync1);
+                catFile.ReadExactly(sync2);
             }
         }
 
@@ -363,7 +363,7 @@ public unsafe partial class AutoCrypt
         {
             using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
             {
-                file.Read(bytesFromFile);
+                file.ReadExactly(bytesFromFile);
             }
         }
 
@@ -636,7 +636,7 @@ public unsafe partial class AutoCrypt
         {
             using (var file = File.Open(fn, FileMode.Open, FileAccess.Read, FileShare.None))
             {
-                file.Read(bytesFromFile);
+                file.ReadExactly(bytesFromFile);
             }
         }
 
@@ -668,7 +668,7 @@ public unsafe partial class AutoCrypt
 
             using (var catFile = File.Open(cf, FileMode.Open, FileAccess.Read, FileShare.None))
             {
-                catFile.Read(catBytes);
+                catFile.ReadExactly(catBytes);
             }
 
             BytesBuilder.CopyTo(catBytes, sync1, index: pos.catPos);
@@ -701,7 +701,7 @@ public unsafe partial class AutoCrypt
             Span<byte> sb = stackalloc byte[(int) source.Length];
             using (var src  = File.Open( source.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
             {
-                src.Read(sb);
+                src.ReadExactly(sb);
             }
 
             using (var dest = File.Open(newFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -803,7 +803,7 @@ public unsafe partial class AutoCrypt
                         // Открываем backup-файл
                         using (var bFile = File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                            bFile.Read(bt2);
+                            bFile.ReadExactly(bt2);
                             catPos = (nint) st2[0];
                             if ((catPos & posAlignMask) > 0 && catPos != 0xFF)
                             {
@@ -813,8 +813,8 @@ public unsafe partial class AutoCrypt
                                 continue;
                             }
 
-                            bFile.Read(sync3);
-                            bFile.Read(sync4);
+                            bFile.ReadExactly(sync3);
+                            bFile.ReadExactly(sync4);
                         }
 
                         using (var catFile = File.Open(fin.FullName, FileMode.Open, FileAccess.ReadWrite, FileShare.None))

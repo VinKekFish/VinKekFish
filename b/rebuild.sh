@@ -1,4 +1,7 @@
 # Файл нужно запускать из корневой директории репозитория VinKekFish
+
+set -xe
+
 configuration=$2
 testTags=$1
 

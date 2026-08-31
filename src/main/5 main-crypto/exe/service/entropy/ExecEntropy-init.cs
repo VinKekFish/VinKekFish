@@ -493,7 +493,7 @@ public partial class Regime_Service
                 return;
 
             var span = new Span<byte>(bufferRec, flen);
-            readStream.Read(span);
+            readStream.ReadExactly(span);
 
             rndbytes.AddWithCopy(bufferRec, flen, allocator);
         }

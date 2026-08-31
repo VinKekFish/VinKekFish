@@ -449,7 +449,7 @@ public unsafe partial class AutoCrypt
                     {
                         using (var fileForOpenKey = File.OpenRead(OpenKeyFileInfo.FullName))
                         {
-                            fileForOpenKey.Read(key);
+                            fileForOpenKey.ReadExactly(key);
                         }
 
                         if (isDebugMode)

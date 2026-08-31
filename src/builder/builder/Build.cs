@@ -47,13 +47,19 @@ partial class Program
             no_restore_string = "--no-restore";
 
         var runtimeString = "";
-        if (SelfContained)
-            runtimeString = "--runtime linux-x64";
+        var SelfContainedString = "";
+        if (SelfContained || inSingleFile)
+        {
+            runtimeString = " --runtime linux-x64";
+            SelfContainedString =  $"--self-contained={SelfContained}";
+        }
 
         // https://learn.microsoft.com/ru-ru/dotnet/core/tools/dotnet-build
         var buildVersion = GetDateVersionString(Program.now);
         var inSingleFileString = inSingleFile ? "/p:PublishSingleFile=true" : "";
-        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} --self-contained {SelfContained} {runtimeString} --use-current-runtime false {inSingleFileString}";
+        var args = $"publish {no_restore_string} --configuration {configurationForDotNet} --output \"{output}\" -p:Version={buildVersion} {SelfContainedString}{runtimeString} /p:UseCurrentRuntimeIdentifier=false {inSingleFileString}";
+
+        Console.WriteLine("dotnet " + args);
 
         var psi  = new ProcessStartInfo("dotnet", args);
         psi.WorkingDirectory = di.FullName;

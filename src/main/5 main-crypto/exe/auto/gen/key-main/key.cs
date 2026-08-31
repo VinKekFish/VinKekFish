@@ -365,7 +365,7 @@ public unsafe partial class AutoCrypt
                     // Вводим данные из /dev/random и получаем в буфер bbp данные из сервиса vkf
                     // от br будет далее проинициализированы обе губки
                     using (var fs = new FileStream(autoCrypt.RandomNameFromOS, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        fs.Read(br);
+                        _ = fs.Read(br);
                 }
                 catch (Exception ex)
                 {

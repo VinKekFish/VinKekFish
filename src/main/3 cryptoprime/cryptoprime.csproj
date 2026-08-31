@@ -16,7 +16,7 @@
 
     <DocumentationFile>cryptoprime.xml</DocumentationFile>
 
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>cryptoprime</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
