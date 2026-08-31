@@ -213,9 +213,14 @@ public partial class Regime_Service
 
         try
         {
+            Console.WriteLine($"{L("Parsing of options")}");
+
             var poResult = ParseOptions(args);
             if (poResult != ProgramErrorCode.success)
+            {
+                Console.WriteLine($"{L("Options is incorrect")}. {DateTime.Now}");
                 return poResult;
+            }
 
             Console.WriteLine($"{L("initialization started at")} {DateTime.Now}");
 
@@ -286,10 +291,12 @@ public partial class Regime_Service
             return ProgramErrorCode.noArgs_Service;
         }
 
+
         try
         {
             var fileString = File.ReadAllLines(args[0]);
             var opt = new Options(new List<string>(fileString));
+
             // Console.WriteLine(opt.ToString());
             options_service = new Options_Service(opt);
 
@@ -298,7 +305,7 @@ public partial class Regime_Service
             UnixStreamPath       = out_random.file;
             UnixStreamPathParams = out_random.fileForParams;
 
-            // Это первое, что пишет программа при запуске
+            // Это одно из первых сообщений, что пишет программа при запуске
             Console.WriteLine("---------------------------------------------");
             Console.WriteLine("---------------------------------------------");
             Console.WriteLine($"UnixStreamPath = {UnixStreamPath!.FullName}");

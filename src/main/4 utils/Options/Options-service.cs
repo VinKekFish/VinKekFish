@@ -64,7 +64,9 @@ public partial class Options_Service
         public virtual void Select()
         {
             foreach (var b in blocks)
+            {
                 SelectBlock(b, GetCanonicalName(b));
+            }
         }
 
         public virtual void Check()

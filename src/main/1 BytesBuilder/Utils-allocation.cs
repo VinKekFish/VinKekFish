@@ -143,6 +143,9 @@ public unsafe static class Memory
         _alloc = AllocHGlobal;
         _free = FreeHGlobal;
 
+        Console.Out  .WriteLine("CRITICAL WARNING: HGlobalAllocator");
+        Console.Error.WriteLine("CRITICAL WARNING: HGlobalAllocator");
+
         memoryLockType = MemoryLockType.incorrect;
     }
 

@@ -52,6 +52,11 @@ public partial class Regime_Service
                 ExecEntorpy_now = DateTime.Now.Ticks;
                 bufferRec = allocator.AllocMemory(MAX_RANDOM_AT_START_FILE_LENGTH);
 
+                if (bufferRec is null)
+                {
+                    throw new Exception("StartEntropy: bufferRec is null.");
+                }
+
                 var sb = new StringBuilder();
                 var eVars = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
                 foreach (DictionaryEntry entry in eVars)

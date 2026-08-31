@@ -200,4 +200,6 @@ Incorrect file: this is either a wrong file, a fake file, an incorrect key, an i
     Некорректный файл. Причина: либо неверный файл, либо поддельный файл, либо неверный ключ, либо неверный порядок ключевых файлов, либо неверное имя алгоритма
 Enter password continuation (simple from keyboard)
     Введите продолжение пароля (просто ввод с клавиатуры)
+Parsing of options
+    Чтение конфигурации
 :

@@ -26,7 +26,7 @@ public unsafe partial class AutoCrypt
         [DllImport("libc.so.6", CallingConvention = CallingConvention.Cdecl)]
         internal static extern uint getegid();
 
-        [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern PosixResult fuse_main_real
         (
                 int argc,

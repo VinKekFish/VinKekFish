@@ -21,7 +21,6 @@ public unsafe static class Glob
         var str8  = Utf8StringMarshaller.ConvertToUnmanaged(pattern);
 
         glob(str8, 0, null, pGlob);
-
         try
         {
             for (int i = 0; i < pGlob->pathCount; i++)
@@ -53,6 +52,12 @@ public unsafe static class Glob
         public nint   pathCount = 0;
         public byte** pathes    = null;   // char **
         public nint   offset    = 0;
+        public nint   gl_flags  = 0;
+        // Это дополнительные поля на случай, если в glob_t появятся дополнительные поля
+        public nint   pad1    = 0;
+        public nint   pad2    = 0;
+        public nint   pad3    = 0;
+        public nint   pad4    = 0;
     }
 
     /// <summary>Выдаёт имена файлов, соответствующие шаблону</summary>

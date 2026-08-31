@@ -20,8 +20,11 @@ public partial class Regime_Service
     {
         lock (entropy_sync)
         {
-            InputEntropyFromSourcesWhile(int.MaxValue, 0);
-            ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
+            if (bufferRec is not null)
+            {
+                InputEntropyFromSourcesWhile(int.MaxValue, 0);
+                ConditionalInputEntropyToMainSponges(nint.MaxValue, true);
+            }
 
             if (IsInitiated)
                 MandatoryWriteCurrentFile();

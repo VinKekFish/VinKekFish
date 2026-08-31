@@ -250,7 +250,7 @@ public unsafe class CuseStream: IDisposable
     }
 
 
-    public const string LibFuseName = "libfuse3.so.3";
+    public const string LibFuseName = "/usr/lib/libfuse3.so";
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe nint cuse_lowlevel_setup(int argc, [In, MarshalAs(UnmanagedType.LPArray)] string[] argv, Cuse_info * cuseInfo, Cuse_lowlevel_ops * ll_ops, int * multithreaded , void * userdata);
     [DllImport(LibFuseName, CallingConvention = CallingConvention.Cdecl)]

@@ -759,6 +759,7 @@ public partial class Options_Service
                     }
                 }
 
+                // Это нигде не используется
                 public class Difference : Element
                 {
                     public enum    DifferenceValue { undefined = 0, yes = 1, no = 2, complex = 4 };

@@ -110,6 +110,11 @@ bash ./b/fbuild.sh
 * [src/main/5 main-crypto/exe/auto/enc.md](Шифрование файлов 4096 битов симметричного шифрования)
 * [src/main/5 main-crypto/exe/auto/disk.md](Шифрование дисков 512 битов)
 
+Для доступа к /dev/vkf/params нужна программа netcat (команда nc).
+Для Arch linux она устанавливается с помощью
+pacman -S openbsd-netcat
+На Debian системах nc обычно уже установлена.
+
 
 # Изменение состава проектов
 

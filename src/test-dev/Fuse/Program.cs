@@ -77,36 +77,36 @@ unsafe class Program
 
 
 
-    [DllImport("libfuse3.so.3", EntryPoint = "fuse_opt_parse", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", EntryPoint = "fuse_opt_parse", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int FuseOptParse(FuseArgs* args, void* data, FuseOpt* opts, FuseOptProc proc);
 
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
     internal static extern PosixResult fuse_main_real(int argc,
         [In, MarshalAs(UnmanagedType.LPArray)] string[] argv,
         FuseOperations * operations, nint operationsSize, nint userData);
 
 
     // int fuse_reply_open(fuse_req_t req, const struct fuse_file_info *fi);
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_reply_open(void * request, fuse_file_info * fileInfo);
 
     // int fuse_reply_buf(fuse_req_t req, const char *buf, size_t size);    
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_reply_buf(void * request, byte * buf, int size);
 
     // int fuse_reply_err(fuse_req_t req, int err)
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_reply_err(void * request, int err);
 
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_session_exit(void * fuse_session);
 
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe int fuse_exit(void * fuse);
 
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe fuse_context * fuse_get_context();
-    [DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("/usr/lib/libfuse3.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern unsafe void * fuse_get_session(fuse_context * context);
 
 
