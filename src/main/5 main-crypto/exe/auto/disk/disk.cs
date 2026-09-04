@@ -120,7 +120,7 @@ public unsafe partial class AutoCrypt
             _LockFile = new ( Path.Combine(DataDir!.FullName, "lock") );
 
             // Параметр -s (однопоточность) очень важен, т.к. bytesFromFile является статическим и не может быть разделён.
-            var A = new string[] {"", "-s", "-f", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", tmpDir!.FullName};
+            var A = new string[] {"vkf", "-s", "-f", "-o", "noexec,nodev,nosuid,auto_unmount,noatime", tmpDir!.FullName};
 
             var pathToCheckFile = Path.Combine(tmpDir!.FullName, vinkekfish_file_name);
             if (File.Exists(pathToCheckFile))

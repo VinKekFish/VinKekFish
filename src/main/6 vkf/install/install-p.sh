@@ -186,6 +186,9 @@ echo
 echo
 sleep 3
 
+# Это спровоцирует ожидание до того момента, пока служба vkf не запустится, если start запустился несинхронно.
+cat /dev/vkf/crandom > /dev/null
+
 systemctl status -l --no-pager vkf > /dev/null
 if [[ $? -ne 0 ]]
 then
