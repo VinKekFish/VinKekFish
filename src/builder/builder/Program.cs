@@ -9,7 +9,7 @@ public partial class Program
     static string   testTags      = "";     // example: "fast mandatory -slow" (можно также разделять запятыми)
     static string   output        = "./build";
     static DateTime now           = DateTime.Now;
-    static bool     no_restore    = true;
+    static bool     no_restore    = false;
     static bool     BuildDotnetIndependenceVersionFlag = true;
     static int Main(string[] args)
     {
